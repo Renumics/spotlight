@@ -1,15 +1,28 @@
-# <img src="https://spotlight.renumics.com/img/spotlight.svg" width="25"> Renumics Spotlight
+<p align="center"><a href="https://spotlight.renumics.com"><img src="https://spotlight.renumics.com/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
+<h1 align="center">Renumics Spotlight</h1>
+<p align="center">Data curation tool for your modular ML stack.</p>
 
-![GitHub](https://img.shields.io/github/license/renumics/spotlight)
+<p align="center">
+	<a href="https://github.com/renumics/spotlight"><img src="https://img.shields.io/github/license/renumics/spotlight" height="20"/></a>    
+ 	<a href="https://github.com/renumics/spotlight"><img src="https://img.shields.io/pypi/pyversions/renumics-spotlight" height="20"/></a>   
+ 	<a href="https://github.com/renumics/spotlight"><img src="https://img.shields.io/pypi/wheel/renumics-spotlight" height="20"/></a>   
+</p>
+
+  <h3 align="center">
+   <a href="https://spotlight.renumics.com"><b>Documentation</b></a> &bull;  
+   <a href="https://spotlight.renumics.com/category/-examples"><b>Examples</b></a> &bull; 
+   <a href="https://renumics.com/blog/"><b>Blog</b></a> &bull; 
+   <a href="https://spotlight.renumics.com/api/spotlight/"><b>API Reference</b></a> 
+ </h3>
+
+
+<p align="center"><a href="https://spotlight.renumics.com"><img src="https://renumics.com/img/spotlight_features.gif" width="100%"/></a><a href="https://spotlight.renumics.com"><img src="https://renumics.com/img/dropShadow.png" width="100%"/></a></p>
+
+
 
  Spotlight helps you to **identify critical data segments and model failure modes**. It enables you to build and maintain reliable machine learning models by **curating high-quality datasets**.
 
 > We are in the process of releasing the core version of Renumics Spotlight on Github und the MIT license. Spotlight is already available on [PyPI](https://pypi.org/project/renumics-spotlight/).
-
-- [Homepage](https://www.renumics.com)
-- [Documentation](https://spotlight.renumics.com)
-- [Github](https://github.com/renumics/spotlight)
-- [Discord](https://discord.gg/VAQdFCU5YD)
 
 
 ## 🚀 Introduction
