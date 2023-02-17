@@ -1,4 +1,4 @@
-<p align="center"><a href="https://spotlight.renumics.com"><img src="https://spotlight.renumics.com/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
+<p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
 <h1 align="center">Renumics Spotlight</h1>
 <p align="center">Data curation tool for your modular ML stack.</p>
 
