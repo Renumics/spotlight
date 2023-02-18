@@ -19,7 +19,7 @@
 
 Spotlight helps you to **identify critical data segments and model failure modes**. It enables you to build and maintain reliable machine learning models by **curating high-quality datasets**.
 
-> We are in the process of releasing the core version of Renumics Spotlight on Github und the MIT license. Spotlight is already available on [PyPI](https://pypi.org/project/renumics-spotlight/).
+> We are in the process of releasing the core version of Renumics Spotlight on Github under the MIT license. Spotlight is already available on [PyPI](https://pypi.org/project/renumics-spotlight/).
 
 ## 🚀 Introduction
 
