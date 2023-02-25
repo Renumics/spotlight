@@ -41,7 +41,7 @@ Get started by installing Spotlight and loading your first dataset.
 pip install renumics-spotlight
 ```
 
-> We recommend installing Spotlight and everything you need to work on your data in a separate [virtual environment](https://docs.python.org/3/tutorial/venv.html)
+> We recommend installing Spotlight and everything you need to work on your data in a separate [virtual environment](https://docs.python.org/3/tutorial/venv.html).
 
 #### Load a dataset and start exploring
 
