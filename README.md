@@ -49,7 +49,7 @@ pip install renumics-spotlight
 import pandas as pd
 from renumics import spotlight
 
-df = pd.read_csv("https://spotlight.renumics.com/data/mnist/mnist.csv")
+df = pd.read_csv("https://spotlight.renumics.com/data/mnist/mnist-tiny.csv")
 spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
 ```
 
