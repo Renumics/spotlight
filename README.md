@@ -4,8 +4,8 @@
 
 <p align="center">
 	<a href="https://github.com/renumics/spotlight"><img src="https://img.shields.io/github/license/renumics/spotlight" height="20"/></a>    
- 	<a href="https://github.com/renumics/spotlight"><img src="https://img.shields.io/pypi/pyversions/renumics-spotlight" height="20"/></a>   
- 	<a href="https://github.com/renumics/spotlight"><img src="https://img.shields.io/pypi/wheel/renumics-spotlight" height="20"/></a>   
+ 	<a href="https://pypi.org/project/renumics-spotlight/"><img src="https://img.shields.io/pypi/pyversions/renumics-spotlight" height="20"/></a>   
+ 	<a href="https://pypi.org/project/renumics-spotlight/"><img src="https://img.shields.io/pypi/wheel/renumics-spotlight" height="20"/></a>   
 </p>
 
   <h3 align="center">
