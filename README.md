@@ -78,7 +78,7 @@ You can adapt Spotlight to your data curation tasks. To get you started quickly,
 
 - [Evaluate Model](https://spotlight.renumics.com/docs/examples/evaluate-model)
 - [Find label inconsistencies](https://spotlight.renumics.com/docs/examples/find-label-inconsistencies)
-- [Find noisy samples](https://spotlight.renumics.com/docs/examples/find-noidy-samples-and-outliers-in-unstructured-data)
+- [Find noisy samples](https://spotlight.renumics.com/docs/examples/find-noisy-samples-and-outliers-in-unstructured-data)
 - [Select features](https://spotlight.renumics.com/docs/examples/feature-selection-for-classification-of-structured-data)
 
 #### Tell us which data curation task is important for your work:
