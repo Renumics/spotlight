@@ -57,7 +57,7 @@ spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embed
 
 `spotlight.show` opens up spotlight in the browser with the pandas dataframe ready for you to explore. The `dtype` argument specifies custom column types for the browser viewer.
 
-#### Load a [Hugging Face](https://huggingface.co/) dataset
+#### Load a [Hugging Face](https://huggingface.co/) image dataset
 
 ```python
 import datasets
@@ -69,6 +69,20 @@ spotlight.show(df, dtype={"image_url": spotlight.Image})
 ```
 
 > The `datasets` package can be installed via pip.
+
+#### Load a [Hugging Face](https://huggingface.co/) audio dataset with embeddings and a pre-defined layout
+
+```python
+import datasets
+from renumics import spotlight
+
+dataset = datasets.load_dataset("renumics/dcase23-task2-enriched", "dev", split="all", streaming=False)
+df = dataset.to_pandas()
+simple_layout = datasets.load_dataset_builder("renumics/dcase23-task2-enriched", "dev").config.get_layout(config="simple")
+spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-audioset-10-10-0.4593": spotlight.Embedding, "embeddings_dcase2023_task2_baseline_ae": spotlight.Embedding}, layout=simple_layout)
+```
+
+> The `datasets[audio]` package can be installed via pip.
 
 ## 🧭 Start by use case
 
