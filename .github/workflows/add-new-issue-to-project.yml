@@ -1,0 +1,17 @@
+# This workflow will add newly created Issues to the Spotlight project
+
+name: Add new issues into Spotlight-No Status
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  automate-project-columns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/Renumics/projects/1
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
