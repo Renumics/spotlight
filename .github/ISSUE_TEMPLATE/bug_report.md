@@ -1,33 +1,33 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Help us improve by submitting a detailed bug report
 title: ''
-labels: ''
+labels: 'bug'
 assignees: ''
 
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+Please provide a clear and concise description of the bug you've encountered.
 
 **To Reproduce**
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
-4. See error
+4. Observe the error
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+Describe what you expected to happen instead of the bug.
 
 **Screenshots**
-If applicable, add screenshots to help explain your problem.
+If possible, include screenshots or screen recordings to better illustrate the issue.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
  - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+ - Browser Version [e.g. 22]
  - Spotlight Version [e.g. 1.0.0]
 
 **Additional context**
-Add any other context about the problem here.
+Provide any additional context or information that could be relevant to understanding the issue.
