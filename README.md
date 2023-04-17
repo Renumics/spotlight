@@ -10,9 +10,9 @@
 
   <h3 align="center">
    <a href="https://spotlight.renumics.com"><b>Documentation</b></a> &bull;  
-   <a href="https://spotlight.renumics.com/category/-examples"><b>Examples</b></a> &bull; 
+   <a href="https://renumics.com/category/-examples"><b>Examples</b></a> &bull; 
    <a href="https://renumics.com/blog/"><b>Blog</b></a> &bull; 
-   <a href="https://spotlight.renumics.com/api/spotlight/"><b>API Reference</b></a> 
+   <a href="https://renumics.com/api/spotlight/"><b>API Reference</b></a> 
  </h3>
 
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_features.gif" width="100%"/></a><a href="https://spotlight.renumics.com"><img src="https://renumics.com/img/dropShadow.png" width="100%"/></a></p>
@@ -49,7 +49,7 @@ pip install renumics-spotlight
 import pandas as pd
 from renumics import spotlight
 
-df = pd.read_csv("https://spotlight.renumics.com/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://renumics.com/docs/data/mnist/mnist-tiny.csv")
 spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
 ```
 
@@ -90,10 +90,10 @@ You can adapt Spotlight to your data curation tasks. To get you started quickly,
 
 #### Get started quickly with our Examples:
 
-- [Evaluate Model](https://spotlight.renumics.com/docs/examples/evaluate-model)
-- [Find label inconsistencies](https://spotlight.renumics.com/docs/examples/find-label-inconsistencies)
-- [Find noisy samples](https://spotlight.renumics.com/docs/examples/find-noisy-samples-and-outliers-in-unstructured-data)
-- [Select features](https://spotlight.renumics.com/docs/examples/feature-selection-for-classification-of-structured-data)
+- [Evaluate Model](https://renumics.com/docs/examples/evaluate-model)
+- [Find label inconsistencies](https://renumics.com/docs/examples/find-label-inconsistencies)
+- [Find noisy samples](https://renumics.com/docs/examples/find-noisy-samples-and-outliers-in-unstructured-data)
+- [Select features](https://renumics.com/docs/examples/feature-selection-for-classification-of-structured-data)
 
 #### Tell us which data curation task is important for your work:
 
