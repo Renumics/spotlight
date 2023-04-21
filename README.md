@@ -10,7 +10,7 @@
 
   <h3 align="center">
    <a href="https://spotlight.renumics.com"><b>Documentation</b></a> &bull;  
-   <a href="https://renumics.com/category/-examples"><b>Examples</b></a> &bull; 
+   <a href="https://renumics.com/docs/examples"><b>Examples</b></a> &bull; 
    <a href="https://renumics.com/blog/"><b>Blog</b></a> &bull; 
    <a href="https://renumics.com/api/spotlight/"><b>API Reference</b></a> 
  </h3>
