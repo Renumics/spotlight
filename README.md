@@ -79,7 +79,7 @@ from renumics import spotlight
 dataset = datasets.load_dataset("renumics/dcase23-task2-enriched", "dev", split="all", streaming=False)
 df = dataset.to_pandas()
 simple_layout = datasets.load_dataset_builder("renumics/dcase23-task2-enriched", "dev").config.get_layout(config="simple")
-spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-audioset-10-10-0.4593": spotlight.Embedding, "embeddings_dcase2023_task2_baseline_ae": spotlight.Embedding}, layout=simple_layout)
+spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-audioset-10-10-0.4593": spotlight.Embedding}, layout=simple_layout)
 ```
 
 > The `datasets[audio]` package can be installed via pip.
