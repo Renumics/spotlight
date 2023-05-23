@@ -19,8 +19,6 @@
 
 Spotlight helps you to **identify critical data segments and model failure modes**. It enables you to build and maintain reliable machine learning models by **curating high-quality datasets**.
 
-> We are in the process of releasing the core version of Renumics Spotlight on Github under the MIT license. Spotlight is already available on [PyPI](https://pypi.org/project/renumics-spotlight/).
-
 ## 🚀 Introduction
 
 Spotlight is built on the idea that you can only **truly understand unstructured datasets** if you can **interactively explore** them. Its core principle is to identify and fix critical data segments by leveraging **data enrichments** (e.g. features, embeddings, uncertainties). Pre-defined templates for typical data curation workflows get you started quickly and connect your stack to the data-centric AI ecosystem.
@@ -33,7 +31,7 @@ Get started by installing Spotlight and loading your first dataset.
 
 #### What you'll need
 
-- [Python](https://www.python.org/downloads/) version 3.7-3.10
+- [Python](https://www.python.org/downloads/) version 3.8-3.10
 
 #### Install Spotlight via [pip](https://packaging.python.org/en/latest/key_projects/#pip)
 

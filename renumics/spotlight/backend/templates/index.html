@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/static/spotlight.svg" />
+        <link rel="stylesheet" href="/static/index.css" />
+        {% if not dev %}
+        <link rel="stylesheet" href="/static/style.css" />
+        {% endif %}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Spotlight</title>
+        {% if dev %}
+        <script type="module">
+            import RefreshRuntime from '{{vite_url}}/@react-refresh';
+            RefreshRuntime.injectIntoGlobalHook(window);
+            window.$RefreshReg$ = () => {};
+            window.$RefreshSig$ = () => (type) => type;
+            window.__vite_plugin_react_preamble_installed__ = true;
+
+            window.__vite__url__ = '{{vite_url}}';
+        </script>
+        <script type="module" src="{{vite_url}}/@vite/client"></script>
+        {% if dev_location == "core" %}
+        <script type="module" src="{{vite_url}}/src/main.tsx"></script>
+        {% else %}
+        <script
+            type="module"
+            src="{{vite_url}}/node_modules/@renumics/spotlight/src/main.tsx"
+        ></script>
+        {% endif %} {% endif %}
+    </head>
+    <body oncontextmenu="return false;">
+        <div id="root"></div>
+        <div id="modalRoot" />
+        <div id="popupRoot" />
+        <div id="selectMenuRoot" />
+        {% if not dev %}
+        <script type="module" src="/static/main.js"></script>
+        {% endif %}
+    </body>
+</html>

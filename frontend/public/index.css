@@ -1,0 +1,37 @@
+* {
+    user-select: none;
+    -webkit-user-select: none; /* Chrome all / Safari all */
+    -moz-user-select: none; /* Firefox all */
+    -ms-user-select: none; /* IE 10+ */
+}
+
+body {
+    overflow: hidden;
+}
+
+div#modalRoot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 0;
+    z-index: 99;
+}
+
+div#popupRoot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 0;
+    z-index: 999;
+}
+
+div#selectMenuRoot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 0;
+    width: 0;
+    z-index: 99999;
+}

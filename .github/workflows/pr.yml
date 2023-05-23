@@ -1,0 +1,42 @@
+name: Pull request
+
+on: pull_request
+
+jobs:
+    # Comment
+    comment-gui-screenshots:
+        name: '🖍 Comment GUI screenshots'
+        permissions:
+            pull-requests: write
+        runs-on: ubuntu-latest
+        env:
+            AZURE_FOLDER_URL: https://spotlightpublic.blob.core.windows.net/github-public/${{ github.repository }}/${{ github.event.pull_request.head.sha }}/screenshots
+        steps:
+            - name: '🖍 Comment GUI screenshots'
+              uses: thollander/actions-comment-pull-request@v2
+              with:
+                  comment_tag: gui-screenshots
+                  pr_number: ${{ github.event.pull_request.number }}
+                  message: |
+                      ### GUI in Chrome
+
+                      ![⏳ CI is still running or has failed](${{ env.AZURE_FOLDER_URL }}/gui-chrome.png "GUI in Chrome")
+
+                      <details>
+                          <summary>Diff to the last main</summary>
+
+                      ![⏳ CI is still running or has failed](${{ env.AZURE_FOLDER_URL }}/gui-chrome-diff.png "GUI diff in Chrome")
+
+                      </details>
+
+                      ### GUI in Firefox
+
+                      ![⏳ CI is still running or has failed](${{ env.AZURE_FOLDER_URL }}/gui-firefox.png "GUI in Firefox")
+
+                      <details>
+                          <summary>Diff to the last main</summary>
+
+                      ![⏳ CI is still running or has failed](${{ env.AZURE_FOLDER_URL }}/gui-firefox-diff.png "GUI diff in Firefox")
+
+                      </details>
+                  reactions: eyes
