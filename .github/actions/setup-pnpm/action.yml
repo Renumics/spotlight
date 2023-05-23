@@ -1,0 +1,28 @@
+name: Setup pnpm
+description: Prepare Node.js and pnpm environment, cache/restore dependencies
+inputs:
+    node-version:
+        description: Node.js version to use
+        default: '19'
+    pnpm-version:
+        description: pnpm version to use
+        default: latest
+    workdir:
+        description: directory to find pnpm-lock.yaml in
+        default: frontend
+runs:
+    using: composite
+    steps:
+        - name: Install pnpm ${{ inputs.pnpm-version }}
+          uses: pnpm/action-setup@v2
+          with:
+              version: ${{ inputs.pnpm-version }}
+        - name: Set up Node.js ${{ inputs.node-version }}
+          uses: actions/setup-node@v3
+          with:
+              node-version: ${{ inputs.node-version }}
+              cache: pnpm
+              cache-dependency-path: ${{ inputs.workdir }}/pnpm-lock.yaml
+        - name: Install pnpm dependencies
+          run: cd ${{ inputs.workdir }} && pnpm install --frozen-lockfile
+          shell: bash

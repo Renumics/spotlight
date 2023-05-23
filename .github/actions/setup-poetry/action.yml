@@ -1,0 +1,46 @@
+name: Setup Poetry
+description: |
+    Prepare Python environment using Poetry, optionally install and
+    cache/restore dependencies
+inputs:
+    python-version:
+        description: Python version to use
+        default: '3.8'
+    install-dependencies:
+        description: Whether to install and cache/restore dependencies
+        default: 'true'
+outputs:
+    package-version:
+        description: Spotlight version
+        value: ${{ steps.get-package-version.outputs.package-version }}
+runs:
+    using: composite
+    steps:
+        - name: Install Poetry
+          run: |
+              pipx install poetry
+              pipx inject poetry poetry-dynamic-versioning
+          shell: bash
+        - name: Set up Python ${{ inputs.python-version }} with cache
+          id: setup-python-with-cache
+          if: inputs.install-dependencies != 'false'
+          uses: actions/setup-python@v4
+          with:
+              python-version: ${{ inputs.python-version }}
+              cache: poetry
+        - name: Set up Python ${{ inputs.python-version }}
+          if: inputs.install-dependencies == 'false'
+          uses: actions/setup-python@v4
+          with:
+              python-version: ${{ inputs.python-version }}
+        - name: Install dependencies
+          if: inputs.install-dependencies != 'false' && steps.setup-python-with-cache.outputs.cache-hit != 'true'
+          run: poetry install --no-interaction
+          shell: bash
+        - name: Get Spotlight version
+          id: get-package-version
+          run: |
+              echo "PIP_CACHE_DIR=$(python -m pip cache dir)" >> $GITHUB_ENV
+              echo "PACKAGE_VERSION=$(poetry version -s)" >> $GITHUB_ENV
+              echo "package-version=$(poetry version -s)" >> $GITHUB_OUTPUT
+          shell: bash

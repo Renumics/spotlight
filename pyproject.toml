@@ -1,0 +1,178 @@
+[tool.poetry]
+name = "renumics-spotlight"
+version = "0.0.0-post.79+34b9509"
+description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
+homepage = "https://spotlight.renumics.com/"
+documentation = "https://spotlight.renumics.com/"
+readme = "README-PyPI.md"
+repository = "https://github.com/renumics/spotlight"
+keywords = ["data curation", "machine learning", "data science", "visualization", "pandas", "ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Manufacturing",
+    "Intended Audience :: Information Technology",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: JavaScript",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Typing :: Typed"
+]
+authors = ["Renumics GmbH <info@renumics.com>"]
+license = "MIT"
+packages = [
+    { include = "renumics", from = "." }
+]
+exclude = []
+
+[tool.poetry.scripts]
+spotlight = "renumics.spotlight.cli:main"
+spotlight-notebook = "renumics.spotlight.notebook.cli:main"
+
+[tool.poetry.dependencies]
+python = ">=3.8, <3.11"
+numpy = "*"
+tqdm = "*"
+loguru = "*"
+fastapi = ">=0.65.2"
+orjson = "*"
+pydantic = "*"
+uvicorn = "*"
+aiofiles = "*"
+click = "*"
+h5py = ">3.0"
+requests = "*"
+umap-learn = "*"
+typing-extensions = "*"
+wsproto = ">=0.14"
+httptools = "*"
+uvloop = [
+    {version = ">=0.17.0", platform = "linux"},
+    {version = ">=0.17.0", platform = "darwin"}
+]
+diskcache = "*"
+appdirs = "*"
+databases = {version = "*", extras=["aiosqlite"]}
+rsa = "*"
+packaging = "*"
+prettytable = "*"
+networkx = "*"
+trimesh = "*"
+imageio = ">=2.18.0"
+notebook = "*"
+pygltflib = ">=1.15.1"
+scikit-learn = "*"
+pandas = "*"
+importlib_resources = "<5.8.0"
+scikit-image = "*"
+imagecodecs = [
+    {version = "*", markers = 'platform_machine != "arm64"'}
+]
+av = "*"
+validators = "*"
+ipywidgets = "*"
+pycatch22 = "*"
+jinja2 = "^3.1.2"
+toml = "^0.10.2"
+pyright = "^1.1.308"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.991"
+types-setuptools = "^57.4.14"
+types-requests = "^2.27.20"
+numpy = "< 1.22"
+black = "^22.3.0"
+pytest = "^7.1.2"
+ipython = "^8.10.0"
+jupyter = "^1.0.0"
+watchdog = "^2.1.7"
+argh = "^0.26.2"
+devpi-client = "^5.2.3"
+check-wheel-contents = "^0.3.4"
+typed-ast = "^1.5.3"
+packaging = "^21.3"
+nbmake = "^1.3.0"
+selenium = "^4.1.3"
+diffimg = "^0.3.0"
+lesscpy = "^0.15.0"
+safety = "^1.10.3"
+pylint = "^2.13.7"
+numba = "<=0.56.0"
+typer = "^0.4.1"
+pre-commit = "^2.19.0"
+certifi = "^2022.6.15"
+types-appdirs = "^1.4.3.1"
+types-tqdm = "^4.64.7.11"
+twine = "^4.0.2"
+pdoc3 = "^0.10.0"
+nptyping = "^2.5.0"
+datasets = "^2.10.1"
+pyright = "^1.1.300"
+types-toml = "^0.10.8.6"
+httpx = "^0.23.0"
+
+[tool.poetry-dynamic-versioning]
+enable = false
+vcs = "git"
+style = "semver"
+
+[tool.poetry-dynamic-versioning.substitution]
+files = [
+    "renumics/spotlight/__version__.py"
+]
+
+[tool.pylint.format]
+max-line-length = 100
+good-names = "df,e,f,i,j,k,x,y,z"
+
+[tool.pylint.master]
+extension-pkg-whitelist = "av"
+ignored-modules= "av"
+
+[tool.pylint.similarities]
+ignore-imports = true
+min-similarity-lines = 12
+
+[tool.mypy]
+ignore_missing_imports = false
+disallow_untyped_defs = true
+explicit_package_bases = true
+mypy_path = "."
+plugins = "pydantic.mypy"
+
+[[tool.mypy.overrides]]
+module = [
+    "pygltflib",
+    "av",
+    "validators",
+    "h5py",
+    "pandas",
+    "trimesh",
+    "diskcache",
+    "umap",
+    "sklearn.*",
+    "notebook.*",
+    "scipy.*",
+    "skimage.*",
+    "lesscpy",
+    "ipywidgets",
+    "dotenv",
+    "pycatch22",
+]
+ignore_missing_imports = true
+
+[tool.check-wheel-contents]
+ignore = [
+    "W002"
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,14 @@
+#ipython_notebook {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#ipython_notebook img {
+    content: url('logo.svg');
+}
+#ipython_notebook:after {
+    content: 'Spotlight Notebook';
+    margin-left: 8px;
+    font-size: 16px;
+    padding-top: 4px;
+}

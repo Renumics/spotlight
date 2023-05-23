@@ -1,0 +1,33 @@
+# IDEs
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# Dev
+data/tables/*
+dev/
+scratch/
+test_install/
+.tool-versions
+.envrc.local
+.DS_Store
+*.log
+
+# Cache
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Spotlight licenses
+*.key
+
+# Datasets
+*.h5
+!data/tables/tallymarks-small.h5
+*.csv
+!data/csv/australian-weather-small.csv
+!data/csv/australian-weather-small-edited.csv

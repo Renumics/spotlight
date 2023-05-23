@@ -1,0 +1,484 @@
+name: CI
+
+on: push
+
+# As long as we use local actions, checkout should be made in workflow before
+# and not in the local actions. Otherwise, no action file found.
+# Checkout with `fetch-depth: 0` is needed by `poetry-dynamic-versioning` to get
+# the right package version.
+# `PACKAGE_VERSION` environment variable is set by the local `setup-poetry`
+# action.
+# `MATRIX` environment variable is set by the local `generate-matrix` action.
+
+jobs:
+    # Prepare stage
+    prepare-python:
+        name: '🐍 Prepare Python'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+    prepare-node:
+        name: '⬢ Prepare Node.js'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '⬢ Set up pnpm environment'
+              uses: ./.github/actions/setup-pnpm
+    # Check stage
+    check-pr:
+        name: '🔍 Check if pull request'
+        permissions:
+            pull-requests: read
+        runs-on: ubuntu-latest
+        steps:
+            - name: '🔍 Check if pull request'
+              id: check-pr
+              uses: 8BitJonny/gh-get-current-pr@2.2.0
+              with:
+                  filterOutClosed: true
+        outputs:
+            is-pr: ${{ steps.check-pr.outputs.pr_found }}
+            number: ${{ steps.check-pr.outputs.number }}
+    check:
+        name: '🔍 Check'
+        needs:
+            - prepare-python
+            - prepare-node
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '⬢ Set up pnpm environment'
+              id: setup
+              uses: ./.github/actions/setup-pnpm
+            - name: Run shellcheck
+              if: success() || steps.setup.outcome == 'success'
+              uses: ludeeus/action-shellcheck@master
+              with:
+                  ignore_paths: .venv node_modules
+            - name: Audit dependencies
+              if: success() || steps.setup.outcome == 'success'
+              run: make audit
+            - name: Check code formatting
+              if: success() || steps.setup.outcome == 'success'
+              run: make check-format
+            - name: Check code types
+              if: success() || steps.setup.outcome == 'success'
+              run: make typecheck
+            - name: Lint code
+              if: success() || steps.setup.outcome == 'success'
+              run: make lint
+    # Build stage
+    build-test-matrix:
+        name: '🧱 Build test matrix'
+        needs:
+            - check-pr
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+            - name: '🧱 Build test matrix for pull request'
+              if: needs.check-pr.outputs.is-pr == 'true'
+              uses: druzsan/setup-matrix@v1
+              with:
+                  matrix: |
+                      os: ubuntu-latest,
+                      python-version: 3.8 3.9 3.10
+            - name: '🧱 Build test matrix for release'
+              if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
+              uses: druzsan/setup-matrix@v1
+              with:
+                  matrix: |
+                      os: ubuntu-latest windows-latest macos-latest,
+                      python-version: 3.8 3.9 3.10
+            - name: '🧱 Build test matrix for main branch'
+              if: env.MATRIX == '' && github.ref == 'refs/heads/main'
+              uses: druzsan/setup-matrix@v1
+              with:
+                  matrix: |
+                      os: ubuntu-latest,
+                      python-version: 3.8 3.9 3.10
+                  include: |
+                      os: windows-latest python-version: 3.8,
+                      os: macos-latest python-version: 3.8
+            - name: '🧱 Build test matrix for development branch'
+              if: env.MATRIX == ''
+              uses: druzsan/setup-matrix@v1
+              with:
+                  matrix: |
+                      os: ubuntu-latest,
+                      python-version: 3.8
+            - name: Print matrix
+              run: echo "$MATRIX" | yq -P '{"matrix":.}'
+            - name: Set output
+              id: set-matrix
+              run: echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+        outputs:
+            matrix: ${{ steps.set-matrix.outputs.matrix }}
+    build-docs:
+        name: '📝 Build API docs'
+        needs:
+            - prepare-python
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '📝 Build API docs'
+              run: make docs
+            - name: '📥 Store API docs'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: docs-${{ env.PACKAGE_VERSION }}
+                  path: build/docs/api/
+                  if-no-files-found: error
+    build-datasets:
+        name: '🗃 Build datasets'
+        needs:
+            - prepare-python
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '🗃 Build datasets'
+              if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/v')
+              run: make datasets
+            - name: '🗃🗃 Build all datasets'
+              if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+              run: make all-datasets
+            - name: '📥 Store datasets'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  path: build/datasets/
+                  if-no-files-found: error
+
+    build-spotlight:
+        name: '🧱 Build Spotlight'
+        needs:
+            - prepare-python
+            - prepare-node
+        runs-on: ubuntu-latest
+        env:
+            GENERATE_SOURCEMAP: false
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry'
+              uses: ./.github/actions/setup-poetry
+              with:
+                  install-dependencies: false
+            - name: '⬢ Set up pnpm environment'
+              uses: ./.github/actions/setup-pnpm
+            - name: '🧱 Build frontend'
+              run: make build-frontend
+            - name: '📥 Store frontend'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: .frontend-${{ env.PACKAGE_VERSION }}
+                  path: build/frontend/
+                  if-no-files-found: error
+            - name: Build Spotlight
+              run: make build-wheel
+            - name: '📥 Store Spotlight'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  path: build/dist/renumics_spotlight*.whl
+                  if-no-files-found: error
+
+    # Test stage
+    check-wheel-contents:
+        name: '🔍 Check wheel contents'
+        needs:
+            - build-spotlight
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '📤 Restore Spotlight Wheel'
+              uses: actions/download-artifact@v3
+              with:
+                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  path: build/dist
+            - name: Check wheel contents
+              run: make check-wheel
+    unit-test:
+        name: '🧪 Unit-test'
+        needs:
+            - prepare-python
+            - prepare-node
+            - build-datasets
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '⬢ Set up pnpm environment'
+              uses: ./.github/actions/setup-pnpm
+            - name: '📤 Restore datasets'
+              uses: actions/download-artifact@v3
+              with:
+                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  path: build/datasets/
+            - name: Execute unit-test
+              run: make unit-test
+    api-test:
+        name: '🧪 Test API'
+        needs:
+            - prepare-python
+            - prepare-node
+            - build-spotlight
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '⬢ Set up pnpm environment'
+              uses: ./.github/actions/setup-pnpm
+            - name: '📤 Restore pro frontend'
+              uses: actions/download-artifact@v3
+              with:
+                  name: .frontend-${{ env.PACKAGE_VERSION }}
+                  path: build/frontend/
+            - name: Test API
+              run: make api-test
+    ui-test:
+        name: '🧪 Test UI'
+        needs:
+            - prepare-python
+            - build-datasets
+            - build-spotlight
+        strategy:
+            fail-fast: false
+            matrix:
+                browser:
+                    - chrome
+                    - firefox
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '📤 Restore datasets'
+              uses: actions/download-artifact@v3
+              with:
+                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  path: build/datasets/
+            - name: '📤 Restore pro frontend'
+              uses: actions/download-artifact@v3
+              with:
+                  name: .frontend-${{ env.PACKAGE_VERSION }}
+                  path: build/frontend/
+            - name: '🎨 Set up Chrome driver'
+              if: matrix.browser == 'chrome'
+              id: setup-chromedriver
+              uses: nanasess/setup-chromedriver@v1
+            - name: '🦊 Set up Gecko driver'
+              id: setup-geckodriver
+              if: matrix.browser == 'firefox'
+              run: |
+                  curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest \
+                  | jq -r '.assets | map(select(.name | test("^geckodriver-v.*-linux64.tar.gz$")))[0].browser_download_url' \
+                  | xargs wget -O ${{ runner.temp }}/geckodriver.tar.gz
+                  tar -xzf ${{ runner.temp }}/geckodriver.tar.gz -C /usr/local/bin/
+            - name: Download screenshots of the last commit on main
+              continue-on-error: true
+              env:
+                  AZURE_FOLDER_URL: https://spotlightpublic.blob.core.windows.net/github-public/${{ github.repository }}
+              run: |
+                  MAIN_COMMITS="$(curl -L \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
+                      -H "X-GitHub-Api-Version: 2022-11-28" \
+                      https://api.github.com/repos/${{ github.repository }}/commits)"
+                  INDEX=$([ "$GITHUB_REF" = "refs/heads/main" ] && echo 1 || echo 0)
+                  COMMIT_SHA=$(echo "$MAIN_COMMITS" | jq -r ".[$INDEX].sha")
+                  mkdir -p build/ui_tests/old-screenshots
+                  cd build/ui_tests/old-screenshots
+                  curl -fLO ${AZURE_FOLDER_URL}/${COMMIT_SHA}/screenshots/gui-${{ matrix.browser }}.png
+            - name: '🍱 Test UI on ${{ matrix.browser }}'
+              run: make ui-test-${{ matrix.browser }}
+            - name: Prepare GUI screenshots
+              if: |
+                  success()
+                  || steps.setup-chromedriver.outcome == 'success'
+                  || steps.setup-geckodriver.outcome == 'success'
+              run: |
+                  mkdir -p build/upload/screenshots
+                  cp build/ui_tests/screenshots/gui*.png build/upload/screenshots
+                  if [ "$GITHUB_REF" = "refs/heads/main" ]
+                  then
+                      touch build/upload/screenshots/.is-main
+                  fi
+            - name: '📸 Upload GUI screenshots'
+              if: |
+                  success()
+                  || steps.setup-chromedriver.outcome == 'success'
+                  || steps.setup-geckodriver.outcome == 'success'
+              uses: LanceMcCarthy/Action-AzureBlobUpload@v2
+              with:
+                  connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
+                  container_name: github-public
+                  source_folder: build/upload/screenshots
+                  destination_folder: ${{ github.repository }}/${{ github.sha }}/screenshots
+                  delete_if_exists: true
+            - name: '📥 Store UI test on ${{ matrix.browser }} results'
+              if: |
+                  success()
+                  || steps.setup-chromedriver.outcome == 'success'
+                  || steps.setup-geckodriver.outcome == 'success'
+              uses: actions/upload-artifact@v3
+              with:
+                  name: .ui-test-${{ env.PACKAGE_VERSION }}
+                  path: build/ui_tests
+                  if-no-files-found: error
+    test-install:
+        name: '🧪 Test installation'
+        needs:
+            - prepare-python
+            - build-test-matrix
+            - build-datasets
+            - build-spotlight
+        strategy:
+            fail-fast: false
+            matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry'
+              uses: ./.github/actions/setup-poetry
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  install-dependencies: false
+            - name: Cache pip cache folder
+              uses: actions/cache@v3
+              with:
+                  path: ${{ env.PIP_CACHE_DIR }}
+                  key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
+            - name: '📤 Restore pro Spotlight'
+              uses: actions/download-artifact@v3
+              with:
+                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  path: build/dist
+            - name: '📤 Restore datasets'
+              uses: actions/download-artifact@v3
+              with:
+                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  path: build/datasets/
+            - name: Upgrade system packages
+              run: python -m pip install --upgrade pip setuptools wheel
+            - name: Install packages for testing
+              run: python -m pip install pytest "httpx>=0.22.0"
+            - name: Install pro Spotlight
+              id: setup
+              run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ env.PACKAGE_VERSION }}
+            - name: Test Spotlight start (Windows)
+              if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
+              run: ./scripts/Test-SpotlightStart.ps1
+            - name: Test Spotlight start (Ubuntu, MacOS)
+              if: runner.os != 'Windows' && (success() || steps.setup.outcome == 'success')
+              run: |
+                  function teardown {
+                      while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
+                  }
+                  trap teardown EXIT
+                  PORT="5005"
+                  spotlight --host 127.0.0.1 --port $PORT --no-browser data/tables/tallymarks-small.h5 &
+                  URL="http://127.0.0.1:${PORT}"
+                  wget -t20 -w0.5 --retry-connrefused --delete-after $URL
+                  sleep 0.5
+                  GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
+                  wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
+            - name: Test Spotlight Notebook start (Windows)
+              if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
+              run: ./scripts/Test-SpotlightNotebookStart.ps1
+            - name: Test Spotlight Notebook start (Ubuntu, MacOS)
+              if: runner.os != 'Windows' && (success() || steps.setup.outcome == 'success')
+              run: |
+                  function teardown {
+                      rm -f output.log
+                  }
+                  trap teardown EXIT
+                  # kill -INT (s. start-spotlight-test) somehow does not work in CI, so we use timeout.
+                  timeout 20 spotlight-notebook -y --no-browser |& tee output.log &
+                  GREP_PATTERN='http://127.0.0.1:\S*'
+                  for i in {1..20}; do sleep 0.5; grep -qom1 $GREP_PATTERN output.log && break; done
+                  wget -w1 --delete-after "$(grep -om1 $GREP_PATTERN output.log)"
+            - name: Execute unit-test
+              if: success() || steps.setup.outcome == 'success'
+              run: pytest --ignore=frontend
+    # Release stage
+    release:
+        name: '🚀 Release Spotlight'
+        if: startsWith(github.ref, 'refs/tags/v')
+        needs:
+            - prepare-python
+            - prepare-node
+            - check-pr
+            - check
+            - build-test-matrix
+            - build-docs
+            - build-datasets
+            - build-spotlight
+            - check-wheel-contents
+            - unit-test
+            - api-test
+            - ui-test
+            - test-install
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+              with:
+                  install-dependencies: false
+            - name: '📤 Restore core Spotlight'
+              uses: actions/download-artifact@v3
+              with:
+                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  path: dist
+            - name: '🚀 Publish Spotlight to PyPI'
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  password: ${{ secrets.PYPI_API_TOKEN }}
