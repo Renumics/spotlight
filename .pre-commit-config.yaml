@@ -1,0 +1,63 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    # local hooks
+    - repo: local
+      hooks:
+          - id: pylint
+            name: pylint
+            entry: poetry run pylint
+            language: system
+            types: [python]
+            require_serial: true
+          - id: mypy
+            name: mypy
+            entry: poetry run mypy
+            language: system
+            types: [python]
+            files: ^(renumics|scripts)/
+            require_serial: true
+
+    # "official" pre-commit hooks
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.4.0
+      hooks:
+          - id: trailing-whitespace
+            exclude: \.secret\.
+          - id: end-of-file-fixer
+            exclude: \.secret\.
+          - id: check-added-large-files
+          - id: check-merge-conflict
+          - id: check-executables-have-shebangs
+          - id: check-yaml
+            exclude: (\.secret\.)|(^\.github/.*\.yml)
+          - id: check-json
+          - id: check-toml
+          - id: check-symlinks
+
+    # third-pary hooks
+    - repo: https://github.com/psf/black
+      rev: 23.1.0
+      hooks:
+          - id: black
+          - id: black-jupyter
+    - repo: https://github.com/pre-commit/mirrors-prettier
+      rev: v2.7.1
+      hooks:
+          - id: prettier
+            exclude: (\.secret\.)|(pnpm-lock.yaml)
+    - repo: https://github.com/pre-commit/mirrors-eslint
+      rev: v8.34.0
+      hooks:
+          - id: eslint
+            files: frontend
+    - repo: https://github.com/python-jsonschema/check-jsonschema
+      rev: 0.21.0
+      hooks:
+          - id: check-github-actions
+          - id: check-github-workflows
+    - repo: https://github.com/jumanjihouse/pre-commit-hooks
+      rev: 3.0.0
+      hooks:
+          - id: shellcheck
+          - id: shfmt
