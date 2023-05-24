@@ -31,3 +31,6 @@ __pycache__/
 *.csv
 !data/csv/australian-weather-small.csv
 !data/csv/australian-weather-small-edited.csv
+
+#venv
+.venv/
