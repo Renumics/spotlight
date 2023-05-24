@@ -82,16 +82,24 @@ spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-aud
 
 > The `datasets[audio]` package can be installed via pip.
 
-## 🧭 Start by use case
+## 🧭 Start with example workflows
 
-You can adapt Spotlight to your data curation tasks. To get you started quickly, we are continuously developing pre-defined recipes for common workflows.
+You can adapt Spotlight to your data curation tasks. To get you started quickly, we are continuously developing pre-defined plays for common workflows.
 
-#### Get started quickly with our Examples:
+#### Rookie plays
 
-- [Evaluate Model](https://renumics.com/docs/examples/evaluate-model)
-- [Find label inconsistencies](https://renumics.com/docs/examples/find-label-inconsistencies)
-- [Find noisy samples](https://renumics.com/docs/examples/find-noisy-samples-and-outliers-in-unstructured-data)
-- [Select features](https://renumics.com/docs/examples/feature-selection-for-classification-of-structured-data)
+- [Create embeddings with Huggingface](/docs/playbook/huggingface-embedding)
+- [Create embeddings with towhee](/docs/playbook/towhee-embedding)
+- [Extract decision boundary based on probability ratios](/docs/playbook/decision-boundary)
+
+#### Veteran plays
+
+- [Detect duplicates with Annoy](/docs/playbook/duplicates-annoy)
+- [Detect leakage with Annoy](/docs/playbook/leakage-annoy)
+- [Detect data drift](/docs/playbook/drift-kcore)
+- [Detect label errors](/docs/playbook/label-errors-cleanlab)
+- [Detect outliers](/docs/playbook/outliers-cleanlab)
+- [Detect image error patterns](/docs/playbook/cv-issues)
 
 #### Tell us which data curation task is important for your work:
 
