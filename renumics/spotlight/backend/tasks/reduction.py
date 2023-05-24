@@ -11,7 +11,6 @@ from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.dtypes import Category, Embedding
 from ..data_source import DataSource
 
-
 SEED = 42
 
 
@@ -21,6 +20,7 @@ def get_aligned_data(
     """
     Align data from table's columns, remove `NaN`'s.
     """
+
     if not column_names or not indices:
         return np.empty(0, np.float64), []
     columns = [table.get_column(column_name, indices) for column_name in column_names]
@@ -76,11 +76,10 @@ def compute_umap(
 
     import umap
 
-    reducer = umap.UMAP(
+    embeddings = umap.UMAP(
         n_neighbors=n_neighbors, metric=metric, min_dist=min_dist, random_state=SEED
-    )
-    embeddings = cast(np.ndarray, reducer.fit_transform(data))
-    return embeddings, indices
+    ).fit_transform(data)
+    return cast(np.ndarray, embeddings), indices
 
 
 def compute_pca(
