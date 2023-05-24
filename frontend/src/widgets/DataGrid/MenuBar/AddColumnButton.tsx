@@ -6,7 +6,7 @@ import NeedsUpgradeButton from '../../../components/ui/NeedsUpgradeButton';
 const AddColumnButton: FunctionComponent = () => {
     return (
         <div data-test-tag="datagrid-add-column-button">
-            <NeedsUpgradeButton>
+            <NeedsUpgradeButton tooltip="Add Column">
                 <AddColumnIcon />
             </NeedsUpgradeButton>
         </div>
