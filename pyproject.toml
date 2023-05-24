@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "renumics-spotlight"
-version = "0.0.0-post.79+34b9509"
+version = "0.0.0"
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
 homepage = "https://spotlight.renumics.com/"
 documentation = "https://spotlight.renumics.com/"
@@ -119,7 +119,7 @@ types-toml = "^0.10.8.6"
 httpx = "^0.23.0"
 
 [tool.poetry-dynamic-versioning]
-enable = false
+enable = true
 vcs = "git"
 style = "semver"
 
@@ -174,5 +174,5 @@ ignore = [
 ]
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=0.22.0"]
+build-backend = "poetry_dynamic_versioning.backend"
