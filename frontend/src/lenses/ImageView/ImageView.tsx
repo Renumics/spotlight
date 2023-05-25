@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
 import tw, { styled } from 'twin.macro';
-import { View } from '../types';
+import { Lens } from '../types';
 import MenuBar from './MenuBar';
 
 import 'cropperjs/dist/cropper.css';
@@ -22,7 +22,7 @@ interface ResponsiveCropper extends Cropper {
     onResize?: () => void;
 }
 
-const ImageView: View = ({ url }) => {
+const ImageView: Lens = ({ url }) => {
     const viewer = useRef<ReactCropperElement>(null);
     const container = useRef<HTMLDivElement>(null);
 

@@ -1,5 +1,5 @@
 import { DataType } from '../datatypes';
-import { View } from './types';
+import { Lens } from './types';
 import AudioView from './AudioView';
 import ImageView from './ImageView';
 import MeshView from './MeshView';
@@ -10,14 +10,14 @@ import VideoView from './VideoView';
 
 export type ViewKey = string;
 interface Registry {
-    views: Record<ViewKey, View>;
+    views: Record<ViewKey, Lens>;
     keys: string[];
     findCompatibleViews(types: DataType[], canEdit: boolean): string[];
-    register(lens: View): void;
+    register(lens: Lens): void;
 }
 
 export function isViewCompatible(
-    view: View,
+    view: Lens,
     types: DataType[],
     canEdit: boolean
 ): boolean {

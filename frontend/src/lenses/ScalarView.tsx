@@ -1,8 +1,8 @@
 import 'twin.macro';
 import ScalarValue from '../components/ScalarValue';
-import { View } from './types';
+import { Lens } from './types';
 
-const ScalarView: View = ({ value, column }) => {
+const ScalarView: Lens = ({ value, column }) => {
     return (
         <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
             <ScalarValue value={value} column={column} />

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import tw, { styled, theme } from 'twin.macro';
 import { default as WaveSurfer, default as WebAudio } from 'wavesurfer.js';
 import { ColorsState, useColors } from '../../stores/colors';
-import { View } from '../types';
+import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType } from './Spectrogram';
@@ -80,7 +80,7 @@ const drawScale = (
         .attr('color', theme`colors.white`);
 };
 
-const SpectrogramView: View = ({ columns, urls, values }) => {
+const SpectrogramView: Lens = ({ columns, urls, values }) => {
     const windowIndex = columns.findIndex((col) => col.type.kind === 'Window');
     const audioIndex = columns.findIndex((col) => col.type.kind === 'Audio');
     const window = values[windowIndex] as [number, number] | undefined;

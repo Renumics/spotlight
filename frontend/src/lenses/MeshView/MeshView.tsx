@@ -8,7 +8,7 @@ import { ViewerState } from '../../components/GltfViewer/GltfViewer';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ColorsState, useColors } from '../../stores/colors';
 import tw from 'twin.macro';
-import { View } from '../types';
+import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 
@@ -20,7 +20,7 @@ const palettesSelector = (c: ColorsState) => ({
     constantPalette: c.constantPalette,
 });
 
-const MeshView: View = ({ values, syncKey }) => {
+const MeshView: Lens = ({ values, syncKey }) => {
     const meshData = values[0] as ArrayBuffer;
 
     const [colorAttributeName, setColorAttributeName] = useSetting(
