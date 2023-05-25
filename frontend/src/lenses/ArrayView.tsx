@@ -1,8 +1,8 @@
 import 'twin.macro';
-import { View } from './types';
+import { Lens } from './types';
 import dataformat from '../dataformat';
 
-const ArrayView: View = ({ value }) => {
+const ArrayView: Lens = ({ value }) => {
     const array = value as Array<number>;
 
     return (
