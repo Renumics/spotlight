@@ -1,6 +1,6 @@
 import { isAudio } from '../datatypes';
 import { useEffect, useState } from 'react';
-import { View } from './types';
+import { Lens } from './types';
 import AudioViewer from '../components/shared/AudioViewer';
 import { useDataset } from '../stores/dataset';
 import api from '../api';
@@ -11,7 +11,7 @@ async function fetchWaveform(row: number, column: string): Promise<number[]> {
     return waveform;
 }
 
-const AudioView: View = ({ rowIndex, columns, urls, values }) => {
+const AudioView: Lens = ({ rowIndex, columns, urls, values }) => {
     const windowIndex = columns.findIndex((col) => col.type.kind === 'Window');
     const audioIndex = columns.findIndex((col) => col.type.kind === 'Audio');
     const window = values[windowIndex] as [number, number] | undefined;

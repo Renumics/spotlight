@@ -1,7 +1,7 @@
 import { DataType } from '../datatypes';
 import { DataColumn } from '../types';
 
-export interface ViewProps<T = unknown> {
+export interface LensProps<T = unknown> {
     value: T;
     values: T[];
     column: DataColumn;
@@ -12,7 +12,7 @@ export interface ViewProps<T = unknown> {
     syncKey?: string;
 }
 
-interface ViewAttributes {
+interface LensAttributes {
     displayName: string;
     key?: string;
     dataTypes: DataType['kind'][];
@@ -27,4 +27,4 @@ interface ViewAttributes {
     ) => DataColumn[];
     isSatisfied?: (columns: DataColumn[]) => boolean;
 }
-export type View<T = unknown> = React.FunctionComponent<ViewProps<T>> & ViewAttributes;
+export type Lens<T = unknown> = React.FunctionComponent<LensProps<T>> & LensAttributes;
