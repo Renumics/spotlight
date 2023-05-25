@@ -1,23 +1,23 @@
 import { DataType } from '../datatypes';
 import { Lens } from './types';
-import AudioView from './AudioView';
-import ImageView from './ImageView';
-import MeshView from './MeshView';
-import ScalarView from './ScalarView';
-import ArrayView from './ArrayView';
-import SequenceView from './SequenceView';
-import SpectrogramView from './SpectrogramView';
-import VideoView from './VideoView';
+import AudioLens from './AudioLens';
+import ImageLens from './ImageLens';
+import MeshLens from './MeshLens';
+import ScalarLens from './ScalarLens';
+import ArrayLens from './ArrayLens';
+import SequenceLens from './SequenceLens';
+import SpectrogramLens from './SpectrogramLens';
+import VideoLens from './VideoLens';
 
-export type ViewKey = string;
+export type LensKey = string;
 interface Registry {
-    views: Record<ViewKey, Lens>;
+    views: Record<LensKey, Lens>;
     keys: string[];
     findCompatibleViews(types: DataType[], canEdit: boolean): string[];
     register(lens: Lens): void;
 }
 
-export function isViewCompatible(
+export function isLensCompatible(
     view: Lens,
     types: DataType[],
     canEdit: boolean
@@ -32,21 +32,21 @@ export function isViewCompatible(
 
 const registry: Registry = {
     views: {
-        AudioView,
-        SpectrogramView,
-        VideoView,
-        ImageView,
-        MeshView,
-        ScalarView,
-        SequenceView,
-        ArrayView,
+        AudioView: AudioLens,
+        SpectrogramView: SpectrogramLens,
+        VideoView: VideoLens,
+        ImageView: ImageLens,
+        MeshView: MeshLens,
+        ScalarView: ScalarLens,
+        SequenceView: SequenceLens,
+        ArrayLens,
     },
     get keys() {
         return Object.keys(this.views);
     },
     findCompatibleViews(types, canEdit) {
         return Object.keys(this.views).filter((viewName) =>
-            isViewCompatible(this.views[viewName], types, canEdit)
+            isLensCompatible(this.views[viewName], types, canEdit)
         );
     },
     register(lens) {

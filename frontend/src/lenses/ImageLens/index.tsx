@@ -22,7 +22,7 @@ interface ResponsiveCropper extends Cropper {
     onResize?: () => void;
 }
 
-const ImageView: Lens = ({ url }) => {
+const ImageLens: Lens = ({ url }) => {
     const viewer = useRef<ReactCropperElement>(null);
     const container = useRef<HTMLDivElement>(null);
 
@@ -66,8 +66,8 @@ const ImageView: Lens = ({ url }) => {
     );
 };
 
-ImageView.dataTypes = ['Image'];
-ImageView.displayName = 'Image';
-ImageView.defaultHeight = 256;
+ImageLens.dataTypes = ['Image'];
+ImageLens.displayName = 'Image';
+ImageLens.defaultHeight = 256;
 
-export default ImageView;
+export default ImageLens;

@@ -7,12 +7,13 @@ import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
 import { DataColumn } from '../types';
 import { notifyAPIError } from '../notify';
-import ViewContext from './ViewContext';
-import registry, { ViewKey, isViewCompatible } from './registry';
+import LensContext from './LensContext';
+import registry, { LensKey, isLensCompatible } from './registry';
 import useCellValues from './useCellValue';
+import None from './None';
 
 interface Props {
-    view: ViewKey;
+    view: LensKey;
     columns: DataColumn[];
     rowIndex: number;
     syncKey: string;
@@ -94,26 +95,30 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     if (problem) return <Info>Failed to load value!</Info>;
     if (!values || !urls) return <LoadingIndicator delay={100} />;
     if (!ViewComponent) return <Info>View not found ({view})!</Info>;
-    if (!isViewCompatible(ViewComponent, types, allEditable))
+    if (!isLensCompatible(ViewComponent, types, allEditable))
         return <Info>Incompatible View ({view})</Info>;
 
     const context = { syncKey };
 
     return (
-        <ViewContext.Provider value={context}>
+        <LensContext.Provider value={context}>
             <ErrorBoundary fallbackRender={fallbackRenderer}>
-                <ViewComponent
-                    url={urls[0]}
-                    urls={urls}
-                    value={values[0]}
-                    values={values}
-                    column={columns[0]}
-                    columns={columns}
-                    rowIndex={rowIndex}
-                    syncKey={syncKey}
-                />
+                {values[0] == null ? (
+                    <None />
+                ) : (
+                    <ViewComponent
+                        url={urls[0]}
+                        urls={urls}
+                        value={values[0]}
+                        values={values}
+                        column={columns[0]}
+                        columns={columns}
+                        rowIndex={rowIndex}
+                        syncKey={syncKey}
+                    />
+                )}
             </ErrorBoundary>
-        </ViewContext.Provider>
+        </LensContext.Provider>
     );
 };
 
