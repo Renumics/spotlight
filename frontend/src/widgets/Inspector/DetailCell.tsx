@@ -1,4 +1,4 @@
-import ViewFactory from '../../lenses/ViewFactory';
+import LensFactory from '../../lenses/LensFactory';
 import { FunctionComponent, memo, useCallback, useContext, useMemo } from 'react';
 import { areEqual } from 'react-window';
 import type { GridChildComponentProps as CellProps } from 'react-window';
@@ -85,7 +85,7 @@ const Cell: FunctionComponent<Props> = ({
             onMouseLeave={onMouseLeave}
         >
             {columns.length ? (
-                <ViewFactory
+                <LensFactory
                     view={view.view}
                     rowIndex={originalIndex}
                     columns={columns}

@@ -1,7 +1,7 @@
-import { ViewKey } from '../../lenses/registry';
+import { LensKey } from '../../lenses/registry';
 
 export interface ViewConfig {
-    view: ViewKey;
+    view: LensKey;
     key: string;
     name: string;
     columns: string[];

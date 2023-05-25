@@ -20,7 +20,7 @@ const palettesSelector = (c: ColorsState) => ({
     constantPalette: c.constantPalette,
 });
 
-const MeshView: Lens = ({ values, syncKey }) => {
+const MeshLens: Lens = ({ values, syncKey }) => {
     const meshData = values[0] as ArrayBuffer;
 
     const [colorAttributeName, setColorAttributeName] = useSetting(
@@ -144,8 +144,8 @@ const MeshView: Lens = ({ values, syncKey }) => {
     );
 };
 
-MeshView.displayName = '3D Viewer';
-MeshView.dataTypes = ['Mesh'];
-MeshView.defaultHeight = 256;
+MeshLens.displayName = '3D Viewer';
+MeshLens.dataTypes = ['Mesh'];
+MeshLens.defaultHeight = 256;
 
-export default MeshView;
+export default MeshLens;
