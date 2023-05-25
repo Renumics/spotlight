@@ -4,6 +4,7 @@ import AudioView from './AudioView';
 import ImageView from './ImageView';
 import MeshView from './MeshView';
 import ScalarView from './ScalarView';
+import ArrayView from './ArrayView';
 import SequenceView from './SequenceView';
 import SpectrogramView from './SpectrogramView';
 import VideoView from './VideoView';
@@ -38,6 +39,7 @@ const registry: Registry = {
         MeshView,
         ScalarView,
         SequenceView,
+        ArrayView,
     },
     get keys() {
         return Object.keys(this.views);
