@@ -117,7 +117,6 @@ def main(
         layout=layout,
         no_browser=no_browser,
         wait=False,
-        log_level="info",
     )
 
     signal.signal(signal.SIGINT, _sigint_handler)
