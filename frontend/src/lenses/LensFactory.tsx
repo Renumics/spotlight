@@ -47,10 +47,6 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
     const [values, problem] = useCellValues(rowIndex, columnKeys);
 
-    useEffect(() => {
-        if (problem) notifyAPIError(problem);
-    }, [problem]);
-
     const ViewComponent = registry.views[view];
 
     const urls = useMemoWithPrevious(
