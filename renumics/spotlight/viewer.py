@@ -100,11 +100,8 @@ class Viewer:
         self,
         host: str = "127.0.0.1",
         port: Union[int, Literal["auto"]] = "auto",
-        log_level: Union[
-            int, Literal["trace", "debug", "info", "warning", "error", "critical"]
-        ] = "critical",
     ) -> None:
-        self._server = create_server(host, port, log_level=log_level)
+        self._server = create_server(host, port)
         self._thread = None
         if settings.dev:
             self._vite = Vite()
@@ -138,9 +135,6 @@ class Viewer:
                 If "auto" (default), choose the mode automatically: non-blocking for
                 `jupyter notebook`, `ipython` and other interactive sessions;
                 blocking for scripts.
-            log_level: optional log level to use in Spotlight server. In notebooks,
-                server's output will be printed in the last visited cell, so low log
-                levels can be confusing.
             dtype: Optional dict with mapping `column name -> column type` with
                 column types allowed by Spotlight (for dataframes only).
         """
@@ -336,9 +330,6 @@ def show(
     layout: Optional[_LayoutLike] = None,
     no_browser: bool = False,
     wait: Union[bool, Literal["auto"]] = "auto",
-    log_level: Union[
-        int, Literal["trace", "debug", "info", "warning", "error", "critical"]
-    ] = "critical",
     dtype: Optional[Dict[str, Type[ColumnType]]] = None,
 ) -> Viewer:
     """
@@ -356,9 +347,6 @@ def show(
             If "auto" (default), choose the mode automatically: non-blocking for
             `jupyter notebook`, `ipython` and other interactive sessions;
             blocking for scripts.
-        log_level: optional log level to use in Spotlight server. In notebooks,
-            server's output will be printed in the last visited cell, so low log
-            levels can be confusing.
         dtype: Optional dict with mapping `column name -> column type` with
             column types allowed by Spotlight (for dataframes only).
     """
@@ -371,7 +359,7 @@ def show(
                 viewer = _VIEWERS[index]
                 break
     if not viewer:
-        viewer = Viewer(host, port, log_level=log_level)
+        viewer = Viewer(host, port)
 
     viewer.show(
         dataset_or_folder, layout=layout, no_browser=no_browser, wait=wait, dtype=dtype
