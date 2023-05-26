@@ -63,14 +63,14 @@ from renumics.spotlight.webbrowser import launch_browser_in_thread
 from renumics.spotlight.dataset import ColumnType
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.backend.server import create_server, Server
-from renumics.spotlight.backend.websockets import RefreshMessage
+from renumics.spotlight.backend.websockets import RefreshMessage, ResetLayoutMessage
 from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.develop.vite import Vite
 from renumics.spotlight.settings import settings
 
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
-from renumics.spotlight.typing import is_pathtype
+from renumics.spotlight.typing import PathType, is_pathtype
 
 
 class ViewerNotFoundError(Exception):
@@ -90,11 +90,16 @@ class Viewer:
         port: port at which Spotlight is running
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     _thread: Optional[threading.Thread]
     _server: Optional[Server]
     _vite: Optional[Vite]
     _host: str
     _requested_port: Union[int, Literal["auto"]]
+    _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
+    _dtype: Optional[ColumnTypeMapping]
+    _layout: Optional[_LayoutLike]
 
     def __init__(
         self,
@@ -103,6 +108,9 @@ class Viewer:
     ) -> None:
         self._host = host
         self._requested_port = port
+        self._dataset_or_folder = None
+        self._dtype = None
+        self._layout = None
         self._server = None
         self._thread = None
         self._vite = None
@@ -124,10 +132,9 @@ class Viewer:
         if self not in _VIEWERS:
             _VIEWERS.append(self)
 
-    # pylint: disable=too-many-arguments
     def show(
         self,
-        dataset_or_folder: Optional[Union[str, os.PathLike, pd.DataFrame]] = None,
+        dataset_or_folder: Optional[Union[PathType, pd.DataFrame]] = None,
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
         wait: Union[bool, Literal["auto"]] = "auto",
@@ -148,38 +155,46 @@ class Viewer:
             dtype: Optional dict with mapping `column name -> column type` with
                 column types allowed by Spotlight (for dataframes only).
         """
+        # pylint: disable=too-many-branches,too-many-arguments
 
         self._init_server()
         if not self._server:
             raise RuntimeError("Failed to launch backend server")
         app = self._server.app
 
-        if dataset_or_folder is None:
-            dataset_or_folder = Path.cwd()
-
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
 
-        # set correct project folder
-        if is_pathtype(dataset_or_folder):
-            path = Path(dataset_or_folder).absolute()
-            if path.is_dir():
-                app.project_root = path
-            else:
-                app.project_root = path.parent
-                app.data_source = create_datasource(path, dtype=dtype)
-        else:
-            app.data_source = create_datasource(dataset_or_folder, dtype=dtype)
+        if dataset_or_folder is not None:
+            self._dataset_or_folder = dataset_or_folder
+        elif self._dataset_or_folder is None:
+            self._dataset_or_folder = Path.cwd()
+        if dtype is not None:
+            self._dtype = dtype
 
-        app.layout = None if layout is None else parse(layout)
-        self.refresh()
+        if dataset_or_folder is not None or dtype is not None:
+            # set correct project folder
+            if is_pathtype(dataset_or_folder):
+                path = Path(dataset_or_folder).absolute()
+                if path.is_dir():
+                    app.project_root = path
+                else:
+                    app.project_root = path.parent
+                    app.data_source = create_datasource(path, dtype=dtype)
+            else:
+                app.data_source = create_datasource(dataset_or_folder, dtype=dtype)
+            self.refresh()
+
+        if layout is not None:
+            app.layout = parse(layout)
+            app.websocket_manager.broadcast(ResetLayoutMessage())
 
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
-        if not no_browser:
+        if not no_browser and len(app.websocket_manager.connections) == 0:
             self.open_browser()
         if wait:
             self.close(True)

@@ -29,6 +29,7 @@ import ComponentFactory from './ComponentFactory';
 import icons from './icons';
 import { convertAppLayoutToFlexLayout, convertFlexLayoutToAppLayout } from './layout';
 import Styles from './Styles';
+import { useLayout } from '../../stores/layout';
 
 const datasetUidSelector = (d: Dataset) => d.uid;
 const useDatasetUid = () => useDataset(datasetUidSelector);
@@ -64,77 +65,43 @@ const GLOBAL_CONFIG = {
     tabDragSpeed: 0.2,
 };
 
+useLayout.getState().reset();
+
 const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
     const [model, setModel] = useState<Model>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const datasetUid = useDatasetUid();
 
+    const layoutStore = useLayout();
+
+    useEffect(() => {
+        setIsLoading(true);
+    }, [datasetUid]);
+
+    useEffect(() => {
+        const layout = convertAppLayoutToFlexLayout(layoutStore.layout);
+        const config: IJsonModel = {
+            global: GLOBAL_CONFIG,
+            layout: layout,
+        };
+        const model = Model.fromJson(config);
+        setModel(model);
+        setIsLoading(false);
+    }, [layoutStore.layout]);
+
     useImperativeHandle(
         ref,
         () => ({
-            reset: () => {
-                api.layout.resetLayout().then((appLayout) => {
-                    const layout = convertAppLayoutToFlexLayout(appLayout as AppLayout);
-                    const config: IJsonModel = {
-                        global: GLOBAL_CONFIG,
-                        layout: layout,
-                    };
-                    const model = Model.fromJson(config);
-                    setModel(model);
-                });
-            },
+            reset: layoutStore.reset,
             saveLayout: () => {
                 if (!model) return;
                 const layout = convertFlexLayoutToAppLayout(model.toJson()['layout']);
-                const blob = new Blob([JSON.stringify(layout)], {
-                    type: 'application/json;charset=utf-8',
-                });
-                saveAs(blob, 'spotlight-layout.json');
+                layoutStore.save(layout);
             },
-            loadLayout: (file: File) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    if (!e.target) return;
-                    const parsedLayout = JSON.parse(e.target.result as string);
-                    api.layout
-                        .setLayout({ setLayoutRequest: { layout: parsedLayout } })
-                        .then((appLayout) => {
-                            const layout = convertAppLayoutToFlexLayout(
-                                appLayout as AppLayout
-                            );
-                            const config: IJsonModel = {
-                                global: GLOBAL_CONFIG,
-                                layout: layout,
-                            };
-                            const model = Model.fromJson(config);
-                            setModel(model);
-                        });
-                };
-                reader.readAsText(file);
-            },
+            loadLayout: layoutStore.load,
         }),
         [model]
     );
-
-    useEffect(() => {
-        if (!datasetUid) return;
-        const loadLayout = async () => {
-            setIsLoading(true);
-
-            const response = await api.layout.getLayout();
-            const storedLayout = convertAppLayoutToFlexLayout(response as AppLayout);
-
-            const config: IJsonModel = {
-                global: GLOBAL_CONFIG,
-                layout: storedLayout,
-            };
-            const model = Model.fromJson(config);
-
-            setModel(model);
-            setIsLoading(false);
-        };
-        loadLayout().catch((e) => console.error(e));
-    }, [datasetUid]);
 
     const handleModelChange = useCallback(() => {
         if (!model) return;
