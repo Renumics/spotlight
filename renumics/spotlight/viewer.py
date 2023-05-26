@@ -101,18 +101,28 @@ class Viewer:
         host: str = "127.0.0.1",
         port: Union[int, Literal["auto"]] = "auto",
     ) -> None:
-        self._server = create_server(host, port)
+        self._host = host
+        self._requested_port = port
+        self._server = None
         self._thread = None
+        self._vite = None
+
+    def _init_server(self) -> None:
+        """create a new uvicorn server if necessary"""
+        if self._server:
+            return
+
+        self._server = create_server(self._host, self._requested_port)
+        app = self._server.app
+
         if settings.dev:
             self._vite = Vite()
-        else:
-            self._vite = None
-        _VIEWERS.append(self)
+            self._vite.start()
+            app.vite_url = self._vite.url
 
-    def _create_server(self):
-        """create the uvicorn server"""
-        self._server = create_server(self._host, self._requested_port)
-
+        self._thread = self._server.run_in_thread()
+        if self not in _VIEWERS:
+            _VIEWERS.append(self)
 
     # pylint: disable=too-many-arguments
     def show(
@@ -139,6 +149,11 @@ class Viewer:
                 column types allowed by Spotlight (for dataframes only).
         """
 
+        self._init_server()
+        if not self._server:
+            raise RuntimeError("Failed to launch backend server")
+        app = self._server.app
+
         if dataset_or_folder is None:
             dataset_or_folder = Path.cwd()
 
@@ -146,8 +161,6 @@ class Viewer:
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
-
-        app = self._server.app
 
         # set correct project folder
         if is_pathtype(dataset_or_folder):
@@ -162,16 +175,6 @@ class Viewer:
 
         app.layout = None if layout is None else parse(layout)
         self.refresh()
-
-        if not self.running:
-            if self._vite:
-                self._vite.start()
-                app.vite_url = self._vite.url
-
-            self._thread = self._server.run_in_thread()
-
-            if self not in _VIEWERS:
-                _VIEWERS.append(self)
 
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
@@ -189,7 +192,7 @@ class Viewer:
         if self not in _VIEWERS:
             return
 
-        if self._thread is None:
+        if self._thread is None or self._server is None:
             return
 
         if wait:
@@ -229,18 +232,21 @@ class Viewer:
         self._thread.join()
         self._server = None
         self._thread = None
+        self._vite = None
 
     def open_browser(self) -> None:
         """
         Open the corresponding Spotlight instance in a browser.
         """
+        if not self.port:
+            return
         launch_browser_in_thread(self.host, self.port)
 
     def refresh(self) -> None:
         """
         Refresh the corresponding Spotlight instance in a browser.
         """
-        if self.running:
+        if self._server:
             self._server.app.websocket_manager.broadcast(RefreshMessage())
 
     @property
@@ -248,14 +254,14 @@ class Viewer:
         """
         True if the viewer's webserver is running, false otherwise.
         """
-        return self._thread is not None
+        return self._thread is not None and self._server is not None
 
     @property
     def df(self) -> Optional[pd.DataFrame]:
         """
         Get served `DataFrame` if a `DataFrame` is served, `None` otherwise.
         """
-        if self._server.app.data_source:
+        if self._server and self._server.app.data_source:
             return self._server.app.data_source.df
         return None
 
@@ -264,20 +270,22 @@ class Viewer:
         """
         The configured host setting.
         """
-        return self._server.config.host
+        return self._host
 
     @property
-    def port(self) -> int:
+    def port(self) -> Optional[int]:
         """
         The port the viewer is running on.
         """
+        if not self._server:
+            return None
         return self._server.config.port
 
     def __repr__(self) -> str:
         return f"http://{self.host}:{self.port}/"
 
     def _ipython_display_(self) -> None:
-        if self._server.should_exit:
+        if not self._server:
             return
 
         # pylint: disable=undefined-variable
