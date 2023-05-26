@@ -91,8 +91,10 @@ class Viewer:
     """
 
     _thread: Optional[threading.Thread]
-    _server: Server
+    _server: Optional[Server]
     _vite: Optional[Vite]
+    _host: str
+    _requested_port: Union[int, Literal["auto"]]
 
     def __init__(
         self,
@@ -109,6 +111,11 @@ class Viewer:
         else:
             self._vite = None
         _VIEWERS.append(self)
+
+    def _create_server(self):
+        """create the uvicorn server"""
+        self._server = create_server(self._host, self._requested_port)
+
 
     # pylint: disable=too-many-arguments
     def show(
@@ -226,6 +233,7 @@ class Viewer:
         _VIEWERS.remove(self)
         self._server.should_exit = True
         self._thread.join()
+        self._server = None
         self._thread = None
 
     def open_browser(self) -> None:
