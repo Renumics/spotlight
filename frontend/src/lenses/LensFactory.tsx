@@ -6,7 +6,6 @@ import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
 import { DataColumn } from '../types';
-import { notifyAPIError } from '../notify';
 import LensContext from './LensContext';
 import registry, { LensKey, isLensCompatible } from './registry';
 import useCellValues from './useCellValue';
