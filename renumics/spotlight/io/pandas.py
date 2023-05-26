@@ -182,14 +182,16 @@ def prepare_column(
             + f"), but {dtype} received."
         )
 
-    # We consider empty strings as `NA`s.
-    str_mask = is_string_mask(column)
-    column[str_mask] = column[str_mask].replace("", None)
-    na_mask = column.isna()
+    # We explicitely don't want to change the original `DataFrame`.
+    with pd.option_context("mode.chained_assignment", None):
+        # We consider empty strings as `NA`s.
+        str_mask = is_string_mask(column)
+        column[str_mask] = column[str_mask].replace("", None)
+        na_mask = column.isna()
 
-    # When `pandas` reads a csv, arrays and lists are read as literal strings,
-    # try to interpret them.
-    str_mask = is_string_mask(column)
-    column[str_mask] = column[str_mask].apply(try_literal_eval)
+        # When `pandas` reads a csv, arrays and lists are read as literal strings,
+        # try to interpret them.
+        str_mask = is_string_mask(column)
+        column[str_mask] = column[str_mask].apply(try_literal_eval)
 
     return column.mask(na_mask, None)
