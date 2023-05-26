@@ -184,16 +184,12 @@ class Viewer:
         """
         Shutdown the corresponding Spotlight instance.
         """
+
         if self not in _VIEWERS:
             return
 
-        _VIEWERS.remove(self)
-
         if self._thread is None:
             return
-
-        if self._vite:
-            self._vite.stop()
 
         if wait:
             wait_event = threading.Event()
@@ -224,6 +220,10 @@ class Viewer:
                 self.close(wait=False)
                 raise e
 
+        if self._vite:
+            self._vite.stop()
+
+        _VIEWERS.remove(self)
         self._server.should_exit = True
         self._thread.join()
         self._thread = None
