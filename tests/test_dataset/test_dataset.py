@@ -840,6 +840,9 @@ def test_import_export_pandas() -> None:
     df1 = df1.set_index("index", drop=True)
     assert df.columns.sort_values().equals(df1.columns.sort_values())
     diff = df.sort_index(axis=1).compare(df1.sort_index(axis=1))
+    from loguru import logger  # pylint: disable=import-outside-toplevel
+
+    logger.warning(diff)
     assert diff.empty
     # eq_mask = df.sort_index(axis=1).eq(df1.sort_index(axis=1))
     # assert (eq_mask == True).all()
