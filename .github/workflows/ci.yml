@@ -171,7 +171,6 @@ jobs:
                   name: datasets-${{ env.PACKAGE_VERSION }}
                   path: build/datasets/
                   if-no-files-found: error
-
     build-spotlight:
         name: '🧱 Build Spotlight'
         needs:

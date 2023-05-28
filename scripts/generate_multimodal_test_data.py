@@ -40,7 +40,7 @@ def _random_bools(num_rows: int, seed: int) -> np.ndarray:
 
 
 def _random_ints(num_rows: int, seed: int) -> np.ndarray:
-    dtype = "int64"
+    dtype = "int32"
     np.random.seed(seed)
     return np.random.randint(
         np.iinfo(dtype).min, np.iinfo(dtype).max, size=num_rows, dtype=dtype  # type: ignore
