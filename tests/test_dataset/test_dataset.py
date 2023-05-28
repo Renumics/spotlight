@@ -821,7 +821,7 @@ def test_import_export_pandas() -> None:
     Test `Dataset.from_pandas` and `Dataset.to_pandas` methods on australian
     weather dataset.
     """
-    df = pd.read_csv("build/datasets/multimodal-random-1000.csv", nrows=10)
+    df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
     df["category"] = df["category"].astype("category")
     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
     for name, dtype in df.dtypes.items():
@@ -840,13 +840,7 @@ def test_import_export_pandas() -> None:
     df1 = df1.set_index("index", drop=True)
     assert df.columns.sort_values().equals(df1.columns.sort_values())
     diff = df.sort_index(axis=1).compare(df1.sort_index(axis=1))
-    from loguru import logger  # pylint: disable=import-outside-toplevel
-
-    logger.warning(diff)
     assert diff.empty
-    # eq_mask = df.sort_index(axis=1).eq(df1.sort_index(axis=1))
-    # assert (eq_mask == True).all()
-    assert df.sort_index(axis=1).equals(df1.sort_index(axis=1))
 
 
 def test_import_pandas_with_dtype() -> None:
