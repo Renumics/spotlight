@@ -1,5 +1,4 @@
 import { Widget } from '../../widgets/types';
-import { saveAs } from 'file-saver';
 import {
     Actions,
     BorderNode,
@@ -22,7 +21,6 @@ import {
 import guid from 'short-uuid';
 import { Dataset, useDataset } from '../../stores/dataset';
 import 'twin.macro';
-import { AppLayout } from '../../types';
 import api from '../../api';
 import AddWidgetDropdown from './AddWidgetDropdown';
 import ComponentFactory from './ComponentFactory';
