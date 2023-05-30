@@ -176,15 +176,17 @@ class Viewer:
 
         if dataset_or_folder is not None or dtype is not None:
             # set correct project folder
-            if is_pathtype(dataset_or_folder):
-                path = Path(dataset_or_folder).absolute()
+            if is_pathtype(self._dataset_or_folder):
+                path = Path(self._dataset_or_folder).absolute()
                 if path.is_dir():
                     app.project_root = path
                 else:
                     app.project_root = path.parent
-                    app.data_source = create_datasource(path, dtype=dtype)
+                    app.data_source = create_datasource(path, dtype=self._dtype)
             else:
-                app.data_source = create_datasource(dataset_or_folder, dtype=dtype)
+                app.data_source = create_datasource(
+                    self._dataset_or_folder, dtype=self._dtype
+                )
             self.refresh()
 
         if layout is not None:
