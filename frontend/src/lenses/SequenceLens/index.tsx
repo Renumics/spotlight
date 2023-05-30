@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useColors } from '../../stores/colors';
 import tw, { styled } from 'twin.macro';
 import { Sequence1DColumn, Vec2 } from '../../types';
-import { View } from '../types';
+import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 
@@ -17,7 +17,7 @@ const ViewerWrapper = styled.div`
 
 const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-xs text-center`;
 
-const SequenceView: View = ({ values, columns, syncKey }) => {
+const SequenceView: Lens = ({ values, columns, syncKey }) => {
     const chartData = useMemo(() => {
         const decoder = new TextDecoder();
         return values

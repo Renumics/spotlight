@@ -50,7 +50,7 @@ const StatusBar = (): JSX.Element => {
     }
 
     return (
-        <div tw="flex flex-row h-4 border-t border-gray-400 text-gray-800 text-xs items-center divide-x divide-gray-400">
+        <div tw="flex flex-row h-4 border-t border-gray-400 text-gray-800 text-xs items-center divide-x divide-gray-400 whitespace-nowrap">
             <div tw="pl-1 pr-2">
                 {columnCount} cols / {rowCount} rows
             </div>

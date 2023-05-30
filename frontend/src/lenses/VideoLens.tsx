@@ -4,7 +4,7 @@ import ReactPlayer from 'react-player';
 import tw, { styled, theme } from 'twin.macro';
 import BaseButton from '../components/ui/Button';
 import ToggleButton from '../components/ui/ToggleButton';
-import { View, ViewProps } from './types';
+import { Lens, LensProps } from './types';
 
 type ProgressCallback = ComponentProps<typeof ReactPlayer>['onProgress'];
 
@@ -35,7 +35,7 @@ let ActivePlayer: VideoPlayer | null;
 /*
  * Draws a new timeline
  */
-const VideoView: View = ({ url }: ViewProps) => {
+const VideoView: Lens = ({ url }: LensProps) => {
     const videoContainer = useRef<HTMLDivElement>(null);
     const videoPlayer = useRef<VideoPlayer>(null);
 

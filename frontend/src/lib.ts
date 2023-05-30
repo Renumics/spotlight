@@ -39,7 +39,7 @@ export type { ColorsState } from './stores/colors';
 export type { Widget } from './widgets/types';
 export { useWidgetContext } from './widgets/WidgetContext';
 
-export type { View as Lens, ViewProps as LensProps } from './lenses/types';
+export type { Lens, LensProps } from './lenses/types';
 export { default as useSetting } from './lenses/useSetting';
 
 export * as icons from './icons';

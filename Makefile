@@ -52,7 +52,7 @@ lint: ## Lint all source files
 	poetry run pylint renumics tests scripts/*.py
 	$(MAKE) -C frontend $@
 
-TABLE_FILE ?= "../data/tables/table.h5"
+TABLE_FILE ?= "../data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
 	cd frontend

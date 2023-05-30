@@ -3,16 +3,16 @@
 <p align="center">Data curation tool for your modular ML stack.</p>
 
 <p align="center">
-	<a href="https://github.com/Renumics/spotlight/blob/main/LICENSE"><img src="https://img.shields.io/github/license/renumics/spotlight" height="20"/></a>    
- 	<a href="https://pypi.org/project/renumics-spotlight/"><img src="https://img.shields.io/pypi/pyversions/renumics-spotlight" height="20"/></a>   
- 	<a href="https://pypi.org/project/renumics-spotlight/"><img src="https://img.shields.io/pypi/wheel/renumics-spotlight" height="20"/></a>   
+	<a href="https://github.com/Renumics/spotlight/blob/main/LICENSE"><img src="https://img.shields.io/github/license/renumics/spotlight" height="20"/></a>
+ 	<a href="https://pypi.org/project/renumics-spotlight/"><img src="https://img.shields.io/pypi/pyversions/renumics-spotlight" height="20"/></a>
+ 	<a href="https://pypi.org/project/renumics-spotlight/"><img src="https://img.shields.io/pypi/wheel/renumics-spotlight" height="20"/></a>
 </p>
 
   <h3 align="center">
-   <a href="https://spotlight.renumics.com"><b>Documentation</b></a> &bull;  
-   <a href="https://renumics.com/docs/examples"><b>Examples</b></a> &bull; 
-   <a href="https://renumics.com/blog/"><b>Blog</b></a> &bull; 
-   <a href="https://renumics.com/api/spotlight/"><b>API Reference</b></a> 
+   <a href="https://spotlight.renumics.com"><b>Documentation</b></a> &bull;
+   <a href="https://renumics.com/docs/playbook"><b>Playbook</b></a> &bull;
+   <a href="https://renumics.com/blog/"><b>Blog</b></a> &bull;
+   <a href="https://renumics.com/api/spotlight/"><b>API Reference</b></a>
  </h3>
 
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_features.gif" width="100%"/></a><a href="https://spotlight.renumics.com"><img src="https://renumics.com/img/dropShadow.png" width="100%"/></a></p>
@@ -31,7 +31,7 @@ Get started by installing Spotlight and loading your first dataset.
 
 #### What you'll need
 
-- [Python](https://www.python.org/downloads/) version 3.8-3.10
+-   [Python](https://www.python.org/downloads/) version 3.8-3.11
 
 #### Install Spotlight via [pip](https://packaging.python.org/en/latest/key_projects/#pip)
 
@@ -88,21 +88,21 @@ You can adapt Spotlight to your data curation tasks. To get you started quickly,
 
 #### Rookie plays
 
-- [Create embeddings with Huggingface](/docs/playbook/huggingface-embedding)
-- [Create embeddings with towhee](/docs/playbook/towhee-embedding)
-- [Extract decision boundary based on probability ratios](/docs/playbook/decision-boundary)
+-   [Create embeddings with Huggingface](https://renumics.com/docs/playbook/huggingface-embedding)
+-   [Create embeddings with towhee](https://renumics.com/docs/playbook/towhee-embedding)
+-   [Extract decision boundary based on probability ratios](https://renumics.com/docs/playbook/decision-boundary)
 
 #### Veteran plays
 
-- [Detect duplicates with Annoy](/docs/playbook/duplicates-annoy)
-- [Detect leakage with Annoy](/docs/playbook/leakage-annoy)
-- [Detect data drift](/docs/playbook/drift-kcore)
-- [Detect label errors](/docs/playbook/label-errors-cleanlab)
-- [Detect outliers](/docs/playbook/outliers-cleanlab)
-- [Detect image error patterns](/docs/playbook/cv-issues)
+-   [Detect duplicates with Annoy](https://renumics.com/docs/playbook/duplicates-annoy)
+-   [Detect leakage with Annoy](https://renumics.com/docs/playbook/leakage-annoy)
+-   [Detect data drift](https://renumics.com/docs/playbook/drift-kcore)
+-   [Detect label errors](https://renumics.com/docs/playbook/label-errors-cleanlab)
+-   [Detect outliers](https://renumics.com/docs/playbook/outliers-cleanlab)
+-   [Detect image error patterns](https://renumics.com/docs/playbook/cv-issues)
 
 #### Tell us which data curation task is important for your work:
 
-- Open an issue on [Github](https://github.com/renumics)
-- Have a [coffee talk](https://calendly.com/stefan-suwelack/dcai-intro-30-min) with us
-- Join our channel on [Discord](https://discord.gg/VAQdFCU5YD)
+-   Open an issue on [Github](https://github.com/renumics)
+-   Have a [coffee talk](https://calendly.com/stefan-suwelack/dcai-intro-30-min) with us
+-   Join our channel on [Discord](https://discord.gg/VAQdFCU5YD)

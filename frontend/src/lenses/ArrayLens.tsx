@@ -1,8 +1,8 @@
 import 'twin.macro';
-import { View } from './types';
 import dataformat from '../dataformat';
+import { Lens } from './types';
 
-const ArrayView: View = ({ value }) => {
+const ArrayLens: Lens = ({ value }) => {
     const array = value as Array<number>;
 
     return (
@@ -18,10 +18,10 @@ const ArrayView: View = ({ value }) => {
     );
 };
 
-ArrayView.dataTypes = ['array', 'Embedding'];
-ArrayView.defaultHeight = 22;
-ArrayView.minHeight = 22;
-ArrayView.maxHeight = 128;
-ArrayView.displayName = 'Array';
+ArrayLens.dataTypes = ['array', 'Embedding'];
+ArrayLens.defaultHeight = 22;
+ArrayLens.minHeight = 22;
+ArrayLens.maxHeight = 128;
+ArrayLens.displayName = 'Array';
 
-export default ArrayView;
+export default ArrayLens;

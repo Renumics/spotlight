@@ -5,8 +5,12 @@ import {
     createContext,
     useContext,
     useState,
+    useMemo,
 } from 'react';
+import shortUUID from 'short-uuid';
 import { createStore, useStore as useZustandStore, StoreApi } from 'zustand';
+import { registry } from '../../lenses';
+import { useDataset } from '../../lib';
 import useWidgetConfig from '../useWidgetConfig';
 import { ViewConfig } from './types';
 
@@ -17,7 +21,7 @@ export interface State {
     moveView: (source: number, target: number) => void;
 }
 
-const StoreContext = createContext<StoreApi<State> | null>(null);
+export const StoreContext = createContext<StoreApi<State> | null>(null);
 
 const createInspectorStore = (
     initialViews: ViewConfig[],
@@ -56,7 +60,20 @@ interface ProviderProps {
 }
 
 const StoreProvider = ({ children }: ProviderProps): JSX.Element => {
-    const [storedViews, storeViews] = useWidgetConfig<ViewConfig[]>('views', []);
+    const autoViews = useMemo(() => {
+        const richColumns = useDataset.getState().columns.filter((c) => c.lazy);
+        const autoViews = richColumns.slice(0, 5).map((column) => {
+            return {
+                view: registry.findCompatibleViews([column.type], column.editable)[0],
+                key: shortUUID.generate().toString(),
+                name: column.name,
+                columns: [column.key],
+            };
+        });
+        return autoViews;
+    }, []);
+
+    const [storedViews, storeViews] = useWidgetConfig<ViewConfig[]>('views', autoViews);
     const [store] = useState(() => createInspectorStore(storedViews, storeViews));
 
     return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

@@ -41,6 +41,16 @@ class RefreshMessage(Message):
 
 
 @dataclass
+class ResetLayoutMessage(Message):
+    """
+    Reset layout message model
+    """
+
+    type: Literal["resetLayout"] = "resetLayout"
+    data: Any = None
+
+
+@dataclass
 class ReductionMessage(Message):
     """
     Common data reduction message model.

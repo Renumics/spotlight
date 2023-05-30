@@ -112,8 +112,7 @@ def report_event(event: Dict[str, Any]) -> None:
     """
 
     if skip_analytics():
-        if settings.dev:
-            logger.info("analytics skipped")
+        logger.info("analytics skipped")
         return
 
     event["date"] = datetime.datetime.now().isoformat()
@@ -139,8 +138,7 @@ def report_event(event: Dict[str, Any]) -> None:
     # compress and base64 encode the event
     encoded = {key_map[k] if k in key_map else k: v for k, v in event.items()}
 
-    if settings.dev:
-        logger.debug("sending analytics event")
+    logger.debug("sending analytics event")
     try:
         # post request to analytics server with minimal timeout (to prevent blocking)
         requests.post(

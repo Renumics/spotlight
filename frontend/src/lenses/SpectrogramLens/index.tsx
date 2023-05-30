@@ -6,7 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import tw, { styled, theme } from 'twin.macro';
 import { default as WaveSurfer, default as WebAudio } from 'wavesurfer.js';
 import { ColorsState, useColors } from '../../stores/colors';
-import { View } from '../types';
+import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType } from './Spectrogram';
@@ -80,7 +80,7 @@ const drawScale = (
         .attr('color', theme`colors.white`);
 };
 
-const SpectrogramView: View = ({ columns, urls, values }) => {
+const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const windowIndex = columns.findIndex((col) => col.type.kind === 'Window');
     const audioIndex = columns.findIndex((col) => col.type.kind === 'Audio');
     const window = values[windowIndex] as [number, number] | undefined;
@@ -380,11 +380,11 @@ const SpectrogramView: View = ({ columns, urls, values }) => {
     );
 };
 
-SpectrogramView.defaultHeight = 120;
-SpectrogramView.displayName = 'Spectrogram';
-SpectrogramView.dataTypes = ['Audio', 'Window'];
-SpectrogramView.multi = true;
-SpectrogramView.filterAllowedColumns = (allColumns, selectedColumns) => {
+SpectrogramLens.defaultHeight = 120;
+SpectrogramLens.displayName = 'Spectrogram';
+SpectrogramLens.dataTypes = ['Audio', 'Window'];
+SpectrogramLens.multi = true;
+SpectrogramLens.filterAllowedColumns = (allColumns, selectedColumns) => {
     if (selectedColumns.length === 2) return [];
     switch (selectedColumns[0]?.type.kind) {
         case 'Audio':
@@ -394,8 +394,8 @@ SpectrogramView.filterAllowedColumns = (allColumns, selectedColumns) => {
     }
     return allColumns.filter((col) => ['Audio', 'Window'].includes(col.type.kind));
 };
-SpectrogramView.isSatisfied = (columns) => {
+SpectrogramLens.isSatisfied = (columns) => {
     return columns.some((col) => isAudio(col.type));
 };
 
-export default SpectrogramView;
+export default SpectrogramLens;

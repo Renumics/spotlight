@@ -3,7 +3,7 @@ import { useCallback, useContext } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import ViewContext from './ViewContext';
+import LensContext from './LensContext';
 
 interface SettingsStore {
     [key: string]: unknown;
@@ -21,7 +21,7 @@ const datasetIdSelector = (d: Dataset) => d.uid;
 type Setter<T> = (value: T | ((previous: T) => T)) => void;
 
 function useSetting<T>(name: string, defaultValue: T, global = false): [T, Setter<T>] {
-    const { syncKey } = useContext(ViewContext);
+    const { syncKey } = useContext(LensContext);
     const datasetId = useDataset(datasetIdSelector);
 
     const storageKey = global

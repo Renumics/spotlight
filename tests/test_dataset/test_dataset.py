@@ -839,7 +839,8 @@ def test_import_export_pandas() -> None:
             df1 = dataset.to_pandas()
     df1 = df1.set_index("index", drop=True)
     assert df.columns.sort_values().equals(df1.columns.sort_values())
-    assert df.sort_index(axis=1).equals(df1.sort_index(axis=1))
+    diff = df.sort_index(axis=1).compare(df1.sort_index(axis=1))
+    assert diff.empty
 
 
 def test_import_pandas_with_dtype() -> None:

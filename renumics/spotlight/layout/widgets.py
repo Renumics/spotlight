@@ -220,7 +220,7 @@ class InspectorConfig(WidgetConfig):
     """
 
     # pylint: disable=too-few-public-methods
-    views: List[InspectorView] = Field(default_factory=list, alias="views")
+    views: Optional[List[InspectorView]] = Field(default_factory=None, alias="views")
     num_columns: Literal[1, 2, 4, 6, 8] = Field(4, alias="visibleColumns")
 
 

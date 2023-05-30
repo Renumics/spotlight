@@ -37,7 +37,7 @@ spotlight = "renumics.spotlight.cli:main"
 spotlight-notebook = "renumics.spotlight.notebook.cli:main"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.11"
+python = ">=3.8, <3.12"
 numpy = "*"
 tqdm = "*"
 loguru = "*"
@@ -115,7 +115,6 @@ nptyping = "^2.5.0"
 datasets = "^2.10.1"
 types-toml = "^0.10.8.6"
 httpx = "^0.23.0"
-
 
 [tool.poetry.group.playbook.dependencies]
 datasets = "^2.12.0"

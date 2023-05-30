@@ -75,6 +75,7 @@ class Vite:
         """
         Stop running instance of vite.
         """
+
         if not self.process:
             return
 
