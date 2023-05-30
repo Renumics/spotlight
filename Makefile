@@ -11,9 +11,13 @@ help: ## Print this help message
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
 .PHONY: init
-init: ## Locally install all (dev) dependencies
-	poetry install
+init: ## Locally install all dev dependencies
+	poetry install --without playbook
 	$(MAKE) -C frontend $@
+
+.PHONY: init-playbook
+init-playbook: ## Locally install all playbook dev dependencies
+	poetry install
 
 .PHONY: clean
 clean: ## clean project
