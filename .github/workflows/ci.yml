@@ -95,21 +95,21 @@ jobs:
               with:
                   matrix: |
                       os: ubuntu-latest,
-                      python-version: 3.8 3.9 3.10
+                      python-version: 3.8 3.9 3.10 3.11
             - name: '🧱 Build test matrix for release'
               if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
               uses: druzsan/setup-matrix@v1
               with:
                   matrix: |
                       os: ubuntu-latest windows-latest macos-latest,
-                      python-version: 3.8 3.9 3.10
+                      python-version: 3.8 3.9 3.10 3.11
             - name: '🧱 Build test matrix for main branch'
               if: env.MATRIX == '' && github.ref == 'refs/heads/main'
               uses: druzsan/setup-matrix@v1
               with:
                   matrix: |
                       os: ubuntu-latest,
-                      python-version: 3.8 3.9 3.10
+                      python-version: 3.8 3.9 3.10 3.11
                   include: |
                       os: windows-latest python-version: 3.8,
                       os: macos-latest python-version: 3.8
@@ -118,8 +118,8 @@ jobs:
               uses: druzsan/setup-matrix@v1
               with:
                   matrix: |
-                      os: ubuntu-latest windows-latest macos-latest,
-                      python-version: 3.8 3.9 3.10 3.11
+                      os: ubuntu-latest,
+                      python-version: 3.8
             - name: Print matrix
               run: echo "$MATRIX" | yq -P '{"matrix":.}'
             - name: Set output
