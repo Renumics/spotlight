@@ -90,13 +90,13 @@ const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
     useImperativeHandle(
         ref,
         () => ({
-            reset: layoutStore.reset,
+            reset: useLayout.getState().reset,
             saveLayout: () => {
                 if (!model) return;
                 const layout = convertFlexLayoutToAppLayout(model.toJson()['layout']);
-                layoutStore.save(layout);
+                useLayout.getState().save(layout);
             },
-            loadLayout: layoutStore.load,
+            loadLayout: useLayout.getState().load,
         }),
         [model]
     );
