@@ -1,4 +1,5 @@
 import { useDataset } from '../stores/dataset';
+import { useLayout } from '../stores/layout';
 import { IndexArray } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -90,6 +91,8 @@ export class DataService {
             }
             if (message.type === 'refresh') {
                 useDataset.getState().refresh();
+            } else if (message.type === 'resetLayout') {
+                useLayout.getState().reset();
             }
         };
         this.dispatchTable = new Map();
