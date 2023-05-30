@@ -37,7 +37,7 @@ spotlight = "renumics.spotlight.cli:main"
 spotlight-notebook = "renumics.spotlight.notebook.cli:main"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.11"
+python = ">=3.8, <3.12"
 numpy = "*"
 tqdm = "*"
 loguru = "*"
