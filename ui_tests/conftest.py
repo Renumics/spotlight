@@ -36,8 +36,8 @@ def pytest_addoption(parser):  # type: ignore
     )
     parser.addoption("--browser", action="store", default="chrome")
     parser.addoption("--headless", action="store_true", default=False)
-    parser.addoption("--testDataPath", action="store", default="../build/datasets/")
-    parser.addoption("--resultsFolder", action="store", default="../build/ui_tests/")
+    parser.addoption("--testDataPath", action="store", default="build/datasets/")
+    parser.addoption("--resultsFolder", action="store", default="build/ui_tests/")
 
 
 @pytest.fixture

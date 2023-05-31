@@ -443,7 +443,7 @@ jobs:
                   wget -w1 --delete-after "$(grep -om1 $GREP_PATTERN output.log)"
             - name: Execute unit-test
               if: success() || steps.setup.outcome == 'success'
-              run: pytest --ignore=frontend
+              run: pytest --ignore=ui_tests --ignore=api-tests
     # Release stage
     release:
         name: '🚀 Release Spotlight'

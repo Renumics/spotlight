@@ -9,7 +9,7 @@ inputs:
         default: latest
     workdir:
         description: directory to find pnpm-lock.yaml in
-        default: frontend
+        default: '.'
 runs:
     using: composite
     steps:
