@@ -4,6 +4,7 @@ import DeleteIcon from '../../../icons/Delete';
 import EditIcon from '../../../icons/Edit';
 import FilterIcon from '../../../icons/Filter';
 import HideIcon from '../../../icons/Hide';
+import CopyIcon from '../../../icons/Copy';
 import UncheckedIcon from '../../../icons/Unchecked';
 import Button from '../../../components/ui/Button';
 import { useContextMenu } from '../../../components/ui/ContextMenu';
@@ -17,6 +18,7 @@ import { DataColumn, IndexArray, PredicateFilter } from '../../../types';
 import { useColumn, useVisibleColumns } from '../context/columnContext';
 import useCellValue from '../hooks/useCellValue';
 import NeedsUpgradeButton from '../../../components/ui/NeedsUpgradeButton';
+import { notify } from '../../../notify';
 
 export interface Props {
     columnIndex: number;
@@ -78,6 +80,14 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
         hideContextMenu();
         hideColumn(column.key);
     }, [column?.key, hideContextMenu, hideColumn]);
+
+    const onClickCopyCellValue = useCallback(() => {
+        navigator.clipboard
+            .writeText(value?.toString() ?? '')
+            .then(() => notify('Cell Value Copied to Clipboard'))
+            .catch((error) => console.error(error));
+        hideContextMenu();
+    }, [value, hideContextMenu]);
 
     if (!column) return <></>;
 
@@ -152,6 +162,11 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
                     caption="Duplicate Row"
                     icon={<AddIcon />}
                     needsUpgrade={true}
+                />
+                <Action
+                    caption="Copy Cell Value"
+                    icon={<CopyIcon />}
+                    onClick={onClickCopyCellValue}
                 />
             </Menu>
         </>

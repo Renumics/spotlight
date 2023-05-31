@@ -2,6 +2,7 @@ import ContextMenu from '../../components/ui/ContextMenu';
 import { FunctionComponent, MouseEvent, ReactNode, useCallback, useState } from 'react';
 import tw from 'twin.macro';
 import CellContextMenu from './Cell/CellContextMenu';
+import HeaderCellContextMenu from './Cell/HeaderCellContextMenu';
 
 const MenuWrapper = tw.div`
 w-full h-full`;
@@ -28,12 +29,15 @@ const GridContextMenu: FunctionComponent<Props> = ({ className, children }) => {
         <MenuWrapper onContextMenu={onContextMenu} className={className}>
             <ContextMenu
                 content={
-                    columnIndex >= 0 &&
-                    rowIndex >= 0 && (
+                    columnIndex >= 0 && rowIndex >= 0 ? (
                         <CellContextMenu
                             columnIndex={columnIndex}
                             rowIndex={rowIndex}
                         />
+                    ) : (
+                        columnIndex >= 0 && (
+                            <HeaderCellContextMenu columnIndex={columnIndex} />
+                        )
                     )
                 }
             >
