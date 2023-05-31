@@ -2,7 +2,7 @@ import chroma from 'chroma-js';
 import _ from 'lodash';
 import { theme as twTheme } from 'twin.macro';
 
-const NO_DATA = chroma(twTheme`colors.gray.200`);
+export const NO_DATA = chroma(twTheme`colors.gray.200`);
 
 // note: the return value of the twin.macro theme has an incompatible type but is actually
 // replaced by a compatible string for the css colors, hence the complicated type conversion
