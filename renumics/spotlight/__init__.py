@@ -18,10 +18,10 @@ from .dtypes import (
 from .viewer import Viewer, close, viewers, show
 from .plugin_loader import load_plugins
 from .settings import settings
+from . import logging
 
-if not settings.dev:
-    logger.disable("renumics.spotlight")
-    logger.disable("renumics.spotlight_plugins")
+if not settings.verbose:
+    logging.disable()
 
 __plugins__ = load_plugins()
 
