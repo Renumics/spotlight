@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
         ],
         build: {
             minify: true,
-            outDir: '../build/frontend/',
+            outDir: './build/frontend/',
             emptyOutDir: true,
             manifest: true,
             lib: {
