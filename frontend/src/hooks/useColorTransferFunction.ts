@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useColors } from '../stores/colors';
 import { makeStats } from '../stores/dataset/statisticsFactory';
 import { ColumnData } from '../types';
+import { NO_DATA as NO_DATA_COLOR } from '../palettes';
 
 const MAX_VALUES_FOR_INT_CATEGORY = 100;
 
@@ -84,7 +85,7 @@ export const createCategoricalTransferFunction = (
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tf = ((val: any) => {
-        return colorMap.get(val);
+        return colorMap.get(val) ?? NO_DATA_COLOR;
     }) as CategoricalTransferFunction;
 
     tf.kind = 'categorical';
