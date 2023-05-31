@@ -102,7 +102,7 @@ check-wheel: ## Check wheel content
 
 .PHONY: unit-test
 unit-test: ## Execute tests
-	poetry run pytest --doctest-modules --ignore=frontend --ignore=dev
+	poetry run pytest --doctest-modules --ignore=ui_tests --ignore=api-tests --ignore=dev
 	pnpm run test
 
 .PHONY: api-test
