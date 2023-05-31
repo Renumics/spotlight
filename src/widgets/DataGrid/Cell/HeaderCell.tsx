@@ -115,6 +115,8 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
             tw="border-r border-b px-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
             style={style}
             onClick={onToggleSorting}
+            data-columnindex={columnIndex}
+            data-rowindex={-1}
         >
             <div tw="flex-grow flex-shrink truncate">
                 <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
