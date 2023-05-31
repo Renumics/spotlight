@@ -76,26 +76,24 @@ const TableGrid: FunctionComponent<Props> = ({ width, height, onScroll }) => {
     return (
         <KeyboardControls scrollToRow={scrollToRow}>
             <MouseControls>
-                <GridContextMenu>
-                    <Grid
-                        style={{ overflowY: 'scroll' }}
-                        width={width}
-                        height={height}
-                        columnCount={columnCount}
-                        rowCount={Math.max(1, rowCount)}
-                        columnWidth={columnWidth}
-                        estimatedColumnWidth={100}
-                        rowHeight={getRowHeight}
-                        itemKey={rowCount ? itemKey : undefined}
-                        estimatedRowHeight={24}
-                        overscanColumnCount={2}
-                        overscanRowCount={8}
-                        onScroll={handleScroll}
-                        ref={ref}
-                    >
-                        {rowCount ? Cell : CellPlaceholder}
-                    </Grid>
-                </GridContextMenu>
+                <Grid
+                    style={{ overflowY: 'scroll' }}
+                    width={width}
+                    height={height}
+                    columnCount={columnCount}
+                    rowCount={Math.max(1, rowCount)}
+                    columnWidth={columnWidth}
+                    estimatedColumnWidth={100}
+                    rowHeight={getRowHeight}
+                    itemKey={rowCount ? itemKey : undefined}
+                    estimatedRowHeight={24}
+                    overscanColumnCount={2}
+                    overscanRowCount={8}
+                    onScroll={handleScroll}
+                    ref={ref}
+                >
+                    {rowCount ? Cell : CellPlaceholder}
+                </Grid>
             </MouseControls>
         </KeyboardControls>
     );

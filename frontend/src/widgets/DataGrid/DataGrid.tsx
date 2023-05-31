@@ -15,6 +15,7 @@ import { TableViewProvider } from './context/tableViewContext';
 import HeaderGrid from './HeaderGrid';
 import MenuBar from './MenuBar';
 import TableGrid from './TableGrid';
+import GridContextMenu from './GridContextMenu';
 
 const headerHeight = 24;
 
@@ -84,18 +85,20 @@ const DataGrid: Widget = () => {
                             <AutoSizer>
                                 {({ width, height }) => (
                                     <div tw="bg-white" style={{ width, height }}>
-                                        <div tw="bg-gray-100 w-full">
-                                            <HeaderGrid
-                                                width={width - scrollbarWidth}
-                                                height={headerHeight}
-                                                ref={headerGrid}
+                                        <GridContextMenu>
+                                            <div tw="bg-gray-100 w-full">
+                                                <HeaderGrid
+                                                    width={width - scrollbarWidth}
+                                                    height={headerHeight}
+                                                    ref={headerGrid}
+                                                />
+                                            </div>
+                                            <TableGrid
+                                                width={width}
+                                                height={height - headerHeight}
+                                                onScroll={handleScroll}
                                             />
-                                        </div>
-                                        <TableGrid
-                                            width={width}
-                                            height={height - headerHeight}
-                                            onScroll={handleScroll}
-                                        />
+                                        </GridContextMenu>
                                     </div>
                                 )}
                             </AutoSizer>
