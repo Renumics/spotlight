@@ -53,7 +53,7 @@ lint: ## Lint all source files
 	poetry run pylint renumics tests ui_tests scripts/*.py
 	pnpm run lint
 
-TABLE_FILE ?= "../data/tables/tallymarks-small.h5"
+TABLE_FILE ?= "data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
 	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=true poetry run spotlight
