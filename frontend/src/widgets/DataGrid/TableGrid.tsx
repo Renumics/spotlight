@@ -10,7 +10,6 @@ import {
     useVisibleColumns,
 } from './context/columnContext';
 import getRowHeight from './getRowHeight';
-import GridContextMenu from './GridContextMenu';
 import useHighlight from './hooks/useHighlight';
 import useRowCount from './hooks/useRowCount';
 import useSort from './hooks/useSort';
