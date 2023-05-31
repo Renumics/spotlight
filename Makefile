@@ -13,7 +13,7 @@ help: ## Print this help message
 .PHONY: init
 init: ## Locally install all dev dependencies
 	poetry install --without playbook
-	$(MAKE) -C frontend $@
+	pnpm install
 
 .PHONY: init-playbook
 init-playbook: ## Locally install all playbook dev dependencies
@@ -22,40 +22,40 @@ init-playbook: ## Locally install all playbook dev dependencies
 .PHONY: clean
 clean: ## clean project
 	rm -fr build/ .pytest_cache/ .mypy_cache/
-	$(MAKE) -C frontend $@
+	-rm -rf node_modules
 
 .PHONY: audit
 audit: ## Audit project dependencies
 	poetry export --without-hashes -f requirements.txt | poetry run safety check --full-report --stdin \
 		--ignore 44715 --ignore 44716 --ignore 44717 --ignore 51668 # (https://github.com/numpy/numpy/issues/19038)
-	$(MAKE) -C frontend $@
+	pnpm audit --production
 
 .PHONY: check-format
 check-format: ## Check code formatting
 	poetry run black --check .
-	$(MAKE) -C frontend $@
+	npx prettier --check 'src/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: format
 format: ## Fix code formatting
 	poetry run black .
-	$(MAKE) -C frontend $@
+	npx prettier --write 'src/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: typecheck
 typecheck: ## Typecheck all source files
 	poetry run mypy -p renumics.spotlight
 	poetry run mypy -p renumics.spotlight_plugins.core
 	poetry run mypy scripts
-	$(MAKE) -C frontend $@
+	poetry run mypy ui_tests
+	pnpm run typecheck
 
 .PHONY: lint
 lint: ## Lint all source files
-	poetry run pylint renumics tests scripts/*.py
-	$(MAKE) -C frontend $@
+	poetry run pylint renumics tests ui_tests scripts/*.py
+	pnpm run lint
 
 TABLE_FILE ?= "../data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
-	cd frontend
 	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=true poetry run spotlight
 
 .PHONY: datasets
@@ -78,7 +78,7 @@ build: build-frontend build-wheel
 
 .PHONY: build-frontend
 build-frontend: ## Build react frontend
-	$(MAKE) -C frontend build
+	pnpm run build
 
 .PHONY: build-wheel
 build-wheel: ## Build installable python package
@@ -104,7 +104,7 @@ check-wheel: ## Check wheel content
 .PHONY: unit-test
 unit-test: ## Execute tests
 	poetry run pytest --doctest-modules --ignore=frontend --ignore=dev
-	$(MAKE) -C frontend $@
+	pnpm run test
 
 .PHONY: api-test
 api-test: ## Execute API tests
@@ -117,10 +117,18 @@ api-test: ## Execute API tests
 	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	wget -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
 	sleep 1
-	$(MAKE) -C frontend $@
+	pnpm run api-test
+
+.PHONY: .ui-test-chrome
+.ui-test-chrome:
+	poetry run pytest -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} ui_tests/
+
+.PHONY: .ui-test-firefox
+.ui-test-firefox:
+	poetry run pytest -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox ui_tests/
 
 .PHONY: ui-test-%
-ui-test-%: ## Execute visual regression tests on UI (% = firefox, chrome)
+ui-test-%:
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -131,7 +139,7 @@ ui-test-%: ## Execute visual regression tests on UI (% = firefox, chrome)
 	export FRONTEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	wget -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
 	sleep 1
-	$(MAKE) -C frontend $@
+	$(MAKE) .$@
 
 .PHONY: test-spotlight-start
 test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
