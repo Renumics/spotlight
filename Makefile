@@ -45,7 +45,6 @@ typecheck: ## Typecheck all source files
 	poetry run mypy -p renumics.spotlight
 	poetry run mypy -p renumics.spotlight_plugins.core
 	poetry run mypy scripts
-	poetry run mypy ui_tests
 	pnpm run typecheck
 
 .PHONY: lint
