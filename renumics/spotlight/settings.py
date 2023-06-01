@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     """
 
     dev: bool = False
+    verbose: bool = False
     opt_out: bool = False
     opt_in: bool = False
 

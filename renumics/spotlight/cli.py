@@ -17,6 +17,8 @@ import click
 from renumics import spotlight
 from renumics.spotlight.dtypes.typing import ColumnType, COLUMN_TYPES_BY_NAME
 
+from renumics.spotlight import logging
+
 
 def cli_dtype_callback(
     _ctx: click.Context, _param: click.Option, value: Tuple[str, ...]
@@ -90,6 +92,7 @@ def cli_dtype_callback(
     default=False,
     help="Do not automatically show Spotlight in browser.",
 )
+@click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
     table_or_folder: str,
@@ -98,11 +101,15 @@ def main(
     layout: Optional[str],
     dtype: Optional[Dict[str, Type[ColumnType]]],
     no_browser: bool,
+    verbose: bool,
 ) -> None:
     """
     Parse CLI arguments and launch Renumics Spotlight.
     """
     # pylint: disable=too-many-arguments
+
+    if verbose:
+        logging.enable()
 
     should_exit = threading.Event()
 
