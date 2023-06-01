@@ -6,7 +6,7 @@ from typing import Any, Optional, Type
 from fastapi import status
 
 from renumics.spotlight.dtypes.typing import ColumnType
-from renumics.spotlight.typing_renumics import IndexType, PathOrURLType, PathType
+from renumics.spotlight.typing import IndexType, PathOrURLType, PathType
 
 
 class Problem(Exception):
