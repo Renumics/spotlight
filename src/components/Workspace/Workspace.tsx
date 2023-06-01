@@ -63,8 +63,6 @@ const GLOBAL_CONFIG = {
     tabDragSpeed: 0.2,
 };
 
-// useLayout.getState().reset();
-
 const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
     const [model, setModel] = useState<Model>();
     const [isLoading, setIsLoading] = useState<boolean>(true);

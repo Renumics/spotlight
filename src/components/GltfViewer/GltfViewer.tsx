@@ -65,7 +65,6 @@ const GltfViewer: React.ForwardRefRenderFunction<Handle, Props> = (
             controls.current?.reset(scene);
         },
         fit: () => {
-            console.log('fit');
             if (scene) {
                 controls.current?.fit(scene);
             }
