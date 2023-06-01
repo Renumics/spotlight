@@ -8,6 +8,10 @@ import ArrayLens from './ArrayLens';
 import SequenceLens from './SequenceLens';
 import SpectrogramLens from './SpectrogramLens';
 import VideoLens from './VideoLens';
+import HtmlLens from './HtmlLens';
+import SafeHtmlLens from './SafeHtmlLens';
+import MarkdownLens from './MarkdownLens';
+import TextLens from './TextLens';
 
 export type LensKey = string;
 interface Registry {
@@ -37,9 +41,13 @@ const registry: Registry = {
         VideoView: VideoLens,
         ImageView: ImageLens,
         MeshView: MeshLens,
-        ScalarView: ScalarLens,
         SequenceView: SequenceLens,
+        TextLens,
         ArrayLens,
+        SafeHtmlLens,
+        HtmlLens,
+        MarkdownLens,
+        ScalarView: ScalarLens,
     },
     get keys() {
         return Object.keys(this.views);
