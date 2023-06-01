@@ -2,13 +2,13 @@
 Layout API endpoints
 """
 
-from typing import Dict
+from typing import Dict, Optional, cast
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
+from renumics.spotlight.backend.types import SpotlightApp
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
-
 
 router = APIRouter()
 
@@ -16,15 +16,19 @@ CURRENT_LAYOUT_KEY = "layout.current"
 
 
 @router.get("/", tags=["layout"], response_model=Dict, operation_id="get_layout")
-async def get_layout(request: Request) -> Dict:
+async def get_layout(request: Request) -> Optional[Dict]:
     """
     Get layout.
     """
-    dataset_uid = request.app.data_source.get_uid()
-    layout = await request.app.config.get(CURRENT_LAYOUT_KEY, dataset=dataset_uid)
+    app: SpotlightApp = request.app
+    if app.data_source is None:
+        return None
+    dataset_uid = app.data_source.get_uid()
+    layout = await app.config.get(CURRENT_LAYOUT_KEY, dataset=dataset_uid)
+    layout = cast(Optional[Dict], layout)
     if layout is None:
-        layout = (request.app.layout or DEFAULT_LAYOUT).dict(by_alias=True)
-        await request.app.config.set(CURRENT_LAYOUT_KEY, layout, dataset=dataset_uid)
+        layout = (app.layout or DEFAULT_LAYOUT).dict(by_alias=True)
+        await app.config.set(CURRENT_LAYOUT_KEY, layout, dataset=dataset_uid)
     return layout
 
 
@@ -38,11 +42,13 @@ async def reset_layout(request: Request) -> Dict:
     """
     Get layout.
     """
-    layout = request.app.layout or DEFAULT_LAYOUT
-    dataset_uid = request.app.data_source.get_uid()
-    await request.app.config.set(
-        CURRENT_LAYOUT_KEY, layout.dict(by_alias=True), dataset=dataset_uid
-    )
+    app: SpotlightApp = request.app
+    layout = app.layout or DEFAULT_LAYOUT
+    if app.data_source:
+        dataset_uid = app.data_source.get_uid()
+        await app.config.set(
+            CURRENT_LAYOUT_KEY, layout.dict(by_alias=True), dataset=dataset_uid
+        )
     return layout.dict(by_alias=True)
 
 
@@ -61,8 +67,10 @@ async def set_layout(set_layout_request: SetLayoutRequest, request: Request) -> 
     """
     Get layout.
     """
-    dataset_uid = request.app.data_source.get_uid()
-    await request.app.config.set(
-        CURRENT_LAYOUT_KEY, set_layout_request.layout, dataset=dataset_uid
-    )
+    app: SpotlightApp = request.app
+    if app.data_source:
+        dataset_uid = app.data_source.get_uid()
+        await app.config.set(
+            CURRENT_LAYOUT_KEY, set_layout_request.layout, dataset=dataset_uid
+        )
     return set_layout_request.layout

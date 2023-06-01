@@ -6,7 +6,7 @@ import asyncio
 import dataclasses
 import functools
 import json
-from typing import Any, List, Set, Callable
+from typing import Any, List, Optional, Set, Callable
 
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
@@ -14,7 +14,7 @@ from pydantic.dataclasses import dataclass
 from typing_extensions import Literal
 from wsproto.utilities import LocalProtocolError
 
-from .data_source import sanitize_values, DataSource
+from .data_source import DataSource, sanitize_values
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
 from .exceptions import GenerationIDMismatch
@@ -307,7 +307,9 @@ class WebsocketManager:
 
 @handle_message.register
 async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
-    table: DataSource = connection.websocket.app.data_source
+    table: Optional[DataSource] = connection.websocket.app.data_source
+    if table is None:
+        return None
     try:
         table.check_generation_id(request.generation_id)
     except GenerationIDMismatch:
@@ -344,7 +346,9 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
 
 @handle_message.register
 async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
-    table: DataSource = connection.websocket.app.data_source
+    table: Optional[DataSource] = connection.websocket.app.data_source
+    if table is None:
+        return None
     try:
         table.check_generation_id(request.generation_id)
     except GenerationIDMismatch:

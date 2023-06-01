@@ -10,9 +10,8 @@ from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 from renumics.spotlight.backend import create_datasource
-from renumics.spotlight.backend.data_source import Column as DatasetColumn
 from renumics.spotlight.backend.data_source import (
-    DataSource,
+    Column as DatasetColumn,
     idx_column,
     last_edited_at_column,
     last_edited_by_column,
@@ -145,7 +144,10 @@ async def get_table_cell(
     """
     table cell api endpoint
     """
-    table: DataSource = request.app.data_source
+    app: SpotlightApp = request.app
+    table = app.data_source
+    if table is None:
+        return None
     table.check_generation_id(generation_id)
 
     cell_data = table.get_cell_data(column, row)
@@ -169,7 +171,10 @@ async def get_waveform(
     """
     table cell api endpoint
     """
-    table: DataSource = request.app.data_source
+    app: SpotlightApp = request.app
+    table = app.data_source
+    if table is None:
+        return None
     table.check_generation_id(generation_id)
 
     waveform = table.get_waveform(column, row)

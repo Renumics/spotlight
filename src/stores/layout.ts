@@ -5,6 +5,7 @@ import { saveAs } from 'file-saver';
 
 export interface State {
     layout: AppLayout;
+    fetch: () => void;
     reset: () => void;
     save: (layout: AppLayout) => void;
     load: (file: File) => void;
@@ -12,6 +13,11 @@ export interface State {
 
 export const useLayout = create<State>((set) => ({
     layout: { children: [] },
+    fetch: () => {
+        api.layout
+            .getLayout()
+            .then((appLayout) => set({ layout: appLayout as AppLayout }));
+    },
     reset: () => {
         api.layout
             .resetLayout()
