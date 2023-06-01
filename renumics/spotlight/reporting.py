@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import platform
 import sys
+import threading
 import time
 import uuid
 from functools import wraps
@@ -139,17 +140,21 @@ def report_event(event: Dict[str, Any]) -> None:
     encoded = {key_map[k] if k in key_map else k: v for k, v in event.items()}
 
     logger.debug("sending analytics event")
-    try:
-        # post request to analytics server with minimal timeout (to prevent blocking)
-        requests.post(
-            ANALYTICS_URL,
-            json={"events": [encoded]},
-            timeout=0.1,
-        )
-    except requests.exceptions.ReadTimeout:
-        pass
-    except requests.exceptions.ConnectionError:
-        logger.warning("could not connect to analytics server")
+
+    def _post_request() -> None:
+        try:
+            # post request to analytics server with minimal timeout (to prevent blocking)
+            requests.post(
+                ANALYTICS_URL,
+                json={"events": [encoded]},
+                timeout=20,
+            )
+        except requests.exceptions.ReadTimeout:
+            pass
+        except requests.exceptions.ConnectionError:
+            logger.warning("could not connect to analytics server")
+
+    threading.Thread(target=_post_request).start()
 
 
 def emit_startup_event() -> None:
