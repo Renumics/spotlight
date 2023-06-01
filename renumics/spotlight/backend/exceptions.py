@@ -6,7 +6,7 @@ from typing import Any, Optional, Type
 from fastapi import status
 
 from renumics.spotlight.dtypes.typing import ColumnType
-from renumics.spotlight.typing import IndexType, PathOrURLType, PathType
+from renumics.spotlight.typing_renumics import IndexType, PathOrURLType, PathType
 
 
 class Problem(Exception):
@@ -157,3 +157,14 @@ class DatasetColumnsNotUnique(Problem):
             "Dataset's columns are not unique.",
             status.HTTP_403_FORBIDDEN,
         )
+
+
+class InvalidLayout(Problem):
+    """The layout could not be parsed from the given source"""
+
+    def __init__(
+        self,
+        detail: str = "The layout could not be loaded from given source.",
+        status_code: int = 500,
+    ) -> None:
+        super().__init__("Invalid Layout", detail, status_code)

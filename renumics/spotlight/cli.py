@@ -73,7 +73,6 @@ def cli_dtype_callback(
 )
 @click.option(
     "--layout",
-    type=click.Path(exists=True, dir_okay=False),
     default=None,
     help="Preconfigured layout to use as default.",
 )
