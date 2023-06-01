@@ -7,6 +7,8 @@ import subprocess
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
+from .project import get_project_info
+
 
 def find_free_port() -> int:
     """find a free tcp port"""
@@ -62,9 +64,11 @@ class Vite:
         if self.port:
             return self.port
 
+        cwd = get_project_info().root or "."
+
         self.port = find_free_port()
         self.process = subprocess.Popen(
-            ["pnpm", "exec", "vite", "--port", str(self.port)]
+            ["pnpm", "exec", "vite", "--port", str(self.port)], cwd=cwd
         )
         # wait for vite to start (upto 30 seconds)
         wait_for(self.url)

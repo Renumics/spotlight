@@ -4,6 +4,7 @@ Functionality for (plugin) development
 
 from pathlib import Path
 from typing import Optional
+import site
 import dataclasses
 
 import toml
@@ -57,3 +58,26 @@ def get_project_info() -> ProjectInfo:
         project_type = "plugin"
 
     return ProjectInfo(name=project_name, type=project_type, root=pyproject_toml.parent)
+
+
+def find_spotlight_repository() -> Optional[Path]:
+    """
+    Find the cloned spotlight repository.
+    Returns the path to the repo or None, if it could not be located.
+    """
+    project = get_project_info()
+
+    if project.type == "core":
+        # already in the spotlight repo!
+        return project.root
+
+    if project.type == "plugin":
+        # find .pth file of the editable install, read it and return repo path
+        for site_packages_folder in site.getsitepackages():
+            try:
+                pth = next(Path(site_packages_folder).glob("**/renumics_spotlight.pth"))
+                return Path(pth.read_text().strip())
+            except StopIteration:
+                return None
+
+    return None
