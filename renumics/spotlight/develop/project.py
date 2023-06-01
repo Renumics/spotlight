@@ -4,7 +4,7 @@ Functionality for (plugin) development
 
 from pathlib import Path
 from typing import Optional
-import subprocess
+import site
 import dataclasses
 
 import toml
@@ -33,7 +33,6 @@ class ProjectInfo:
     name: str
     type: Optional[str]
     root: Optional[Path]
-    venv: Optional[Path]
 
 
 def get_project_info() -> ProjectInfo:
@@ -47,7 +46,7 @@ def get_project_info() -> ProjectInfo:
 
     pyproject_toml = _find_upwards("pyproject.toml", Path.cwd())
     if not pyproject_toml:
-        return ProjectInfo(name="", type=None, root=None, venv=None)
+        return ProjectInfo(name="", type=None, root=None)
 
     pyproject_content = toml.load(pyproject_toml)
 
@@ -58,20 +57,7 @@ def get_project_info() -> ProjectInfo:
     else:
         project_type = "plugin"
 
-    # for now, assume that every dev uses poetry for venv management
-    poetry_env = Path(
-        subprocess.run(
-            ["poetry", "env", "info", "--path"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout
-    )
-    venv = poetry_env if poetry_env.exists() else None
-
-    return ProjectInfo(
-        name=project_name, type=project_type, root=pyproject_toml.parent, venv=venv
-    )
+    return ProjectInfo(name=project_name, type=project_type, root=pyproject_toml.parent)
 
 
 def find_spotlight_repository() -> Optional[Path]:
@@ -85,12 +71,13 @@ def find_spotlight_repository() -> Optional[Path]:
         # already in the spotlight repo!
         return project.root
 
-    if project.type == "plugin" and project.venv:
+    if project.type == "plugin":
         # find .pth file of the editable install, read it and return repo path
-        try:
-            pth = next(project.venv.glob("**/renumics_spotlight.pth"))
-            return Path(pth.read_text().strip())
-        except StopIteration:
-            return None
+        for site_packages_folder in site.getsitepackages():
+            try:
+                pth = next(Path(site_packages_folder).glob("**/renumics_spotlight.pth"))
+                return Path(pth.read_text().strip())
+            except StopIteration:
+                return None
 
     return None
