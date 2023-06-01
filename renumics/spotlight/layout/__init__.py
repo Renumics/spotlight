@@ -7,7 +7,21 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Union, cast, overload
 
+# pylint: disable=no-name-in-module
+from pydantic import (
+    HttpUrl,
+    ValidationError,
+    parse_obj_as,
+)
+
+# pylint: enable=no-name-in-module
+
 from typing_extensions import Literal, get_args
+
+from requests import JSONDecodeError
+import requests
+
+from renumics.spotlight.backend.exceptions import InvalidLayout
 
 from .nodes import (
     Layout as _Layout,
@@ -98,10 +112,24 @@ def tab(*widgets: _WidgetLike, weight: Union[float, int] = 1) -> _Tab:
 
 def parse(layout_: _LayoutLike) -> _Layout:
     """
-    Parse layout from a file, layout or given nodes.
+    Parse layout from a file, url, layout or given nodes.
     """
+
     if isinstance(layout_, _Layout):
         return layout_
+
+    try:
+        parse_obj_as(HttpUrl, layout_)
+        try:
+            resp = requests.get(str(layout_), timeout=2)
+            return _Layout(**resp.json())
+        except (ValidationError, JSONDecodeError) as exc:
+            raise InvalidLayout(
+                f"Could not load and parse layout from {layout_}."
+            ) from exc
+    except ValidationError:
+        pass
+
     if (
         isinstance(layout_, os.PathLike)
         or isinstance(layout_, str)

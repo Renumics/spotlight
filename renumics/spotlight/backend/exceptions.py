@@ -157,3 +157,14 @@ class DatasetColumnsNotUnique(Problem):
             "Dataset's columns are not unique.",
             status.HTTP_403_FORBIDDEN,
         )
+
+
+class InvalidLayout(Problem):
+    """The layout could not be parsed from the given source"""
+
+    def __init__(
+        self,
+        detail: str = "The layout could not be loaded from given source.",
+        status_code: int = 500,
+    ) -> None:
+        super().__init__("Invalid Layout", detail, status_code)
