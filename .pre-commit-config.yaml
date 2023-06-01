@@ -61,3 +61,7 @@ repos:
       hooks:
           - id: shellcheck
           - id: shfmt
+    - repo: https://github.com/kynan/nbstripout
+      rev: 0.6.1
+      hooks:
+          - id: nbstripout
