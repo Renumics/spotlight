@@ -41,13 +41,13 @@ const registry: Registry = {
         VideoView: VideoLens,
         ImageView: ImageLens,
         MeshView: MeshLens,
-        ScalarView: ScalarLens,
         SequenceView: SequenceLens,
+        TextLens,
         ArrayLens,
         SafeHtmlLens,
         HtmlLens,
         MarkdownLens,
-        TextLens,
+        ScalarView: ScalarLens,
     },
     get keys() {
         return Object.keys(this.views);
