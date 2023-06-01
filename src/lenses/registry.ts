@@ -10,6 +10,7 @@ import SpectrogramLens from './SpectrogramLens';
 import VideoLens from './VideoLens';
 import HtmlLens from './HtmlLens';
 import SafeHtmlLens from './SafeHtmlLens';
+import MarkdownLens from './MarkdownLens';
 
 export type LensKey = string;
 interface Registry {
@@ -44,6 +45,7 @@ const registry: Registry = {
         ArrayLens,
         SafeHtmlLens,
         HtmlLens,
+        MarkdownLens,
     },
     get keys() {
         return Object.keys(this.views);

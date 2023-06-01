@@ -1,15 +1,9 @@
 import 'twin.macro';
+import Html from '../components/ui/Html';
 import { Lens } from './types';
 
 const HtmlLens: Lens = ({ value }) => {
-    const html = value as string;
-
-    return (
-        <div
-            tw="text-xs content-center items-center h-full w-full"
-            dangerouslySetInnerHTML={{ __html: html }}
-        />
-    );
+    return <Html html={value as string} />;
 };
 
 HtmlLens.dataTypes = ['str'];
