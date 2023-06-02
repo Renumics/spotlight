@@ -59,7 +59,7 @@ export { default as api } from './api';
 export type { App } from './stores/pluginStore';
 export { useDataset, convertValue, compareColumnOrder } from './stores/dataset';
 export { useColors } from './stores/colors';
-export { isAudio, isBoolean, getNullValue } from './datatypes';
+export { isAudio, isBoolean, getNullValue, isCategorical } from './datatypes';
 export type {
     EmbeddingDataType,
     DataType,
