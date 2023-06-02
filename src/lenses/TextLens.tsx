@@ -2,7 +2,13 @@ import 'twin.macro';
 import { Lens } from './types';
 
 const TextLens: Lens = ({ value }) => {
-    return <div>{value as string}</div>;
+    const text = value as string;
+
+    return (
+        <div tw="w-full h-full overflow-y-auto p-1 text-xs whitespace-pre-wrap">
+            {text}
+        </div>
+    );
 };
 
 TextLens.dataTypes = ['str'];
