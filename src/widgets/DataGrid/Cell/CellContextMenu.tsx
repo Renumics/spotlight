@@ -9,7 +9,7 @@ import UncheckedIcon from '../../../icons/Unchecked';
 import Button from '../../../components/ui/Button';
 import { useContextMenu } from '../../../components/ui/ContextMenu';
 import Menu from '../../../components/ui/Menu';
-import { isBoolean } from '../../../datatypes';
+import { isBoolean, isCategorical } from '../../../datatypes';
 import { getApplicablePredicates } from '../../../filters';
 import { ComponentProps, FunctionComponent, useCallback, useMemo } from 'react';
 import { useDataset } from '../../../stores/dataset';
@@ -82,12 +82,16 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
     }, [column?.key, hideContextMenu, hideColumn]);
 
     const onClickCopyCellValue = useCallback(() => {
+        const valueToCopy =
+            isCategorical(column?.type) && value !== undefined
+                ? column.type.invertedCategories[value]
+                : value?.toString() ?? '';
         navigator.clipboard
-            .writeText(value?.toString() ?? '')
+            .writeText(valueToCopy)
             .then(() => notify('Cell Value Copied to Clipboard'))
             .catch((error) => console.error(error));
         hideContextMenu();
-    }, [value, hideContextMenu]);
+    }, [column?.type, value, hideContextMenu]);
 
     if (!column) return <></>;
 
