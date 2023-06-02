@@ -8,6 +8,8 @@ from typing_extensions import Literal
 from fastapi import APIRouter, Request
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
+from renumics.spotlight.settings import settings
+
 router = APIRouter()
 
 FileType = Literal["file", "folder"]
@@ -51,8 +53,13 @@ async def get_folder(path: str, request: Request) -> Folder:
 
     full_path = Path(request.app.project_root) / path
     relative_path = full_path.relative_to(request.app.project_root)
-
     name = full_path.name
+    parent = (
+        str(relative_path.parent) if relative_path.parent != relative_path else None
+    )
+
+    if settings.preconfigured:
+        return Folder(name=name, path=str(relative_path), parent=parent, files=[])
     files = [
         {
             "name": f.name,
@@ -62,9 +69,5 @@ async def get_folder(path: str, request: Request) -> Folder:
         }
         for f in full_path.iterdir()
     ]
-
-    parent = (
-        str(relative_path.parent) if relative_path.parent != relative_path else None
-    )
 
     return Folder(name=name, path=str(relative_path), parent=parent, files=files)
