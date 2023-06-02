@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
+from loguru import logger
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 from renumics.spotlight.backend import create_datasource
@@ -22,6 +23,8 @@ from renumics.spotlight.backend.types import SpotlightApp
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
+
+from renumics.spotlight import settings
 
 
 class Column(BaseModel):
@@ -193,11 +196,17 @@ class AddColumnRequest(BaseModel):
 @router.post("/open/{path:path}", tags=["table"], operation_id="open")
 async def open_table(path: str, request: Request) -> None:
     """
-    Open the specified table file
+    Open the specified table file.
+
+    In preconfigured start, do nothing.
 
     :raises InvalidPath: if the supplied path is outside the project root
                          or points to an incompatible file
     """
+    if settings.preconfigured is True:
+        logger.info("Skip table open in preconfigured start.")
+        return
+
     full_path = Path(request.app.project_root) / path
 
     # assert that the path is inside our project root

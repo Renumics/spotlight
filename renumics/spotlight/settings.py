@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     verbose: bool = False
     opt_out: bool = False
     opt_in: bool = False
+    preconfigured: bool = False
 
     class Config:
         """
