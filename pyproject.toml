@@ -81,6 +81,7 @@ ipywidgets = "*"
 pycatch22 = "*"
 jinja2 = "^3.1.2"
 toml = "^0.10.2"
+cleanlab = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
@@ -172,6 +173,7 @@ module = [
     "ipywidgets",
     "dotenv",
     "pycatch22",
+    "cleanlab.*",
 ]
 ignore_missing_imports = true
 
