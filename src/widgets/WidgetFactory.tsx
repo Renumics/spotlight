@@ -7,6 +7,7 @@ import Histogram from './Histogram';
 import ScatterplotView from './ScatterplotView';
 import Inspector from './Inspector';
 import SimilarityMap from './SimilarityMap';
+import ProblemsWidget from './ProblemsWidget';
 import { Config, Widget } from './types';
 import { WidgetContext } from './WidgetContext';
 
@@ -20,7 +21,14 @@ interface Props {
 const datasetUidSelector = (d: Dataset) => d.uid;
 const useDatasetUid = () => useDataset(datasetUidSelector);
 
-export const widgets = [DataGrid, Inspector, SimilarityMap, ScatterplotView, Histogram];
+export const widgets = [
+    DataGrid,
+    Inspector,
+    SimilarityMap,
+    ScatterplotView,
+    Histogram,
+    ProblemsWidget,
+];
 
 export const widgetsById: Record<string, Widget> = {};
 widgets.forEach((widget) => {

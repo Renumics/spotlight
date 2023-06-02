@@ -10,6 +10,7 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
+    DatasetProblem,
     Filter,
     IndexArray,
     TableData,
@@ -34,6 +35,7 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
+    problems: DatasetProblem[];
     colorTransferFunctions: Record<
         string,
         {
@@ -68,6 +70,7 @@ export interface Dataset {
     selectRows: (rows: CallbackOrData<IndexArray>) => void; // select a set of rows
     setHighlightedRows: (mask: boolean[]) => void;
     highlightRowAt: (rowIndex: number, only?: boolean) => void;
+    highlightRows: (rows: CallbackOrData<IndexArray>) => void;
     dehighlightRowAt: (rowIndex: number) => void;
     dehighlightAll: () => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -211,6 +214,7 @@ export const useDataset = create<Dataset>(
             isIndexHighlighted: [],
             highlightedIndices: new Int32Array(),
             isIndexFiltered: [],
+            problems: [],
             filteredIndices: new Int32Array(),
             sortColumns: new Map<DataColumn, Sorting>(),
             sortBy: (column?: DataColumn, sorting?: Sorting) => {
@@ -260,6 +264,8 @@ export const useDataset = create<Dataset>(
                     filtered: {},
                 };
 
+                const problems = (await api.problems.getAll()) as DatasetProblem[];
+
                 set(() => ({
                     uid,
                     generationID,
@@ -269,6 +275,7 @@ export const useDataset = create<Dataset>(
                     columns: dataframe.columns,
                     columnData: dataframe.data,
                     columnStats,
+                    problems,
                 }));
             },
             refresh: async () => {
@@ -349,6 +356,15 @@ export const useDataset = create<Dataset>(
                     isIndexHighlighted: mask,
                     highlightedIndices: Int32Array.from(highlightedIndices),
                 }));
+            },
+            highlightRows: (rowIndicesOrCallback) => {
+                const rowIndices =
+                    typeof rowIndicesOrCallback === 'function'
+                        ? rowIndicesOrCallback(get().selectedIndices)
+                        : rowIndicesOrCallback;
+                const mask = new Array(get().length).fill(false);
+                rowIndices.forEach((index: number) => (mask[index] = true));
+                get().setHighlightedRows(mask);
             },
             highlightRowAt: (rowIndex, only = false) => {
                 // early out if the index is highlighted anyway

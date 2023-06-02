@@ -207,9 +207,9 @@ api-client: ## Generate API Spec and CLient
 	find /tmp/spotlight-api-client \
 		-type f -exec sed -i -e "s/formData.append('mesh_files',.*$$/for (let meshFile of requestParameters.meshFiles) { formData.append('mesh_files', meshFile) }/g" {} \;
 	# replace existing code
-	rsync -a --delete /tmp/spotlight-api-client/ "./frontend/src/client"
+	rsync -a --delete /tmp/spotlight-api-client/ "./src/client"
 	# auto format generated code
-	npx prettier --write './frontend/src/client/**/*.{js,ts,tsx,json,yaml,css}'
+	npx prettier --write './src/client/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: notebook-theme
 notebook-theme: ## Generate custom css for jupyter notebook

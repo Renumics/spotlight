@@ -25,6 +25,7 @@ from renumics.spotlight.reporting import (
 from renumics.spotlight.settings import settings
 
 from .apis import plugins as plugin_api
+from .apis import problems as problems_api
 from .apis import websocket
 from .config import Config
 from .middlewares.timing import add_timing_middleware
@@ -50,6 +51,7 @@ def create_app() -> SpotlightApp:
 
     app.include_router(websocket.router, prefix="/api")
     app.include_router(plugin_api.router, prefix="/api/plugins")
+    app.include_router(problems_api.router, prefix="/api/problems")
 
     @app.exception_handler(Exception)
     async def _(_: Request, e: Exception) -> JSONResponse:

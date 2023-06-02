@@ -4,10 +4,12 @@ apis/DefaultApi.ts
 apis/FilebrowserApi.ts
 apis/LayoutApi.ts
 apis/PluginsApi.ts
+apis/ProblemsApi.ts
 apis/TableApi.ts
 apis/index.ts
 index.ts
 models/Column.ts
+models/DatasetProblem.ts
 models/FileEntry.ts
 models/Folder.ts
 models/HTTPValidationError.ts
@@ -17,6 +19,7 @@ models/ResponseGet.ts
 models/SetConfigRequest.ts
 models/SetLayoutRequest.ts
 models/Table.ts
+models/Type.ts
 models/ValidationError.ts
 models/Value.ts
 models/index.ts

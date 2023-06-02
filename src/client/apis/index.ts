@@ -5,4 +5,5 @@ export * from './DefaultApi';
 export * from './FilebrowserApi';
 export * from './LayoutApi';
 export * from './PluginsApi';
+export * from './ProblemsApi';
 export * from './TableApi';

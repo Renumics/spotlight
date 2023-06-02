@@ -28,4 +28,4 @@ def detect_outliers(embeddings: pd.Series) -> np.ndarray:
     detect outliers in an embedding column
     """
     scores = calculate_outlier_scores(embeddings)
-    return scores < 0.3
+    return scores < 0.9

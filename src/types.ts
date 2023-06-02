@@ -246,3 +246,9 @@ export interface AppLayout {
     orientation?: 'horizontal' | 'vertical';
     children: ContainerNode[];
 }
+
+export interface DatasetProblem {
+    type: 'warning' | 'error';
+    description: string;
+    rows: IndexArray;
+}
