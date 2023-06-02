@@ -34,9 +34,9 @@ const SortingIndicator = React.memo(({ sorting }: SortingIndicatorProps) => {
 });
 SortingIndicator.displayName = 'SortingIndicator';
 
-type Props = CellProps;
+type Props = CellProps<{ onStartResize: (columnIndex: number) => void }>;
 
-const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
+const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const column = useColumn(columnIndex);
     const [columnSorting, sortBy, resetSorting] = useSortByColumn(column.key);
 
@@ -112,13 +112,17 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
     return (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <div
-            tw="border-r border-b px-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
+            tw="border-r-0 border-b pl-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
             style={style}
             onClick={onToggleSorting}
             data-columnindex={columnIndex}
             data-rowindex={-1}
         >
             <div tw="flex-grow flex-shrink truncate">
+                <div
+                    onMouseDown={() => data.onStartResize(columnIndex)}
+                    tw="absolute right-0 top-0 h-full w-[1px] bg-gray-400 hover:scale-x-[4.5] transition transform cursor-col-resize"
+                />
                 <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
                     <div tw="truncate max-w-full block h-full self-center">
                         {column.editable && (

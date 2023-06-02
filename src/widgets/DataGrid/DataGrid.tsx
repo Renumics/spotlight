@@ -1,6 +1,6 @@
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
@@ -14,8 +14,11 @@ import { SortingProvider } from './context/sortingContext';
 import { TableViewProvider } from './context/tableViewContext';
 import HeaderGrid from './HeaderGrid';
 import MenuBar from './MenuBar';
-import TableGrid from './TableGrid';
+import TableGrid, { Ref as TableGridRef } from './TableGrid';
 import GridContextMenu from './GridContextMenu';
+import columnWidthByType from './columnWidthByType';
+
+const MIN_COLUMN_WIDTH = 50;
 
 const headerHeight = 24;
 
@@ -33,6 +36,7 @@ const columnVisibleByDefault = (column: DataColumn) =>
 
 const DataGrid: Widget = () => {
     const headerGrid = useRef<Grid>(null);
+    const tableGrid = useRef<TableGridRef>(null);
     const allColumns = useDataset(columnsSelector, shallow);
 
     const [scrollbarWidth] = getScrollbarSize();
@@ -49,6 +53,66 @@ const DataGrid: Widget = () => {
     const [visibleColumns, setVisibleColumns] = useWidgetConfig<string[]>(
         'visibleColumns',
         defaultVisibleColumnKeys
+    );
+    const [columnWidths, _setColumnWidths] = useWidgetConfig<Record<string, number>>(
+        'columnWidths',
+        allColumns.reduce((acc: Record<string, number>, column: DataColumn) => {
+            acc[column.key] = columnWidthByType[column.type.kind];
+            return acc;
+        }, {} as Record<string, number>)
+    );
+    const columnWidthsRef = useRef(columnWidths);
+    const setColumnWidths = useCallback((columnWidths: Record<string, number>) => {
+        columnWidthsRef.current = columnWidths;
+        _setColumnWidths(columnWidths);
+    }, []);
+
+    const resetGridsAfterIndex = useCallback((index: number) => {
+        tableGrid.current?.resetAfterColumnIndex(index);
+        headerGrid.current?.resetAfterColumnIndex(index);
+    }, []);
+
+    const lastResizePosition = useRef<number | null>(null);
+
+    const onStartResize = useCallback(
+        (columnIndex: number) => {
+            const columnKey = visibleColumns[columnIndex];
+            const onMouseMoveWhileResize = (event: MouseEvent) => {
+                if (lastResizePosition.current !== null) {
+                    const delta = event.clientX - lastResizePosition.current;
+                    if (delta > 0 || delta < 0) {
+                        const oldWidths = columnWidthsRef.current;
+                        const newColumnWidth = Math.max(
+                            MIN_COLUMN_WIDTH,
+                            oldWidths[columnKey] + delta
+                        );
+                        const newWidths = {
+                            ...oldWidths,
+                            [columnKey]: newColumnWidth,
+                        };
+                        setColumnWidths(newWidths);
+                        resetGridsAfterIndex(columnIndex);
+                    }
+                }
+                lastResizePosition.current = event.clientX;
+            };
+
+            window.addEventListener('mousemove', onMouseMoveWhileResize);
+
+            const onMouseUpWhileResize = () => {
+                window.removeEventListener('mousemove', onMouseMoveWhileResize);
+                window.removeEventListener('mouseup', onMouseUpWhileResize);
+                lastResizePosition.current = null;
+            };
+
+            window.addEventListener('mouseup', onMouseUpWhileResize);
+        },
+        [resetGridsAfterIndex, setColumnWidths, visibleColumns]
+    );
+
+    const columnWidth = useCallback(
+        (index: number) => columnWidths[visibleColumns[index]],
+        [columnWidths, visibleColumns]
     );
 
     const resetVisibleColumns = useCallback(
@@ -91,12 +155,16 @@ const DataGrid: Widget = () => {
                                                     width={width - scrollbarWidth}
                                                     height={headerHeight}
                                                     ref={headerGrid}
+                                                    columnWidth={columnWidth}
+                                                    onStartResize={onStartResize}
                                                 />
                                             </div>
                                             <TableGrid
                                                 width={width}
                                                 height={height - headerHeight}
                                                 onScroll={handleScroll}
+                                                columnWidth={columnWidth}
+                                                ref={tableGrid}
                                             />
                                         </GridContextMenu>
                                     </div>

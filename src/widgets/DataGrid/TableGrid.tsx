@@ -1,14 +1,17 @@
 import usePrevious from '../../hooks/usePrevious';
-import { FunctionComponent, useCallback, useEffect, useRef } from 'react';
+import {
+    ForwardRefRenderFunction,
+    forwardRef,
+    useCallback,
+    useEffect,
+    useRef,
+    useImperativeHandle,
+} from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
 import type { GridOnScrollProps, GridProps } from 'react-window';
 import Cell from './Cell';
 import CellPlaceholder from './Cell/CellPlaceholder';
-import {
-    useColumnCount,
-    useColumnWidth,
-    useVisibleColumns,
-} from './context/columnContext';
+import { useColumnCount, useVisibleColumns } from './context/columnContext';
 import getRowHeight from './getRowHeight';
 import useHighlight from './hooks/useHighlight';
 import useRowCount from './hooks/useRowCount';
@@ -20,12 +23,24 @@ interface Props {
     width: number;
     height: number;
     onScroll: GridProps['onScroll'];
+    columnWidth: (index: number) => number;
 }
 
-const TableGrid: FunctionComponent<Props> = ({ width, height, onScroll }) => {
+export type Ref = {
+    resetAfterColumnIndex: (index: number) => void;
+};
+
+const TableGrid: ForwardRefRenderFunction<Ref, Props> = (
+    { width, height, onScroll, columnWidth },
+    fwdRef
+) => {
     const ref = useRef<Grid>(null);
 
-    const columnWidth = useColumnWidth();
+    useImperativeHandle(fwdRef, () => ({
+        resetAfterColumnIndex: (index: number) => {
+            ref.current?.resetAfterColumnIndex(index);
+        },
+    }));
 
     const columnCount = useColumnCount();
 
@@ -98,4 +113,4 @@ const TableGrid: FunctionComponent<Props> = ({ width, height, onScroll }) => {
     );
 };
 
-export default TableGrid;
+export default forwardRef(TableGrid);
