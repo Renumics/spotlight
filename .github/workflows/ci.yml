@@ -177,8 +177,6 @@ jobs:
             - prepare-python
             - prepare-node
         runs-on: ubuntu-latest
-        env:
-            GENERATE_SOURCEMAP: false
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
@@ -206,7 +204,6 @@ jobs:
                   name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
                   path: build/dist/renumics_spotlight*.whl
                   if-no-files-found: error
-
     # Test stage
     check-wheel-contents:
         name: '🔍 Check wheel contents'
@@ -468,7 +465,7 @@ jobs:
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
+            - name: '🐍 Set up Poetry'
               uses: ./.github/actions/setup-poetry
               with:
                   install-dependencies: false
