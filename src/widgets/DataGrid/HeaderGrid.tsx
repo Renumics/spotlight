@@ -11,10 +11,11 @@ interface Props {
     width: number;
     columnWidth: (index: number) => number;
     onStartResize: (columnIndex: number) => void;
+    resizedIndex?: number;
 }
 
 const HeaderGrid: React.ForwardRefRenderFunction<Grid, Props> = (
-    { height, width, columnWidth, onStartResize },
+    { height, width, columnWidth, onStartResize, resizedIndex },
     ref
 ) => {
     const rowHeight = useCallback(() => height, [height]);
@@ -43,7 +44,7 @@ const HeaderGrid: React.ForwardRefRenderFunction<Grid, Props> = (
             rowHeight={rowHeight}
             height={height}
             width={width}
-            itemData={{ onStartResize }}
+            itemData={{ onStartResize, resizedIndex }}
             style={{
                 overflow: 'hidden',
             }}

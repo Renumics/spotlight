@@ -1,6 +1,6 @@
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
@@ -75,6 +75,7 @@ const DataGrid: Widget = () => {
         headerGrid.current?.resetAfterColumnIndex(index);
     }, []);
 
+    const [resizedIndex, setResizedIndex] = useState<number>();
     const lastResizePosition = useRef<number | null>(null);
 
     const onStartResize = useCallback(
@@ -96,6 +97,8 @@ const DataGrid: Widget = () => {
                         setColumnWidths(newWidths);
                         resetGridsAfterIndex(columnIndex);
                     }
+                } else {
+                    setResizedIndex(columnIndex);
                 }
                 lastResizePosition.current = event.clientX;
             };
@@ -106,6 +109,7 @@ const DataGrid: Widget = () => {
                 window.removeEventListener('mousemove', onMouseMoveWhileResize);
                 window.removeEventListener('mouseup', onMouseUpWhileResize);
                 lastResizePosition.current = null;
+                setResizedIndex(undefined);
             };
 
             window.addEventListener('mouseup', onMouseUpWhileResize);
@@ -160,6 +164,7 @@ const DataGrid: Widget = () => {
                                                     ref={headerGrid}
                                                     columnWidth={columnWidth}
                                                     onStartResize={onStartResize}
+                                                    resizedIndex={resizedIndex}
                                                 />
                                             </div>
                                             <TableGrid

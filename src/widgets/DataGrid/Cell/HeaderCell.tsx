@@ -34,7 +34,17 @@ const SortingIndicator = React.memo(({ sorting }: SortingIndicatorProps) => {
 });
 SortingIndicator.displayName = 'SortingIndicator';
 
-type Props = CellProps<{ onStartResize: (columnIndex: number) => void }>;
+const stopPropagation: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+};
+
+type ItemData = {
+    onStartResize: (columnIndex: number) => void;
+    resizedIndex?: number;
+};
+
+type Props = CellProps<ItemData>;
 
 const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const column = useColumn(columnIndex);
@@ -109,6 +119,14 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
         [column, stats, tagColorTransferFunction]
     );
 
+    const onStartResize: React.MouseEventHandler<HTMLButtonElement> = useCallback(
+        (event) => {
+            stopPropagation(event);
+            data.onStartResize(columnIndex);
+        },
+        [columnIndex, data]
+    );
+
     return (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <div
@@ -119,10 +137,6 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
             data-rowindex={-1}
         >
             <div tw="flex-grow flex-shrink truncate">
-                <div
-                    onMouseDown={() => data.onStartResize(columnIndex)}
-                    tw="absolute right-0 top-0 h-full w-[1px] bg-gray-400 hover:scale-x-[4.5] transition transform cursor-col-resize"
-                />
                 <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
                     <div tw="truncate max-w-full block h-full self-center">
                         {column.editable && (
@@ -136,6 +150,14 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
                 <RelevanceIndicator column={column} />
                 <SortingIndicator sorting={columnSorting} />
             </div>
+            <button
+                onClick={stopPropagation}
+                onMouseDown={onStartResize}
+                css={[
+                    tw`h-full w-[3px] border-r bg-none hover:border-r-0 hover:bg-gray-400 transition transform cursor-col-resize`,
+                    data.resizedIndex === columnIndex && tw`bg-gray-400 border-r-0`,
+                ]}
+            />
         </div>
     );
 };
