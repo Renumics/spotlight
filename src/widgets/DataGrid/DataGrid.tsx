@@ -1,6 +1,6 @@
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
@@ -54,21 +54,19 @@ const DataGrid: Widget = () => {
         'visibleColumns',
         defaultVisibleColumnKeys
     );
-    const [columnWidths, _setColumnWidths] = useWidgetConfig<Record<string, number>>(
+    const [columnWidths, persistColumnWidths] = useWidgetConfig<Record<string, number>>(
         'columnWidths',
         allColumns.reduce((acc: Record<string, number>, column: DataColumn) => {
             acc[column.key] = columnWidthByType[column.type.kind];
             return acc;
         }, {} as Record<string, number>)
     );
+
     const columnWidthsRef = useRef(columnWidths);
-    const setColumnWidths = useCallback(
-        (columnWidths: Record<string, number>) => {
-            columnWidthsRef.current = columnWidths;
-            _setColumnWidths(columnWidths);
-        },
-        [_setColumnWidths]
-    );
+
+    useEffect(() => {
+        columnWidthsRef.current = columnWidths;
+    }, [columnWidths]);
 
     const resetGridsAfterIndex = useCallback((index: number) => {
         tableGrid.current?.resetAfterColumnIndex(index);
@@ -94,7 +92,7 @@ const DataGrid: Widget = () => {
                             ...oldWidths,
                             [columnKey]: newColumnWidth,
                         };
-                        setColumnWidths(newWidths);
+                        columnWidthsRef.current = newWidths;
                         resetGridsAfterIndex(columnIndex);
                     }
                 } else {
@@ -110,16 +108,17 @@ const DataGrid: Widget = () => {
                 window.removeEventListener('mouseup', onMouseUpWhileResize);
                 lastResizePosition.current = null;
                 setResizedIndex(undefined);
+                persistColumnWidths(columnWidthsRef.current);
             };
 
             window.addEventListener('mouseup', onMouseUpWhileResize);
         },
-        [resetGridsAfterIndex, setColumnWidths, visibleColumns]
+        [visibleColumns, resetGridsAfterIndex, persistColumnWidths]
     );
 
     const columnWidth = useCallback(
-        (index: number) => columnWidths[visibleColumns[index]],
-        [columnWidths, visibleColumns]
+        (index: number) => columnWidthsRef.current[visibleColumns[index]],
+        [visibleColumns]
     );
 
     const resetVisibleColumns = useCallback(
