@@ -1,4 +1,4 @@
-import { LensKey } from '../../lenses/registry';
+import { LensKey } from '../../types';
 
 export interface ViewConfig {
     view: LensKey;

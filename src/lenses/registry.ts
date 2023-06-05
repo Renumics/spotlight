@@ -13,19 +13,15 @@ import SafeHtmlLens from './SafeHtmlLens';
 import MarkdownLens from './MarkdownLens';
 import TextLens from './TextLens';
 
-export type LensKey = string;
+type LensKey = string;
 interface Registry {
-    views: Record<LensKey, Lens>;
-    keys: string[];
-    findCompatibleViews(types: DataType[], canEdit: boolean): string[];
-    register(lens: Lens): void;
+    _views: Record<LensKey, Lens>;
+    _keys: string[];
+    _findCompatibleViews(types: DataType[], canEdit: boolean): string[];
+    _register(lens: Lens): void;
 }
 
-export function isLensCompatible(
-    view: Lens,
-    types: DataType[],
-    canEdit: boolean
-): boolean {
+function isLensCompatible(view: Lens, types: DataType[], canEdit: boolean): boolean {
     return !!(
         types.length &&
         (canEdit || !view.isEditor) &&
@@ -35,7 +31,7 @@ export function isLensCompatible(
 }
 
 const registry: Registry = {
-    views: {
+    _views: {
         AudioView: AudioLens,
         SpectrogramView: SpectrogramLens,
         VideoView: VideoLens,
@@ -49,17 +45,17 @@ const registry: Registry = {
         MarkdownLens,
         ScalarView: ScalarLens,
     },
-    get keys() {
-        return Object.keys(this.views);
+    get _keys() {
+        return Object.keys(this._views);
     },
-    findCompatibleViews(types, canEdit) {
-        return Object.keys(this.views).filter((viewName) =>
-            isLensCompatible(this.views[viewName], types, canEdit)
+    _findCompatibleViews(types, canEdit) {
+        return Object.keys(this._views).filter((viewName) =>
+            isLensCompatible(this._views[viewName], types, canEdit)
         );
     },
-    register(lens) {
+    _register(lens) {
         const lensKey = lens.key ?? lens.displayName;
-        this.views[lensKey] = lens;
+        this._views[lensKey] = lens;
     },
 } as const;
 export default registry;

@@ -9,7 +9,6 @@ import {
 } from 'react';
 import shortUUID from 'short-uuid';
 import { createStore, useStore as useZustandStore, StoreApi } from 'zustand';
-import { registry } from '../../lenses';
 import { useDataset } from '../../lib';
 import useWidgetConfig from '../useWidgetConfig';
 import { ViewConfig } from './types';
@@ -60,6 +59,7 @@ interface ProviderProps {
 }
 
 const StoreProvider = ({ children }: ProviderProps): JSX.Element => {
+    const allColumns = useDataset((d) => d.columns);
     const autoViews = useMemo(() => {
         const richColumns = useDataset.getState().columns.filter((c) => c.lazy);
         const autoViews = richColumns.slice(0, 5).map((column) => {
