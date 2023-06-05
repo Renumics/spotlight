@@ -29,3 +29,4 @@ class SpotlightApp(FastAPI):
     project_root: PathType
     vite_url: Optional[str]
     username: str
+    filebrowsing_allowed: bool

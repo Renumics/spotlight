@@ -17,7 +17,7 @@ from renumics.spotlight.backend.data_source import (
     last_edited_by_column,
     sanitize_values,
 )
-from renumics.spotlight.backend.exceptions import InvalidPath
+from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.backend.types import SpotlightApp
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
@@ -198,6 +198,9 @@ async def open_table(path: str, request: Request) -> None:
     :raises InvalidPath: if the supplied path is outside the project root
                          or points to an incompatible file
     """
+    if not request.app.filebrowsing_allowed:
+        raise FilebrowsingNotAllowed()
+
     full_path = Path(request.app.project_root) / path
 
     # assert that the path is inside our project root

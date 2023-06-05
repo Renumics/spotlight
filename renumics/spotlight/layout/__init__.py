@@ -123,10 +123,8 @@ def parse(layout_: _LayoutLike) -> _Layout:
         try:
             resp = requests.get(str(layout_), timeout=2)
             return _Layout(**resp.json())
-        except (ValidationError, JSONDecodeError) as exc:
-            raise InvalidLayout(
-                f"Could not load and parse layout from {layout_}."
-            ) from exc
+        except (ValidationError, JSONDecodeError) as e:
+            raise InvalidLayout() from e
     except ValidationError:
         pass
 
