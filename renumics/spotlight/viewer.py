@@ -99,6 +99,7 @@ class Viewer:
     _requested_port: Union[int, Literal["auto"]]
     _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
     _dtype: Optional[ColumnTypeMapping]
+    _no_filebrowser: Optional[bool]
     _layout: Optional[_LayoutLike]
 
     def __init__(
@@ -110,7 +111,7 @@ class Viewer:
         self._requested_port = port
         self._dataset_or_folder = None
         self._dtype = None
-        self._layout = None
+        self._no_filebrowser = None
         self._server = None
         self._thread = None
         self._vite = None
@@ -137,6 +138,7 @@ class Viewer:
         dataset_or_folder: Optional[Union[PathType, pd.DataFrame]] = None,
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
+        no_filebrowser: Optional[bool] = None,
         wait: Union[bool, Literal["auto"]] = "auto",
         dtype: Optional[ColumnTypeMapping] = None,
     ) -> None:
@@ -147,6 +149,7 @@ class Viewer:
             dataset_or_folder: root folder, dataset file or pandas.DataFrame (df) to open.
             layout: optional Spotlight :mod:`layout <renumics.spotlight.layout>`.
             no_browser: do not show Spotlight in browser.
+            no_filebrowser: do not allow users to browse and open datasets.
             wait: If `True`, block code execution until all Spotlight browser tabs are closed.
                 If `False`, continue code execution after Spotlight start.
                 If "auto" (default), choose the mode automatically: non-blocking for
@@ -192,6 +195,12 @@ class Viewer:
         if layout is not None:
             app.layout = parse(layout)
             app.websocket_manager.broadcast(ResetLayoutMessage())
+
+        if no_filebrowser is not None:
+            self._no_filebrowser = no_filebrowser
+        elif self._no_filebrowser is None:
+            self._no_filebrowser = False
+        app.filebrowsing_allowed = not self._no_filebrowser
 
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
@@ -354,6 +363,7 @@ def show(
     port: Union[int, Literal["auto"]] = "auto",
     layout: Optional[_LayoutLike] = None,
     no_browser: bool = False,
+    no_filebrowser: bool = False,
     wait: Union[bool, Literal["auto"]] = "auto",
     dtype: Optional[Dict[str, Type[ColumnType]]] = None,
 ) -> Viewer:
@@ -367,6 +377,7 @@ def show(
             If "auto" (default), automatically choose a random free port.
         layout: optional Spotlight :mod:`layout <renumics.spotlight.layout>`.
         no_browser: do not show Spotlight in browser.
+        no_filebrowser: do not allow users to browse and open datasets.
         wait: If `True`, block code execution until all Spotlight browser tabs are closed.
             If `False`, continue code execution after Spotlight start.
             If "auto" (default), choose the mode automatically: non-blocking for
@@ -387,7 +398,12 @@ def show(
         viewer = Viewer(host, port)
 
     viewer.show(
-        dataset_or_folder, layout=layout, no_browser=no_browser, wait=wait, dtype=dtype
+        dataset_or_folder,
+        layout=layout,
+        no_browser=no_browser,
+        no_filebrowser=no_filebrowser,
+        wait=wait,
+        dtype=dtype,
     )
     return viewer
 

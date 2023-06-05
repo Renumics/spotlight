@@ -49,6 +49,7 @@ def create_app() -> SpotlightApp:
     app.project_root = Path.cwd()
     app.vite_url = None
     app.username = ""
+    app.filebrowsing_allowed = False
 
     app.include_router(websocket.router, prefix="/api")
     app.include_router(plugin_api.router, prefix="/api/plugins")
@@ -118,6 +119,7 @@ def create_app() -> SpotlightApp:
                 "dev": settings.dev,
                 "dev_location": get_project_info().type,
                 "vite_url": request.app.vite_url,
+                "filebrowsing_allowed": request.app.filebrowsing_allowed,
             },
         )
         response.set_cookie("browser_id", browser_id or str(uuid.uuid4()))
