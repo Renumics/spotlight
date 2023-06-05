@@ -5,14 +5,16 @@ start flask development server
 import asyncio
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
+import uuid
 
-from fastapi import Request, status
+from fastapi import Request, status, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
+from typing_extensions import Annotated
 
 from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.develop.project import get_project_info
@@ -106,8 +108,10 @@ def create_app() -> SpotlightApp:
     templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
     @app.get("/")
-    def _(request: Request) -> Any:
-        return templates.TemplateResponse(
+    def _(
+        request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
+    ) -> Any:
+        response = templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
@@ -116,6 +120,8 @@ def create_app() -> SpotlightApp:
                 "vite_url": request.app.vite_url,
             },
         )
+        response.set_cookie("browser_id", browser_id or str(uuid.uuid4()))
+        return response
 
     if settings.dev:
         logger.info("Running in dev mode")
