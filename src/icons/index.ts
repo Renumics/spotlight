@@ -17,3 +17,4 @@ export { default as Delete } from './Delete';
 export { default as Add } from './Add';
 export { default as AddBox } from './AddBox';
 export { default as Lightbulb } from './Lightbulb';
+export { default as Copy } from './Copy';

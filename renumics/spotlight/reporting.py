@@ -74,6 +74,8 @@ def _get_python_runtime() -> str:
                 python_runtime += (
                     f"_kaggle_{environ.get('KAGGLE_KERNEL_RUN_TYPE', None)}"
                 )
+            elif "SPACE_ID" in environ:
+                python_runtime += "huggingface"
         except NameError:
             pass
     # pylint: disable-next=broad-exception-caught
@@ -97,6 +99,7 @@ key_map = {
     "version": "v",
     "plugins": "pls",
     "token": "tk",
+    "space_id": "spid",
 }
 
 event_type_key_map = {
@@ -121,6 +124,7 @@ def report_event(event: Dict[str, Any]) -> None:
     event["event_id"] = str(uuid4())
     event["version"] = str(__version__)
     event["python_version"] = _get_python_runtime()
+    event["space_id"] = environ.get("SPACE_ID", None)
     event["type"] = event_type_key_map[event["type"]]
     event["plugins"] = []
     if settings.dev:

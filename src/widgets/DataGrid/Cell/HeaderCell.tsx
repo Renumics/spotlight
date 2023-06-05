@@ -34,9 +34,19 @@ const SortingIndicator = React.memo(({ sorting }: SortingIndicatorProps) => {
 });
 SortingIndicator.displayName = 'SortingIndicator';
 
-type Props = CellProps;
+const stopPropagation: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+};
 
-const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
+type ItemData = {
+    onStartResize: (columnIndex: number) => void;
+    resizedIndex?: number;
+};
+
+type Props = CellProps<ItemData>;
+
+const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const column = useColumn(columnIndex);
     const [columnSorting, sortBy, resetSorting] = useSortByColumn(column.key);
 
@@ -109,10 +119,18 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
         [column, stats, tagColorTransferFunction]
     );
 
+    const onStartResize: React.MouseEventHandler<HTMLButtonElement> = useCallback(
+        (event) => {
+            stopPropagation(event);
+            data.onStartResize(columnIndex);
+        },
+        [columnIndex, data]
+    );
+
     return (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <div
-            tw="border-r border-b px-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
+            tw="border-r-0 border-b pl-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
             style={style}
             onClick={onToggleSorting}
             data-columnindex={columnIndex}
@@ -132,6 +150,14 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
                 <RelevanceIndicator column={column} />
                 <SortingIndicator sorting={columnSorting} />
             </div>
+            <button
+                onClick={stopPropagation}
+                onMouseDown={onStartResize}
+                css={[
+                    tw`h-full w-[3px] border-r bg-none hover:border-r-0 hover:bg-gray-400 transition transform cursor-col-resize`,
+                    data.resizedIndex === columnIndex && tw`bg-gray-400 border-r-0`,
+                ]}
+            />
         </div>
     );
 };

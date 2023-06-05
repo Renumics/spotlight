@@ -4,24 +4,22 @@ import { useCallback, useEffect } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
 import 'twin.macro';
 import HeaderCell from './Cell/HeaderCell';
-import {
-    useColumnCount,
-    useColumnWidth,
-    useVisibleColumns,
-} from './context/columnContext';
+import { useColumnCount, useVisibleColumns } from './context/columnContext';
 
 interface Props {
     height: number;
     width: number;
+    columnWidth: (index: number) => number;
+    onStartResize: (columnIndex: number) => void;
+    resizedIndex?: number;
 }
 
 const HeaderGrid: React.ForwardRefRenderFunction<Grid, Props> = (
-    { height, width },
+    { height, width, columnWidth, onStartResize, resizedIndex },
     ref
 ) => {
     const rowHeight = useCallback(() => height, [height]);
     const columnCount = useColumnCount();
-    const columnWidth = useColumnWidth();
 
     const [displayedColumns] = useVisibleColumns();
 
@@ -46,6 +44,7 @@ const HeaderGrid: React.ForwardRefRenderFunction<Grid, Props> = (
             rowHeight={rowHeight}
             height={height}
             width={width}
+            itemData={{ onStartResize, resizedIndex }}
             style={{
                 overflow: 'hidden',
             }}
