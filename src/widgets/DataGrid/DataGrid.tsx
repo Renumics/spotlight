@@ -62,10 +62,13 @@ const DataGrid: Widget = () => {
         }, {} as Record<string, number>)
     );
     const columnWidthsRef = useRef(columnWidths);
-    const setColumnWidths = useCallback((columnWidths: Record<string, number>) => {
-        columnWidthsRef.current = columnWidths;
-        _setColumnWidths(columnWidths);
-    }, []);
+    const setColumnWidths = useCallback(
+        (columnWidths: Record<string, number>) => {
+            columnWidthsRef.current = columnWidths;
+            _setColumnWidths(columnWidths);
+        },
+        [_setColumnWidths]
+    );
 
     const resetGridsAfterIndex = useCallback((index: number) => {
         tableGrid.current?.resetAfterColumnIndex(index);
