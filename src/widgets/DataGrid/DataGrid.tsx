@@ -1,6 +1,6 @@
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
