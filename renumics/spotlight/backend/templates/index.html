@@ -9,6 +9,9 @@
         {% endif %}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Spotlight</title>
+        <script type="module">
+            window.__filebrowsing_allowed__ = {{"true" if filebrowsing_allowed else "false"}}
+        </script>
         {% if dev %}
         <script type="module">
             import RefreshRuntime from '{{vite_url}}/@react-refresh';

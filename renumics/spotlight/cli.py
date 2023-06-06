@@ -91,6 +91,12 @@ def cli_dtype_callback(
     default=False,
     help="Do not automatically show Spotlight in browser.",
 )
+@click.option(
+    "--filebrowsing/--no-filebrowsing",
+    is_flag=True,
+    default=True,
+    help="Whether to allow users to browse and open datasets.",
+)
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
@@ -100,6 +106,7 @@ def main(
     layout: Optional[str],
     dtype: Optional[Dict[str, Type[ColumnType]]],
     no_browser: bool,
+    filebrowsing: bool,
     verbose: bool,
 ) -> None:
     """
@@ -122,6 +129,7 @@ def main(
         port="auto" if port == "auto" else int(port),
         layout=layout,
         no_browser=no_browser,
+        allow_filebrowsing=filebrowsing,
         wait=False,
     )
 
