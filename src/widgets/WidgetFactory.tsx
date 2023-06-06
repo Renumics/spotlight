@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { FunctionComponent } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import 'twin.macro';
 import { Config } from './types';
