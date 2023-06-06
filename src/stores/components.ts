@@ -51,7 +51,11 @@ export function findCompatibleLenses(types: DataType[], canEdit: boolean) {
 
 export function registerWidget(widget: Widget) {
     useComponentsStore.setState((state) => {
-        const widgetsByKey = { ...state.widgetsByKey, [widget.key]: widget };
+        const widgetsByKey = { ...state.widgetsByKey };
+        [widget.key, ...(widget.legacyKeys ?? [])].forEach((key) => {
+            widgetsByKey[key] = widget;
+        });
+
         return {
             widgetsByKey,
             widgetKeys: Object.keys(widgetsByKey),
