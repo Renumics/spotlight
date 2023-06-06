@@ -1,6 +1,6 @@
 import 'twin.macro';
 import ScalarValue from '../components/ScalarValue';
-import { Lens } from './types';
+import { Lens } from '../types';
 
 const ScalarView: Lens = ({ value, column }) => {
     return (
@@ -10,8 +10,8 @@ const ScalarView: Lens = ({ value, column }) => {
     );
 };
 
+ScalarView.key = 'ScalarView';
 ScalarView.dataTypes = ['int', 'float', 'bool', 'str', 'datetime', 'Category'];
-
 ScalarView.defaultHeight = 22;
 ScalarView.minHeight = 22;
 ScalarView.maxHeight = 64;

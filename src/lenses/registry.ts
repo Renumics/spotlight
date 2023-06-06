@@ -1,5 +1,5 @@
 import { DataType } from '../datatypes';
-import { Lens } from './types';
+import { Lens } from '../types';
 import AudioLens from './AudioLens';
 import ImageLens from './ImageLens';
 import MeshLens from './MeshLens';

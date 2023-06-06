@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
 import tw, { styled } from 'twin.macro';
-import { Lens } from '../types';
+import { Lens } from '../../types';
 import MenuBar from './MenuBar';
 
 import 'cropperjs/dist/cropper.css';
@@ -66,6 +66,7 @@ const ImageLens: Lens = ({ url }) => {
     );
 };
 
+ImageLens.key = 'ImageView';
 ImageLens.dataTypes = ['Image'];
 ImageLens.displayName = 'Image';
 ImageLens.defaultHeight = 256;

@@ -1,5 +1,5 @@
 import 'twin.macro';
-import { Lens } from './types';
+import { Lens } from '../types';
 import DOMPurify from 'dompurify';
 import Html from '../components/ui/Html';
 
@@ -9,6 +9,7 @@ const SafeHtmlLens: Lens = ({ value }) => {
     return <Html html={safe_html} />;
 };
 
+SafeHtmlLens.key = 'SafeHtmlLens';
 SafeHtmlLens.dataTypes = ['str'];
 SafeHtmlLens.defaultHeight = 48;
 SafeHtmlLens.minHeight = 22;

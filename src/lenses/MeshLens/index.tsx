@@ -8,7 +8,7 @@ import { ViewerState } from '../../components/GltfViewer/GltfViewer';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ColorsState, useColors } from '../../stores/colors';
 import tw from 'twin.macro';
-import { Lens } from '../types';
+import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 
@@ -144,6 +144,7 @@ const MeshLens: Lens = ({ values, syncKey }) => {
     );
 };
 
+MeshLens.key = 'MeshView';
 MeshLens.displayName = '3D Viewer';
 MeshLens.dataTypes = ['Mesh'];
 MeshLens.defaultHeight = 256;

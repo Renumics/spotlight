@@ -5,11 +5,11 @@ import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
-import { DataColumn } from '../types';
+import { DataColumn, LensKey } from '../types';
 import LensContext from './LensContext';
-import registry, { LensKey, isLensCompatible } from './registry';
 import useCellValues from './useCellValue';
 import None from './None';
+import { isLensCompatible, useComponentsStore } from '../stores/components';
 
 interface Props {
     view: LensKey;
@@ -46,7 +46,8 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
     const [values, problem] = useCellValues(rowIndex, columnKeys);
 
-    const ViewComponent = registry.views[view];
+    const lenses = useComponentsStore((state) => state.lensesByKey);
+    const LensComponent = lenses[view];
 
     const urls = useMemoWithPrevious(
         (previousUrls: (string | undefined)[] | undefined) => {
@@ -74,23 +75,23 @@ const ViewFactory: React.FunctionComponent<Props> = ({
             });
     }, [urls]);
 
-    const types = columns.map((c) => c.type);
-    const allEditable = columns.every((c) => c.editable);
-
     const fallbackRenderer = useCallback(
         ({ error }: FallbackProps) => (
             <ErrorFallback
                 error={error}
-                message={`Error Creating ${ViewComponent.displayName}.`}
+                message={`Error Creating ${LensComponent.displayName}.`}
             />
         ),
-        [ViewComponent]
+        [LensComponent]
     );
+
+    const types = columns.map((c) => c.type);
+    const allEditable = columns.every((c) => c.editable);
 
     if (problem) return <Info>Failed to load value!</Info>;
     if (!values || !urls) return <LoadingIndicator delay={100} />;
-    if (!ViewComponent) return <Info>View not found ({view})!</Info>;
-    if (!isLensCompatible(ViewComponent, types, allEditable))
+    if (!LensComponent) return <Info>View not found ({view})!</Info>;
+    if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible View ({view})</Info>;
 
     const context = { syncKey };
@@ -101,7 +102,7 @@ const ViewFactory: React.FunctionComponent<Props> = ({
                 {values[0] == null ? (
                     <None />
                 ) : (
-                    <ViewComponent
+                    <LensComponent
                         url={urls[0]}
                         urls={urls}
                         value={values[0]}

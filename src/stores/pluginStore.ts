@@ -1,14 +1,15 @@
 import _ from 'lodash';
 import { create } from 'zustand';
 import { appBarItems } from '../components/AppBar';
-import { registry, View } from '../lenses';
 import { Widget } from '../widgets/types';
 import { widgets, widgetsById } from '../widgets/WidgetFactory';
 import api from '../api';
+import { registerLens } from './components';
+import { Lens } from '../types';
 
 export interface App {
     registerWidget: (widget: Widget) => void;
-    registerLens: (lens: View) => void;
+    registerLens: (lens: Lens) => void;
     addAppBarItem: (component: JSX.Element) => void;
     removeAppBarItemByKey: (key: string) => void;
 }
@@ -67,9 +68,7 @@ const usePluginStore = create<State>()((set) => ({
                 widgets.push(widget);
                 widgetsById[widget.key] = widget;
             },
-            registerLens: (lens: View) => {
-                registry.register(lens);
-            },
+            registerLens,
             addAppBarItem: (item: JSX.Element) => {
                 appBarItems.push(item);
             },
