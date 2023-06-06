@@ -52,7 +52,7 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
             if (!viewConfig) return DEFAULT_HEIGHT;
             return (
                 rowHeights[viewConfig.key] ??
-                lenses[viewConfig.key]?.defaultHeight ??
+                lenses[viewConfig.view]?.defaultHeight ??
                 DEFAULT_HEIGHT
             );
         },
@@ -61,12 +61,14 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
 
     const startResize = useCallback(
         (index: number, screenY: number) => {
-            const viewKey = visibleLenses[index].key;
-            resizedRow.current = viewKey;
+            const viewConfig = visibleLenses[index];
+            resizedRow.current = viewConfig.key;
             startScreenY.current = screenY;
             lastScreenY.current = screenY;
             startHeight.current =
-                rowHeights[viewKey] ?? lenses[viewKey]?.defaultHeight ?? DEFAULT_HEIGHT;
+                rowHeights[viewConfig.key] ??
+                lenses[viewConfig.view]?.defaultHeight ??
+                DEFAULT_HEIGHT;
             currentHeight.current = startHeight.current;
             setIsResizing(true);
         },
