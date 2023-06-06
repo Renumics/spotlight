@@ -2,13 +2,9 @@ import * as React from 'react';
 import { FunctionComponent } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import 'twin.macro';
-import DataGrid from './DataGrid';
-import Histogram from './Histogram';
-import ScatterplotView from './ScatterplotView';
-import Inspector from './Inspector';
-import SimilarityMap from './SimilarityMap';
-import { Config, Widget } from './types';
+import { Config } from './types';
 import { WidgetContext } from './WidgetContext';
+import { useComponentsStore } from '../stores/components';
 
 interface Props {
     widgetType: string;
@@ -20,22 +16,15 @@ interface Props {
 const datasetUidSelector = (d: Dataset) => d.uid;
 const useDatasetUid = () => useDataset(datasetUidSelector);
 
-export const widgets = [DataGrid, Inspector, SimilarityMap, ScatterplotView, Histogram];
-
-export const widgetsById: Record<string, Widget> = {};
-widgets.forEach((widget) => {
-    widgetsById[widget.key] = widget;
-    widget.legacyKeys?.forEach((key) => (widgetsById[key] = widget));
-});
-
-const WidgetFactory: FunctionComponent<Props> = ({
+const WidgetFactory = ({
     widgetType,
     widgetId,
     config,
     setConfig,
-}) => {
+}: Props): JSX.Element => {
     const datasetUid = useDatasetUid();
-    const WidgetComponent = widgetsById[widgetType];
+    const widgetsByKey = useComponentsStore((state) => state.widgetsByKey);
+    const WidgetComponent = widgetsByKey[widgetType];
 
     if (WidgetComponent) {
         const fullWidgetId = `widgets.${datasetUid}.${widgetType}.${widgetId}`;
