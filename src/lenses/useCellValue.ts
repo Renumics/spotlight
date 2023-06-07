@@ -17,9 +17,12 @@ async function keepValue(value: unknown) {
     return value;
 }
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function useCellValues(
     rowIndex: number,
-    columnKeys: string[]
+    columnKeys: string[],
+    deferLoading?: boolean = false
 ): [unknown[] | undefined, Problem | undefined] {
     const cellsSelector = useCallback(
         (d: Dataset) => {
@@ -64,7 +67,13 @@ function useCellValues(
 
         const fetchers = cellEntries.map((entry, i) =>
             entry !== null && columns[i]?.lazy
-                ? fetchValue(rowIndex, columnKeys[i])
+                ? delay(deferLoading ? 250 : 0).then(() => {
+                      if (cancelled) {
+                          console.log('canceled');
+                      } else {
+                          return fetchValue(rowIndex, columnKeys[i]);
+                      }
+                  })
                 : keepValue(entry)
         );
 
@@ -79,7 +88,15 @@ function useCellValues(
         return () => {
             cancelled = true;
         };
-    }, [cellEntries, rowIndex, columnKeys, needsFetch, columns, hasFetchedValues]);
+    }, [
+        cellEntries,
+        rowIndex,
+        columnKeys,
+        needsFetch,
+        columns,
+        hasFetchedValues,
+        deferLoading,
+    ]);
 
     const values = needsFetch ? fetchedValues : cellEntries;
 

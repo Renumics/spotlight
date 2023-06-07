@@ -4,6 +4,7 @@ import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
+import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
 import { DataColumn, LensKey } from '../types';
 import LensContext from './LensContext';
 import useCellValues from './useCellValue';
@@ -45,20 +46,17 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     deferLoading = false,
 }) => {
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
-    const [values, problem] = useCellValues(rowIndex, columnKeys);
+    const [values, problem] = useCellValues(rowIndex, columnKeys, deferLoading);
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
     const LensComponent = lenses[view];
 
-    const [urls, setUrls] = React.useState<(string | undefined)[] | undefined>();
-    const previousUrls = React.useRef<(string | undefined)[] | undefined>();
+    const urls = useMemoWithPrevious(
+        (previousUrls: (string | undefined)[] | undefined) => {
+            if (!values) return;
+            if (previousUrls) return previousUrls;
 
-    useEffect(() => {
-        if (!values) return;
-        if (previousUrls.current) return;
-
-        const loadUrls = () => {
-            previousUrls.current = values.map((value) => {
+            return values.map((value) => {
                 if (value instanceof ArrayBuffer) {
                     const bufferView = new Uint8Array(value as ArrayBuffer);
                     const blob = new Blob([bufferView]);
@@ -67,11 +65,10 @@ const ViewFactory: React.FunctionComponent<Props> = ({
                     return undefined;
                 }
             });
-            setUrls(previousUrls.current);
-        };
-        const timer = setTimeout(loadUrls, deferLoading ? 250 : 0);
-        return () => clearTimeout(timer);
-    }, [values, urls, deferLoading]);
+        },
+        [values],
+        undefined
+    );
 
     useEffect(() => {
         return () =>
