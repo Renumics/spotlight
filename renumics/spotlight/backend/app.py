@@ -122,7 +122,9 @@ def create_app() -> SpotlightApp:
                 "filebrowsing_allowed": request.app.filebrowsing_allowed,
             },
         )
-        response.set_cookie("browser_id", browser_id or str(uuid.uuid4()))
+        response.set_cookie(
+            "browser_id", browser_id or str(uuid.uuid4()), samesite="none", secure=True
+        )
         return response
 
     if settings.dev:
