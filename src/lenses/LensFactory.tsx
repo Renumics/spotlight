@@ -4,7 +4,6 @@ import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
-import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
 import { DataColumn, LensKey } from '../types';
 import LensContext from './LensContext';
 import useCellValues from './useCellValue';
