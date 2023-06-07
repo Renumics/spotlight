@@ -22,7 +22,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function useCellValues(
     rowIndex: number,
     columnKeys: string[],
-    deferLoading?: boolean = false
+    deferLoading = false
 ): [unknown[] | undefined, Problem | undefined] {
     const cellsSelector = useCallback(
         (d: Dataset) => {
