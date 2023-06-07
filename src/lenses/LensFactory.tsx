@@ -16,6 +16,7 @@ interface Props {
     columns: DataColumn[];
     rowIndex: number;
     syncKey: string;
+    deferLoading?: boolean;
 }
 
 const Info = tw.div`w-full h-full flex items-center justify-center text-gray-800 italic text-sm p-2 text-center`;
@@ -42,6 +43,7 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     columns,
     rowIndex,
     syncKey,
+    deferLoading = false,
 }) => {
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
     const [values, problem] = useCellValues(rowIndex, columnKeys);
@@ -49,12 +51,15 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     const lenses = useComponentsStore((state) => state.lensesByKey);
     const LensComponent = lenses[view];
 
-    const urls = useMemoWithPrevious(
-        (previousUrls: (string | undefined)[] | undefined) => {
-            if (!values) return;
-            if (previousUrls) return previousUrls;
+    const [urls, setUrls] = React.useState<(string | undefined)[] | undefined>();
+    const previousUrls = React.useRef<(string | undefined)[] | undefined>();
 
-            return values.map((value) => {
+    useEffect(() => {
+        if (!values) return;
+        if (previousUrls.current) return;
+
+        const loadUrls = () => {
+            previousUrls.current = values.map((value) => {
                 if (value instanceof ArrayBuffer) {
                     const bufferView = new Uint8Array(value as ArrayBuffer);
                     const blob = new Blob([bufferView]);
@@ -63,10 +68,11 @@ const ViewFactory: React.FunctionComponent<Props> = ({
                     return undefined;
                 }
             });
-        },
-        [values],
-        undefined
-    );
+            setUrls(previousUrls.current);
+        };
+        const timer = setTimeout(loadUrls, deferLoading ? 1000 : 0);
+        return () => clearTimeout(timer);
+    }, [values, urls, deferLoading]);
 
     useEffect(() => {
         return () =>
