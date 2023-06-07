@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { create } from 'zustand';
 import { appBarItems } from '../components/AppBar';
 import { Widget } from '../widgets/types';
