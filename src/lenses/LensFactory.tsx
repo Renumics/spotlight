@@ -70,7 +70,7 @@ const ViewFactory: React.FunctionComponent<Props> = ({
             });
             setUrls(previousUrls.current);
         };
-        const timer = setTimeout(loadUrls, deferLoading ? 1000 : 0);
+        const timer = setTimeout(loadUrls, deferLoading ? 250 : 0);
         return () => clearTimeout(timer);
     }, [values, urls, deferLoading]);
 
