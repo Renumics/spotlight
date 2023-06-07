@@ -120,7 +120,9 @@ def create_app() -> SpotlightApp:
                 "vite_url": request.app.vite_url,
             },
         )
-        response.set_cookie("browser_id", browser_id or str(uuid.uuid4()))
+        response.set_cookie(
+            "browser_id", browser_id or str(uuid.uuid4()), samesite="none", secure=True
+        )
         return response
 
     if settings.dev:
