@@ -3,8 +3,7 @@ import _ from 'lodash';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useColors } from '../../stores/colors';
 import tw, { styled } from 'twin.macro';
-import { Sequence1DColumn, Vec2 } from '../../types';
-import { Lens } from '../types';
+import type { Sequence1DColumn, Vec2, Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 
@@ -207,6 +206,7 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
     );
 };
 
+SequenceView.key = 'SequenceView';
 SequenceView.dataTypes = ['Sequence1D'];
 SequenceView.multi = true;
 SequenceView.defaultHeight = 192;

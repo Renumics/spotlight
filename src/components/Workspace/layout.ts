@@ -1,10 +1,10 @@
-import { widgetsById } from '../../widgets/WidgetFactory';
 import type { IJsonModel } from 'flexlayout-react';
 import type {
     IJsonRowNode,
     IJsonTabNode,
     IJsonTabSetNode,
 } from 'flexlayout-react/declarations/model/IJsonModel';
+import { useComponentsStore } from '../../stores/components';
 import { AppLayout, ContainerNode, SplitNode, TabNode, WidgetNode } from '../../types';
 
 type Orientation = 'horizontal' | 'vertical';
@@ -52,7 +52,8 @@ function convertTabNode(node: TabNode, state: ParserState): IJsonTabSetNode {
 }
 
 function convertWidgetNode(node: WidgetNode, state: ParserState): IJsonTabNode {
-    const name = node.name ?? widgetsById[node.type]?.defaultName;
+    const widgetsByKey = useComponentsStore.getState().widgetsByKey;
+    const name = node.name ?? widgetsByKey[node.type]?.defaultName;
     let modifiedName = name;
     for (let index = 2; state.tabNames.has(modifiedName); index++) {
         modifiedName = `${name} (${index})`;

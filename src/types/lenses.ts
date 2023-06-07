@@ -1,5 +1,7 @@
-import { DataType } from '../datatypes';
-import { DataColumn } from '../types';
+import type { DataColumn } from './dataset';
+import type { DataType } from '../datatypes';
+
+export type LensKey = string;
 
 export interface LensProps<T = unknown> {
     value: T;
@@ -14,7 +16,7 @@ export interface LensProps<T = unknown> {
 
 interface LensAttributes {
     displayName: string;
-    key?: string;
+    key: LensKey;
     dataTypes: DataType['kind'][];
     multi?: boolean;
     isEditor?: boolean;
@@ -27,4 +29,5 @@ interface LensAttributes {
     ) => DataColumn[];
     isSatisfied?: (columns: DataColumn[]) => boolean;
 }
+
 export type Lens<T = unknown> = React.FunctionComponent<LensProps<T>> & LensAttributes;
