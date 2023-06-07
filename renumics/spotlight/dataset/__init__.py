@@ -2,7 +2,6 @@
 This module provides Spotlight dataset.
 """
 # pylint: disable=too-many-lines
-import getpass
 import os
 import shutil
 import uuid
@@ -49,8 +48,6 @@ from renumics.spotlight.typing import (
     is_iterable,
 )
 from renumics.spotlight.dtypes import (
-    _BaseData,
-    _BaseFileBasedData,
     Embedding,
     Mesh,
     Sequence1D,
@@ -60,6 +57,7 @@ from renumics.spotlight.dtypes import (
     Video,
     Window,
 )
+from renumics.spotlight.dtypes.base import DType, FileBasedDType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
@@ -230,7 +228,7 @@ class Dataset:
         if column_type is Sequence1D:
             attribute_names["x_label"] = str
             attribute_names["y_label"] = str
-        if issubclass(column_type, _BaseFileBasedData):
+        if issubclass(column_type, FileBasedDType):
             attribute_names["lookup"] = dict
             attribute_names["external"] = bool
         if column_type is Audio:
@@ -247,7 +245,7 @@ class Dataset:
             return float("nan")
         if column_type is Window:
             return [np.nan, np.nan]
-        if column_type is np.ndarray or issubclass(column_type, _BaseData):
+        if column_type is np.ndarray or issubclass(column_type, DType):
             return None
         raise exceptions.InvalidAttributeError(
             f"`default` argument for optional column of type "
@@ -2478,7 +2476,7 @@ class Dataset:
         elif column_type is Window:
             shape = (0, 2)
             maxshape = (None, 2)
-        elif issubclass(column_type, _BaseFileBasedData):
+        elif issubclass(column_type, FileBasedDType):
             lookup = attrs.get("lookup", None)
             if is_iterable(lookup) and not isinstance(lookup, dict):
                 # Assume that we can keep all the lookup values in memory.
