@@ -3113,6 +3113,10 @@ class Dataset:
         lookup_keys: List[str] = []
         if column_type is Mesh and isinstance(value, trimesh.Trimesh):
             value = Mesh.from_trimesh(value)
+        elif issubclass(column_type, (Audio, Image, Video)) and isinstance(
+            value, bytes
+        ):
+            value = column_type.from_bytes(value)
         elif is_file_based_column_type(column_type) and isinstance(
             value, (str, os.PathLike)
         ):
