@@ -12,6 +12,7 @@ import requests
 import validators
 
 from renumics.spotlight.requests import headers
+from renumics.spotlight.typing import FileType
 
 
 # Some AV warning messages have ERROR level and can be confusing.
@@ -25,9 +26,7 @@ _PACKET_AV_DATA_FORMATS: Dict[str, str] = {
 
 
 def prepare_input_file(
-    file: Union[str, os.PathLike, IO],
-    timeout: Union[int, float] = 30,
-    reusable: bool = False,
+    file: FileType, timeout: Union[int, float] = 30, reusable: bool = False
 ) -> Union[str, IO]:
     """
     Prepare an input file depending on its type and value:
@@ -64,7 +63,7 @@ def prepare_input_file(
     return file
 
 
-def read_audio(file: Union[str, os.PathLike, IO]) -> Tuple[np.ndarray, int]:
+def read_audio(file: FileType) -> Tuple[np.ndarray, int]:
     """
     Read an audio file or file-like object using AV.
 
@@ -96,11 +95,7 @@ def read_audio(file: Union[str, os.PathLike, IO]) -> Tuple[np.ndarray, int]:
 
 
 def write_audio(
-    file: Union[str, os.PathLike, IO],
-    data: np.ndarray,
-    sampling_rate: int,
-    format_: str,
-    codec: str,
+    file: FileType, data: np.ndarray, sampling_rate: int, format_: str, codec: str
 ) -> None:
     """
     Write audio data to a file or file-like object using AV.
@@ -139,10 +134,7 @@ def write_audio(
 
 
 def transcode_audio(
-    input_file: Union[str, os.PathLike, IO],
-    output_file: Union[str, os.PathLike, IO],
-    output_format: str,
-    output_codec: str,
+    input_file: FileType, output_file: FileType, output_format: str, output_codec: str
 ) -> None:
     """
     Transcode an input audio file to an output audio file using AV.
@@ -171,7 +163,7 @@ def transcode_audio(
                 output_container.mux(packet)
 
 
-def get_format_codec(file: Union[str, os.PathLike, IO]) -> Tuple[str, str]:
+def get_format_codec(file: FileType) -> Tuple[str, str]:
     """
     Get audio format and audio codec of an audio file.
     """
@@ -181,7 +173,7 @@ def get_format_codec(file: Union[str, os.PathLike, IO]) -> Tuple[str, str]:
         return input_container.format.name, stream.name
 
 
-def get_waveform(file: Union[str, os.PathLike, IO]) -> np.ndarray:
+def get_waveform(file: FileType) -> np.ndarray:
     """
     Calculate waveform of an audio file or file-like object.
     """
