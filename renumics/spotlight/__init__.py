@@ -3,6 +3,7 @@ Renumics Spotlight
 """
 
 from loguru import logger
+from .backend.cache import clear_data_cache
 from .__version__ import __version__
 from .dataset import Dataset
 from .dtypes import (
@@ -25,9 +26,4 @@ if not settings.verbose:
 
 __plugins__ = load_plugins()
 
-__all__ = [
-    "show",
-    "close",
-    "viewers",
-    "Viewer",
-]
+__all__ = ["show", "close", "viewers", "Viewer", "clear_data_cache"]
