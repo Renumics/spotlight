@@ -5,7 +5,7 @@ This module contains helpers for importing `pandas.DataFrame`s.
 import ast
 from contextlib import suppress
 from datetime import datetime
-from typing import Any, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 import pandas as pd
 
@@ -16,6 +16,7 @@ from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
     is_column_type,
+    is_file_based_column_type,
     is_scalar_column_type,
 )
 from renumics.spotlight.typing import is_iterable
@@ -194,4 +195,17 @@ def prepare_column(
         str_mask = is_string_mask(column)
         column[str_mask] = column[str_mask].apply(try_literal_eval)
 
+        if is_file_based_column_type(dtype):
+            dict_mask = column.map(type) == dict
+            column[dict_mask] = column[dict_mask].apply(_prepare_dict)
+
     return column.mask(na_mask, None)
+
+
+def _prepare_dict(x: Dict) -> Any:
+    if x.keys() != {"bytes", "path"}:
+        return x
+    blob = x["bytes"]
+    if blob is not None:
+        return blob
+    return x["path"]

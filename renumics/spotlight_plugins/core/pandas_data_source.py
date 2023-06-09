@@ -10,7 +10,15 @@ import pandas as pd
 import trimesh
 from loguru import logger
 
-from renumics.spotlight.dtypes import Category, Embedding, Mesh, Window
+from renumics.spotlight.dtypes import (
+    Audio,
+    Category,
+    Embedding,
+    Image,
+    Mesh,
+    Video,
+    Window,
+)
 from renumics.spotlight.dtypes.exceptions import InvalidFile, UnsupportedDType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
@@ -257,6 +265,7 @@ class PandasDataSource(DataSource):
         Return the value of a single cell, warn if not possible.
         """
         # pylint: disable=too-many-return-statements, too-many-branches
+        # pylint: disable=too-many-statements
         self._assert_index_exists(row_index)
 
         column_index = self._parse_column_index(column_name)
@@ -319,6 +328,12 @@ class PandasDataSource(DataSource):
                 return read_external_value(str(raw_value), dtype)
             except Exception as e:
                 raise ConversionFailed(dtype, raw_value) from e
+        if isinstance(raw_value, bytes) and dtype in (Audio, Image, Video):
+            try:
+                value = dtype.from_bytes(raw_value)  # type: ignore
+            except Exception as e:
+                raise ConversionFailed(dtype, raw_value) from e
+            return value.encode()
         if not isinstance(raw_value, dtype) and is_array_based_column_type(dtype):
             try:
                 value = dtype(raw_value)
