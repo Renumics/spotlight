@@ -68,9 +68,7 @@ function useCellValues(
         const fetchers = cellEntries.map((entry, i) =>
             entry !== null && columns[i]?.lazy
                 ? delay(deferLoading ? 250 : 0).then(() => {
-                      if (cancelled) {
-                          console.log('canceled');
-                      } else {
+                      if (!cancelled) {
                           return fetchValue(rowIndex, columnKeys[i]);
                       }
                   })
