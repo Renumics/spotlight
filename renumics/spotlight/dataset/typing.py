@@ -47,11 +47,11 @@ WindowColumnInputType = Optional[
 ]
 ArrayColumnInputType = Optional[Union[np.ndarray, Sequence]]
 EmbeddingColumnInputType = Optional[Union[Embedding, Array1DLike]]
-AudioColumnInputType = Optional[Union[Audio, PathOrURLType]]
-ImageColumnInputType = Optional[Union[Image, ImageLike, PathOrURLType]]
+AudioColumnInputType = Optional[Union[Audio, PathOrURLType, bytes]]
+ImageColumnInputType = Optional[Union[Image, ImageLike, PathOrURLType, bytes]]
 MeshColumnInputType = Optional[Union[Mesh, trimesh.Trimesh, PathOrURLType]]
 Sequence1DColumnInputType = Optional[Union[Sequence1D, Array1DLike]]
-VideoColumnInputType = Optional[Union[Video, PathOrURLType]]
+VideoColumnInputType = Optional[Union[Video, PathOrURLType, bytes]]
 # Aggregated input types.
 SimpleColumnInputType = Union[
     BoolColumnInputType,
