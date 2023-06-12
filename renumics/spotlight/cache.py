@@ -53,13 +53,9 @@ class Cache:
         self._cache.clear()
 
 
-def clear_data_cache() -> None:
+def clear(name: str) -> None:
     """
-    Clear cache of external data.
+    Clear cache by its name.
     """
-    _clear_cache("external-data")
-
-
-def _clear_cache(name: str) -> None:
     cache = Cache(name)
     cache.clear()

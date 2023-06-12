@@ -25,7 +25,7 @@ from renumics.spotlight.dtypes.typing import (
     FileBasedColumnType,
     get_column_type_name,
 )
-from .cache import Cache
+from renumics.spotlight.cache import Cache
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
 
 cache = Cache("external-data")
