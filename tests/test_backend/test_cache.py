@@ -43,7 +43,7 @@ def test_external_data_cache(non_existing_image_df_viewer: spotlight.Viewer) -> 
     assert response.status_code == 200
     assert response.content == first_image_content
 
-    spotlight.clear_data_cache()
+    spotlight.clear_caches()
     response = requests.get(
         f"{app_url}api/table/image/0?generation_id={generation_id}", timeout=5
     )
@@ -59,7 +59,7 @@ def test_external_data_cache(non_existing_image_df_viewer: spotlight.Viewer) -> 
     assert response.status_code == 200
     assert response.content == second_image_content
 
-    spotlight.clear_data_cache()
+    spotlight.clear_caches()
     response = requests.get(
         f"{app_url}api/table/image/0?generation_id={generation_id}", timeout=5
     )
