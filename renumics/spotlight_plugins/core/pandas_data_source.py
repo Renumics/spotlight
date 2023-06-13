@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Union, Type, cast
 import numpy as np
 import pandas as pd
 import trimesh
-from loguru import logger
 
 from renumics.spotlight.dtypes import (
     Audio,
@@ -23,7 +22,6 @@ from renumics.spotlight.dtypes.exceptions import InvalidFile, UnsupportedDType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
-    get_column_type_name,
     is_array_based_column_type,
     is_file_based_column_type,
     is_scalar_column_type,
@@ -132,26 +130,9 @@ class PandasDataSource(DataSource):
     def get_name(self) -> str:
         return "pd.DataFrame"
 
-    def get_columns(self, column_names: Optional[List[str]] = None) -> List[Column]:
-        if column_names is None:
-            column_names = self.column_names
-        columns = []
-        for column_name in column_names:
-            try:
-                column = self.get_column(column_name, None)
-            except Exception as e:  # pylint: disable=broad-except
-                if column_name in self._dtype:
-                    raise e
-                logger.warning(
-                    f"Column '{column_name}' not imported from "
-                    f"`pandas.DataFrame` because of the following error:\n{e}"
-                )
-            else:
-                columns.append(column)
-
-        return columns
-
-    def get_column(self, column_name: str, indices: Optional[List[int]]) -> Column:
+    def get_column(
+        self, column_name: str, indices: Optional[List[int]] = None
+    ) -> Column:
         # pylint: disable=too-many-branches, too-many-statements
         column_index = self._parse_column_index(column_name)
 
@@ -163,7 +144,6 @@ class PandasDataSource(DataSource):
 
         categories = None
         embedding_length = None
-        references = None
 
         if dtype is Category:
             # `NaN` category is listed neither in `pandas`, not in our format.
@@ -221,18 +201,14 @@ class PandasDataSource(DataSource):
                     f"should be sequences of the same shape (n,) or `NA`s, but "
                     f"sequences of shape {embeddings.shape[1:]} received."
                 )
-            if na_mask.any():
-                values = np.empty(len(column), dtype=object)
-                values[np.where(~na_mask)[0]] = list(embeddings)
-            else:
-                values = embeddings
+
             embedding_length = embeddings.shape[1]
+            values = embeddings
         else:
             # A reference column. `dtype` is one of `np.ndarray`, `Audio`,
             # `Image`, `Mesh`, `Sequence1D` or `Video`. Don't try to check or
             # convert values at the moment.
             na_mask = column.isna()
-            references = na_mask.to_numpy()
             if is_file_based_column_type(dtype):
                 # Strings are paths or URLs, let them inplace. Replace
                 # non-strings with empty strings.
@@ -241,7 +217,6 @@ class PandasDataSource(DataSource):
             else:
                 values = np.full(len(column), "")
         return Column(
-            type_name=get_column_type_name(dtype),
             type=dtype,
             order=None,
             hidden=column_name.startswith("_"),
@@ -253,11 +228,8 @@ class PandasDataSource(DataSource):
             x_label=None,
             y_label=None,
             embedding_length=embedding_length,
-            has_lookup=False,
-            is_external=False,
             name=column_name,
             values=values,
-            references=references,
         )
 
     def get_cell_data(self, column_name: str, row_index: int) -> Any:

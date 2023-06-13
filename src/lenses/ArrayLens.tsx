@@ -3,6 +3,8 @@ import dataformat from '../dataformat';
 import { Lens } from '../types';
 
 const ArrayLens: Lens = ({ value }) => {
+    console.log(value);
+
     const array = value as Array<number>;
 
     return (

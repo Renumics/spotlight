@@ -5,6 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import numpy as np
+import pandas as pd
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
@@ -22,6 +24,18 @@ from renumics.spotlight.backend.types import SpotlightApp
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
+
+from renumics.spotlight.dtypes import (
+    Audio,
+    Embedding,
+    Image,
+    Mesh,
+    Sequence1D,
+    Video,
+)
+
+
+LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio]
 
 
 class Column(BaseModel):
@@ -51,6 +65,21 @@ class Column(BaseModel):
         """
         Instantiate column from a dataset column.
         """
+
+        if column.type in LAZY_DTYPES:
+            mask = pd.isna(column.values)
+            if mask is None:
+                references = None
+            else:
+                references = (~mask).tolist()
+        else:
+            references = None
+
+        if column.type == Embedding:
+            values = [""] * len(column.values)
+        else:
+            values = sanitize_values(column.values)
+
         return cls(
             name=column.name,
             index=column.order,
@@ -58,8 +87,8 @@ class Column(BaseModel):
             editable=column.editable,
             optional=column.optional,
             role=get_column_type_name(column.type),
-            values=sanitize_values(column.values),
-            references=sanitize_values(column.references),
+            values=values,
+            references=references,
             x_label=column.x_label,
             y_label=column.y_label,
             description=column.description,
@@ -112,7 +141,7 @@ def get_table(request: Request) -> ORJSONResponse:
             ).dict()
         )
 
-    columns = table.get_columns()
+    columns = [table.get_column(name) for name in table.column_names]
     columns.extend(table.get_internal_columns())
     row_count = len(table)
     columns.append(idx_column(row_count))
@@ -152,6 +181,8 @@ async def get_table_cell(
 
     cell_data = table.get_cell_data(column, row)
     value = sanitize_values(cell_data)
+
+    print(value)
 
     if isinstance(value, (bytes, str)):
         return Response(value, media_type="application/octet-stream")
