@@ -4,7 +4,7 @@ import { Problem } from '../types';
 import api from '../api';
 import { shallow } from 'zustand/shallow';
 
-async function fetchValue(row: number, column: string, raw: boolean = true) {
+async function fetchValue(row: number, column: string, raw = true) {
     const response = await api.table.getCellRaw({
         row,
         column,
