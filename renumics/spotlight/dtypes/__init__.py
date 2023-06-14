@@ -5,7 +5,6 @@ This module provides custom data types for Spotlight dataset.
 import io
 import math
 import os
-from abc import ABC, abstractmethod
 from typing import Dict, IO, List, Optional, Sequence, Tuple, Union
 from urllib.parse import urlparse
 
@@ -18,10 +17,10 @@ import validators
 from loguru import logger
 
 from renumics.spotlight.requests import headers
-from renumics.spotlight.typing import NumberType, PathType
-from . import triangulation
+from renumics.spotlight.typing import FileType, NumberType, PathType
+from . import exceptions, triangulation
+from .base import DType, FileBasedDType
 from ..io import audio, gltf
-from . import exceptions
 
 Array1DLike = Union[Sequence[NumberType], np.ndarray]
 Array2DLike = Union[Sequence[Sequence[NumberType]], np.ndarray]
@@ -30,45 +29,7 @@ ImageLike = Union[
 ]
 
 
-class _BaseData(ABC):
-    """
-    Base Spotlight dataset field data.
-    """
-
-    @classmethod
-    @abstractmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "_BaseData":
-        """
-        Restore class from its numpy representation.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def encode(self, target: Optional[str] = None) -> Union[np.ndarray, np.void]:
-        """
-        Convert to numpy for storing in dataset.
-
-        Args:
-            target: Optional target format.
-        """
-        raise NotImplementedError
-
-
-class _BaseFileBasedData(_BaseData):
-    """
-    Spotlight dataset field data which can be read from a file.
-    """
-
-    @classmethod
-    @abstractmethod
-    def from_file(cls, filepath: PathType) -> "_BaseFileBasedData":
-        """
-        Read data from a file.
-        """
-        raise NotImplementedError
-
-
-class Embedding(_BaseData):
+class Embedding(DType):
     """
     Data sample projected onto a new space.
 
@@ -121,7 +82,7 @@ class Embedding(_BaseData):
         return self.data
 
 
-class Sequence1D(_BaseData):
+class Sequence1D(DType):
     """
     One-dimensional ndarray with optional index values.
 
@@ -216,7 +177,7 @@ class Sequence1D(_BaseData):
         return array
 
 
-class Mesh(_BaseFileBasedData):
+class Mesh(FileBasedDType):
     """
     Triangular 3D mesh with optional per-point and per-triangle attributes and
     optional per-point displacements over time.
@@ -596,7 +557,7 @@ class Mesh(_BaseFileBasedData):
         return valid_triangle_attributes
 
 
-class Image(_BaseFileBasedData):
+class Image(FileBasedDType):
     """
     An RGB(A) or grayscale image that will be saved in encoded form.
 
@@ -653,7 +614,7 @@ class Image(_BaseFileBasedData):
         self.data = data_array.astype("uint8")
 
     @classmethod
-    def from_file(cls, filepath: Union[str, os.PathLike, IO]) -> "Image":
+    def from_file(cls, filepath: FileType) -> "Image":
         """
         Read image from a filepath, an URL, or a file-like object.
 
@@ -675,6 +636,21 @@ class Image(_BaseFileBasedData):
         except Exception as e:
             raise exceptions.InvalidFile(
                 f"Image {filepath} does not exist or could not be read."
+            ) from e
+        return cls(image_array)
+
+    @classmethod
+    def from_bytes(cls, blob: bytes) -> "Image":
+        """
+        Read image from raw bytes.
+
+        `imageio` is used inside, so only supported formats are allowed.
+        """
+        try:
+            image_array = iio.imread(blob, index=False)  # type: ignore
+        except Exception as e:
+            raise exceptions.InvalidFile(
+                "Image could not be read from the given bytes."
             ) from e
         return cls(image_array)
 
@@ -701,7 +677,7 @@ class Image(_BaseFileBasedData):
         return np.void(buf.getvalue())
 
 
-class Audio(_BaseFileBasedData):
+class Audio(FileBasedDType):
     """
     An Audio Signal that will be saved in encoded form.
 
@@ -764,7 +740,7 @@ class Audio(_BaseFileBasedData):
         self.sampling_rate = sampling_rate
 
     @classmethod
-    def from_file(cls, filepath: Union[str, os.PathLike, IO]) -> "Audio":
+    def from_file(cls, filepath: FileType) -> "Audio":
         """
         Read audio file from a filepath, an URL, or a file-like object.
 
@@ -776,7 +752,22 @@ class Audio(_BaseFileBasedData):
             raise exceptions.InvalidFile(
                 f"Audio file {filepath} does not exist or could not be read."
             ) from e
-        return Audio(sampling_rate, data)
+        return cls(sampling_rate, data)
+
+    @classmethod
+    def from_bytes(cls, blob: bytes) -> "Audio":
+        """
+        Read audio from raw bytes.
+
+        `pyav` is used inside, so only supported formats are allowed.
+        """
+        try:
+            data, sampling_rate = audio.read_audio(io.BytesIO(blob))
+        except Exception as e:
+            raise exceptions.InvalidFile(
+                "Audio could not be read from the given bytes."
+            ) from e
+        return cls(sampling_rate, data)
 
     @classmethod
     def empty(cls) -> "Audio":
@@ -852,7 +843,7 @@ class Category(str):
     """
 
 
-class Video(_BaseFileBasedData):
+class Video(FileBasedDType):
     """
     A video object. No encoding or decoding is currently performed on the python
     side, so all formats will be saved into dataset without compatibility check,
@@ -895,6 +886,13 @@ class Video(_BaseFileBasedData):
         raise exceptions.InvalidFile(
             f"File {prepared_file} is neither an existing file nor an existing URL."
         )
+
+    @classmethod
+    def from_bytes(cls, blob: bytes) -> "Video":
+        """
+        Read video from raw bytes.
+        """
+        return cls(blob)
 
     @classmethod
     def empty(cls) -> "Video":

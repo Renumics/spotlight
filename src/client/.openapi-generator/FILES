@@ -2,14 +2,14 @@
 apis/ConfigApi.ts
 apis/DefaultApi.ts
 apis/FilebrowserApi.ts
+apis/IssuesApi.ts
 apis/LayoutApi.ts
 apis/PluginsApi.ts
-apis/ProblemsApi.ts
 apis/TableApi.ts
 apis/index.ts
 index.ts
 models/Column.ts
-models/DatasetProblem.ts
+models/DatasetIssue.ts
 models/FileEntry.ts
 models/Folder.ts
 models/HTTPValidationError.ts
@@ -18,8 +18,8 @@ models/Plugin.ts
 models/ResponseGet.ts
 models/SetConfigRequest.ts
 models/SetLayoutRequest.ts
+models/Severity.ts
 models/Table.ts
-models/Type.ts
 models/ValidationError.ts
 models/Value.ts
 models/index.ts

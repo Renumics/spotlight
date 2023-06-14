@@ -3,12 +3,12 @@ import 'twin.macro';
 import { Widget } from './types';
 import WarningIcon from '../icons/Warning';
 import { useDataset } from '../lib';
-import { DatasetProblem } from '../types';
+import { DatasetIssue } from '../types';
 
-interface ProblemItemProps {
-    problem: DatasetProblem;
+interface IssueProps {
+    problem: DatasetIssue;
 }
-const ProblemItem = ({ problem }: ProblemItemProps): JSX.Element => {
+const Issue = ({ problem }: IssueProps): JSX.Element => {
     const selectRows = () => useDataset.getState().selectRows(problem.rows);
     const highlight = () => useDataset.getState().highlightRows(problem.rows);
     const dehighlight = () => useDataset.getState().dehighlightAll();
@@ -30,19 +30,19 @@ const ProblemItem = ({ problem }: ProblemItemProps): JSX.Element => {
     );
 };
 
-const ProblemsWidget: Widget = () => {
-    const problems = useDataset((d) => d.problems);
+const IssuesWidget: Widget = () => {
+    const issues = useDataset((d) => d.issues);
 
     return (
         <div tw="flex flex-col">
-            {problems.map((problem, i) => (
-                <ProblemItem key={i} problem={problem} />
+            {issues.map((problem, i) => (
+                <Issue key={i} problem={problem} />
             ))}
         </div>
     );
 };
 
-ProblemsWidget.key = 'problems';
-ProblemsWidget.defaultName = 'Problems';
-ProblemsWidget.icon = WarningIcon;
-export default ProblemsWidget;
+IssuesWidget.key = 'IssuesWidget';
+IssuesWidget.defaultName = 'Issues';
+IssuesWidget.icon = WarningIcon;
+export default IssuesWidget;

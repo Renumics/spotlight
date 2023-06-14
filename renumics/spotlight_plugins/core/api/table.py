@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
@@ -17,11 +18,33 @@ from renumics.spotlight.backend.data_source import (
     last_edited_by_column,
     sanitize_values,
 )
-from renumics.spotlight.backend.exceptions import InvalidPath
+from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.backend.types import SpotlightApp
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
+
+from renumics.spotlight.dtypes import (
+    Audio,
+    Embedding,
+    Image,
+    Mesh,
+    Sequence1D,
+    Video,
+)
+
+
+LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio]
+
+
+def _isfalsy(value: Optional[np.ndarray]) -> bool:
+    # pylint: disable=unneeded-not
+    return value is None or not not value
+
+
+def _isfalsy_array(value: Optional[np.ndarray]) -> bool:
+    # pylint: disable=unneeded-not, use-implicit-booleaness-not-len
+    return value is None or not not len(value)
 
 
 class Column(BaseModel):
@@ -51,6 +74,20 @@ class Column(BaseModel):
         """
         Instantiate column from a dataset column.
         """
+
+        if column.type in LAZY_DTYPES:
+            if column.type in [Sequence1D, np.ndarray, Embedding]:
+                references = [_isfalsy_array(value) for value in column.values]
+            else:
+                references = [_isfalsy(value) for value in column.values]
+        else:
+            references = None
+
+        if column.type == Embedding:
+            values = [""] * len(column.values)
+        else:
+            values = sanitize_values(column.values)
+
         return cls(
             name=column.name,
             index=column.order,
@@ -58,8 +95,8 @@ class Column(BaseModel):
             editable=column.editable,
             optional=column.optional,
             role=get_column_type_name(column.type),
-            values=sanitize_values(column.values),
-            references=sanitize_values(column.references),
+            values=values,
+            references=references,
             x_label=column.x_label,
             y_label=column.y_label,
             description=column.description,
@@ -112,7 +149,7 @@ def get_table(request: Request) -> ORJSONResponse:
             ).dict()
         )
 
-    columns = table.get_columns()
+    columns = [table.get_column(name) for name in table.column_names]
     columns.extend(table.get_internal_columns())
     row_count = len(table)
     columns.append(idx_column(row_count))
@@ -198,6 +235,9 @@ async def open_table(path: str, request: Request) -> None:
     :raises InvalidPath: if the supplied path is outside the project root
                          or points to an incompatible file
     """
+    if not request.app.filebrowsing_allowed:
+        raise FilebrowsingNotAllowed()
+
     full_path = Path(request.app.project_root) / path
 
     # assert that the path is inside our project root

@@ -2,7 +2,7 @@
 Common types and type guards.
 """
 import os
-from typing import Any, Iterable, List, Union
+from typing import Any, IO, Iterable, List, Union
 
 import numpy as np
 from typing_extensions import TypeGuard
@@ -15,6 +15,7 @@ NumberType = Union[IntType, FloatType]
 
 PathType = Union[str, os.PathLike]
 PathOrURLType = Union[str, os.PathLike]
+FileType = Union[PathOrURLType, IO]
 
 IndexType = Union[int, np.integer]
 Indices1DType = Union[

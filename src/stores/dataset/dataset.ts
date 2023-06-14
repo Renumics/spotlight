@@ -10,7 +10,7 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
-    DatasetProblem,
+    DatasetIssue,
     Filter,
     IndexArray,
     TableData,
@@ -35,7 +35,7 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
-    problems: DatasetProblem[];
+    issues: DatasetIssue[];
     colorTransferFunctions: Record<
         string,
         {
@@ -214,7 +214,7 @@ export const useDataset = create<Dataset>(
             isIndexHighlighted: [],
             highlightedIndices: new Int32Array(),
             isIndexFiltered: [],
-            problems: [],
+            issues: [],
             filteredIndices: new Int32Array(),
             sortColumns: new Map<DataColumn, Sorting>(),
             sortBy: (column?: DataColumn, sorting?: Sorting) => {
@@ -264,7 +264,7 @@ export const useDataset = create<Dataset>(
                     filtered: {},
                 };
 
-                const problems = (await api.problems.getAll()) as DatasetProblem[];
+                const issues = (await api.issues.getAll()) as DatasetIssue[];
 
                 set(() => ({
                     uid,
@@ -275,7 +275,7 @@ export const useDataset = create<Dataset>(
                     columns: dataframe.columns,
                     columnData: dataframe.data,
                     columnStats,
-                    problems,
+                    issues: issues,
                 }));
             },
             refresh: async () => {

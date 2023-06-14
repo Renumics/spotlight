@@ -13,27 +13,27 @@
  */
 
 import * as runtime from '../runtime';
-import type { DatasetProblem } from '../models';
-import { DatasetProblemFromJSON, DatasetProblemToJSON } from '../models';
+import type { DatasetIssue } from '../models';
+import { DatasetIssueFromJSON, DatasetIssueToJSON } from '../models';
 
 /**
  *
  */
-export class ProblemsApi extends runtime.BaseAPI {
+export class IssuesApi extends runtime.BaseAPI {
     /**
-     * Get all problems.
+     * Get all data issues.
      * Get All
      */
     async getAllRaw(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<Array<DatasetProblem>>> {
+    ): Promise<runtime.ApiResponse<Array<DatasetIssue>>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request(
             {
-                path: `/api/problems/`,
+                path: `/api/issues/`,
                 method: 'GET',
                 headers: headerParameters,
                 query: queryParameters,
@@ -42,17 +42,17 @@ export class ProblemsApi extends runtime.BaseAPI {
         );
 
         return new runtime.JSONApiResponse(response, (jsonValue) =>
-            jsonValue.map(DatasetProblemFromJSON)
+            jsonValue.map(DatasetIssueFromJSON)
         );
     }
 
     /**
-     * Get all problems.
+     * Get all data issues.
      * Get All
      */
     async getAll(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<Array<DatasetProblem>> {
+    ): Promise<Array<DatasetIssue>> {
         const response = await this.getAllRaw(initOverrides);
         return await response.value();
     }

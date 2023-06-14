@@ -1,15 +1,15 @@
-import { registry } from '../../lenses';
 import {
     createContext,
     FunctionComponent,
     ReactNode,
     useCallback,
-    useEffect,
     useRef,
     useState,
 } from 'react';
-import { shallow } from 'zustand/shallow';
 import { State, useStore } from './store';
+import { useComponentsStore } from '../../stores/components';
+
+const DEFAULT_HEIGHT = 24;
 
 type RowHeightContextState = {
     startResize: (index: number, screenY: number) => void;
@@ -43,48 +43,47 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
     const startHeight = useRef<number>(0);
     const currentHeight = useRef<number>(0);
 
-    const views = useStore(viewsSelector);
-
-    useEffect(() => {
-        const newRowHeights = views.reduce((a, viewConfig) => {
-            a[viewConfig.key] =
-                rowHeights[viewConfig.key] ??
-                registry.views[viewConfig.view]?.defaultHeight ??
-                24;
-            return a;
-        }, {} as Record<string, number>);
-        if (!shallow(newRowHeights, rowHeights)) {
-            setRowHeights(newRowHeights);
-        }
-    }, [views, rowHeights]);
+    const lenses = useComponentsStore((state) => state.lensesByKey);
+    const visibleLenses = useStore(viewsSelector);
 
     const rowHeight = useCallback(
-        (index: number) => rowHeights[views[index]?.key] ?? 24,
-        [rowHeights, views]
+        (index: number) => {
+            const viewConfig = visibleLenses[index];
+            if (!viewConfig) return DEFAULT_HEIGHT;
+            return (
+                rowHeights[viewConfig.key] ??
+                lenses[viewConfig.view]?.defaultHeight ??
+                DEFAULT_HEIGHT
+            );
+        },
+        [rowHeights, visibleLenses, lenses]
     );
 
     const startResize = useCallback(
         (index: number, screenY: number) => {
-            const viewKey = views[index].key;
-            resizedRow.current = viewKey;
+            const viewConfig = visibleLenses[index];
+            resizedRow.current = viewConfig.key;
             startScreenY.current = screenY;
             lastScreenY.current = screenY;
-            startHeight.current = rowHeights[viewKey];
+            startHeight.current =
+                rowHeights[viewConfig.key] ??
+                lenses[viewConfig.view]?.defaultHeight ??
+                DEFAULT_HEIGHT;
             currentHeight.current = startHeight.current;
             setIsResizing(true);
         },
-        [rowHeights, views]
+        [rowHeights, visibleLenses, lenses]
     );
 
     const resizeView = useCallback(
         (rowKey: string, newHeight: number) => {
-            const viewConfig = views.find(({ key }) => key === rowKey);
+            const viewConfig = visibleLenses.find(({ key }) => key === rowKey);
             if (viewConfig !== undefined) {
-                const maxHeight = registry.views[viewConfig.view]?.maxHeight;
+                const maxHeight = lenses[viewConfig.view]?.maxHeight;
                 if (maxHeight !== undefined) {
                     newHeight = Math.min(maxHeight, newHeight);
                 }
-                const minHeight = registry.views[viewConfig.view]?.minHeight || 12;
+                const minHeight = lenses[viewConfig.view]?.minHeight || 12;
                 if (minHeight !== undefined) {
                     newHeight = Math.max(minHeight, newHeight);
                 }
@@ -96,7 +95,7 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
             }));
             onResize(rowKey);
         },
-        [onResize, views]
+        [onResize, visibleLenses, lenses]
     );
 
     const onMouseMove = useCallback(

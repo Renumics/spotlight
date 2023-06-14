@@ -1,7 +1,7 @@
 import showdown from 'showdown';
 import { useMemo } from 'react';
 
-import { Lens } from './types';
+import { Lens } from '../types';
 import Html from '../components/ui/Html';
 
 const MarkdownLens: Lens = ({ value }) => {
@@ -13,6 +13,7 @@ const MarkdownLens: Lens = ({ value }) => {
     return <Html html={html} />;
 };
 
+MarkdownLens.key = 'MarkdownLens';
 MarkdownLens.dataTypes = ['str'];
 MarkdownLens.defaultHeight = 128;
 MarkdownLens.minHeight = 22;

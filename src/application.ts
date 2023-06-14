@@ -14,6 +14,7 @@ interface Application {
     publicUrl?: string;
     docsUrl: string;
     repositoryUrl: string;
+    filebrowsingAllowed: boolean;
 }
 
 const application: Application = {
@@ -26,6 +27,7 @@ const application: Application = {
     apiUrl: import.meta.env.VITE_API_BASE_PATH ?? globalThis.location.origin,
     docsUrl: 'https://spotlight.renumics.com',
     repositoryUrl: 'https://github.com/renumics/spotlight',
+    filebrowsingAllowed: window.__filebrowsing_allowed__,
 } as const;
 
 export default application;

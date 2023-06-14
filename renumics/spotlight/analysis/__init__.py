@@ -15,34 +15,34 @@ from renumics.spotlight.analysis.outliers import detect_outliers
 
 
 # pylint: disable=too-few-public-methods
-class DatasetProblem(BaseModel):
+class DatasetIssue(BaseModel):
     """
     A Problem affecting multiple rows of the dataset
     """
 
-    type: Union[Literal["warning"], Literal["error"]]
+    severity: Union[Literal["warning"], Literal["error"]]
     description: str
     rows: List[int]
 
 
-def find_problems(df: pd.DataFrame, dtypes: ColumnTypeMapping) -> List[DatasetProblem]:
+def find_issues(df: pd.DataFrame, dtypes: ColumnTypeMapping) -> List[DatasetIssue]:
     """
-    Find dataset problems in df
+    Find dataset issues in df
     """
 
-    problems: List[DatasetProblem] = []
+    issues: List[DatasetIssue] = []
 
     for column_name, dtype in dtypes.items():
         if dtype == Embedding:
             mask = detect_outliers(df[column_name])
             rows = np.where(mask)[0].tolist()
             if rows:
-                problems.append(
-                    DatasetProblem(
-                        type="warning",
+                issues.append(
+                    DatasetIssue(
+                        severity="warning",
                         description=f"Outliers detected ({column_name})",
                         rows=rows,
                     )
                 )
 
-    return problems
+    return issues

@@ -13,66 +13,66 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Type } from './Type';
-import { TypeFromJSON, TypeFromJSONTyped, TypeToJSON } from './Type';
+import type { Severity } from './Severity';
+import { SeverityFromJSON, SeverityFromJSONTyped, SeverityToJSON } from './Severity';
 
 /**
- *
+ * A Problem affecting multiple rows of the dataset
  * @export
- * @interface DatasetProblem
+ * @interface DatasetIssue
  */
-export interface DatasetProblem {
+export interface DatasetIssue {
     /**
      *
-     * @type {Type}
-     * @memberof DatasetProblem
+     * @type {Severity}
+     * @memberof DatasetIssue
      */
-    type: Type;
+    severity: Severity;
     /**
      *
      * @type {string}
-     * @memberof DatasetProblem
+     * @memberof DatasetIssue
      */
     description: string;
     /**
      *
      * @type {Array<number>}
-     * @memberof DatasetProblem
+     * @memberof DatasetIssue
      */
     rows: Array<number>;
 }
 
 /**
- * Check if a given object implements the DatasetProblem interface.
+ * Check if a given object implements the DatasetIssue interface.
  */
-export function instanceOfDatasetProblem(value: object): boolean {
+export function instanceOfDatasetIssue(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && 'type' in value;
+    isInstance = isInstance && 'severity' in value;
     isInstance = isInstance && 'description' in value;
     isInstance = isInstance && 'rows' in value;
 
     return isInstance;
 }
 
-export function DatasetProblemFromJSON(json: any): DatasetProblem {
-    return DatasetProblemFromJSONTyped(json, false);
+export function DatasetIssueFromJSON(json: any): DatasetIssue {
+    return DatasetIssueFromJSONTyped(json, false);
 }
 
-export function DatasetProblemFromJSONTyped(
+export function DatasetIssueFromJSONTyped(
     json: any,
     ignoreDiscriminator: boolean
-): DatasetProblem {
+): DatasetIssue {
     if (json === undefined || json === null) {
         return json;
     }
     return {
-        type: TypeFromJSON(json['type']),
+        severity: SeverityFromJSON(json['severity']),
         description: json['description'],
         rows: json['rows'],
     };
 }
 
-export function DatasetProblemToJSON(value?: DatasetProblem | null): any {
+export function DatasetIssueToJSON(value?: DatasetIssue | null): any {
     if (value === undefined) {
         return undefined;
     }
@@ -80,7 +80,7 @@ export function DatasetProblemToJSON(value?: DatasetProblem | null): any {
         return null;
     }
     return {
-        type: TypeToJSON(value.type),
+        severity: SeverityToJSON(value.severity),
         description: value.description,
         rows: value.rows,
     };

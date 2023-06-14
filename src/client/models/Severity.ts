@@ -16,27 +16,30 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface Type
+ * @interface Severity
  */
-export interface Type {}
+export interface Severity {}
 
 /**
- * Check if a given object implements the Type interface.
+ * Check if a given object implements the Severity interface.
  */
-export function instanceOfType(value: object): boolean {
+export function instanceOfSeverity(value: object): boolean {
     let isInstance = true;
 
     return isInstance;
 }
 
-export function TypeFromJSON(json: any): Type {
-    return TypeFromJSONTyped(json, false);
+export function SeverityFromJSON(json: any): Severity {
+    return SeverityFromJSONTyped(json, false);
 }
 
-export function TypeFromJSONTyped(json: any, ignoreDiscriminator: boolean): Type {
+export function SeverityFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): Severity {
     return json;
 }
 
-export function TypeToJSON(value?: Type | null): any {
+export function SeverityToJSON(value?: Severity | null): any {
     return value;
 }

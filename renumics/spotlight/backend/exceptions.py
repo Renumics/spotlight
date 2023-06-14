@@ -162,9 +162,20 @@ class DatasetColumnsNotUnique(Problem):
 class InvalidLayout(Problem):
     """The layout could not be parsed from the given source"""
 
-    def __init__(
-        self,
-        detail: str = "The layout could not be loaded from given source.",
-        status_code: int = 500,
-    ) -> None:
-        super().__init__("Invalid Layout", detail, status_code)
+    def __init__(self) -> None:
+        super().__init__(
+            "Invalid layout",
+            "The layout could not be loaded from given source.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+class FilebrowsingNotAllowed(Problem):
+    """Filebrowsing is not allowed"""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Filebrowsing not allowed",
+            "Filebrowsing is not allowed.",
+            status.HTTP_403_FORBIDDEN,
+        )

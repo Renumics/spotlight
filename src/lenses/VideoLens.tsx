@@ -4,7 +4,7 @@ import ReactPlayer from 'react-player';
 import tw, { styled, theme } from 'twin.macro';
 import BaseButton from '../components/ui/Button';
 import ToggleButton from '../components/ui/ToggleButton';
-import { Lens, LensProps } from './types';
+import { Lens, LensProps } from '../types';
 
 type ProgressCallback = ComponentProps<typeof ReactPlayer>['onProgress'];
 
@@ -177,6 +177,7 @@ const VideoView: Lens = ({ url }: LensProps) => {
     );
 };
 
+VideoView.key = 'VideoView';
 VideoView.defaultHeight = 256;
 VideoView.displayName = 'Video Player';
 VideoView.dataTypes = ['Video'];

@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './Column';
-export * from './DatasetProblem';
+export * from './DatasetIssue';
 export * from './FileEntry';
 export * from './Folder';
 export * from './HTTPValidationError';
@@ -10,7 +10,7 @@ export * from './Plugin';
 export * from './ResponseGet';
 export * from './SetConfigRequest';
 export * from './SetLayoutRequest';
+export * from './Severity';
 export * from './Table';
-export * from './Type';
 export * from './ValidationError';
 export * from './Value';

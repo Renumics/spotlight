@@ -21,8 +21,17 @@ import {
     SetLayoutRequestToJSON,
 } from '../models';
 
+export interface GetLayoutRequest {
+    browserId?: string;
+}
+
+export interface ResetLayoutRequest {
+    browserId: string;
+}
+
 export interface SetLayoutOperationRequest {
     setLayoutRequest: SetLayoutRequest;
+    browserId?: string;
 }
 
 /**
@@ -34,6 +43,7 @@ export class LayoutApi extends runtime.BaseAPI {
      * Get Layout
      */
     async getLayoutRaw(
+        requestParameters: GetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<runtime.ApiResponse<object>> {
         const queryParameters: any = {};
@@ -58,9 +68,10 @@ export class LayoutApi extends runtime.BaseAPI {
      * Get Layout
      */
     async getLayout(
+        requestParameters: GetLayoutRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<object> {
-        const response = await this.getLayoutRaw(initOverrides);
+        const response = await this.getLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -69,8 +80,19 @@ export class LayoutApi extends runtime.BaseAPI {
      * Reset Layout
      */
     async resetLayoutRaw(
+        requestParameters: ResetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<runtime.ApiResponse<object>> {
+        if (
+            requestParameters.browserId === null ||
+            requestParameters.browserId === undefined
+        ) {
+            throw new runtime.RequiredError(
+                'browserId',
+                'Required parameter requestParameters.browserId was null or undefined when calling resetLayout.'
+            );
+        }
+
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -93,9 +115,10 @@ export class LayoutApi extends runtime.BaseAPI {
      * Reset Layout
      */
     async resetLayout(
+        requestParameters: ResetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<object> {
-        const response = await this.resetLayoutRaw(initOverrides);
+        const response = await this.resetLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

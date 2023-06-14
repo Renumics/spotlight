@@ -13,6 +13,12 @@
  */
 
 import * as runtime from '../runtime';
+import type { HTTPValidationError } from '../models';
+import { HTTPValidationErrorFromJSON, HTTPValidationErrorToJSON } from '../models';
+
+export interface GetRequest {
+    browserId?: string;
+}
 
 /**
  *
@@ -22,6 +28,7 @@ export class DefaultApi extends runtime.BaseAPI {
      *
      */
     async getRaw(
+        requestParameters: GetRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<runtime.ApiResponse<any>> {
         const queryParameters: any = {};
@@ -49,9 +56,10 @@ export class DefaultApi extends runtime.BaseAPI {
      *
      */
     async get(
+        requestParameters: GetRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<any> {
-        const response = await this.getRaw(initOverrides);
+        const response = await this.getRaw(requestParameters, initOverrides);
         return await response.value();
     }
 }

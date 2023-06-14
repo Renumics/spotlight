@@ -9,6 +9,7 @@ from .api import (
     filebrowser as file_api,
     config as config_api,
     layout as layout_api,
+    issues as issues_api,
 )
 
 
@@ -32,3 +33,4 @@ def __activate__(app: SpotlightApp) -> None:
     app.include_router(table_api.router, prefix="/api/table")
     app.include_router(file_api.router, prefix="/api/browse")
     app.include_router(config_api.router, prefix="/api/config")
+    app.include_router(issues_api.router, prefix="/api/issues")

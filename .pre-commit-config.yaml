@@ -50,7 +50,7 @@ repos:
       rev: v8.34.0
       hooks:
           - id: eslint
-            files: frontend
+            files: src
     - repo: https://github.com/python-jsonschema/check-jsonschema
       rev: 0.21.0
       hooks:

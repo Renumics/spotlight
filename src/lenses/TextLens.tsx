@@ -1,5 +1,5 @@
 import 'twin.macro';
-import { Lens } from './types';
+import { Lens } from '../types';
 
 const TextLens: Lens = ({ value }) => {
     const text = value as string;
@@ -11,6 +11,7 @@ const TextLens: Lens = ({ value }) => {
     );
 };
 
+TextLens.key = 'TextLens';
 TextLens.dataTypes = ['str'];
 TextLens.defaultHeight = 48;
 TextLens.minHeight = 22;

@@ -17,7 +17,7 @@ function makeDatatype(column: Column) {
         case 'Embedding':
             return {
                 kind,
-                embeddingLength: column.embeddingLength || 0,
+                embeddingLength: column.embeddingLength ?? 0,
                 optional: column.optional,
             };
         default:

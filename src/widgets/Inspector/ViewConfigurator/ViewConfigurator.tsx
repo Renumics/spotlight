@@ -17,10 +17,9 @@ import Select from '../../../components/ui/Select';
 import dataformat from '../../../dataformat';
 import { DataKind } from '../../../datatypes';
 import { X } from '../../../icons';
-import type { ViewKey } from '../../../lenses';
-import { registry } from '../../../lenses';
+import { isLensCompatible, useComponentsStore } from '../../../stores/components';
 import { Dataset, useDataset } from '../../../stores/dataset';
-import { DataColumn } from '../../../types';
+import { DataColumn, LensKey } from '../../../types';
 import { useStore } from '../store';
 import ColumnList from './ColumnList';
 import ColumnListItem from './ColumnListItem';
@@ -41,9 +40,11 @@ const ViewConfigurator = (): JSX.Element => {
     const allColumns = useDataset(columnsSelector);
     const addView = useStore((state) => state.addView);
 
+    const lenses = useComponentsStore((state) => state.lensesByKey);
+
     const [columns, setColumns] = useState<string[]>([]);
 
-    const [view, setView] = useState<ViewKey | null>();
+    const [view, setView] = useState<LensKey | null>();
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -69,8 +70,10 @@ const ViewConfigurator = (): JSX.Element => {
     const compatibleViews = useMemo(() => {
         const columnTypes = selectedColumns.map((c) => c.type);
         const allEditable = selectedColumns.every((c) => c.editable);
-        return registry.findCompatibleViews(columnTypes, allEditable);
-    }, [selectedColumns]);
+        return Object.values(lenses)
+            .filter((lens) => isLensCompatible(lens, columnTypes, allEditable))
+            .map((lens) => lens.key);
+    }, [selectedColumns, lenses]);
 
     const isViewCompatible = view && compatibleViews.includes(view);
     const compatibleView = useMemo(
@@ -78,15 +81,15 @@ const ViewConfigurator = (): JSX.Element => {
         [compatibleViews, isViewCompatible, view]
     );
     const isViewSatisfied =
-        registry.views[compatibleView]?.isSatisfied?.(selectedColumns) ?? true;
+        lenses[compatibleView]?.isSatisfied?.(selectedColumns) ?? true;
 
     const [compatibleColumns, allCompatibleColumns] = useMemo(() => {
         if (!columns.length) return [filteredColumns, filteredColumns];
 
         const dtypes = new Set<DataKind>();
         const allAllowedColumns = new Set<DataColumn>();
-        compatibleViews.forEach((viewKey: ViewKey) => {
-            const view = registry.views[viewKey];
+        compatibleViews.forEach((lensKey: LensKey) => {
+            const view = lenses[lensKey];
             const cols = view.filterAllowedColumns?.(allColumns, selectedColumns);
             if (cols) {
                 cols.forEach((col) => allAllowedColumns.add(col));
@@ -103,7 +106,14 @@ const ViewConfigurator = (): JSX.Element => {
             ),
             Array.from(allAllowedColumns).filter((c) => !columns.includes(c.key)),
         ];
-    }, [filteredColumns, selectedColumns, columns, compatibleViews, allColumns]);
+    }, [
+        filteredColumns,
+        selectedColumns,
+        columns,
+        compatibleViews,
+        allColumns,
+        lenses,
+    ]);
 
     const handleAdd = useCallback(() => {
         if (!compatibleView || !columns.length) return;
@@ -199,7 +209,7 @@ const ViewConfigurator = (): JSX.Element => {
                     onChange={setView}
                     value={compatibleView}
                     label={(viewKey) =>
-                        viewKey ? registry.views[viewKey].displayName ?? viewKey : ''
+                        viewKey ? lenses[viewKey].displayName ?? viewKey : ''
                     }
                     isDisabled={!compatibleViews.length}
                 />

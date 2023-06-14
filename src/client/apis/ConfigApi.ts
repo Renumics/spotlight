@@ -25,14 +25,17 @@ import {
 
 export interface GetRequest {
     name: string;
+    browserId?: string;
 }
 
 export interface RemoveRequest {
     name: string;
+    browserId?: string;
 }
 
 export interface SetRequest {
     name: string;
+    browserId: string;
     setConfigRequest: SetConfigRequest;
 }
 
@@ -152,6 +155,16 @@ export class ConfigApi extends runtime.BaseAPI {
             throw new runtime.RequiredError(
                 'name',
                 'Required parameter requestParameters.name was null or undefined when calling set.'
+            );
+        }
+
+        if (
+            requestParameters.browserId === null ||
+            requestParameters.browserId === undefined
+        ) {
+            throw new runtime.RequiredError(
+                'browserId',
+                'Required parameter requestParameters.browserId was null or undefined when calling set.'
             );
         }
 

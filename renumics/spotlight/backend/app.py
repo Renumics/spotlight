@@ -5,14 +5,16 @@ start flask development server
 import asyncio
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
+import uuid
 
-from fastapi import Request, status
+from fastapi import Request, status, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
+from typing_extensions import Annotated
 
 from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.develop.project import get_project_info
@@ -25,7 +27,6 @@ from renumics.spotlight.reporting import (
 from renumics.spotlight.settings import settings
 
 from .apis import plugins as plugin_api
-from .apis import problems as problems_api
 from .apis import websocket
 from .config import Config
 from .middlewares.timing import add_timing_middleware
@@ -48,10 +49,10 @@ def create_app() -> SpotlightApp:
     app.project_root = Path.cwd()
     app.vite_url = None
     app.username = ""
+    app.filebrowsing_allowed = False
 
     app.include_router(websocket.router, prefix="/api")
     app.include_router(plugin_api.router, prefix="/api/plugins")
-    app.include_router(problems_api.router, prefix="/api/problems")
 
     @app.exception_handler(Exception)
     async def _(_: Request, e: Exception) -> JSONResponse:
@@ -108,16 +109,23 @@ def create_app() -> SpotlightApp:
     templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
     @app.get("/")
-    def _(request: Request) -> Any:
-        return templates.TemplateResponse(
+    def _(
+        request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
+    ) -> Any:
+        response = templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
                 "dev": settings.dev,
                 "dev_location": get_project_info().type,
                 "vite_url": request.app.vite_url,
+                "filebrowsing_allowed": request.app.filebrowsing_allowed,
             },
         )
+        response.set_cookie(
+            "browser_id", browser_id or str(uuid.uuid4()), samesite="none", secure=True
+        )
+        return response
 
     if settings.dev:
         logger.info("Running in dev mode")

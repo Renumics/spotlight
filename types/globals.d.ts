@@ -17,4 +17,5 @@ declare global {
     var [styled]: typeof styled;
     var [Spotlight]: Spotlight;
     var [global]: Window;
+    var [__filebrowsing_allowed__]: boolean;
 }
