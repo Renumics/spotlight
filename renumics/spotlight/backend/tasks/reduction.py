@@ -23,22 +23,28 @@ def get_aligned_data(
 
     if not column_names or not indices:
         return np.empty(0, np.float64), []
-    columns = [table.get_column(column_name, indices) for column_name in column_names]
-    for column in columns:
+
+    values = []
+    for column_name in column_names:
+        column = table.get_column(column_name, indices)
         if column.type == Embedding:
             if column.embedding_length:
                 none_replacement = np.full(column.embedding_length, np.nan)
-                column.values = np.array(
-                    [
-                        value if value is not None else none_replacement
-                        for value in column.values
-                    ]
+                values.append(
+                    np.array(
+                        [
+                            value if value is not None else none_replacement
+                            for value in column.values
+                        ]
+                    )
                 )
         elif column.type not in (int, bool, float, Category):
+            values.append(column.values)
             raise ValueError(
                 f'Column "{column.name}" of type {column.type.__name__} is not embeddable.'
             )
-    data = np.hstack([column.values.reshape((len(indices), -1)) for column in columns])
+
+    data = np.hstack([col.reshape((len(indices), -1)) for col in values])
     mask = ~pd.isna(data).any(axis=1)
     return data[mask], (np.array(indices)[mask]).tolist()
 
@@ -58,7 +64,7 @@ def compute_umap(
 
     try:
         data, indices = get_aligned_data(table, column_names, indices)
-    except (ColumnNotExistsError, ValueError):
+    except ColumnNotExistsError:
         return np.empty(0, np.float64), []
     if data.size == 0:
         return np.empty(0, np.float64), []
