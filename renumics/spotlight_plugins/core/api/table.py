@@ -235,13 +235,15 @@ async def open_table(path: str, request: Request) -> None:
     :raises InvalidPath: if the supplied path is outside the project root
                          or points to an incompatible file
     """
-    if not request.app.filebrowsing_allowed:
+    app: SpotlightApp = request.app
+
+    if not app.filebrowsing_allowed:
         raise FilebrowsingNotAllowed()
 
-    full_path = Path(request.app.project_root) / path
+    full_path = Path(app.project_root) / path
 
     # assert that the path is inside our project root
-    if not is_path_relative_to(full_path, request.app.project_root):
+    if not is_path_relative_to(full_path, app.project_root):
         raise InvalidPath(path)
 
-    request.app.data_source = create_datasource(full_path, dtype=None)
+    app.data_source = create_datasource(full_path, dtype=app.dtype)

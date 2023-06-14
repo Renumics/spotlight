@@ -11,6 +11,7 @@ from renumics.spotlight.backend.websockets import WebsocketManager
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
 
 class SpotlightApp(FastAPI):
@@ -22,6 +23,7 @@ class SpotlightApp(FastAPI):
     # pylint: disable=too-many-instance-attributes
 
     data_source: Optional[DataSource]
+    dtype: Optional[ColumnTypeMapping]
     task_manager: TaskManager
     websocket_manager: WebsocketManager
     layout: Optional[Layout]
