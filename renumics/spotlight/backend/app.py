@@ -43,6 +43,7 @@ def create_app() -> SpotlightApp:
     app = SpotlightApp()
 
     app.data_source = None
+    app.dtype = None
     app.task_manager = TaskManager()
     app.config = Config()
     app.layout = None

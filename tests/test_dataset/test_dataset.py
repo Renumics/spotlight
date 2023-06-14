@@ -8,7 +8,7 @@ import string
 import tempfile
 from datetime import datetime
 from glob import glob
-from typing import Dict, List, Type
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -26,7 +26,7 @@ from renumics.spotlight import (
     Window,
 )
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
-from renumics.spotlight.dtypes.typing import ColumnType
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from tests.test_dataset.conftest import approx, get_append_column_fn_name, ColumnData
 
 
@@ -982,7 +982,7 @@ def test_import_csv_with_dtype() -> None:
         optional_or_nan_columns = list(df.columns.difference(set(columns)))
 
         all_columns = df.columns.tolist()
-        dtypes: Dict[str, Type[ColumnType]] = {key: str for key in all_columns}
+        dtypes: ColumnTypeMapping = {key: str for key in all_columns}
         dtypes.update({key: bool for key in dtypes if key.startswith("bool")})
         dtypes.update({key: int for key in dtypes if key.startswith("int")})
         dtypes.update({key: float for key in dtypes if key.startswith("float")})

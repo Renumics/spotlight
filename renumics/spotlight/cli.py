@@ -9,20 +9,20 @@ import sys
 import time
 import threading
 from types import TracebackType
-from typing import Any, Dict, Optional, Tuple, Type, Union
+from typing import Any, Optional, Tuple, Type, Union
 from pathlib import Path
 
 import click
 
 from renumics import spotlight
-from renumics.spotlight.dtypes.typing import ColumnType, COLUMN_TYPES_BY_NAME
+from renumics.spotlight.dtypes.typing import COLUMN_TYPES_BY_NAME, ColumnTypeMapping
 
 from renumics.spotlight import logging
 
 
 def cli_dtype_callback(
     _ctx: click.Context, _param: click.Option, value: Tuple[str, ...]
-) -> Optional[Dict[str, Type[ColumnType]]]:
+) -> Optional[ColumnTypeMapping]:
     """
     Parse column types from multiple strings in format
     `COLUMN_NAME=DTYPE` to a dict.
@@ -104,7 +104,7 @@ def main(
     host: str,
     port: Union[int, str],
     layout: Optional[str],
-    dtype: Optional[Dict[str, Type[ColumnType]]],
+    dtype: Optional[ColumnTypeMapping],
     no_browser: bool,
     filebrowsing: bool,
     verbose: bool,
