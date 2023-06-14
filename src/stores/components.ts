@@ -59,7 +59,7 @@ export function registerWidget(widget: Widget) {
         return {
             widgetsByKey,
             widgetKeys: Object.keys(widgetsByKey),
-            widgets: _.compact(Object.values(widgetsByKey)),
+            widgets: _.uniq(Object.values(widgetsByKey)),
         };
     });
 }
@@ -71,7 +71,7 @@ export function registerLens(lens: Lens) {
         return {
             lensesByKey,
             lensKeys: Object.keys(lensesByKey),
-            lenses: _.compact(Object.values(lensesByKey)),
+            lenses: _.uniq(Object.values(lensesByKey)),
         };
     });
 }
