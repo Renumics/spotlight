@@ -202,8 +202,13 @@ class PandasDataSource(DataSource):
                     f"sequences of shape {embeddings.shape[1:]} received."
                 )
 
+            if na_mask.any():
+                values = np.empty(len(column), dtype=object)
+                values[np.where(~na_mask)[0]] = list(embeddings)
+            else:
+                values = embeddings
+
             embedding_length = embeddings.shape[1]
-            values = embeddings
         else:
             # A reference column. `dtype` is one of `np.ndarray`, `Audio`,
             # `Image`, `Mesh`, `Sequence1D` or `Video`. Don't try to check or
