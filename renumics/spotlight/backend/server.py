@@ -130,7 +130,7 @@ def create_server(
         port=port_number,
         log_level=log_level,
         http="httptools",
-        ws="wsproto",
+        ws="websockets",
         workers=4,
         reload=os.environ.get("SPOTLIGHT_DEV") == "true",
     )
