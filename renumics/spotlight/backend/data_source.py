@@ -25,7 +25,7 @@ from renumics.spotlight.dtypes.typing import (
     FileBasedColumnType,
     get_column_type_name,
 )
-from .cache import Cache
+from renumics.spotlight.cache import Cache
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
 
 cache = Cache("external-data")
@@ -39,7 +39,6 @@ class Attrs:
 
     # pylint: disable=too-many-instance-attributes
 
-    type_name: str
     type: Type[ColumnType]
     order: Optional[int]
     hidden: bool
@@ -47,12 +46,12 @@ class Attrs:
     description: Optional[str]
     tags: List[str]
     editable: bool
+
+    # data type specific fields
     categories: Optional[Dict[str, int]]
     x_label: Optional[str]
     y_label: Optional[str]
     embedding_length: Optional[int]
-    has_lookup: bool
-    is_external: Optional[bool]
 
 
 @dataclasses.dataclass
@@ -63,7 +62,6 @@ class Column(Attrs):
 
     name: str
     values: np.ndarray
-    references: Optional[np.ndarray]
 
 
 @dataclass
@@ -131,12 +129,6 @@ class DataSource(ABC):
         Get the table's human-readable name.
         """
 
-    @abstractmethod
-    def get_columns(self, column_names: Optional[List[str]] = None) -> List[Column]:
-        """
-        Get table's columns by names.
-        """
-
     def get_internal_columns(self) -> List[Column]:
         """
         Get internal columns if there are any.
@@ -144,9 +136,11 @@ class DataSource(ABC):
         return []
 
     @abstractmethod
-    def get_column(self, column_name: str, indices: Optional[List[int]]) -> Column:
+    def get_column(
+        self, column_name: str, indices: Optional[List[int]] = None
+    ) -> Column:
         """
-        return a column with data
+        Get column metadata + values
         """
 
     @abstractmethod
@@ -261,7 +255,6 @@ def sanitize_values(values: Any) -> Any:
 def idx_column(row_count: int) -> Column:
     """create a column containing the index"""
     return Column(
-        type_name="int",
         type=int,
         order=None,
         description=None,
@@ -270,9 +263,6 @@ def idx_column(row_count: int) -> Column:
         x_label=None,
         y_label=None,
         embedding_length=None,
-        has_lookup=False,
-        is_external=False,
-        references=None,
         name="__idx__",
         hidden=True,
         editable=False,
@@ -284,7 +274,6 @@ def idx_column(row_count: int) -> Column:
 def last_edited_at_column(row_count: int, value: datetime) -> Column:
     """create a column containing a constant datetime"""
     return Column(
-        type_name="datetime",
         type=datetime,
         order=None,
         description=None,
@@ -293,9 +282,6 @@ def last_edited_at_column(row_count: int, value: datetime) -> Column:
         x_label=None,
         y_label=None,
         embedding_length=None,
-        has_lookup=False,
-        is_external=False,
-        references=None,
         name="__last_edited_at__",
         hidden=True,
         editable=False,
@@ -307,7 +293,6 @@ def last_edited_at_column(row_count: int, value: datetime) -> Column:
 def last_edited_by_column(row_count: int, value: str) -> Column:
     """create a column containing a constant username"""
     return Column(
-        type_name="str",
         type=str,
         order=None,
         description=None,
@@ -316,9 +301,6 @@ def last_edited_by_column(row_count: int, value: str) -> Column:
         x_label=None,
         y_label=None,
         embedding_length=None,
-        has_lookup=False,
-        is_external=False,
-        references=None,
         name="__last_edited_by__",
         hidden=True,
         editable=False,

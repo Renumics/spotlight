@@ -12,7 +12,6 @@ from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 from pydantic.dataclasses import dataclass
 from typing_extensions import Literal
-from wsproto.utilities import LocalProtocolError
 
 from .data_source import DataSource, sanitize_values
 from .tasks import TaskManager, TaskCancelled
@@ -186,7 +185,7 @@ class WebsocketConnection:
             await self.websocket.send_json(dataclasses.asdict(message))
         except WebSocketDisconnect:
             self._on_disconnect()
-        except LocalProtocolError:
+        except RuntimeError:
             # connection already disconnected
             pass
 

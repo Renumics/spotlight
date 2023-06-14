@@ -4,13 +4,17 @@ import { Problem } from '../types';
 import api from '../api';
 import { shallow } from 'zustand/shallow';
 
-async function fetchValue(row: number, column: string) {
+async function fetchValue(row: number, column: string, raw = true) {
     const response = await api.table.getCellRaw({
         row,
         column,
         generationId: useDataset.getState().generationID,
     });
-    return response.raw.arrayBuffer();
+    if (raw) {
+        return response.raw.arrayBuffer();
+    } else {
+        return response.value();
+    }
 }
 
 async function keepValue(value: unknown) {
@@ -65,15 +69,20 @@ function useCellValues(
             return;
         }
 
-        const fetchers = cellEntries.map((entry, i) =>
-            entry !== null && columns[i]?.lazy
+        const fetchers = cellEntries.map((entry, i) => {
+            const column = columns[i];
+            return entry !== null && column?.lazy
                 ? delay(deferLoading ? 250 : 0).then(() => {
                       if (!cancelled) {
-                          return fetchValue(rowIndex, columnKeys[i]);
+                          return fetchValue(
+                              rowIndex,
+                              columnKeys[i],
+                              !['Embedding', 'Array'].includes(column.type.kind)
+                          );
                       }
                   })
-                : keepValue(entry)
-        );
+                : keepValue(entry);
+        });
 
         Promise.all(fetchers)
             .then((values) => {

@@ -51,7 +51,6 @@ h5py = ">3.0"
 requests = "*"
 umap-learn = "*"
 typing-extensions = "*"
-wsproto = ">=0.14"
 httptools = "*"
 uvloop = [
     {version = ">=0.17.0", platform = "linux"},
@@ -81,6 +80,7 @@ ipywidgets = "*"
 pycatch22 = "*"
 jinja2 = "^3.1.2"
 toml = "^0.10.2"
+websockets = "^11.0.3"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"

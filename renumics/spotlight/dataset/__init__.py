@@ -31,7 +31,7 @@ import validators
 from loguru import logger
 from typing_extensions import Literal, TypeGuard
 
-from renumics.spotlight import __version__
+from renumics.spotlight.__version__ import __version__
 from renumics.spotlight.io.pandas import (
     infer_dtypes,
     prepare_column,

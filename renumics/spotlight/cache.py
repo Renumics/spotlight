@@ -45,3 +45,17 @@ class Cache:
             self._cache.close()
             self._cache = self._init_cache()
             self._cache[name] = value
+
+    def clear(self) -> None:
+        """
+        Clear the whole cache.
+        """
+        self._cache.clear()
+
+
+def clear(name: str) -> None:
+    """
+    Clear cache by its name.
+    """
+    cache = Cache(name)
+    cache.clear()
