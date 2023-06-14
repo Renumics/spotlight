@@ -14,6 +14,12 @@ from ..data_source import DataSource
 SEED = 42
 
 
+class ColumnNotEmbeddable(Exception):
+    """
+    The column is not embeddable
+    """
+
+
 def get_aligned_data(
     table: DataSource, column_names: List[str], indices: List[int]
 ) -> Tuple[np.ndarray, List[int]]:
@@ -40,9 +46,7 @@ def get_aligned_data(
                 )
         elif column.type not in (int, bool, float, Category):
             values.append(column.values)
-            raise ValueError(
-                f'Column "{column.name}" of type {column.type.__name__} is not embeddable.'
-            )
+            raise ColumnNotEmbeddable
 
     data = np.hstack([col.reshape((len(indices), -1)) for col in values])
     mask = ~pd.isna(data).any(axis=1)
@@ -64,7 +68,7 @@ def compute_umap(
 
     try:
         data, indices = get_aligned_data(table, column_names, indices)
-    except ColumnNotExistsError:
+    except (ColumnNotExistsError, ColumnNotEmbeddable):
         return np.empty(0, np.float64), []
     if data.size == 0:
         return np.empty(0, np.float64), []
