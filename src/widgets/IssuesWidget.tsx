@@ -15,16 +15,18 @@ const Issue = ({ problem }: IssueProps): JSX.Element => {
 
     return (
         <button
-            tw="flex flex-row px-1 h-6 text-xs items-center bg-yellow-100 border-b-yellow-600 border overflow-hidden"
+            tw="flex flex-row px-1 h-7 text-xs items-center bg-yellow-100 border-b-yellow-600 border overflow-hidden align-middle"
             onClick={selectRows}
             onMouseOver={highlight}
             onFocus={highlight}
             onMouseLeave={dehighlight}
         >
-            <WarningIcon tw="text-yellow-600 h-4 w-4" />
-            <div tw="flex-grow font-bold flex text-start">{problem.description}</div>
-            <div tw="rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2">
+            <WarningIcon tw="text-yellow-600 h-5 w-5 mx-0.5" />
+            <div tw="rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2 align-middle items-center align-middle mx-0.5">
                 {problem.rows.length}
+            </div>
+            <div tw="flex-grow flex text-start items-center align-middle mx-1">
+                {problem.description}
             </div>
         </button>
     );
