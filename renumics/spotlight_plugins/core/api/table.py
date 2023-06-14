@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import pandas as pd
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
@@ -38,6 +37,16 @@ from renumics.spotlight.dtypes import (
 LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio]
 
 
+def _isfalsy(value: Optional[np.ndarray]) -> bool:
+    # pylint: disable=unneeded-not
+    return value is None or not not value
+
+
+def _isfalsy_array(value: Optional[np.ndarray]) -> bool:
+    # pylint: disable=unneeded-not, use-implicit-booleaness-not-len
+    return value is None or not not len(value)
+
+
 class Column(BaseModel):
     """
     a single table column
@@ -67,11 +76,10 @@ class Column(BaseModel):
         """
 
         if column.type in LAZY_DTYPES:
-            mask = pd.isna(column.values)
-            if mask is None:
-                references = None
+            if column.type in [Sequence1D, np.ndarray, Embedding]:
+                references = [_isfalsy_array(value) for value in column.values]
             else:
-                references = (~mask).tolist()
+                references = [_isfalsy(value) for value in column.values]
         else:
             references = None
 
@@ -181,8 +189,6 @@ async def get_table_cell(
 
     cell_data = table.get_cell_data(column, row)
     value = sanitize_values(cell_data)
-
-    print(value)
 
     if isinstance(value, (bytes, str)):
         return Response(value, media_type="application/octet-stream")
