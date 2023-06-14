@@ -117,7 +117,7 @@ def non_existing_image_df_viewer() -> Iterator[spotlight.Viewer]:
             dtype={"image": spotlight.Image},
         )
         yield viewer
-    viewer.close()
+        viewer.close()
 
 
 @pytest.fixture()
