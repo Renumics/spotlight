@@ -20,7 +20,7 @@ from renumics.spotlight.requests import headers
 from renumics.spotlight.typing import FileType, NumberType, PathType
 from . import exceptions, triangulation
 from .base import DType, FileBasedDType
-from ..io import audio, gltf
+from ..io import audio, gltf, file as file_io
 
 Array1DLike = Union[Sequence[NumberType], np.ndarray]
 Array2DLike = Union[Sequence[Sequence[NumberType]], np.ndarray]
@@ -620,23 +620,13 @@ class Image(FileBasedDType):
 
         `imageio` is used inside, so only supported formats are allowed.
         """
-        file = str(filepath) if isinstance(filepath, os.PathLike) else filepath
-        if isinstance(file, str):
-            if validators.url(file):
-                response = requests.get(file, headers=headers, timeout=30)
-                if not response.ok:
-                    raise exceptions.InvalidFile(f"URL {file} does not exist.")
-                file = io.BytesIO(response.content)
-            elif not os.path.isfile(file):
+        with file_io.as_file(filepath) as file:
+            try:
+                image_array = iio.imread(file, index=False)  # type: ignore
+            except Exception as e:
                 raise exceptions.InvalidFile(
-                    f"File {file} is neither an existing file nor an existing URL."
-                )
-        try:
-            image_array = iio.imread(file, index=False)  # type: ignore
-        except Exception as e:
-            raise exceptions.InvalidFile(
-                f"Image {filepath} does not exist or could not be read."
-            ) from e
+                    f"Image {filepath} does not exist or could not be read."
+                ) from e
         return cls(image_array)
 
     @classmethod

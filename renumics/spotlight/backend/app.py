@@ -56,7 +56,7 @@ def create_app() -> SpotlightApp:
 
     @app.exception_handler(Exception)
     async def _(_: Request, e: Exception) -> JSONResponse:
-        if settings.dev:
+        if settings.verbose:
             logger.exception(e)
         else:
             logger.info(e)
@@ -70,7 +70,7 @@ def create_app() -> SpotlightApp:
 
     @app.exception_handler(Problem)
     async def _(_: Request, problem: Problem) -> JSONResponse:
-        if settings.dev:
+        if settings.verbose:
             logger.exception(problem)
         else:
             logger.info(problem)
