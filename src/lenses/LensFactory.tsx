@@ -16,6 +16,7 @@ interface Props {
     columns: DataColumn[];
     rowIndex: number;
     syncKey: string;
+    deferLoading?: boolean;
 }
 
 const Info = tw.div`w-full h-full flex items-center justify-center text-gray-800 italic text-sm p-2 text-center`;
@@ -42,9 +43,10 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     columns,
     rowIndex,
     syncKey,
+    deferLoading = false,
 }) => {
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
-    const [values, problem] = useCellValues(rowIndex, columnKeys);
+    const [values, problem] = useCellValues(rowIndex, columnKeys, deferLoading);
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
     const LensComponent = lenses[view];

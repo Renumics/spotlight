@@ -21,9 +21,12 @@ async function keepValue(value: unknown) {
     return value;
 }
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function useCellValues(
     rowIndex: number,
-    columnKeys: string[]
+    columnKeys: string[],
+    deferLoading = false
 ): [unknown[] | undefined, Problem | undefined] {
     const cellsSelector = useCallback(
         (d: Dataset) => {
@@ -69,11 +72,15 @@ function useCellValues(
         const fetchers = cellEntries.map((entry, i) => {
             const column = columns[i];
             return entry !== null && column?.lazy
-                ? fetchValue(
-                      rowIndex,
-                      columnKeys[i],
-                      !['Embedding', 'Array'].includes(column.type.kind)
-                  )
+                ? delay(deferLoading ? 250 : 0).then(() => {
+                      if (!cancelled) {
+                          return fetchValue(
+                              rowIndex,
+                              columnKeys[i],
+                              !['Embedding', 'Array'].includes(column.type.kind)
+                          );
+                      }
+                  })
                 : keepValue(entry);
         });
 
@@ -88,7 +95,15 @@ function useCellValues(
         return () => {
             cancelled = true;
         };
-    }, [cellEntries, rowIndex, columnKeys, needsFetch, columns, hasFetchedValues]);
+    }, [
+        cellEntries,
+        rowIndex,
+        columnKeys,
+        needsFetch,
+        columns,
+        hasFetchedValues,
+        deferLoading,
+    ]);
 
     const values = needsFetch ? fetchedValues : cellEntries;
 
