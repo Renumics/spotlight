@@ -13,6 +13,9 @@ outputs:
     package-version:
         description: Spotlight version
         value: ${{ steps.get-package-version.outputs.package-version }}
+    pip-cache-dir:
+        description: Pip cache directory path of the current Python installation
+        value: ${{ steps.get-package-version.outputs.pip-cache-dir }}
 runs:
     using: composite
     steps:
@@ -40,7 +43,6 @@ runs:
         - name: Get Spotlight version
           id: get-package-version
           run: |
-              echo "PIP_CACHE_DIR=$(python -m pip cache dir)" >> $GITHUB_ENV
-              echo "PACKAGE_VERSION=$(poetry version -s)" >> $GITHUB_ENV
               echo "package-version=$(poetry version -s)" >> $GITHUB_OUTPUT
+              echo "pip-cache-dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
           shell: bash
