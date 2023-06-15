@@ -30,10 +30,12 @@ def get_aligned_data(
     if not column_names or not indices:
         return np.empty(0, np.float64), []
 
+    from sklearn import preprocessing  # pylint: disable=import-outside-toplevel
+
     values = []
     for column_name in column_names:
         column = table.get_column(column_name, indices)
-        if column.type == Embedding:
+        if column.type is Embedding:
             if column.embedding_length:
                 none_replacement = np.full(column.embedding_length, np.nan)
                 values.append(
@@ -44,8 +46,20 @@ def get_aligned_data(
                         ]
                     )
                 )
-        elif column.type not in (int, bool, float, Category):
+        elif column.type is Category:
+            if column.categories:
+                classes = sorted(column.categories.values())
+                na_mask = ~np.isin(column.values, classes)
+                one_hot_values = preprocessing.label_binarize(
+                    column.values, classes=sorted(column.categories.values())
+                ).astype(float)
+                one_hot_values[na_mask] = np.nan
+                values.append(one_hot_values)
+            else:
+                values.append(np.full(len(column.values), np.nan))
+        elif column.type in (int, bool, float):
             values.append(column.values)
+        else:
             raise ColumnNotEmbeddable
 
     data = np.hstack([col.reshape((len(indices), -1)) for col in values])
