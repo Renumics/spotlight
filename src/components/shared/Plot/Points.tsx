@@ -2,7 +2,6 @@ import * as d3 from 'd3';
 import _ from 'lodash';
 import { useCallback, useContext, useEffect, useMemo } from 'react';
 import { theme } from 'twin.macro';
-import useWhyDidYouUpdate from '../../../hooks/useWhyDidYouUpdate';
 import PlotContext from './PlotContext';
 import { MergeStrategy, Point2d } from './types';
 
