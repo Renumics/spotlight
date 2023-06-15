@@ -46,6 +46,7 @@ def get_aligned_data(
                 )
         elif column.type not in (int, bool, float, Category):
             values.append(column.values)
+        else:
             raise ColumnNotEmbeddable
 
     data = np.hstack([col.reshape((len(indices), -1)) for col in values])
