@@ -6,8 +6,6 @@ on: push
 # and not in the local actions. Otherwise, no action file found.
 # Checkout with `fetch-depth: 0` is needed by `poetry-dynamic-versioning` to get
 # the right package version.
-# `PACKAGE_VERSION` environment variable is set by the local `setup-poetry`
-# action.
 # `MATRIX` environment variable is set by the local `generate-matrix` action.
 
 jobs:
@@ -21,7 +19,11 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
+              id: setup-poetry
               uses: ./.github/actions/setup-poetry
+        outputs:
+            version: ${{ steps.setup-poetry.outputs.package-version }}
+            pip-cache-dir: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
     prepare-node:
         name: '⬢ Prepare Node.js'
         runs-on: ubuntu-latest
@@ -144,7 +146,7 @@ jobs:
             - name: '📥 Store API docs'
               uses: actions/upload-artifact@v3
               with:
-                  name: docs-${{ env.PACKAGE_VERSION }}
+                  name: docs-${{ needs.prepare-python.outputs.version }}
                   path: build/docs/api/
                   if-no-files-found: error
     build-datasets:
@@ -168,7 +170,7 @@ jobs:
             - name: '📥 Store datasets'
               uses: actions/upload-artifact@v3
               with:
-                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
                   if-no-files-found: error
     build-spotlight:
@@ -193,7 +195,7 @@ jobs:
             - name: '📥 Store frontend'
               uses: actions/upload-artifact@v3
               with:
-                  name: .frontend-${{ env.PACKAGE_VERSION }}
+                  name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
                   if-no-files-found: error
             - name: Build Spotlight
@@ -201,13 +203,14 @@ jobs:
             - name: '📥 Store Spotlight'
               uses: actions/upload-artifact@v3
               with:
-                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist/renumics_spotlight*.whl
                   if-no-files-found: error
     # Test stage
     check-wheel-contents:
         name: '🔍 Check wheel contents'
         needs:
+            - prepare-python
             - build-spotlight
         runs-on: ubuntu-latest
         steps:
@@ -220,7 +223,7 @@ jobs:
             - name: '📤 Restore Spotlight Wheel'
               uses: actions/download-artifact@v3
               with:
-                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
             - name: Check wheel contents
               run: make check-wheel
@@ -243,7 +246,7 @@ jobs:
             - name: '📤 Restore datasets'
               uses: actions/download-artifact@v3
               with:
-                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
             - name: Execute unit-test
               run: make unit-test
@@ -266,7 +269,7 @@ jobs:
             - name: '📤 Restore pro frontend'
               uses: actions/download-artifact@v3
               with:
-                  name: .frontend-${{ env.PACKAGE_VERSION }}
+                  name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
             - name: Test API
               run: make api-test
@@ -293,12 +296,12 @@ jobs:
             - name: '📤 Restore datasets'
               uses: actions/download-artifact@v3
               with:
-                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
             - name: '📤 Restore pro frontend'
               uses: actions/download-artifact@v3
               with:
-                  name: .frontend-${{ env.PACKAGE_VERSION }}
+                  name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
             - name: '🎨 Set up Chrome driver'
               if: matrix.browser == 'chrome'
@@ -360,7 +363,7 @@ jobs:
                   || steps.setup-geckodriver.outcome == 'success'
               uses: actions/upload-artifact@v3
               with:
-                  name: .ui-test-${{ env.PACKAGE_VERSION }}
+                  name: .ui-test-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
                   if-no-files-found: error
     test-install:
@@ -387,17 +390,17 @@ jobs:
             - name: Cache pip cache folder
               uses: actions/cache@v3
               with:
-                  path: ${{ env.PIP_CACHE_DIR }}
+                  path: ${{ needs.prepare-python.outputs.pip-cache-dir }}
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
             - name: '📤 Restore pro Spotlight'
               uses: actions/download-artifact@v3
               with:
-                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
             - name: '📤 Restore datasets'
               uses: actions/download-artifact@v3
               with:
-                  name: datasets-${{ env.PACKAGE_VERSION }}
+                  name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
             - name: Upgrade system packages
               run: python -m pip install --upgrade pip setuptools wheel
@@ -405,7 +408,7 @@ jobs:
               run: python -m pip install pytest "httpx>=0.22.0"
             - name: Install pro Spotlight
               id: setup
-              run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ env.PACKAGE_VERSION }}
+              run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ needs.prepare-python.outputs.version }}
             - name: Test Spotlight start (Windows)
               if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
               run: ./scripts/Test-SpotlightStart.ps1
@@ -465,14 +468,10 @@ jobs:
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry'
-              uses: ./.github/actions/setup-poetry
-              with:
-                  install-dependencies: false
             - name: '📤 Restore core Spotlight'
               uses: actions/download-artifact@v3
               with:
-                  name: renumics-spotlight-${{ env.PACKAGE_VERSION }}
+                  name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: dist
             - name: '🚀 Publish Spotlight to PyPI'
               uses: pypa/gh-action-pypi-publish@release/v1
