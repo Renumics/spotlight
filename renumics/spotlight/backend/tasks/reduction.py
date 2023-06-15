@@ -50,13 +50,10 @@ def get_aligned_data(
             if column.categories:
                 classes = sorted(column.categories.values())
                 na_mask = ~np.isin(column.values, classes)
-                print(column.name, column.values, column.categories, na_mask)
                 one_hot_values = preprocessing.label_binarize(
                     column.values, classes=sorted(column.categories.values())
                 ).astype(float)
-                print(one_hot_values)
                 one_hot_values[na_mask] = np.nan
-                print(one_hot_values)
                 values.append(one_hot_values)
             else:
                 values.append(np.full(len(column.values), np.nan))
