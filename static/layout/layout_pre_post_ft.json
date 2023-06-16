@@ -1,0 +1,127 @@
+{
+    "orientation": "vertical",
+    "children": [
+        {
+            "kind": "split",
+            "weight": 53.044871794871796,
+            "orientation": "horizontal",
+            "children": [
+                {
+                    "kind": "tab",
+                    "weight": 46.519114688128774,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Table",
+                            "type": "table",
+                            "config": {
+                                "tableView": "full",
+                                "visibleColumns": null,
+                                "sorting": null,
+                                "orderByRelevance": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "tab",
+                    "weight": 26.740442655935613,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Similarity Map",
+                            "type": "similaritymap",
+                            "config": {
+                                "placeBy": null,
+                                "reductionMethod": null,
+                                "colorBy": "label_str",
+                                "sizeBy": null,
+                                "filter": false,
+                                "umapNNeighbors": 70,
+                                "umapMetric": null,
+                                "umapMinDist": 0.5,
+                                "pcaNormalization": null,
+                                "umapMenuLocalGlobalBalance": 1,
+                                "umapMenuIsAdvanced": false
+                            }
+                        },
+                        {
+                            "kind": "widget",
+                            "name": "Scatter Plot",
+                            "type": "scatterplot",
+                            "config": {
+                                "xAxisColumn": null,
+                                "yAxisColumn": null,
+                                "colorBy": null,
+                                "sizeBy": null,
+                                "filter": false
+                            }
+                        },
+                        {
+                            "kind": "widget",
+                            "name": "Histogram",
+                            "type": "histogram",
+                            "config": {
+                                "columnKey": null,
+                                "stackByColumnKey": null,
+                                "filter": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "tab",
+                    "weight": 26.740442655935613,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Similarity Map (2)",
+                            "type": "similaritymap",
+                            "config": {
+                                "placeBy": ["embedding_ft"],
+                                "reductionMethod": null,
+                                "colorBy": "label_str",
+                                "sizeBy": null,
+                                "filter": false,
+                                "umapNNeighbors": 70,
+                                "umapMetric": null,
+                                "umapMinDist": 0.5,
+                                "pcaNormalization": null,
+                                "umapMenuLocalGlobalBalance": 1,
+                                "umapMenuIsAdvanced": false
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "tab",
+            "weight": 46.955128205128204,
+            "children": [
+                {
+                    "kind": "widget",
+                    "name": "Inspector",
+                    "type": "inspector",
+                    "config": {
+                        "views": [
+                            {
+                                "view": "ImageView",
+                                "columns": ["image"],
+                                "name": "image",
+                                "key": "ot5EkCFFDx33u1D72sVDQs"
+                            },
+                            {
+                                "view": "ImageView",
+                                "columns": ["nn_image"],
+                                "name": "nn_image",
+                                "key": "3pCEuKybVXJLTFbx9xcBty"
+                            }
+                        ],
+                        "visibleColumns": 4
+                    }
+                }
+            ]
+        }
+    ]
+}
