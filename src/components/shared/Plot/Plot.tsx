@@ -52,6 +52,7 @@ const Plot = ({
         },
         [setHighlightedPoint]
     );
+    const [active, setActive] = useState<boolean>(false);
 
     const [transform, setTransform] = useState(() => d3.zoomIdentity);
 
@@ -112,6 +113,8 @@ const Plot = ({
         setHighlightedPoint,
         hoveredIndex,
         setHoveredIndex,
+        active,
+        setActive,
     };
 
     return (

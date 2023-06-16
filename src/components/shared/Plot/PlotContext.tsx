@@ -25,6 +25,8 @@ interface PlotContextValue {
     setHighlightedPoint: (index: number | undefined) => void;
     hoveredIndex: number | undefined;
     setHoveredIndex: (index: number | undefined) => void;
+    active: boolean;
+    setActive: (active: boolean) => void;
     xRange: [number, number];
     yRange: [number, number];
     xScale: d3.ScaleLinear<number, number>;
@@ -55,6 +57,8 @@ const defaultPlotContext: PlotContextValue = {
     isPointHighlighted: () => false,
     hoveredIndex: undefined,
     setHoveredIndex: () => null,
+    active: false,
+    setActive: () => null,
     xRange: [0, 1],
     yRange: [0, 1],
     xScale: d3.scaleLinear(),

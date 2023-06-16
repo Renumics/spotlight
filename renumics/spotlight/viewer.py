@@ -51,7 +51,7 @@ Example:
 import os
 from pathlib import Path
 import threading
-from typing import List, Union, Optional, Dict, Type
+from typing import List, Union, Optional
 
 import pandas as pd
 from typing_extensions import Literal
@@ -60,7 +60,6 @@ import IPython.display
 
 import __main__
 from renumics.spotlight.webbrowser import launch_browser_in_thread
-from renumics.spotlight.dataset import ColumnType
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.backend.server import create_server, Server
 from renumics.spotlight.backend.websockets import RefreshMessage, ResetLayoutMessage
@@ -98,7 +97,6 @@ class Viewer:
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
-    _dtype: Optional[ColumnTypeMapping]
     _allow_filebrowsing: Optional[bool]
     _layout: Optional[_LayoutLike]
 
@@ -110,7 +108,6 @@ class Viewer:
         self._host = host
         self._requested_port = port
         self._dataset_or_folder = None
-        self._dtype = None
         self._allow_filebrowsing = None
         self._server = None
         self._thread = None
@@ -176,7 +173,7 @@ class Viewer:
         elif self._dataset_or_folder is None:
             self._dataset_or_folder = Path.cwd()
         if dtype is not None:
-            self._dtype = dtype
+            app.dtype = dtype
 
         if dataset_or_folder is not None or dtype is not None:
             # set correct project folder
@@ -186,10 +183,10 @@ class Viewer:
                     app.project_root = path
                 else:
                     app.project_root = path.parent
-                    app.data_source = create_datasource(path, dtype=self._dtype)
+                    app.data_source = create_datasource(path, dtype=app.dtype)
             else:
                 app.data_source = create_datasource(
-                    self._dataset_or_folder, dtype=self._dtype
+                    self._dataset_or_folder, dtype=app.dtype
                 )
             self.refresh()
 
@@ -366,7 +363,7 @@ def show(
     no_browser: bool = False,
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
     wait: Union[bool, Literal["auto"]] = "auto",
-    dtype: Optional[Dict[str, Type[ColumnType]]] = None,
+    dtype: Optional[ColumnTypeMapping] = None,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
