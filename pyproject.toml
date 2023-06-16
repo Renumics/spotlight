@@ -82,6 +82,7 @@ jinja2 = "^3.1.2"
 toml = "^0.10.2"
 cleanlab = "^2.4.0"
 websockets = "^11.0.3"
+fastdup = "^1.16"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"

@@ -14,7 +14,7 @@ from renumics.spotlight.backend.config import ConfigValue
 router = APIRouter(tags=["config"])
 
 
-@router.get("/{name}", response_model=Optional[ConfigValue], operation_id="get")
+@router.get("/{name}", response_model=Optional[ConfigValue], operation_id="get_value")
 async def get_value(
     request: Request,
     name: str,
@@ -36,12 +36,12 @@ class SetConfigRequest(BaseModel):
     value: Optional[ConfigValue]
 
 
-@router.put("/{name}", operation_id="set")
+@router.put("/{name}", operation_id="set_value")
 async def set_value(
     name: str,
     set_config_request: SetConfigRequest,
     request: Request,
-    browser_id: Annotated[str, Cookie()],
+    browser_id: Annotated[Union[str, None], Cookie()] = None,
 ) -> None:
     """
     Set config value by name.

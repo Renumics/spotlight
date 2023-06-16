@@ -45,7 +45,9 @@ async def get_layout(
     response_model=Dict,
     operation_id="reset_layout",
 )
-async def reset_layout(request: Request, browser_id: Annotated[str, Cookie()]) -> Dict:
+async def reset_layout(
+    request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
+) -> Dict:
     """
     Get layout.
     """
@@ -57,7 +59,7 @@ async def reset_layout(request: Request, browser_id: Annotated[str, Cookie()]) -
             CURRENT_LAYOUT_KEY,
             layout.dict(by_alias=True),
             dataset=dataset_uid,
-            user=browser_id,
+            user=browser_id or "",
         )
     return layout.dict(by_alias=True)
 

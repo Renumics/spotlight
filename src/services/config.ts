@@ -15,14 +15,14 @@ export class ConfigService {
     }
 
     async get<T>(name: string): Promise<T> {
-        return (await this.api.get({ name })) as T;
+        return (await this.api.getValue({ name })) as T;
     }
     async getItem<T>(name: string): Promise<T> {
         return this.get<T>(name);
     }
 
     async set<T>(name: string, value: T) {
-        await this.api.set({
+        await this.api.setValue({
             name,
             setConfigRequest: { value: value as ConfigValue | undefined },
         });

@@ -7,7 +7,7 @@ export * from './Folder';
 export * from './HTTPValidationError';
 export * from './LocationInner';
 export * from './Plugin';
-export * from './ResponseGet';
+export * from './ResponseGetValue';
 export * from './SetConfigRequest';
 export * from './SetLayoutRequest';
 export * from './Severity';

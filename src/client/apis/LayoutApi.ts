@@ -26,7 +26,7 @@ export interface GetLayoutRequest {
 }
 
 export interface ResetLayoutRequest {
-    browserId: string;
+    browserId?: string;
 }
 
 export interface SetLayoutOperationRequest {
@@ -83,16 +83,6 @@ export class LayoutApi extends runtime.BaseAPI {
         requestParameters: ResetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<runtime.ApiResponse<object>> {
-        if (
-            requestParameters.browserId === null ||
-            requestParameters.browserId === undefined
-        ) {
-            throw new runtime.RequiredError(
-                'browserId',
-                'Required parameter requestParameters.browserId was null or undefined when calling resetLayout.'
-            );
-        }
-
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -115,7 +105,7 @@ export class LayoutApi extends runtime.BaseAPI {
      * Reset Layout
      */
     async resetLayout(
-        requestParameters: ResetLayoutRequest,
+        requestParameters: ResetLayoutRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<object> {
         const response = await this.resetLayoutRaw(requestParameters, initOverrides);

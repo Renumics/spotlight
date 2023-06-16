@@ -15,7 +15,7 @@ models/Folder.ts
 models/HTTPValidationError.ts
 models/LocationInner.ts
 models/Plugin.ts
-models/ResponseGet.ts
+models/ResponseGetValue.ts
 models/SetConfigRequest.ts
 models/SetLayoutRequest.ts
 models/Severity.ts
