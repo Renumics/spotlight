@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
+from renumics.spotlight.backend import DataSource
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.dtypes import Embedding, Image
 
@@ -26,7 +27,9 @@ class DatasetIssue(BaseModel):
     rows: List[int]
 
 
-def find_issues(df: pd.DataFrame, dtypes: ColumnTypeMapping) -> List[DatasetIssue]:
+def find_issues(
+    data_source: DataSource, dtypes: ColumnTypeMapping
+) -> List[DatasetIssue]:
     """
     Find dataset issues in df
     """
@@ -36,7 +39,8 @@ def find_issues(df: pd.DataFrame, dtypes: ColumnTypeMapping) -> List[DatasetIssu
 
     for column_name, dtype in dtypes.items():
         if dtype == Image:
-            analysis = analyze_images(df[column_name])
+            column = data_source.get_column(column_name)
+            analysis = analyze_images(column.values)
 
             bright_rows = np.where(analysis["is_light_issue"])[0].tolist()
             if bright_rows:
@@ -125,7 +129,7 @@ def find_issues(df: pd.DataFrame, dtypes: ColumnTypeMapping) -> List[DatasetIssu
                 )
 
         if dtype == Embedding:
-            mask = detect_outliers(df[column_name])
+            mask = detect_outliers(data_source.get_column(column_name).values)
             rows = np.where(mask)[0].tolist()
             if rows:
                 issues.append(

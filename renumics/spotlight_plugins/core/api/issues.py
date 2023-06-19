@@ -24,5 +24,5 @@ async def get_all(request: Request) -> List[DatasetIssue]:
         return []
 
     data_source = app.data_source
-    issues = find_issues(data_source.df, dtypes=data_source.dtype)  # type: ignore
+    issues = find_issues(data_source, dtypes=data_source.dtype)  # type: ignore
     return issues
