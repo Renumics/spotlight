@@ -214,3 +214,4 @@ api-client: ## Generate API Spec and CLient
 .PHONY: notebook-theme
 notebook-theme: ## Generate custom css for jupyter notebook
 	poetry run python ./scripts/build_notebook_theme.py
+
