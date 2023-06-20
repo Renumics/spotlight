@@ -6,14 +6,14 @@ from typing import List
 
 from fastapi import APIRouter, Request
 
-from renumics.spotlight.analysis import find_issues, DatasetIssue
+from renumics.spotlight.analysis import find_issues, DataIssue
 from renumics.spotlight.backend.types import SpotlightApp
 
 router = APIRouter(tags=["issues"])
 
 
-@router.get("/", response_model=List[DatasetIssue], operation_id="get_all")
-async def get_all(request: Request) -> List[DatasetIssue]:
+@router.get("/", response_model=List[DataIssue], operation_id="get_all")
+async def get_all(request: Request) -> List[DataIssue]:
     """
     Get all data issues.
     """

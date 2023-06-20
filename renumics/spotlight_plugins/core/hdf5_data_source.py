@@ -262,6 +262,14 @@ class Hdf5DataSource(DataSource):
         self._table_file = Path(source)
 
     @property
+    def dtype(self) -> ColumnTypeMapping:
+        with self._open_table() as dataset:
+            return {
+                column_name: dataset.get_column_type(column_name)
+                for column_name in dataset.keys()
+            }
+
+    @property
     def column_names(self) -> List[str]:
         with self._open_table() as dataset:
             return dataset.keys()
