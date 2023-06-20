@@ -28,12 +28,14 @@ def analyze_with_cleanlab(
     embedding_columns = (col for col, dtype in dtypes.items() if dtype == Embedding)
     for column_name in embedding_columns:
         embeddings = data_source.get_column(column_name).values
+
         mask = _detect_outliers(embeddings)
         rows = np.where(mask)[0].tolist()
 
-        yield DataIssue(
-            severity="warning", description=f"Outliers ({column_name})", rows=rows
-        )
+        if len(rows):
+            yield DataIssue(
+                severity="warning", description=f"Outliers ({column_name})", rows=rows
+            )
 
 
 def _calculate_outlier_scores(embeddings: np.ndarray) -> np.ndarray:
@@ -43,7 +45,6 @@ def _calculate_outlier_scores(embeddings: np.ndarray) -> np.ndarray:
     if embeddings.ndim > 1:
         mask = np.ones(len(embeddings), dtype=bool)
     else:
-        print("!= None")
         mask = np.array([value is not None for value in embeddings])
 
     features = np.stack(embeddings[mask])  # type: ignore

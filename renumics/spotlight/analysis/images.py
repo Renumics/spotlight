@@ -2,15 +2,17 @@
 find issues in images
 """
 
-from typing import Iterable
+import os
+from typing import Iterable, Optional
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import tqdm
+from contextlib import redirect_stderr, redirect_stdout
 
 import numpy as np
 import cleanvision
 
 from renumics.spotlight.backend.data_source import DataSource
+from renumics.spotlight.backend.exceptions import ConversionFailed
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.dtypes import Image
 
@@ -30,6 +32,15 @@ _issue_types = {
 }
 
 
+def _get_cell_data_safe(
+    data_source: DataSource, column_name: str, row: int
+) -> Optional[bytes]:
+    try:
+        return data_source.get_cell_data(column_name, row)
+    except ConversionFailed:
+        return None
+
+
 @data_analyzer
 def analyze_with_cleanvision(
     data_source: DataSource, dtypes: ColumnTypeMapping
@@ -44,7 +55,7 @@ def analyze_with_cleanvision(
     for column_name in image_columns:
         # load image data from data source
         images = (
-            data_source.get_cell_data(column_name, row)
+            _get_cell_data_safe(data_source, column_name, row)
             for row in range(len(data_source))
         )
 
@@ -54,15 +65,18 @@ def analyze_with_cleanvision(
         indices_list = []
         image_paths = []
         with TemporaryDirectory() as tmp:
-            for i, image_data in enumerate(tqdm.tqdm(images)):
+            for i, image_data in enumerate(images):
                 if not image_data:
                     continue
                 path = Path(tmp) / f"{i}.png"
                 path.write_bytes(image_data)
                 image_paths.append(str(path))
                 indices_list.append(i)
-            lab = cleanvision.Imagelab(filepaths=image_paths)
-            lab.find_issues()
+
+            with open(os.devnull, "w", encoding="utf-8") as devnull:
+                with redirect_stdout(devnull), redirect_stderr(devnull):
+                    lab = cleanvision.Imagelab(filepaths=image_paths)
+                    lab.find_issues()
             analysis = lab.issues
 
         indices = np.array(indices_list)

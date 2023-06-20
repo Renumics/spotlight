@@ -24,7 +24,7 @@ class TaskManager:
 
     def __init__(self) -> None:
         self.tasks = []
-        self.pool = ProcessPoolExecutor(2, multiprocessing.get_context("spawn"))
+        self.pool = ProcessPoolExecutor(8, multiprocessing.get_context("spawn"))
 
     def create_task(
         self,
