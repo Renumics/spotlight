@@ -97,6 +97,12 @@ def cli_dtype_callback(
     default=True,
     help="Whether to allow users to browse and open datasets.",
 )
+@click.option(
+    "--analyze",
+    is_flag=True,
+    default=False,
+    help="Automatically analyze common dataset errors.",
+)
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
@@ -107,6 +113,7 @@ def main(
     dtype: Optional[ColumnTypeMapping],
     no_browser: bool,
     filebrowsing: bool,
+    analyze: bool,
     verbose: bool,
 ) -> None:
     """
@@ -131,6 +138,7 @@ def main(
         no_browser=no_browser,
         allow_filebrowsing=filebrowsing,
         wait=False,
+        analyze=analyze,
     )
 
     signal.signal(signal.SIGINT, _sigint_handler)

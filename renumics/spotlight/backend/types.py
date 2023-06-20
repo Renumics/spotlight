@@ -47,7 +47,9 @@ class SpotlightApp(FastAPI):
     vite_url: Optional[str]
     username: str
     filebrowsing_allowed: bool
+    analyze_issues: bool = True
     issues: List[DataIssue] = []
+    custom_issues: List[DataIssue] = []
 
     def __init__(self) -> None:
         super().__init__()
@@ -61,7 +63,9 @@ class SpotlightApp(FastAPI):
         self.vite_url = None
         self.username = ""
         self.filebrowsing_allowed = False
+        self.analyze_issues = False
         self.issues = []
+        self.custom_issues = []
 
     @property
     def data_source(self) -> Optional[DataSource]:

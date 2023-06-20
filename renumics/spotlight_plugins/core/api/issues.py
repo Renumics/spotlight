@@ -16,4 +16,4 @@ async def get_all(request: Request) -> List[DataIssue]:
     """
     Get all data issues.
     """
-    return request.app.issues
+    return request.app.issues + request.app.custom_issues

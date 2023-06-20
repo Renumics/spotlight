@@ -51,7 +51,7 @@ Example:
 import os
 from pathlib import Path
 import threading
-from typing import List, Union, Optional
+from typing import Collection, List, Union, Optional
 
 import pandas as pd
 from typing_extensions import Literal
@@ -68,6 +68,8 @@ from renumics.spotlight.develop.vite import Vite
 from renumics.spotlight.settings import settings
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
+
+from renumics.spotlight.analysis.typing import DataIssue
 
 
 class ViewerNotFoundError(Exception):
@@ -136,6 +138,8 @@ class Viewer:
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
         wait: Union[bool, Literal["auto"]] = "auto",
         dtype: Optional[ColumnTypeMapping] = None,
+        analyze: Optional[bool] = None,
+        issues: Optional[Collection[DataIssue]] = None,
     ) -> None:
         """
         Show a dataset or folder in this spotlight viewer.
@@ -153,6 +157,8 @@ class Viewer:
                 blocking for scripts.
             dtype: Optional dict with mapping `column name -> column type` with
                 column types allowed by Spotlight (for dataframes only).
+            analyze: Automatically analyze common dataset issues (disabled by default).
+            issues: Custom dataset issues displayed in the viewer.
         """
         # pylint: disable=too-many-branches,too-many-arguments
 
@@ -165,6 +171,9 @@ class Viewer:
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
+
+        if analyze is not None:
+            app.analyze_issues = analyze
 
         if dataset_or_folder is not None:
             self._dataset_or_folder = dataset_or_folder
@@ -188,9 +197,13 @@ class Viewer:
                 )
             self.refresh()
 
+        if issues is not None:
+            app.custom_issues = list(issues)
+
         if layout is not None:
             app.layout = parse(layout)
-            app.websocket_manager.broadcast(ResetLayoutMessage())
+            if app.websocket_manager:
+                app.websocket_manager.broadcast(ResetLayoutMessage())
 
         if allow_filebrowsing != "auto":
             self._allow_filebrowsing = allow_filebrowsing
@@ -201,7 +214,11 @@ class Viewer:
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
-        if not no_browser and len(app.websocket_manager.connections) == 0:
+        if (
+            not no_browser
+            and app.websocket_manager
+            and len(app.websocket_manager.connections) == 0
+        ):
             self.open_browser()
         if wait:
             self.close(True)
@@ -237,8 +254,11 @@ class Viewer:
                     timer = threading.Timer(3, stop)
                     timer.start()
 
-            self._server.app.websocket_manager.add_disconnect_callback(on_disconnect)
-            self._server.app.websocket_manager.add_connect_callback(on_connect)
+            if self._server.app.websocket_manager:
+                self._server.app.websocket_manager.add_disconnect_callback(
+                    on_disconnect
+                )
+                self._server.app.websocket_manager.add_connect_callback(on_connect)
             try:
                 wait_event.wait()
             except KeyboardInterrupt as e:
@@ -268,7 +288,7 @@ class Viewer:
         """
         Refresh the corresponding Spotlight instance in a browser.
         """
-        if self._server:
+        if self._server and self._server.app.websocket_manager:
             self._server.app.websocket_manager.broadcast(RefreshMessage())
 
     @property
@@ -362,6 +382,8 @@ def show(
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
     wait: Union[bool, Literal["auto"]] = "auto",
     dtype: Optional[ColumnTypeMapping] = None,
+    analyze: Optional[bool] = None,
+    issues: Optional[Collection[DataIssue]] = None,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
@@ -382,6 +404,8 @@ def show(
             blocking for scripts.
         dtype: Optional dict with mapping `column name -> column type` with
             column types allowed by Spotlight (for dataframes only).
+        analyze: Automatically analyze common dataset issues (disabled by default).
+        issues: Custom dataset issues displayed in the viewer.
     """
 
     viewer = None
@@ -401,6 +425,8 @@ def show(
         allow_filebrowsing=allow_filebrowsing,
         wait=wait,
         dtype=dtype,
+        analyze=analyze,
+        issues=issues,
     )
     return viewer
 
