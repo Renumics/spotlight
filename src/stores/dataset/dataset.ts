@@ -10,7 +10,7 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
-    DatasetIssue,
+    DatasetIssue as DataIssue,
     Filter,
     IndexArray,
     TableData,
@@ -35,7 +35,7 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
-    issues: DatasetIssue[];
+    issues: DataIssue[];
     colorTransferFunctions: Record<
         string,
         {
@@ -265,7 +265,7 @@ export const useDataset = create<Dataset>(
                     filtered: {},
                 };
 
-                const issues = (await api.issues.getAll()) as DatasetIssue[];
+                const issues = (await api.issues.getAll()) as DataIssue[];
 
                 set(() => ({
                     uid,
@@ -280,11 +280,7 @@ export const useDataset = create<Dataset>(
                 }));
             },
             fetchIssues: async () => {
-                set({ issues: [] });
-
-                const issues = (await api.issues.getAll()) as DatasetIssue[];
-
-                set({ issues });
+                set({ issues: (await api.issues.getAll()) as DataIssue[] });
             },
             refresh: async () => {
                 const { uid, generationID, filename, dataframe } = await fetchTable();

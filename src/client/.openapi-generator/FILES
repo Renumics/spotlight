@@ -9,7 +9,7 @@ apis/TableApi.ts
 apis/index.ts
 index.ts
 models/Column.ts
-models/DatasetIssue.ts
+models/DataIssue.ts
 models/FileEntry.ts
 models/Folder.ts
 models/HTTPValidationError.ts

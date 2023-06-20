@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './Column';
-export * from './DatasetIssue';
+export * from './DataIssue';
 export * from './FileEntry';
 export * from './Folder';
 export * from './HTTPValidationError';

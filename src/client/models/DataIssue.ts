@@ -19,33 +19,33 @@ import { SeverityFromJSON, SeverityFromJSONTyped, SeverityToJSON } from './Sever
 /**
  * A Problem affecting multiple rows of the dataset
  * @export
- * @interface DatasetIssue
+ * @interface DataIssue
  */
-export interface DatasetIssue {
+export interface DataIssue {
     /**
      *
      * @type {Severity}
-     * @memberof DatasetIssue
+     * @memberof DataIssue
      */
     severity: Severity;
     /**
      *
      * @type {string}
-     * @memberof DatasetIssue
+     * @memberof DataIssue
      */
     description: string;
     /**
      *
      * @type {Array<number>}
-     * @memberof DatasetIssue
+     * @memberof DataIssue
      */
     rows: Array<number>;
 }
 
 /**
- * Check if a given object implements the DatasetIssue interface.
+ * Check if a given object implements the DataIssue interface.
  */
-export function instanceOfDatasetIssue(value: object): boolean {
+export function instanceOfDataIssue(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && 'severity' in value;
     isInstance = isInstance && 'description' in value;
@@ -54,14 +54,14 @@ export function instanceOfDatasetIssue(value: object): boolean {
     return isInstance;
 }
 
-export function DatasetIssueFromJSON(json: any): DatasetIssue {
-    return DatasetIssueFromJSONTyped(json, false);
+export function DataIssueFromJSON(json: any): DataIssue {
+    return DataIssueFromJSONTyped(json, false);
 }
 
-export function DatasetIssueFromJSONTyped(
+export function DataIssueFromJSONTyped(
     json: any,
     ignoreDiscriminator: boolean
-): DatasetIssue {
+): DataIssue {
     if (json === undefined || json === null) {
         return json;
     }
@@ -72,7 +72,7 @@ export function DatasetIssueFromJSONTyped(
     };
 }
 
-export function DatasetIssueToJSON(value?: DatasetIssue | null): any {
+export function DataIssueToJSON(value?: DataIssue | null): any {
     if (value === undefined) {
         return undefined;
     }
