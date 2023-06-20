@@ -59,17 +59,15 @@ import ipywidgets as widgets
 import IPython.display
 
 import __main__
-from renumics.spotlight.webbrowser import launch_browser_in_thread
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.backend.server import create_server, Server
 from renumics.spotlight.backend.websockets import RefreshMessage, ResetLayoutMessage
 from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.develop.vite import Vite
 from renumics.spotlight.settings import settings
-
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-
 from renumics.spotlight.typing import PathType, is_pathtype
+from renumics.spotlight.webbrowser import launch_browser_in_thread
 
 
 class ViewerNotFoundError(Exception):

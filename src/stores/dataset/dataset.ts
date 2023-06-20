@@ -62,6 +62,7 @@ export interface Dataset {
     lastFocusedRow?: number; // the last row that has been focused by a view
     openTable: (path: string) => void; //open the table file at path
     fetch: () => void; // fetch the dataset from the backend
+    fetchIssues: () => void; // fetch the ready issues
     refresh: () => void; // refresh the dataset from the backend
     addFilter: (filter: Filter) => void; // add a new filter
     removeFilter: (filter: Filter) => void; // remove an existing filter
@@ -275,8 +276,15 @@ export const useDataset = create<Dataset>(
                     columns: dataframe.columns,
                     columnData: dataframe.data,
                     columnStats,
-                    issues: issues,
+                    issues,
                 }));
+            },
+            fetchIssues: async () => {
+                set({ issues: [] });
+
+                const issues = (await api.issues.getAll()) as DatasetIssue[];
+
+                set({ issues });
             },
             refresh: async () => {
                 const { uid, generationID, filename, dataframe } = await fetchTable();
