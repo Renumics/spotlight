@@ -135,6 +135,13 @@ class DataSource(ABC):
         """
         return []
 
+    @property
+    @abstractmethod
+    def dtype(self) -> ColumnTypeMapping:
+        """
+        Get the dtypes of the data source.
+        """
+
     @abstractmethod
     def get_column(
         self, column_name: str, indices: Optional[List[int]] = None
@@ -329,6 +336,7 @@ def read_external_value(
         return value
     except KeyError:
         ...
+
     value = _decode_external_value(path_or_url, column_type, target_format, workdir)
     cache[cache_key] = value.tolist()
     return value
@@ -376,5 +384,6 @@ def _decode_external_value(
         buffer = io.BytesIO()
         audio.transcode_audio(file, buffer, output_format, output_codec)
         return np.void(buffer.getvalue())
+
     data_class = column_type.from_file(path_or_url)
     return data_class.encode(target_format)

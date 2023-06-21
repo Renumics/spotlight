@@ -13,31 +13,27 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError } from '../models';
-import { HTTPValidationErrorFromJSON, HTTPValidationErrorToJSON } from '../models';
-
-export interface GetRequest {
-    browserId?: string;
-}
+import type { DataIssue } from '../models';
+import { DataIssueFromJSON, DataIssueToJSON } from '../models';
 
 /**
  *
  */
-export class DefaultApi extends runtime.BaseAPI {
+export class IssuesApi extends runtime.BaseAPI {
     /**
-     *
+     * Get all data issues.
+     * Get All
      */
-    async getRaw(
-        requestParameters: GetRequest,
+    async getAllRaw(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<any>> {
+    ): Promise<runtime.ApiResponse<Array<DataIssue>>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request(
             {
-                path: `/`,
+                path: `/api/issues/`,
                 method: 'GET',
                 headers: headerParameters,
                 query: queryParameters,
@@ -45,21 +41,19 @@ export class DefaultApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        if (this.isJsonMime(response.headers.get('content-type'))) {
-            return new runtime.JSONApiResponse<any>(response);
-        } else {
-            return new runtime.TextApiResponse(response) as any;
-        }
+        return new runtime.JSONApiResponse(response, (jsonValue) =>
+            jsonValue.map(DataIssueFromJSON)
+        );
     }
 
     /**
-     *
+     * Get all data issues.
+     * Get All
      */
-    async get(
-        requestParameters: GetRequest = {},
+    async getAll(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<any> {
-        const response = await this.getRaw(requestParameters, initOverrides);
+    ): Promise<Array<DataIssue>> {
+        const response = await this.getAllRaw(initOverrides);
         return await response.value();
     }
 }

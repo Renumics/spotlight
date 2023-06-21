@@ -16,30 +16,30 @@ import { exists, mapValues } from '../runtime';
 /**
  *
  * @export
- * @interface ResponseGet
+ * @interface ResponseGetValue
  */
-export interface ResponseGet {}
+export interface ResponseGetValue {}
 
 /**
- * Check if a given object implements the ResponseGet interface.
+ * Check if a given object implements the ResponseGetValue interface.
  */
-export function instanceOfResponseGet(value: object): boolean {
+export function instanceOfResponseGetValue(value: object): boolean {
     let isInstance = true;
 
     return isInstance;
 }
 
-export function ResponseGetFromJSON(json: any): ResponseGet {
-    return ResponseGetFromJSONTyped(json, false);
+export function ResponseGetValueFromJSON(json: any): ResponseGetValue {
+    return ResponseGetValueFromJSONTyped(json, false);
 }
 
-export function ResponseGetFromJSONTyped(
+export function ResponseGetValueFromJSONTyped(
     json: any,
     ignoreDiscriminator: boolean
-): ResponseGet {
+): ResponseGetValue {
     return json;
 }
 
-export function ResponseGetToJSON(value?: ResponseGet | null): any {
+export function ResponseGetValueToJSON(value?: ResponseGetValue | null): any {
     return value;
 }

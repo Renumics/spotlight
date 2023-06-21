@@ -2,7 +2,7 @@
 Config API endpoints
 """
 
-from typing import Optional
+from typing import Optional, Union
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Request, Cookie
@@ -14,9 +14,11 @@ from renumics.spotlight.backend.config import ConfigValue
 router = APIRouter(tags=["config"])
 
 
-@router.get("/{name}", response_model=Optional[ConfigValue], operation_id="get")
+@router.get("/{name}", response_model=Optional[ConfigValue], operation_id="get_value")
 async def get_value(
-    name: str, browser_id: Annotated[str, Cookie()], request: Request
+    request: Request,
+    name: str,
+    browser_id: Annotated[Union[str, None], Cookie()] = None,
 ) -> Optional[ConfigValue]:
     """
     get config value by name
@@ -34,12 +36,12 @@ class SetConfigRequest(BaseModel):
     value: Optional[ConfigValue]
 
 
-@router.put("/{name}", operation_id="set")
+@router.put("/{name}", operation_id="set_value")
 async def set_value(
     name: str,
     set_config_request: SetConfigRequest,
     request: Request,
-    browser_id: Annotated[str, Cookie()],
+    browser_id: Annotated[Union[str, None], Cookie()] = None,
 ) -> None:
     """
     Set config value by name.
@@ -49,7 +51,9 @@ async def set_value(
 
 @router.delete("/{name}", operation_id="remove")
 async def remove_value(
-    name: str, request: Request, browser_id: Annotated[str, Cookie()]
+    name: str,
+    request: Request,
+    browser_id: Annotated[Union[str, None], Cookie()] = None,
 ) -> None:
     """
     Remove config value by name.

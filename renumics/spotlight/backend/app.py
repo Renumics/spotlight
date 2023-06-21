@@ -28,9 +28,7 @@ from renumics.spotlight.settings import settings
 
 from .apis import plugins as plugin_api
 from .apis import websocket
-from .config import Config
 from .middlewares.timing import add_timing_middleware
-from .tasks.task_manager import TaskManager
 from .types import SpotlightApp
 from .websockets import WebsocketManager
 
@@ -41,17 +39,6 @@ def create_app() -> SpotlightApp:
     """
 
     app = SpotlightApp()
-
-    app.data_source = None
-    app.dtype = None
-    app.task_manager = TaskManager()
-    app.config = Config()
-    app.layout = None
-    app.project_root = Path.cwd()
-    app.vite_url = None
-    app.username = ""
-    app.filebrowsing_allowed = False
-
     app.include_router(websocket.router, prefix="/api")
     app.include_router(plugin_api.router, prefix="/api/plugins")
 

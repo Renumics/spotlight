@@ -1,4 +1,5 @@
 import * as datatypes from '../datatypes';
+import { IndexArray } from './base';
 
 export interface DataColumn {
     order: number;
@@ -121,3 +122,9 @@ export interface DataFrame {
 }
 
 export type TableView = 'full' | 'filtered' | 'selected';
+
+export interface DatasetIssue {
+    severity: 'warning' | 'error';
+    description: string;
+    rows: IndexArray;
+}

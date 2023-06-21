@@ -13,27 +13,34 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError, ResponseGet, SetConfigRequest } from '../models';
+import type {
+    HTTPValidationError,
+    ResponseGetValue,
+    SetConfigRequest,
+} from '../models';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
-    ResponseGetFromJSON,
-    ResponseGetToJSON,
+    ResponseGetValueFromJSON,
+    ResponseGetValueToJSON,
     SetConfigRequestFromJSON,
     SetConfigRequestToJSON,
 } from '../models';
 
-export interface GetRequest {
+export interface GetValueRequest {
     name: string;
+    browserId?: string;
 }
 
 export interface RemoveRequest {
     name: string;
+    browserId?: string;
 }
 
-export interface SetRequest {
+export interface SetValueRequest {
     name: string;
     setConfigRequest: SetConfigRequest;
+    browserId?: string;
 }
 
 /**
@@ -44,14 +51,14 @@ export class ConfigApi extends runtime.BaseAPI {
      * get config value by name
      * Get Value
      */
-    async getRaw(
-        requestParameters: GetRequest,
+    async getValueRaw(
+        requestParameters: GetValueRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<ResponseGet>> {
+    ): Promise<runtime.ApiResponse<ResponseGetValue>> {
         if (requestParameters.name === null || requestParameters.name === undefined) {
             throw new runtime.RequiredError(
                 'name',
-                'Required parameter requestParameters.name was null or undefined when calling get.'
+                'Required parameter requestParameters.name was null or undefined when calling getValue.'
             );
         }
 
@@ -73,7 +80,7 @@ export class ConfigApi extends runtime.BaseAPI {
         );
 
         return new runtime.JSONApiResponse(response, (jsonValue) =>
-            ResponseGetFromJSON(jsonValue)
+            ResponseGetValueFromJSON(jsonValue)
         );
     }
 
@@ -81,11 +88,11 @@ export class ConfigApi extends runtime.BaseAPI {
      * get config value by name
      * Get Value
      */
-    async get(
-        requestParameters: GetRequest,
+    async getValue(
+        requestParameters: GetValueRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<ResponseGet> {
-        const response = await this.getRaw(requestParameters, initOverrides);
+    ): Promise<ResponseGetValue> {
+        const response = await this.getValueRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -144,14 +151,14 @@ export class ConfigApi extends runtime.BaseAPI {
      * Set config value by name.
      * Set Value
      */
-    async setRaw(
-        requestParameters: SetRequest,
+    async setValueRaw(
+        requestParameters: SetValueRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.name === null || requestParameters.name === undefined) {
             throw new runtime.RequiredError(
                 'name',
-                'Required parameter requestParameters.name was null or undefined when calling set.'
+                'Required parameter requestParameters.name was null or undefined when calling setValue.'
             );
         }
 
@@ -161,7 +168,7 @@ export class ConfigApi extends runtime.BaseAPI {
         ) {
             throw new runtime.RequiredError(
                 'setConfigRequest',
-                'Required parameter requestParameters.setConfigRequest was null or undefined when calling set.'
+                'Required parameter requestParameters.setConfigRequest was null or undefined when calling setValue.'
             );
         }
 
@@ -196,11 +203,11 @@ export class ConfigApi extends runtime.BaseAPI {
      * Set config value by name.
      * Set Value
      */
-    async set(
-        requestParameters: SetRequest,
+    async setValue(
+        requestParameters: SetValueRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<any> {
-        const response = await this.setRaw(requestParameters, initOverrides);
+        const response = await this.setValueRaw(requestParameters, initOverrides);
         return await response.value();
     }
 }

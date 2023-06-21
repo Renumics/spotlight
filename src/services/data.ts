@@ -93,6 +93,8 @@ export class DataService {
                 useDataset.getState().refresh();
             } else if (message.type === 'resetLayout') {
                 useLayout.getState().reset();
+            } else if (message.type === 'issuesUpdated') {
+                useDataset.getState().fetchIssues();
             }
         };
         this.dispatchTable = new Map();

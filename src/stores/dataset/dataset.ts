@@ -10,6 +10,7 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
+    DatasetIssue as DataIssue,
     Filter,
     IndexArray,
     TableData,
@@ -34,6 +35,7 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
+    issues: DataIssue[];
     colorTransferFunctions: Record<
         string,
         {
@@ -60,6 +62,7 @@ export interface Dataset {
     lastFocusedRow?: number; // the last row that has been focused by a view
     openTable: (path: string) => void; //open the table file at path
     fetch: () => void; // fetch the dataset from the backend
+    fetchIssues: () => void; // fetch the ready issues
     refresh: () => void; // refresh the dataset from the backend
     addFilter: (filter: Filter) => void; // add a new filter
     removeFilter: (filter: Filter) => void; // remove an existing filter
@@ -68,6 +71,7 @@ export interface Dataset {
     selectRows: (rows: CallbackOrData<IndexArray>) => void; // select a set of rows
     setHighlightedRows: (mask: boolean[]) => void;
     highlightRowAt: (rowIndex: number, only?: boolean) => void;
+    highlightRows: (rows: CallbackOrData<IndexArray>) => void;
     dehighlightRowAt: (rowIndex: number) => void;
     dehighlightAll: () => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -211,6 +215,7 @@ export const useDataset = create<Dataset>(
             isIndexHighlighted: [],
             highlightedIndices: new Int32Array(),
             isIndexFiltered: [],
+            issues: [],
             filteredIndices: new Int32Array(),
             sortColumns: new Map<DataColumn, Sorting>(),
             sortBy: (column?: DataColumn, sorting?: Sorting) => {
@@ -260,6 +265,8 @@ export const useDataset = create<Dataset>(
                     filtered: {},
                 };
 
+                const issues = (await api.issues.getAll()) as DataIssue[];
+
                 set(() => ({
                     uid,
                     generationID,
@@ -269,7 +276,11 @@ export const useDataset = create<Dataset>(
                     columns: dataframe.columns,
                     columnData: dataframe.data,
                     columnStats,
+                    issues,
                 }));
+            },
+            fetchIssues: async () => {
+                set({ issues: (await api.issues.getAll()) as DataIssue[] });
             },
             refresh: async () => {
                 const { uid, generationID, filename, dataframe } = await fetchTable();
@@ -349,6 +360,15 @@ export const useDataset = create<Dataset>(
                     isIndexHighlighted: mask,
                     highlightedIndices: Int32Array.from(highlightedIndices),
                 }));
+            },
+            highlightRows: (rowIndicesOrCallback) => {
+                const rowIndices =
+                    typeof rowIndicesOrCallback === 'function'
+                        ? rowIndicesOrCallback(get().selectedIndices)
+                        : rowIndicesOrCallback;
+                const mask = new Array(get().length).fill(false);
+                rowIndices.forEach((index: number) => (mask[index] = true));
+                get().setHighlightedRows(mask);
             },
             highlightRowAt: (rowIndex, only = false) => {
                 // early out if the index is highlighted anyway

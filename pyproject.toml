@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "renumics-spotlight"
-version = "0.0.0"
+version = "1.0.0-post.55+d870b5a"
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
 homepage = "https://spotlight.renumics.com/"
 documentation = "https://spotlight.renumics.com/"
@@ -48,7 +48,7 @@ uvicorn = "*"
 aiofiles = "*"
 click = "*"
 h5py = ">3.0"
-requests = "*"
+requests = ">=2.31"
 umap-learn = "*"
 typing-extensions = "*"
 httptools = "*"
@@ -80,7 +80,9 @@ ipywidgets = "*"
 pycatch22 = "*"
 jinja2 = "^3.1.2"
 toml = "^0.10.2"
+cleanlab = "^2.4.0"
 websockets = "^11.0.3"
+cleanvision = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
@@ -121,12 +123,11 @@ datasets = "^2.12.0"
 transformers = "^4.29.2"
 torch = "^2.0.1"
 towhee = "^0.9.0"
-cleanvision = "^0.3.0"
 annoy = "^1.17.2"
 cleanlab = "^2.4.0"
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
 style = "semver"
 
@@ -172,6 +173,7 @@ module = [
     "ipywidgets",
     "dotenv",
     "pycatch22",
+    "cleanlab.*",
 ]
 ignore_missing_imports = true
 

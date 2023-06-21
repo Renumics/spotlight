@@ -28,6 +28,7 @@ clean: ## clean project
 audit: ## Audit project dependencies
 	poetry export --without-hashes -f requirements.txt | poetry run safety check --full-report --stdin \
 		--ignore 44715 --ignore 44716 --ignore 44717 --ignore 51668 # (https://github.com/numpy/numpy/issues/19038)
+	# 58755: requests >=2.3.0,<2.31.0 affected, but all fastdup versions require requests 2.28.1
 	pnpm audit --production
 
 .PHONY: check-format
@@ -55,7 +56,7 @@ lint: ## Lint all source files
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
-	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=true poetry run spotlight
+	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} poetry run spotlight --analyze
 
 .PHONY: datasets
 datasets: ## Build datasets (only needed for UI tests)
@@ -207,9 +208,9 @@ api-client: ## Generate API Spec and CLient
 	find /tmp/spotlight-api-client \
 		-type f -exec sed -i -e "s/formData.append('mesh_files',.*$$/for (let meshFile of requestParameters.meshFiles) { formData.append('mesh_files', meshFile) }/g" {} \;
 	# replace existing code
-	rsync -a --delete /tmp/spotlight-api-client/ "./frontend/src/client"
+	rsync -a --delete /tmp/spotlight-api-client/ "./src/client"
 	# auto format generated code
-	npx prettier --write './frontend/src/client/**/*.{js,ts,tsx,json,yaml,css}'
+	npx prettier --write './src/client/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: notebook-theme
 notebook-theme: ## Generate custom css for jupyter notebook

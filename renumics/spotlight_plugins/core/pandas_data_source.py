@@ -92,13 +92,11 @@ class PandasDataSource(DataSource):
         return self._df.copy()
 
     @property
-    def dtype(self) -> Optional[ColumnTypeMapping]:
+    def dtype(self) -> ColumnTypeMapping:
         """
         Get **a copy** of dict with the desired data types.
         """
-        if self._dtype is None:
-            return None
-        return self._dtype.copy()
+        return self._inferred_dtype.copy()
 
     def __len__(self) -> int:
         return len(self._df)

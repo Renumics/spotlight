@@ -2,7 +2,7 @@
 Layout API endpoints
 """
 
-from typing import Dict, Optional, cast
+from typing import Dict, Optional, cast, Union
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Request, Cookie
@@ -18,7 +18,7 @@ CURRENT_LAYOUT_KEY = "layout.current"
 
 @router.get("/", tags=["layout"], response_model=Dict, operation_id="get_layout")
 async def get_layout(
-    request: Request, browser_id: Annotated[str, Cookie()]
+    request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
 ) -> Optional[Dict]:
     """
     Get layout.
@@ -28,13 +28,13 @@ async def get_layout(
         return None
     dataset_uid = app.data_source.get_uid()
     layout = await app.config.get(
-        CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=browser_id
+        CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=browser_id or ""
     )
     layout = cast(Optional[Dict], layout)
     if layout is None:
         layout = (app.layout or DEFAULT_LAYOUT).dict(by_alias=True)
         await app.config.set(
-            CURRENT_LAYOUT_KEY, layout, dataset=dataset_uid, user=browser_id
+            CURRENT_LAYOUT_KEY, layout, dataset=dataset_uid, user=browser_id or ""
         )
     return layout
 
@@ -45,7 +45,9 @@ async def get_layout(
     response_model=Dict,
     operation_id="reset_layout",
 )
-async def reset_layout(request: Request, browser_id: Annotated[str, Cookie()]) -> Dict:
+async def reset_layout(
+    request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
+) -> Dict:
     """
     Get layout.
     """
@@ -57,7 +59,7 @@ async def reset_layout(request: Request, browser_id: Annotated[str, Cookie()]) -
             CURRENT_LAYOUT_KEY,
             layout.dict(by_alias=True),
             dataset=dataset_uid,
-            user=browser_id,
+            user=browser_id or "",
         )
     return layout.dict(by_alias=True)
 
@@ -74,9 +76,9 @@ class SetLayoutRequest(BaseModel):
 
 @router.put("/", tags=["layout"], response_model=Dict, operation_id="set_layout")
 async def set_layout(
-    set_layout_request: SetLayoutRequest,
-    browser_id: Annotated[str, Cookie()],
     request: Request,
+    set_layout_request: SetLayoutRequest,
+    browser_id: Annotated[Union[str, None], Cookie()] = None,
 ) -> Dict:
     """
     Get layout.
@@ -88,6 +90,6 @@ async def set_layout(
             CURRENT_LAYOUT_KEY,
             set_layout_request.layout,
             dataset=dataset_uid,
-            user=browser_id,
+            user=browser_id or "",
         )
     return set_layout_request.layout
