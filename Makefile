@@ -27,7 +27,7 @@ clean: ## clean project
 .PHONY: audit
 audit: ## Audit project dependencies
 	poetry export --without-hashes -f requirements.txt | poetry run safety check --full-report --stdin \
-		--ignore 44715 --ignore 44716 --ignore 44717 --ignore 58755 --ignore 51668 # (https://github.com/numpy/numpy/issues/19038)
+		--ignore 44715 --ignore 44716 --ignore 44717 --ignore 51668 # (https://github.com/numpy/numpy/issues/19038)
 	# 58755: requests >=2.3.0,<2.31.0 affected, but all fastdup versions require requests 2.28.1
 	pnpm audit --production
 
