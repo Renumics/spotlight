@@ -1,3 +1,4 @@
+import * as Comlink from 'comlink';
 import useResizeObserver from '@react-hook/resize-observer';
 import LoadingIndicator from '../../components/LoadingIndicator';
 import * as d3 from 'd3';
@@ -10,6 +11,7 @@ import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType } from './Spectrogram';
+//import type { FFTWorker } from './SpectrogramWorker';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -121,35 +123,78 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     });
 
     useEffect(() => {
-        if (size[0] === 0) return;
-
-        if (spectrogramCanvas.current) {
-            spectrogramCanvas.current.width = size[0];
-            spectrogramCanvas.current.height = size[1];
-        }
-
-        const worker = new Worker(new URL('SpectrogramWorker.js', import.meta.url));
-
-        worker.onmessage = (e) => {
+        let workerInstance: any; //Comlink.Remote<FFTWorker>;
+        let FFTWorkerClass: any;
+        const initWorker = async () => {
             if (!waveform.current) return;
             if (!spectrogramCanvas.current) return;
+
+            if (size[0] === 0) return;
+
+            if (spectrogramCanvas.current) {
+                spectrogramCanvas.current.width = size[0];
+                spectrogramCanvas.current.height = size[1];
+            }
+
+            //const worker = new Worker(new URL('SpectrogramWorker.js', import.meta.url));
+            console.log(new URL('./SpectrogramWorker.ts', import.meta.url));
+            FFTWorkerClass = Comlink.wrap(
+                //new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
+                new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
+                    type: 'module',
+                })
+            );
+            const backend = waveform.current.backend as unknown as WebAudio_;
+            //worker?.postMessage({
+            //channelData: backend.buffer.getChannelData(0).slice(start, end),
+            //sampleRate: backend.buffer.sampleRate,
+            //width: width,
+            //fftSamples: FFT_SAMPLES,
+            //windowFunc: undefined,
+            //alpha: undefined,
+            //});
+            const buffer = backend.buffer;
+            const width = spectrogramCanvas.current.clientWidth;
+            const height = spectrogramCanvas.current.height;
+            const duration = waveform.current.getDuration() ?? 1;
+
+            const fixedWindow: [number, number] = fixWindow(window, duration);
+
+            const start = (fixedWindow[0] / duration) * backend.buffer.length;
+            const end = (fixedWindow[1] / duration) * backend.buffer.length;
+
+            // TODO arguments passed are actually for the function call (e.data or smth)
+            //const workerInstance = await new FFTWorkerClass(backend.buffer.getChannelData(0).slice(start, end), backend.buffer.sampleRate, width, FFT_SAMPLES, undefined, undefined);
+            workerInstance = await new FFTWorkerClass(
+                buffer.length,
+                buffer.sampleRate,
+                backend.windowFunc,
+                backend.alpha
+            );
+
+            const frequenciesData = await workerInstance.calculateFrequencies(
+                buffer.getChannelData(0).slice(start, end)
+            );
+
+            //worker.onmessage = (e) => {
+            //if (!waveform.current) return;
+            //if (!spectrogramCanvas.current) return;
 
             setIsComputing(false);
 
             // Get the canvas render context 2D
             const spectrCc = spectrogramCanvas.current.getContext('2d');
 
-            const backend = waveform.current.backend as unknown as WebAudio_;
+            //const backend = waveform.current.backend as unknown as WebAudio_;
 
-            const frequenciesData = e.data;
+            //const frequenciesData = frequenciesDict.data;
 
             const upperLimit = backend.buffer?.sampleRate / 2;
 
             // 10, ..., half-samplerate (default 22050)
             const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
 
-            const width = spectrogramCanvas.current.width;
-            const height = spectrogramCanvas.current.height;
+            //const width = spectrogramCanvas.current.width;
 
             // 0, ..., canvas-height
             const range = [0, height];
@@ -201,7 +246,9 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             }
 
             spectrCc.putImageData(imageData, 0, 0);
+            //};
         };
+        initWorker();
 
         const drawSpectrogram = () => {
             if (!waveform.current) return;
@@ -222,14 +269,14 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 return;
             }
 
-            worker?.postMessage({
-                channelData: backend.buffer.getChannelData(0).slice(start, end),
-                sampleRate: backend.buffer.sampleRate,
-                width: width,
-                fftSamples: FFT_SAMPLES,
-                windowFunc: undefined,
-                alpha: undefined,
-            });
+            //worker?.postMessage({
+            //channelData: backend.buffer.getChannelData(0).slice(start, end),
+            //sampleRate: backend.buffer.sampleRate,
+            //width: width,
+            //fftSamples: FFT_SAMPLES,
+            //windowFunc: undefined,
+            //alpha: undefined,
+            //});
 
             setIsValidWindow(true);
             setIsComputing(true);
@@ -242,7 +289,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         }
 
         return () => {
-            worker.terminate();
+            FFTWorkerClass?.terminate();
         };
     }, [window, isLogScale, colorPalette, size]);
 
