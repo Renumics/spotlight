@@ -400,9 +400,9 @@ def _decode_external_value(
                 "webp",
                 "bmp",
                 "x-icon",
-                "tiff",
             ):
                 return np.void(file.read())
+            # `image/tiff`s become blank in frontend, so convert them too.
             return Image.from_file(file).encode(target_format)
 
     data_obj = column_type.from_file(path_or_url)
