@@ -9,10 +9,14 @@ from typing import Any
 
 from fastapi import Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
+
+import httpx
+from httpx import AsyncClient
+from starlette.background import BackgroundTask
 
 from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.develop.project import get_project_info
@@ -104,6 +108,27 @@ def create_app() -> SpotlightApp:
         logger.warning("Frontend folder does not exist. No frontend will be served.")
 
     templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+    async def _reverse_proxy(request: Request) -> StreamingResponse:
+        http_server = AsyncClient(base_url=request.app.vite_url)
+        url = httpx.URL(path=request.url.path, query=request.url.query.encode("utf-8"))
+        rp_req = http_server.build_request(
+            request.method,
+            url,
+            headers=request.headers.raw,
+            content=await request.body(),
+        )
+
+        rp_resp = await http_server.send(rp_req, stream=True)
+
+        return StreamingResponse(
+            rp_resp.aiter_raw(),
+            status_code=rp_resp.status_code,
+            headers=rp_resp.headers,
+            background=BackgroundTask(rp_resp.aclose),
+        )
+
+    app.add_route("/src/{path:path}", _reverse_proxy, ["POST", "GET"])
 
     @app.get("/")
     def _(request: Request) -> Any:
