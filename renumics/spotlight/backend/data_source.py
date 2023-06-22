@@ -402,11 +402,7 @@ def _decode_external_value(
                 "x-icon",
                 "tiff",
             ):
-                print(f"{path_or_url} has a known mime type {kind.mime}")
                 return np.void(file.read())
-            print(
-                f"{path_or_url} has an unknown mime type {None if kind is None else kind.mime}"
-            )
             return Image.from_file(file).encode(target_format)
 
     data_obj = column_type.from_file(path_or_url)
