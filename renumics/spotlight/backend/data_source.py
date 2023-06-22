@@ -7,6 +7,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 from typing import Type, Optional, List, Dict, Any, cast
 
+import filetype
 import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
@@ -18,7 +19,7 @@ from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
-from renumics.spotlight.dtypes import Audio
+from renumics.spotlight.dtypes import Audio, Image
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
@@ -26,6 +27,8 @@ from renumics.spotlight.dtypes.typing import (
     get_column_type_name,
 )
 from renumics.spotlight.cache import Cache
+
+from renumics.spotlight.io.file import as_file
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
 
 cache = Cache("external-data")
@@ -385,5 +388,26 @@ def _decode_external_value(
         audio.transcode_audio(file, buffer, output_format, output_codec)
         return np.void(buffer.getvalue())
 
-    data_class = column_type.from_file(path_or_url)
-    return data_class.encode(target_format)
+    if column_type is Image:
+        with as_file(path_or_url) as file:
+            kind = filetype.guess(file)
+            if kind is not None and kind.mime.split("/")[1] in (
+                "apng",
+                "avif",
+                "gif",
+                "jpeg",
+                "png",
+                "webp",
+                "bmp",
+                "x-icon",
+                "tiff",
+            ):
+                print(f"{path_or_url} has a known mime type {kind.mime}")
+                return np.void(file.read())
+            print(
+                f"{path_or_url} has an unknown mime type {None if kind is None else kind.mime}"
+            )
+            return Image.from_file(file).encode(target_format)
+
+    data_obj = column_type.from_file(path_or_url)
+    return data_obj.encode(target_format)

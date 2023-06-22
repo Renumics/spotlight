@@ -158,6 +158,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_filepath(self, filename: str) -> None:
@@ -182,6 +183,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_file(self, filename: str) -> None:
@@ -206,6 +208,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_io(self, filename: str) -> None:
@@ -232,6 +235,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_bytes(self, filename: str) -> None:
@@ -257,6 +261,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_url(self, filename: str) -> None:
