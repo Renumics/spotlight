@@ -35,7 +35,7 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
-    issues: DataIssue[];
+    issues?: DataIssue[];
     colorTransferFunctions: Record<
         string,
         {
@@ -215,7 +215,6 @@ export const useDataset = create<Dataset>(
             isIndexHighlighted: [],
             highlightedIndices: new Int32Array(),
             isIndexFiltered: [],
-            issues: [],
             filteredIndices: new Int32Array(),
             sortColumns: new Map<DataColumn, Sorting>(),
             sortBy: (column?: DataColumn, sorting?: Sorting) => {
@@ -254,18 +253,18 @@ export const useDataset = create<Dataset>(
                     filteredIndices: new Int32Array(),
                     sortColumns: new Map<DataColumn, Sorting>(),
                     columnRelevance: new Map<string, number>(),
+                    issues: undefined,
                     filters: [],
                 }));
 
-                const { uid, generationID, filename, dataframe } = await fetchTable();
+                const tableFetcher = fetchTable();
+                const { uid, generationID, filename, dataframe } = await tableFetcher;
 
                 const columnStats = {
                     full: makeColumnsStats(dataframe.columns, dataframe.data),
                     selected: {},
                     filtered: {},
                 };
-
-                const issues = (await api.issues.getAll()) as DataIssue[];
 
                 set(() => ({
                     uid,
@@ -276,10 +275,10 @@ export const useDataset = create<Dataset>(
                     columns: dataframe.columns,
                     columnData: dataframe.data,
                     columnStats,
-                    issues,
                 }));
             },
             fetchIssues: async () => {
+                set({ issues: undefined });
                 set({ issues: (await api.issues.getAll()) as DataIssue[] });
             },
             refresh: async () => {

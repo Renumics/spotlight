@@ -48,8 +48,8 @@ class SpotlightApp(FastAPI):
     username: str
     filebrowsing_allowed: bool
     analyze_issues: bool = True
-    issues: List[DataIssue] = []
-    custom_issues: List[DataIssue] = []
+    issues: Optional[List[DataIssue]] = []
+    _custom_issues: List[DataIssue] = []
 
     def __init__(self) -> None:
         super().__init__()
@@ -64,8 +64,8 @@ class SpotlightApp(FastAPI):
         self.username = ""
         self.filebrowsing_allowed = False
         self.analyze_issues = False
-        self.issues = []
-        self.custom_issues = []
+        self.issues = None
+        self._custom_issues = []
 
     @property
     def data_source(self) -> Optional[DataSource]:
@@ -79,15 +79,32 @@ class SpotlightApp(FastAPI):
         self._data_source = new_data_source
         self._update_issues()
 
+    @property
+    def custom_issues(self) -> List[DataIssue]:
+        """
+        User supplied `DataIssue`s
+        """
+        return self._custom_issues
+
+    @custom_issues.setter
+    def custom_issues(self, issues: List[DataIssue]) -> None:
+        self._custom_issues = issues
+        self._broadcast(IssuesUpdatedMessage())
+
     def _update_issues(self) -> None:
         """
         Update issues and notify client about.
         """
         # pylint: disable=global-statement
+
+        if not self.analyze_issues:
+            self.issues = []
+            self._broadcast(IssuesUpdatedMessage())
+            return
+
         table: Optional[DataSource] = self.data_source
-        self.issues = []
-        if self.websocket_manager:
-            self.websocket_manager.broadcast(IssuesUpdatedMessage())
+        self.issues = None
+        self._broadcast(IssuesUpdatedMessage())
         if table is None:
             return
         task = self.task_manager.create_task(
@@ -98,9 +115,14 @@ class SpotlightApp(FastAPI):
             try:
                 self.issues = future.result()
             except CancelledError:
-                ...
-            else:
-                if self.websocket_manager:
-                    self.websocket_manager.broadcast(IssuesUpdatedMessage())
+                return
+            self._broadcast(IssuesUpdatedMessage())
 
         task.future.add_done_callback(_on_issues_ready)
+
+    def _broadcast(self, message: Message) -> None:
+        """
+        Broadcast a message to all connected clients via websocket
+        """
+        if self.websocket_manager:
+            self.websocket_manager.broadcast(message)
