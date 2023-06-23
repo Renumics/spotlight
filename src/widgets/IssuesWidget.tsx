@@ -17,9 +17,9 @@ const icons = {
 };
 
 const issueColors = {
-    low: tw`bg-blue-100 border-b-blue-600`,
-    medium: tw`bg-yellow-100 border-b-yellow-600`,
-    high: tw`bg-red-100 border-b-red-600`,
+    low: tw`bg-blue-100 border-b-blue-600 hover:bg-blue-200`,
+    medium: tw`bg-yellow-100 border-b-yellow-600 hover:bg-yellow-200`,
+    high: tw`bg-red-100 border-b-red-600 hover:bg-red-200`,
 };
 
 const iconColors = {
@@ -61,7 +61,6 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
             <div
                 css={[
                     tw`flex flex-row px-1 h-7 text-sm items-center overflow-hidden align-middle`,
-                    issueColors[issue.severity],
                 ]}
                 onClick={toggleCollapsed}
                 role="button"
