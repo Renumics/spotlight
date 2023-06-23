@@ -58,49 +58,53 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
             onFocus={highlight}
             onMouseLeave={dehighlight}
         >
-            <div
-                css={[
-                    tw`flex flex-row px-1 h-7 text-sm items-center overflow-hidden align-middle`,
-                ]}
-                onClick={toggleCollapsed}
-                role="button"
-            >
-                <div css={[iconColors[issue.severity]]}>
-                    {collapsed ? <TriangleRight /> : <TriangleDown />}
-                </div>
-                <Icon />
+            {
+                // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
                 <div
-                    css={[
-                        tw`rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2 align-middle items-center align-middle mx-0.5`,
-                        elementColors[issue.severity],
-                    ]}
-                    onClick={selectRows}
+                    tw="flex flex-row px-1 h-7 text-sm items-center overflow-hidden align-middle"
+                    onClick={toggleCollapsed}
                     role="button"
                 >
-                    {issue.rows.length}
-                </div>
-                <div
-                    css={[
-                        tw`flex-grow flex text-start items-center align-middle mx-1`,
-                        !collapsed && tw`font-bold`,
-                    ]}
-                >
-                    {issue.title}
-                </div>
-                <div tw="flex">
-                    {issue.columns?.map((column) => (
+                    <div css={[iconColors[issue.severity]]}>
+                        {collapsed ? <TriangleRight /> : <TriangleDown />}
+                    </div>
+                    <Icon />
+                    {
+                        // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
                         <div
-                            key={column}
                             css={[
-                                tw`border rounded px-1 mx-0.5 text-xs`,
+                                tw`rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2 align-middle items-center align-middle mx-0.5`,
                                 elementColors[issue.severity],
                             ]}
+                            onClick={selectRows}
+                            role="button"
                         >
-                            {column}
+                            {issue.rows.length}
                         </div>
-                    ))}
+                    }
+                    <div
+                        css={[
+                            tw`flex-grow flex text-start items-center align-middle mx-1`,
+                            !collapsed && tw`font-bold`,
+                        ]}
+                    >
+                        {issue.title}
+                    </div>
+                    <div tw="flex">
+                        {issue.columns?.map((column) => (
+                            <div
+                                key={column}
+                                css={[
+                                    tw`border rounded px-1 mx-0.5 text-xs`,
+                                    elementColors[issue.severity],
+                                ]}
+                            >
+                                {column}
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            }
             {collapsed || (
                 <div tw="ml-6 text-xs">
                     <Markdown content={issue.description ?? ''} />
@@ -119,9 +123,16 @@ const IssuesWidget: Widget = () => {
 
     return (
         <div tw="flex flex-col">
-            {issues.map((problem, i) => (
-                <Issue key={i} issue={problem} />
-            ))}
+            <div tw="flex items-center bg-gray-100 h-6 border-b border-b-gray-400">
+                <div tw="mx-1 text-xs border rounded-full border-gray-400 px-2">
+                    10 affected rows in total
+                </div>
+            </div>
+            <div tw="flex flex-col overflow-auto">
+                {issues.map((problem, i) => (
+                    <Issue key={i} issue={problem} />
+                ))}
+            </div>
         </div>
     );
 };
