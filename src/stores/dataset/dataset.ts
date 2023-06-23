@@ -10,7 +10,7 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
-    DatasetIssue as DataIssue,
+    DataIssue as DataIssue,
     Filter,
     IndexArray,
     TableData,

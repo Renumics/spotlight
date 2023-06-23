@@ -16,19 +16,19 @@ from renumics.spotlight.backend.exceptions import ConversionFailed
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.dtypes import Image
 
-from .decorator import data_analyzer
-from .typing import DataIssue
+from ..decorator import data_analyzer
+from ..typing import DataIssue
 
 
 _issue_types = {
-    "is_light_issue": "Bright images ({column_name})",
-    "is_dark_issue": "Dark images ({column_name})",
-    "is_blurry_issue": "Blurry images ({column_name})",
-    "is_exact_duplicates_issue": "Exact duplicates ({column_name})",
-    "is_near_duplicates_issue": "Near duplicates ({column_name})",
-    "is_odd_aspect_ratio_issue": "Odd aspect ratio ({column_name})",
-    "is_low_information_issue": "Low information ({column_name})",
-    "is_grayscale_issue": "Grayscale images ({column_name})",
+    "is_light_issue": ("Bright images ({column_name})", "medium"),
+    "is_dark_issue": ("Dark images ({column_name})", "medium"),
+    "is_blurry_issue": ("Blurry images ({column_name})", "medium"),
+    "is_exact_duplicates_issue": ("Exact duplicates ({column_name})", "high"),
+    "is_near_duplicates_issue": ("Near duplicates ({column_name})", "medium"),
+    "is_odd_aspect_ratio_issue": ("Odd aspect ratio ({column_name})", "medium"),
+    "is_low_information_issue": ("Low information ({column_name})", "medium"),
+    "is_grayscale_issue": ("Grayscale images ({column_name})", "medium"),
 }
 
 
@@ -83,11 +83,9 @@ def analyze_with_cleanvision(
 
         # Iterate over all the different issue types
         # and convert them to our internal DataIssue format.
-        for cleanvision_key, description in _issue_types.items():
+        for cleanvision_key, (title, severity) in _issue_types.items():
             rows = indices[analysis[cleanvision_key]].tolist()
             if rows:
                 yield DataIssue(
-                    severity="warning",
-                    description=description.format(column_name=column_name),
-                    rows=rows,
+                    severity=severity, title=title, rows=rows, columns=[column_name]
                 )
