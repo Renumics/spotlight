@@ -52,15 +52,17 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
     const Icon = icons[issue.severity];
 
     return (
-        <div css={[tw`flex flex-col border-b`, issueColors[issue.severity]]}>
+        <div
+            css={[tw`flex flex-col border-b`, issueColors[issue.severity]]}
+            onMouseOver={highlight}
+            onFocus={highlight}
+            onMouseLeave={dehighlight}
+        >
             <div
                 css={[
                     tw`flex flex-row px-1 h-7 text-sm items-center overflow-hidden align-middle`,
                     issueColors[issue.severity],
                 ]}
-                onMouseOver={highlight}
-                onFocus={highlight}
-                onMouseLeave={dehighlight}
                 onClick={toggleCollapsed}
                 role="button"
             >
