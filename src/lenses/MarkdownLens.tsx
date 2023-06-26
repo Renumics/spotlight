@@ -1,16 +1,8 @@
-import showdown from 'showdown';
-import { useMemo } from 'react';
-
 import { Lens } from '../types';
-import Html from '../components/ui/Html';
+import Markdown from '../components/ui/Markdown';
 
 const MarkdownLens: Lens = ({ value }) => {
-    const markdown = value as string;
-    const html = useMemo(() => {
-        return new showdown.Converter().makeHtml(markdown);
-    }, [markdown]);
-
-    return <Html html={html} />;
+    return <Markdown content={value as string} />;
 };
 
 MarkdownLens.key = 'MarkdownLens';

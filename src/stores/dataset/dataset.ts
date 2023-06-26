@@ -10,7 +10,7 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
-    DatasetIssue as DataIssue,
+    DataIssue as DataIssue,
     Filter,
     IndexArray,
     TableData,
@@ -35,7 +35,9 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
-    issues?: DataIssue[];
+    isAnalysisRunning: boolean;
+    issues: DataIssue[];
+    rowsWithIssues: IndexArray;
     colorTransferFunctions: Record<
         string,
         {
@@ -207,6 +209,9 @@ export const useDataset = create<Dataset>(
             columnsByKey: {},
             columnData: {},
             length: 0,
+            issues: [],
+            rowsWithIssues: [],
+            isAnalysisRunning: false,
             indices: new Int32Array(),
             columnStats: { full: {}, filtered: {}, selected: {} },
             colorTransferFunctions: {},
@@ -253,8 +258,10 @@ export const useDataset = create<Dataset>(
                     filteredIndices: new Int32Array(),
                     sortColumns: new Map<DataColumn, Sorting>(),
                     columnRelevance: new Map<string, number>(),
-                    issues: undefined,
                     filters: [],
+                    issues: [],
+                    rowsWithIssues: [],
+                    isAnalysisRunning: true,
                 }));
 
                 const tableFetcher = fetchTable();
@@ -278,8 +285,16 @@ export const useDataset = create<Dataset>(
                 }));
             },
             fetchIssues: async () => {
-                set({ issues: undefined });
-                set({ issues: (await api.issues.getAll()) as DataIssue[] });
+                const analysis = await api.issues.getAll();
+                const rowsWithIssues = new Set<number>();
+                for (const issue of analysis.issues) {
+                    issue.rows.forEach(rowsWithIssues.add, rowsWithIssues);
+                }
+                set({
+                    issues: analysis.issues as DataIssue[],
+                    rowsWithIssues: Int32Array.from(rowsWithIssues),
+                    isAnalysisRunning: analysis.running,
+                });
             },
             refresh: async () => {
                 const { uid, generationID, filename, dataframe } = await fetchTable();

@@ -17,7 +17,7 @@ import type { Severity } from './Severity';
 import { SeverityFromJSON, SeverityFromJSONTyped, SeverityToJSON } from './Severity';
 
 /**
- * A Problem affecting multiple rows of the dataset
+ * An Issue affecting multiple rows of the dataset
  * @export
  * @interface DataIssue
  */
@@ -27,19 +27,31 @@ export interface DataIssue {
      * @type {Severity}
      * @memberof DataIssue
      */
-    severity: Severity;
+    severity?: Severity;
     /**
      *
      * @type {string}
      * @memberof DataIssue
      */
-    description: string;
+    title: string;
     /**
      *
      * @type {Array<number>}
      * @memberof DataIssue
      */
     rows: Array<number>;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof DataIssue
+     */
+    columns?: Array<string>;
+    /**
+     *
+     * @type {string}
+     * @memberof DataIssue
+     */
+    description?: string;
 }
 
 /**
@@ -47,8 +59,7 @@ export interface DataIssue {
  */
 export function instanceOfDataIssue(value: object): boolean {
     let isInstance = true;
-    isInstance = isInstance && 'severity' in value;
-    isInstance = isInstance && 'description' in value;
+    isInstance = isInstance && 'title' in value;
     isInstance = isInstance && 'rows' in value;
 
     return isInstance;
@@ -66,9 +77,13 @@ export function DataIssueFromJSONTyped(
         return json;
     }
     return {
-        severity: SeverityFromJSON(json['severity']),
-        description: json['description'],
+        severity: !exists(json, 'severity')
+            ? undefined
+            : SeverityFromJSON(json['severity']),
+        title: json['title'],
         rows: json['rows'],
+        columns: !exists(json, 'columns') ? undefined : json['columns'],
+        description: !exists(json, 'description') ? undefined : json['description'],
     };
 }
 
@@ -81,7 +96,9 @@ export function DataIssueToJSON(value?: DataIssue | null): any {
     }
     return {
         severity: SeverityToJSON(value.severity),
-        description: value.description,
+        title: value.title,
         rows: value.rows,
+        columns: value.columns,
+        description: value.description,
     };
 }

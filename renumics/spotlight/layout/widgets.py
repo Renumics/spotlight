@@ -8,17 +8,6 @@ from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-modul
 from typing_extensions import Literal
 
 
-WidgetName = Literal[
-    "table",
-    "similaritymap",
-    "inspector",
-    "scatterplot",
-    "histogram",
-    "experimental/audio-overview",
-    "experimental/scatterplot-gl",
-]
-
-
 class WidgetConfig(BaseModel, allow_population_by_field_name=True):
     # pylint: disable=too-few-public-methods
     """
@@ -32,7 +21,7 @@ class Widget(BaseModel, extra=Extra.forbid):
     """
 
     # pylint: disable=too-few-public-methods
-    type: WidgetName
+    type: str
     name: Optional[str] = None
     config: Optional[WidgetConfig] = None
     kind: Literal["widget"] = "widget"
@@ -232,3 +221,12 @@ class Inspector(Widget):
     # pylint: disable=too-few-public-methods
     type: Literal["inspector"] = "inspector"
     config: Optional[InspectorConfig] = None
+
+
+class Issues(Widget):
+    """
+    Spotlight issues widget
+    """
+
+    # pylint: disable=too-few-public-methods
+    type: Literal["IssuesWidget"] = "IssuesWidget"

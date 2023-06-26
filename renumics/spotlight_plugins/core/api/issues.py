@@ -2,24 +2,33 @@
 Problems API endpoints
 """
 
-from typing import List, Optional
+from typing import List
 
 from fastapi import APIRouter, Request
+from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.analysis import DataIssue
 
 router = APIRouter(tags=["issues"])
 
 
-@router.get("/", response_model=Optional[List[DataIssue]], operation_id="get_all")
-async def get_all(request: Request) -> Optional[List[DataIssue]]:
+@dataclass
+class AnalysisInfo:
+    """
+    The current analysis status with all issues
+    """
+
+    running: bool
+    issues: List[DataIssue]
+
+
+@router.get("/", response_model=AnalysisInfo, operation_id="get_all")
+async def get_all(request: Request) -> AnalysisInfo:
     """
     Get all data issues.
     """
 
-    if request.app.issues is None:
-        if request.app.custom_issues:
-            return request.app.custom_issues
-        return None
-
-    return request.app.issues + request.app.custom_issues
+    return AnalysisInfo(
+        running=request.app.issues is None,
+        issues=request.app.custom_issues + (request.app.issues or []),
+    )

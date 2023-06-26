@@ -2,6 +2,7 @@
 Outlier detection
 """
 
+import inspect
 from typing import Iterable
 
 import numpy as np
@@ -13,8 +14,8 @@ from renumics.spotlight.backend.data_source import DataSource
 
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
-from .decorator import data_analyzer
-from .typing import DataIssue
+from ..decorator import data_analyzer
+from ..typing import DataIssue
 
 
 @data_analyzer
@@ -34,7 +35,20 @@ def analyze_with_cleanlab(
 
         if len(rows):
             yield DataIssue(
-                severity="warning", description=f"Outliers ({column_name})", rows=rows
+                severity="medium",
+                title="Outliers in embeddings",
+                rows=rows,
+                columns=[column_name],
+                description=inspect.cleandoc(
+                    """
+                    There are outliers in one of your embedding columns.
+
+                    Here are a few issues that outliers might indicate:
+                    1. Data entry or measurement errors
+                    2. Feature engineering issues, like missing normalization
+                    3. Sampling bias in your dataset
+                """
+                ),
             )
 
 
