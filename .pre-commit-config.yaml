@@ -17,6 +17,11 @@ repos:
             types: [python]
             files: ^(renumics|scripts)/
             require_serial: true
+          - id: dynamic-versioning
+            name: dynamic-versioning
+            language: system
+            entry: poetry run scripts/check_dynamic_versioning.py
+            files: pyproject.toml
 
     # "official" pre-commit hooks
     - repo: https://github.com/pre-commit/pre-commit-hooks
