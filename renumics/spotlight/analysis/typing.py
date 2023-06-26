@@ -2,7 +2,7 @@
 Shared types for data analysis
 """
 
-from typing import Callable, Iterable, List, Union, Literal, Optional
+from typing import Callable, Iterable, List, Literal, Optional
 
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
@@ -16,7 +16,7 @@ class DataIssue(BaseModel):
     """
 
     # pylint: disable=too-few-public-methods
-    severity: Union[Literal["low"], Literal["medium"], Literal["high"]] = "medium"
+    severity: Literal["low", "medium", "high"] = "medium"
     title: str
     rows: List[int]
     columns: Optional[List[str]] = None
