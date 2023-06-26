@@ -22,12 +22,11 @@ import Tooltip from './Tooltip';
 import { BinKey } from './types';
 import useHistogram from './useHistogram';
 import XAxis from './XAxis';
+import Info from '../../components/ui/Info';
 
 const columnsSelector = (d: Dataset) => d.columns;
 
 const validTypes = ['Category', 'str', 'bool', 'int', 'float'];
-
-const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-center`;
 
 const Histogram: Widget = () => {
     const wrapper = useRef<HTMLDivElement>(null);

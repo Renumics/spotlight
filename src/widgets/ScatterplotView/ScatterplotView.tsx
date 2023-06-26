@@ -30,6 +30,7 @@ import { shallow } from 'zustand/shallow';
 import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
 import MenuBar from './MenuBar';
+import Info from '../../components/ui/Info';
 
 const ScatterplotViewContainer = styled.div`
     ${tw`bg-gray-100 border-gray-400 w-full h-full overflow-hidden`}
@@ -40,8 +41,6 @@ const StyledLegend = styled(Legend)`
 `;
 
 const PlotContainer = tw.div`flex top-0 left-0 w-full h-full`;
-
-const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-center`;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function calculateZScore(value: any, stats?: DataStatistics) {

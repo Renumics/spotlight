@@ -11,6 +11,7 @@ import TriangleDown from '../icons/TriangleDown';
 import Markdown from '../components/ui/Markdown';
 import CheckMark from '../icons/Check';
 import Tooltip from '../components/ui/Tooltip';
+import Info from '../components/ui/Info';
 
 const icons = {
     low: tw(WarningIcon)`text-blue-600 h-5 w-5 mx-0.5`,
@@ -126,7 +127,7 @@ const IssuesWidget: Widget = () => {
     const selectRows = () => useDataset.getState().selectRows(rowsWithIssues ?? []);
 
     return (
-        <div tw="flex flex-col">
+        <div tw="flex flex-col w-full h-full">
             <div tw="flex items-stretch bg-gray-100 h-6 border-b border-b-gray-400 divide-x divide-gray-400 text-xs overflow-hidden">
                 {
                     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
@@ -157,10 +158,12 @@ const IssuesWidget: Widget = () => {
                     </div>
                 </div>
             </div>
-            <div tw="flex flex-col overflow-auto">
+            <div tw="flex-grow flex flex-col overflow-auto">
                 {issues.map((problem, i) => (
                     <Issue key={i} issue={problem} />
                 ))}
+                {!issues.length && isAnalysisRunning && <Info>Analysis running</Info>}
+                {!issues.length && !isAnalysisRunning && <Info>No Issues found</Info>}
             </div>
         </div>
     );
