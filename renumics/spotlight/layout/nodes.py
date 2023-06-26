@@ -7,15 +7,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-module
 from typing_extensions import Literal
 
-from .widgets import (
-    AudioOverview,
-    Histogram,
-    Inspector,
-    Scatterplot,
-    ScatterplotGL,
-    Similaritymap,
-    Table,
-)
+from .widgets import Widget
 
 
 Orientation = Optional[Literal["horizontal", "vertical"]]
@@ -27,17 +19,7 @@ class Tab(BaseModel, extra=Extra.forbid):
     """
 
     # pylint: disable=too-few-public-methods
-    children: List[
-        Union[
-            AudioOverview,
-            Histogram,
-            Inspector,
-            Scatterplot,
-            ScatterplotGL,
-            Similaritymap,
-            Table,
-        ]
-    ] = Field(default_factory=list)
+    children: List[Widget] = Field(default_factory=list)
     weight: Union[float, int] = 1
     kind: Literal["tab"] = "tab"
 

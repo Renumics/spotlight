@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export * from './AnalysisInfo';
 export * from './Column';
 export * from './DataIssue';
 export * from './FileEntry';

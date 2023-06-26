@@ -3,12 +3,14 @@ import tw from 'twin.macro';
 import { Widget } from './types';
 import WarningIcon from '../icons/Warning';
 import { useDataset } from '../stores/dataset';
-import LoadingIndicator from '../components/LoadingIndicator';
+import Spinner from '../components/ui/Spinner';
 import { DataIssue } from '../types';
 import { MouseEvent, useState } from 'react';
 import TriangleRight from '../icons/TriangleRight';
 import TriangleDown from '../icons/TriangleDown';
 import Markdown from '../components/ui/Markdown';
+import CheckMark from '../icons/Check';
+import Tooltip from '../components/ui/Tooltip';
 
 const icons = {
     low: tw(WarningIcon)`text-blue-600 h-5 w-5 mx-0.5`,
@@ -116,16 +118,43 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
 
 const IssuesWidget: Widget = () => {
     const issues = useDataset((d) => d.issues);
+    const rowsWithIssues = useDataset((d) => d.rowsWithIssues);
+    const isAnalysisRunning = useDataset((d) => d.isAnalysisRunning);
 
-    if (issues === undefined) {
-        return <LoadingIndicator />;
-    }
+    const highlight = () => useDataset.getState().highlightRows(rowsWithIssues ?? []);
+    const dehighlight = useDataset.getState().dehighlightAll;
+    const selectRows = () => useDataset.getState().selectRows(rowsWithIssues ?? []);
 
     return (
         <div tw="flex flex-col">
-            <div tw="flex items-center bg-gray-100 h-6 border-b border-b-gray-400">
-                <div tw="mx-1 text-xs border rounded-full border-gray-400 px-2">
-                    10 affected rows in total
+            <div tw="flex items-stretch bg-gray-100 h-6 border-b border-b-gray-400 divide-x divide-gray-400 text-xs overflow-hidden">
+                {
+                    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+                    <div
+                        tw="flex items-center px-1 hover:bg-gray-200"
+                        onMouseOver={highlight}
+                        onFocus={highlight}
+                        onMouseLeave={dehighlight}
+                        onClick={selectRows}
+                        role="button"
+                    >
+                        {rowsWithIssues.length}{' '}
+                        {rowsWithIssues.length == 1 ? 'row' : 'rows'} affected in total
+                    </div>
+                }
+                <div tw="flex-grow"></div>
+                <div tw="flex flex-row whitespace-nowrap items-center px-1 justify-end">
+                    <div tw="w-full h-full p-0.5 flex items-center justify-center">
+                        {isAnalysisRunning ? (
+                            <Tooltip content="Running analysis">
+                                <Spinner tw="w-4 h-4" />
+                            </Tooltip>
+                        ) : (
+                            <Tooltip content="Analysis done">
+                                <CheckMark />
+                            </Tooltip>
+                        )}
+                    </div>
                 </div>
             </div>
             <div tw="flex flex-col overflow-auto">
