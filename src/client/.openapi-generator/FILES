@@ -8,6 +8,7 @@ apis/PluginsApi.ts
 apis/TableApi.ts
 apis/index.ts
 index.ts
+models/AnalysisInfo.ts
 models/Column.ts
 models/DataIssue.ts
 models/FileEntry.ts

@@ -13,8 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type { DataIssue } from '../models';
-import { DataIssueFromJSON, DataIssueToJSON } from '../models';
+import type { AnalysisInfo } from '../models';
+import { AnalysisInfoFromJSON, AnalysisInfoToJSON } from '../models';
 
 /**
  *
@@ -26,7 +26,7 @@ export class IssuesApi extends runtime.BaseAPI {
      */
     async getAllRaw(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<Array<DataIssue>>> {
+    ): Promise<runtime.ApiResponse<AnalysisInfo>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -42,7 +42,7 @@ export class IssuesApi extends runtime.BaseAPI {
         );
 
         return new runtime.JSONApiResponse(response, (jsonValue) =>
-            jsonValue.map(DataIssueFromJSON)
+            AnalysisInfoFromJSON(jsonValue)
         );
     }
 
@@ -52,7 +52,7 @@ export class IssuesApi extends runtime.BaseAPI {
      */
     async getAll(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<Array<DataIssue>> {
+    ): Promise<AnalysisInfo> {
         const response = await this.getAllRaw(initOverrides);
         return await response.value();
     }

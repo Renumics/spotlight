@@ -17,6 +17,7 @@ import Header, { Ref as HeaderRef } from './Header';
 import RowHeightContext from './rowHeightContext';
 import { State as StoreState, useStore } from './store';
 import ViewGrid from './ViewGrid';
+import Info from '../../components/ui/Info';
 
 export const MIN_COLUMN_WIDTH = 128;
 export const COLUMN_COUNT_OPTIONS = [1, 2, 4, 6, 8];
@@ -209,15 +210,13 @@ const DetailsGrid: FunctionComponent<{
                             onScroll={onScroll}
                         />
                     ) : (
-                        <div tw="flex items-center justify-center w-full">
-                            <span tw="font-bold text-sm text-gray-700 uppercase">
-                                {views.length === 0 ? (
-                                    <>No View Configured</>
-                                ) : (
-                                    <>No Data Selected</>
-                                )}
-                            </span>
-                        </div>
+                        <Info>
+                            {views.length === 0 ? (
+                                <>No View Configured</>
+                            ) : (
+                                <>No Data Selected</>
+                            )}
+                        </Info>
                     )}
                 </DetailsGridWrapper>
             </div>

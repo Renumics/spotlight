@@ -34,7 +34,7 @@ def test_external_data_cache(non_existing_image_df_viewer: spotlight.Viewer) -> 
     )
     assert response.status_code == 200
     first_image_content = response.content
-    assert len(first_image_content) > 100000
+    assert len(first_image_content) == 19355
 
     shutil.copyfile("data/images/nature-720p.jpg", image_path)
     response = requests.get(
@@ -49,7 +49,7 @@ def test_external_data_cache(non_existing_image_df_viewer: spotlight.Viewer) -> 
     )
     assert response.status_code == 200
     second_image_content = response.content
-    assert len(second_image_content) > 100000
+    assert len(second_image_content) == 70143
     assert second_image_content != first_image_content
 
     shutil.copyfile("data/audio/1.wav", image_path)

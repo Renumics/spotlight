@@ -123,8 +123,10 @@ export interface DataFrame {
 
 export type TableView = 'full' | 'filtered' | 'selected';
 
-export interface DatasetIssue {
-    severity: 'warning' | 'error';
-    description: string;
+export interface DataIssue {
+    severity: 'low' | 'medium' | 'high';
+    title: string;
     rows: IndexArray;
+    columns?: string[];
+    description?: string;
 }
