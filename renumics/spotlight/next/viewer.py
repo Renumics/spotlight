@@ -12,7 +12,7 @@ from renumics.spotlight.backend.data_source import DataSource
 from .gunicorn import StandaloneApplication
 
 def _server_entrypoint(connection: multiprocessing.connection.Connection):
-    application = StandaloneApplication("renumics.spotlight.next.app:SpotlightApp", connection, {"worker_class": "renumics.spotlight.next.uvicorn_worker.RestartableUvicornWorker", "reload": True, "bind": "localhost:8001"})
+    application = StandaloneApplication("renumics.spotlight.next.app:SpotlightApp", connection, {"worker_class": "renumics.spotlight.next.uvicorn_worker.RestartableUvicornWorker", "reload": True, "bind": "localhost:8000", "reuse_port": True})
     application.run()
 
 
