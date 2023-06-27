@@ -3,16 +3,15 @@ performance and crash reporting
 """
 
 import datetime
-import hashlib
 import platform
 import sys
 import threading
 import time
-import uuid
 from functools import wraps
 from os import environ
 from typing import Any, Callable, Dict, Optional, Union
 from uuid import uuid4
+import machineid
 
 import requests
 from loguru import logger
@@ -25,18 +24,7 @@ ANALYTICS_URL = "https://analytics.renumics.com/v1/spotlight"
 
 
 def _get_node() -> str:
-    try:
-        node_id = uuid.getnode()
-        token = hashlib.sha256(str(node_id).encode()).hexdigest()
-        if node_id & 0x10000000000 > 0:
-            # when getnode() fails to get a node id
-            # it returns a random 48-bit number with its eighth bit set to 1
-            token = "RANDOM_" + token[7:]
-    # pylint: disable-next=broad-exception-caught
-    except Exception as e:
-        token = "TOKEN_ERROR " + str(e)
-        logger.warning("could not determine node id", token)
-    return token
+    return machineid.hashed_id()
 
 
 TOKEN = _get_node()

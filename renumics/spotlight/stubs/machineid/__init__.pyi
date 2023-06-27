@@ -1,0 +1,6 @@
+""" stubs for machineid module as mypy doesn't use the types provided by the module """
+
+# pylint: disable=unused-argument,redefined-builtin,missing-function-docstring,invalid-name
+
+def id() -> str: ...
+def hashed_id(app_id: str = "") -> str: ...

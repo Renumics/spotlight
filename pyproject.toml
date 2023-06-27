@@ -83,6 +83,7 @@ toml = "^0.10.2"
 cleanlab = "^2.4.0"
 websockets = "^11.0.3"
 cleanvision = "^0.3.0"
+py-machineid = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
@@ -152,7 +153,7 @@ min-similarity-lines = 12
 ignore_missing_imports = false
 disallow_untyped_defs = true
 explicit_package_bases = true
-mypy_path = "."
+mypy_path = ".:renumics/spotlight/stubs"
 plugins = "pydantic.mypy"
 
 [[tool.mypy.overrides]]
