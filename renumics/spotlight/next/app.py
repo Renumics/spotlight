@@ -1,8 +1,15 @@
+import asyncio
 from concurrent.futures import CancelledError, Future
+import re
 from threading import Thread
-from typing import Any, List, Literal, Optional
-from fastapi import FastAPI
+from typing import Annotated, Any, List, Literal, Optional, Union
+import uuid
+from fastapi import Cookie, FastAPI, Request, status
 from pathlib import Path
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from pydantic.dataclasses import dataclass
 
@@ -16,7 +23,21 @@ from renumics.spotlight.typing import PathType
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.logging import logger
 
+from renumics.spotlight.backend.apis import plugins as plugin_api
+from renumics.spotlight.backend.apis import websocket
+from renumics.spotlight.settings import settings
+
 from renumics.spotlight.analysis import find_issues
+
+from renumics.spotlight.reporting import emit_exception_event, emit_exit_event, emit_startup_event
+
+from renumics.spotlight.backend.exceptions import Problem
+
+from renumics.spotlight.plugin_loader import load_plugins
+
+from renumics.spotlight.develop.project import get_project_info
+
+from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 
 from .uvicorn_worker import worker
 
@@ -74,10 +95,90 @@ class SpotlightApp(FastAPI):
             self._receiver_thread = Thread(target=self._receive)
             self._receiver_thread.start()
             self.connection.send({"kind": "startup"})
+            self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
+            emit_startup_event()
+
+        @self.on_event("shutdown")
+        def _() -> None:
+            self.task_manager.shutdown()
+            emit_exit_event()
+
+        self.include_router(websocket.router, prefix="/api")
+        self.include_router(plugin_api.router, prefix="/api/plugins")
+
+        @self.exception_handler(Exception)
+        async def _(_: Request, e: Exception) -> JSONResponse:
+            if settings.verbose:
+                logger.exception(e)
+            else:
+                logger.info(e)
+            emit_exception_event()
+            class_name = type(e).__name__
+            title = re.sub(r"([a-z])([A-Z])", r"\1 \2", class_name)
+            return JSONResponse(
+                {"title": title, "detail": str(e), "type": class_name},
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        @self.exception_handler(Problem)
+        async def _(_: Request, problem: Problem) -> JSONResponse:
+            if settings.verbose:
+                logger.exception(problem)
+            else:
+                logger.info(problem)
+            return JSONResponse(
+                {
+                    "title": problem.title,
+                    "detail": problem.detail,
+                    "type": type(problem).__name__,
+                },
+                status_code=problem.status_code,
+            )
+
+        for plugin in load_plugins():
+            plugin.activate(self)
+
+        try:
+            self.mount(
+                "/static",
+                StaticFiles(packages=["renumics.spotlight.backend"]),
+                name="assets",
+            )
+        except AssertionError:
+            logger.warning("Frontend module is missing. No frontend will be served.")
+
+
+        templates = Jinja2Templates(directory=Path(__file__).parent.parent / "backend" / "templates")
 
         @self.get("/")
-        def _():
-            return "Hello World"
+        def _(
+            request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
+        ) -> Any:
+            response = templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "dev": settings.dev,
+                    "dev_location": get_project_info().type,
+                    "vite_url": request.app.vite_url,
+                    "filebrowsing_allowed": request.app.filebrowsing_allowed,
+                },
+            )
+            response.set_cookie(
+                "browser_id", browser_id or str(uuid.uuid4()), samesite="none", secure=True
+            )
+            return response
+
+        if settings.dev:
+            logger.info("Running in dev mode")
+            self.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+            add_timing_middleware(self)
 
     @property
     def connection(self):
