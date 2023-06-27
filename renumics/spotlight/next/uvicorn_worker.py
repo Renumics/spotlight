@@ -43,5 +43,3 @@ class RestartableUvicornWorker(UvicornWorker):
     @property
     def connection(self) -> multiprocessing.connection.Connection:
         return self.app.connection
-
-

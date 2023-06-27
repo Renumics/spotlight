@@ -13,40 +13,42 @@ class SpotlightApp(FastAPI):
 
     def __init__(self):
         super().__init__()
+        self.datasource = None
 
         @self.on_event("startup")
         def _():
             self._receiver_thread = Thread(target=self._receive)
             self._receiver_thread.start()
+            print(self.connection)
+            self.connection.send({"kind": "startup"})
 
         @self.get("/")
         def _():
             return "Hello World"
 
+    @property
+    def connection(self):
+        assert worker
+        return worker.connection
+
     def _handle_message(self, message):
         kind = message.get("kind")
-
 
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
             return
         if kind == "datasource":
             try:
-                assert isinstance(self.datasource, DataSource)
-                self.datasource = message["data"]
+                datasource = message["data"]
+                assert isinstance(datasource, DataSource)
+                self.datasource = datasource
             except KeyError:
                 logger.error(f"Malformed message from client process:\n\t{message}")
             return
 
         logger.warning(f"Unknown message from client process:\n\t{message}")
-        
+
 
     def _receive(self):
-        if worker is None:
-            # this should never happen
-            # maybe fail really hard, if it does?
-            return
-
         while True:
-            self._handle_message(worker.connection.recv())
-
+            self._handle_message(self.connection.recv())
