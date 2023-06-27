@@ -24,7 +24,11 @@ ANALYTICS_URL = "https://analytics.renumics.com/v1/spotlight"
 
 
 def _get_node() -> str:
-    return machineid.hashed_id()
+    """
+    get the anonymized (hashed) unique node id for this machine
+    'spotlight' is added to the hash in order to prevent tracking across different apps
+    """
+    return machineid.hashed_id("spotlight")
 
 
 TOKEN = _get_node()
