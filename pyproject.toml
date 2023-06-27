@@ -84,6 +84,7 @@ cleanlab = "^2.4.0"
 websockets = "^11.0.3"
 cleanvision = "^0.3.0"
 filetype = "^1.2.0"
+gunicorn = "^20.1.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
