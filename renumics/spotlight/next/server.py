@@ -30,10 +30,6 @@ class Server():
         self.port = port
         self.process = None
 
-        # TODO: launch a fresh python process with Popen 
-        #       to prevent problems with unprotected entrypoints in user scripts
-        #self.process = multiprocessing.Process(target=_server_entrypoint, args=(server_connection,))
-
         self._connection_authkey = secrets.token_hex(16)
         self._connection_listener = multiprocessing.connection.Listener(('127.0.0.1', 0), authkey=self._connection_authkey.encode())
 
