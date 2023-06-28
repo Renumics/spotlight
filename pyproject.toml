@@ -83,6 +83,7 @@ toml = "^0.10.2"
 cleanlab = "^2.4.0"
 websockets = "^11.0.3"
 cleanvision = "^0.3.0"
+py-machineid = "^0.3.0"
 filetype = "^1.2.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -175,6 +176,7 @@ module = [
     "dotenv",
     "pycatch22",
     "cleanlab.*",
+    "machineid",
     "filetype",
 ]
 ignore_missing_imports = true

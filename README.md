@@ -106,3 +106,17 @@ You can adapt Spotlight to your data curation tasks. To get you started quickly,
 -   Open an issue on [Github](https://github.com/renumics)
 -   Have a [coffee talk](https://calendly.com/stefan-suwelack/dcai-intro-30-min) with us
 -   Join our channel on [Discord](https://discord.gg/VAQdFCU5YD)
+
+## Disclaimer
+
+**Usage Tracking**
+
+We have added crash report and perfomance collection.</br >
+We do NOT collect user data other than an anonymized Machine Id obtained by [py-machineid](https://github.com/keygen-sh/py-machineid), and only log our own actions.</br >
+We do NOT collect folder names, dataset names, or row data of any kind only aggregate performance statistics like total time of a table_load, crash data, etc.</br >
+Collecting spotlight crashes will help us improve stability.
+
+Too opt out of the crash report collection define an environment variable called `SPOTLIGHT_OPT_OUT` and set it to true.
+
+e.G.
+`export SPOTLIGHT_OPT_OUT=true`
