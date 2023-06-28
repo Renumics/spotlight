@@ -114,9 +114,9 @@ You can adapt Spotlight to your data curation tasks. To get you started quickly,
 We have added crash report and perfomance collection.</br >
 We do NOT collect user data other than an anonymized Machine Id obtained by [py-machineid](https://github.com/keygen-sh/py-machineid), and only log our own actions.</br >
 We do NOT collect folder names, dataset names, or row data of any kind only aggregate performance statistics like total time of a table_load, crash data, etc.</br >
-Collecting spotlight crashes will help us improve stability.
+Collecting Spotlight crashes will help us improve stability.
 
-Too opt out of the crash report collection define an environment variable called `SPOTLIGHT_OPT_OUT` and set it to true.
+To opt out of the crash report collection define an environment variable called `SPOTLIGHT_OPT_OUT` and set it to true.
 
 e.G.
 `export SPOTLIGHT_OPT_OUT=true`
