@@ -19,7 +19,7 @@ from pydantic.dataclasses import dataclass
 from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
-from renumics.spotlight.backend.websockets import Message, WebsocketManager
+from renumics.spotlight.backend.websockets import Message, RefreshMessage, ResetLayoutMessage, WebsocketManager
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
@@ -59,10 +59,9 @@ class SpotlightApp(FastAPI):
     _data_source: Optional[DataSource]
 
 
-    dtype: Optional[ColumnTypeMapping]
     task_manager: TaskManager
     websocket_manager: Optional[WebsocketManager]
-    layout: Optional[Layout]
+    _layout: Optional[Layout]
     config: Config
     username: str
     filebrowsing_allowed: bool
@@ -78,11 +77,10 @@ class SpotlightApp(FastAPI):
 
     def __init__(self):
         super().__init__()
-        self.dtype = None
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
-        self.layout = None
+        self._layout = None
         self.project_root = Path.cwd()
         self.vite_url = None
         self.username = ""
@@ -97,7 +95,10 @@ class SpotlightApp(FastAPI):
         def _():
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
+
+            # TODO: handle race condition where listener in master is not ready yet
             self._connection = multiprocessing.connection.Client(('127.0.0.1', port), authkey=authkey.encode())
+
             self._receiver_thread = Thread(target=self._receive, daemon=True)
             self._receiver_thread.start()
             self._connection.send({"kind": "startup"})
@@ -189,18 +190,18 @@ class SpotlightApp(FastAPI):
 
     def _handle_message(self, message):
         kind = message.get("kind")
+        data = message.get("data")
 
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
             return
-        if kind == "datasource":
-            try:
-                data_source = message["data"]
-                assert isinstance(data_source, DataSource)
-                self.data_source = data_source
-            except KeyError:
-                logger.error(f"Malformed message from client process:\n\t{message}")
+        if kind == "set_datasource":
+            self.data_source = data
             return
+        if kind == "set_layout":
+            self.layout = data
+            return
+
         logger.warning(f"Unknown message from client process:\n\t{message}")
 
     def _receive(self):
@@ -217,6 +218,7 @@ class SpotlightApp(FastAPI):
     @data_source.setter
     def data_source(self, new_data_source: Optional[DataSource]) -> None:
         self._data_source = new_data_source
+        self._broadcast(RefreshMessage())
         self._update_issues()
 
     @property
@@ -230,6 +232,15 @@ class SpotlightApp(FastAPI):
     def custom_issues(self, issues: List[DataIssue]) -> None:
         self._custom_issues = issues
         self._broadcast(IssuesUpdatedMessage())
+
+    @property
+    def layout(self) -> Optional[Layout]:
+        return self._layout
+
+    @layout.setter
+    def layout(self, layout) -> None:
+        self._layout = layout
+        self._broadcast(ResetLayoutMessage())
 
     def _update_issues(self) -> None:
         """

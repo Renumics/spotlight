@@ -61,7 +61,6 @@ import IPython.display
 import __main__
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
-from renumics.spotlight.backend.websockets import RefreshMessage, ResetLayoutMessage
 from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.develop.vite import Vite
 from renumics.spotlight.settings import settings
@@ -97,6 +96,7 @@ class Viewer:
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
+    _dtype: Optional[ColumnTypeMapping]
     _allow_filebrowsing: Optional[bool]
     _layout: Optional[_LayoutLike]
 
@@ -108,6 +108,7 @@ class Viewer:
         self._host = host
         self._requested_port = port
         self._dataset_or_folder = None
+        self._dtype = None
         self._allow_filebrowsing = None
         self._server = None
         self._thread = None
@@ -162,60 +163,53 @@ class Viewer:
         """
         # pylint: disable=too-many-branches,too-many-arguments
 
-
         if dataset_or_folder is not None:
             self._dataset_or_folder = dataset_or_folder
         elif self._dataset_or_folder is None:
             self._dataset_or_folder = Path.cwd()
 
+        if dtype is not None:
+            self._dtype = dtype
+
         self._init_server()
         if not self._server:
             raise RuntimeError("Failed to launch backend server")
-        #app = self._server.app
 
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
 
-        #if analyze is not None:
-        #    app.analyze_issues = analyze
-
-        #if dtype is not None:
-        #    app.dtype = dtype
+        if analyze is not None:
+            self._server.set_analyze_issues(analyze)
 
         if dataset_or_folder is not None or dtype is not None:
             # set correct project folder
             if is_pathtype(self._dataset_or_folder):
                 path = Path(self._dataset_or_folder).absolute()
                 if path.is_dir():
-                    #app.project_root = path
-                    ...
+                    self._server.set_project_root(path)
+                    self._server.datasource = None
                 else:
-                    #app.project_root = path.parent
-                    #app.data_source = create_datasource(path, dtype=app.dtype)
-                    ...
+                    self._server.set_project_root(path.parent)
+                    self._server.datasource = create_datasource(path, dtype=self._dtype)
             else:
-                #app.data_source = create_datasource(
-                #    self._dataset_or_folder, dtype=app.dtype
-                #)
-                ...
+                self._server.datasource = create_datasource(
+                    self._dataset_or_folder, dtype=self._dtype
+                )
             self.refresh()
 
         if issues is not None:
-            #app.custom_issues = list(issues)
-            ...
+            self._server.set_custom_issues(list(issues))
 
         if layout is not None:
-            #app.layout = parse(layout)
-            #if app.websocket_manager:
-                #app.websocket_manager.broadcast(ResetLayoutMessage())
-            ...
+            self._server.layout = parse(layout)
 
         if allow_filebrowsing != "auto":
             self._allow_filebrowsing = allow_filebrowsing
         elif self._allow_filebrowsing is None:
             self._allow_filebrowsing = is_pathtype(self._dataset_or_folder)
+
         # app.filebrowsing_allowed = self._allow_filebrowsing
 
         if not in_interactive_session or wait:

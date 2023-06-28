@@ -6,7 +6,7 @@ import secrets
 import multiprocessing
 import subprocess
 import multiprocessing.connection
-from typing import Optional
+from typing import List, Optional
 from pandas import DataFrame
 
 from renumics.spotlight.backend import create_datasource
@@ -14,27 +14,40 @@ from renumics.spotlight.logging import logger
 
 from renumics.spotlight.backend.data_source import DataSource
 
+from renumics.spotlight.typing import PathType
+
+from renumics.spotlight.analysis.typing import DataIssue
+
+from renumics.spotlight.layout.nodes import Layout
+
 class Server():
-    process: Optional[subprocess.Popen]
-    connection: multiprocessing.connection.Connection
-    _datasource: Optional[DataSource]
     host: str
     port: int
+
+    process: Optional[subprocess.Popen]
+    connection: Optional[multiprocessing.connection.Connection]
     _connection_thread: Thread
     _connection_authkey: str
     _connection_listener: multiprocessing.connection.Listener
 
+    _datasource: Optional[DataSource]
+    _layout: Optional[Layout]
+
     def __init__(self, datasource=None, host="127.0.0.1", port=8000):
         self._datasource = datasource
+        self._layout = None
+
         self.host = host
         self.port = port
         self.process = None
 
+        self.connection = None
         self._connection_authkey = secrets.token_hex(16)
         self._connection_listener = multiprocessing.connection.Listener(('127.0.0.1', 0), authkey=self._connection_authkey.encode())
 
         self._connection_thread = Thread(target=self._handle_connections, daemon=True)
         self._connection_thread.start()
+        # TODO: wait for connection thread to listen
 
     def start(self):
         """
@@ -86,9 +99,28 @@ class Server():
         return self._datasource
 
     @datasource.setter
-    def datasource(self, datasource: DataSource):
+    def datasource(self, datasource: Optional[DataSource]):
         self._datasource = datasource
-        self.send({"kind": "datasource", "data": datasource})
+        self.send({"kind": "set_datasource", "data": datasource})
+
+    @property
+    def layout(self):
+        return self._layout
+
+    @layout.setter
+    def layout(self, value):
+        self._layout = value
+        self.send({"kind": "set_layout", "data": value})
+
+    def set_custom_issues(self, issues: List[DataIssue]):
+        self.send({"kind": "set_custom_issues", "data": issues})
+
+    # TODO: pass this stuff as a combined configuration object?
+    def set_analyze_issues(self, value: bool):
+        self.send({"kind": "set_analyze", "data": value})
+
+    def set_project_root(self, value: PathType):
+        self.send({"kind": "set_project_root", "data": value})
 
     def _handle_message(self, message):
         try:
@@ -98,7 +130,7 @@ class Server():
             return
 
         if kind == "startup":
-            self.send({"kind": "datasource", "data": self.datasource})
+            self.send({"kind": "set_datasource", "data": self.datasource})
             return
 
         logger.warning(f"Unknown message from client process:\n\t{message}")
