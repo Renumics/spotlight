@@ -37,7 +37,7 @@ class Server():
         self._connection_authkey = secrets.token_hex(16)
         self._connection_listener = multiprocessing.connection.Listener(('127.0.0.1', 0), authkey=self._connection_authkey.encode())
 
-        self._connection_thread = Thread(target=self._handle_connections)
+        self._connection_thread = Thread(target=self._handle_connections, daemon=True)
         self._connection_thread.start()
 
     def start(self):
@@ -76,7 +76,7 @@ class Server():
                 self.process.kill()
             self.process = None
 
-        # TODO: stop connection thread
+        self._connection_thread.join(0.1)
 
     @property
     def running(self):

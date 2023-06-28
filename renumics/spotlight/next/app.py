@@ -42,8 +42,6 @@ from renumics.spotlight.develop.project import get_project_info
 
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 
-from .uvicorn_worker import worker
-
 
 @dataclass
 class IssuesUpdatedMessage(Message):
@@ -100,7 +98,7 @@ class SpotlightApp(FastAPI):
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
             self._connection = multiprocessing.connection.Client(('127.0.0.1', port), authkey=authkey.encode())
-            self._receiver_thread = Thread(target=self._receive)
+            self._receiver_thread = Thread(target=self._receive, daemon=True)
             self._receiver_thread.start()
             self._connection.send({"kind": "startup"})
             self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
@@ -108,6 +106,7 @@ class SpotlightApp(FastAPI):
 
         @self.on_event("shutdown")
         def _() -> None:
+            self._receiver_thread.join(0.1)
             self.task_manager.shutdown()
             emit_exit_event()
 

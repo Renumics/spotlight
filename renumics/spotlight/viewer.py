@@ -61,13 +61,13 @@ import IPython.display
 import __main__
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
-from renumics.spotlight.backend.server import create_server, Server
 from renumics.spotlight.backend.websockets import RefreshMessage, ResetLayoutMessage
 from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.develop.vite import Vite
 from renumics.spotlight.settings import settings
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
+from renumics.spotlight.next.server import Server
 
 from renumics.spotlight.analysis.typing import DataIssue
 
@@ -118,15 +118,15 @@ class Viewer:
         if self._server:
             return
 
-        self._server = create_server(self._host, self._requested_port)
-        app = self._server.app
+        port = 0 if self._requested_port == "auto" else self._requested_port
+        self._server = Server(create_datasource(self._dataset_or_folder), host=self._host, port=port)
+        self._server.start()
 
-        if settings.dev:
-            self._vite = Vite()
-            self._vite.start()
-            app.vite_url = self._vite.url
+        #if settings.dev:
+            #self._vite = Vite()
+            #self._vite.start()
+            #app.vite_url = self._vite.url
 
-        self._thread = self._server.run_in_thread()
         if self not in _VIEWERS:
             _VIEWERS.append(self)
 
@@ -162,58 +162,66 @@ class Viewer:
         """
         # pylint: disable=too-many-branches,too-many-arguments
 
+
+        if dataset_or_folder is not None:
+            self._dataset_or_folder = dataset_or_folder
+        elif self._dataset_or_folder is None:
+            self._dataset_or_folder = Path.cwd()
+
         self._init_server()
         if not self._server:
             raise RuntimeError("Failed to launch backend server")
-        app = self._server.app
+        #app = self._server.app
 
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
 
-        if analyze is not None:
-            app.analyze_issues = analyze
+        #if analyze is not None:
+        #    app.analyze_issues = analyze
 
-        if dataset_or_folder is not None:
-            self._dataset_or_folder = dataset_or_folder
-        elif self._dataset_or_folder is None:
-            self._dataset_or_folder = Path.cwd()
-        if dtype is not None:
-            app.dtype = dtype
+        #if dtype is not None:
+        #    app.dtype = dtype
 
         if dataset_or_folder is not None or dtype is not None:
             # set correct project folder
             if is_pathtype(self._dataset_or_folder):
                 path = Path(self._dataset_or_folder).absolute()
                 if path.is_dir():
-                    app.project_root = path
+                    #app.project_root = path
+                    ...
                 else:
-                    app.project_root = path.parent
-                    app.data_source = create_datasource(path, dtype=app.dtype)
+                    #app.project_root = path.parent
+                    #app.data_source = create_datasource(path, dtype=app.dtype)
+                    ...
             else:
-                app.data_source = create_datasource(
-                    self._dataset_or_folder, dtype=app.dtype
-                )
+                #app.data_source = create_datasource(
+                #    self._dataset_or_folder, dtype=app.dtype
+                #)
+                ...
             self.refresh()
 
         if issues is not None:
-            app.custom_issues = list(issues)
+            #app.custom_issues = list(issues)
+            ...
 
         if layout is not None:
-            app.layout = parse(layout)
-            if app.websocket_manager:
-                app.websocket_manager.broadcast(ResetLayoutMessage())
+            #app.layout = parse(layout)
+            #if app.websocket_manager:
+                #app.websocket_manager.broadcast(ResetLayoutMessage())
+            ...
 
         if allow_filebrowsing != "auto":
             self._allow_filebrowsing = allow_filebrowsing
         elif self._allow_filebrowsing is None:
             self._allow_filebrowsing = is_pathtype(self._dataset_or_folder)
-        app.filebrowsing_allowed = self._allow_filebrowsing
+        # app.filebrowsing_allowed = self._allow_filebrowsing
 
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
+        """
         if (
             not no_browser
             and app.websocket_manager
@@ -222,6 +230,7 @@ class Viewer:
             self.open_browser()
         if wait:
             self.close(True)
+        """
 
     def close(self, wait: bool = False) -> None:
         """
@@ -241,6 +250,7 @@ class Viewer:
             def stop() -> None:
                 wait_event.set()
 
+            """
             def on_connect(_: int) -> None:
                 nonlocal timer
                 if timer:
@@ -259,6 +269,8 @@ class Viewer:
                     on_disconnect
                 )
                 self._server.app.websocket_manager.add_connect_callback(on_connect)
+            """
+
             try:
                 wait_event.wait()
             except KeyboardInterrupt as e:
@@ -270,10 +282,8 @@ class Viewer:
             self._vite.stop()
 
         _VIEWERS.remove(self)
-        self._server.should_exit = True
-        self._thread.join()
+        # self._server.should_exit = True
         self._server = None
-        self._thread = None
         self._vite = None
 
     def open_browser(self) -> None:
@@ -288,23 +298,24 @@ class Viewer:
         """
         Refresh the corresponding Spotlight instance in a browser.
         """
-        if self._server and self._server.app.websocket_manager:
-            self._server.app.websocket_manager.broadcast(RefreshMessage())
+        #if self._server and self._server.app.websocket_manager:
+        #    self._server.app.websocket_manager.broadcast(RefreshMessage())
 
     @property
     def running(self) -> bool:
         """
         True if the viewer's webserver is running, false otherwise.
         """
-        return self._thread is not None and self._server is not None
+        return self._server is not None and self._server.running
 
     @property
     def df(self) -> Optional[pd.DataFrame]:
         """
         Get served `DataFrame` if a `DataFrame` is served, `None` otherwise.
         """
-        if self._server and self._server.app.data_source:
-            return self._server.app.data_source.df
+
+        #if self._server and self._server.app.data_source:
+        #    return self._server.app.data_source.df
         return None
 
     @property
@@ -321,7 +332,7 @@ class Viewer:
         """
         if not self._server:
             return None
-        return self._server.config.port
+        # return self._server.config.port
 
     def __repr__(self) -> str:
         return f"http://{self.host}:{self.port}/"
