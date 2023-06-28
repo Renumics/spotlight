@@ -1,7 +1,10 @@
 import asyncio
+import os
+
 from concurrent.futures import CancelledError, Future
 import re
 from threading import Thread
+import multiprocessing.connection
 from typing import Annotated, Any, List, Literal, Optional, Union
 import uuid
 from fastapi import Cookie, FastAPI, Request, status
@@ -53,8 +56,10 @@ class IssuesUpdatedMessage(Message):
 
 
 class SpotlightApp(FastAPI):
+    _connection: multiprocessing.connection.Connection
     _receiver_thread: Thread
     _data_source: Optional[DataSource]
+
 
     dtype: Optional[ColumnTypeMapping]
     task_manager: TaskManager
@@ -92,9 +97,12 @@ class SpotlightApp(FastAPI):
 
         @self.on_event("startup")
         def _():
+            port = int(os.environ["CONNECTION_PORT"])
+            authkey = os.environ["CONNECTION_AUTHKEY"]
+            self._connection = multiprocessing.connection.Client(('127.0.0.1', port), authkey=authkey.encode())
             self._receiver_thread = Thread(target=self._receive)
             self._receiver_thread.start()
-            self.connection.send({"kind": "startup"})
+            self._connection.send({"kind": "startup"})
             self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
             emit_startup_event()
 
@@ -180,11 +188,6 @@ class SpotlightApp(FastAPI):
             )
             add_timing_middleware(self)
 
-    @property
-    def connection(self):
-        assert worker
-        return worker.connection
-
     def _handle_message(self, message):
         kind = message.get("kind")
 
@@ -203,7 +206,7 @@ class SpotlightApp(FastAPI):
 
     def _receive(self):
         while True:
-            self._handle_message(self.connection.recv())
+            self._handle_message(self._connection.recv())
 
     @property
     def data_source(self) -> Optional[DataSource]:
