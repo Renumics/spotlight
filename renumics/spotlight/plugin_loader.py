@@ -7,9 +7,9 @@ import pkgutil
 from dataclasses import dataclass
 from types import ModuleType
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, TypeVar
+from fastapi import FastAPI
 
-from renumics.spotlight.backend.types import SpotlightApp
 from renumics.spotlight.settings import settings
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.io.path import is_path_relative_to
@@ -27,9 +27,10 @@ class Plugin:
     priority: int
     module: ModuleType
     init: Callable[[], None]
-    activate: Callable[[SpotlightApp], None]
+    activate: Callable[[FastAPI], None]
     dev: bool
     frontend_entrypoint: Optional[Path]
+
 
 
 # pylint: disable=global-statement
@@ -52,7 +53,7 @@ def load_plugins() -> List[Plugin]:
         noop impl for __init__
         """
 
-    def noactivate(_: SpotlightApp) -> None:
+    def noactivate(_: FastAPI) -> None:
         """
         noop impl for __activate__
         """

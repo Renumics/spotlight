@@ -1,4 +1,5 @@
 import asyncio
+import time
 import os
 
 from concurrent.futures import CancelledError, Future
@@ -17,7 +18,6 @@ from fastapi.templating import Jinja2Templates
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.backend.data_source import DataSource
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import Message, RefreshMessage, ResetLayoutMessage, WebsocketManager
 from renumics.spotlight.layout.nodes import Layout
@@ -96,8 +96,16 @@ class SpotlightApp(FastAPI):
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
 
-            # TODO: handle race condition where listener in master is not ready yet
-            self._connection = multiprocessing.connection.Client(('127.0.0.1', port), authkey=authkey.encode())
+            for _ in range(10): 
+                try: 
+                    self._connection = multiprocessing.connection.Client(('127.0.0.1', port), authkey=authkey.encode())
+                except ConnectionRefusedError:
+                    time.sleep(0.1)
+                else:
+                    break
+            else:
+                raise RuntimeError("Failed to connect to parent process")
+
 
             self._receiver_thread = Thread(target=self._receive, daemon=True)
             self._receiver_thread.start()
@@ -112,6 +120,8 @@ class SpotlightApp(FastAPI):
             self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
             self.websocket_manager.add_connect_callback(handle_ws_connect)
             self.websocket_manager.add_disconnect_callback(handle_ws_disconnect)
+
+            self.vite_url = os.environ.get("VITE_URL")
 
             emit_startup_event()
 
@@ -205,13 +215,20 @@ class SpotlightApp(FastAPI):
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
         elif kind == "set_datasource":
+            print(data)
             self.data_source = data
+        elif kind == "get_datasource":
+
+            print("send datasource", self.data_source)
+            self._connection.send({"kind": "datasource", "data": self.data_source})
         elif kind == "set_layout":
             self.layout = data
         elif kind == "set_project_root":
             self.project_root = data
         elif kind == "set_filebrowsing_allowed":
             self.filebrowsing_allowed = data
+        elif kind == "refresh_frontends":
+            self._broadcast(RefreshMessage())
         else:
             logger.warning(f"Unknown message from client process:\n\t{message}")
 

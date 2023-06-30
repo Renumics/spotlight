@@ -62,8 +62,6 @@ import __main__
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.backend import create_datasource
-from renumics.spotlight.develop.vite import Vite
-from renumics.spotlight.settings import settings
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
 from renumics.spotlight.next.server import Server
@@ -90,9 +88,7 @@ class Viewer:
 
     # pylint: disable=too-many-instance-attributes
 
-    _thread: Optional[threading.Thread]
     _server: Optional[Server]
-    _vite: Optional[Vite]
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
@@ -112,7 +108,6 @@ class Viewer:
         self._allow_filebrowsing = None
         self._server = None
         self._thread = None
-        self._vite = None
 
     def _init_server(self) -> None:
         """create a new uvicorn server if necessary"""
@@ -120,13 +115,8 @@ class Viewer:
             return
 
         port = 0 if self._requested_port == "auto" else self._requested_port
-        self._server = Server(create_datasource(self._dataset_or_folder), host=self._host, port=port)
+        self._server = Server(host=self._host, port=port)
         self._server.start()
-
-        #if settings.dev:
-            #self._vite = Vite()
-            #self._vite.start()
-            #app.vite_url = self._vite.url
 
         if self not in _VIEWERS:
             _VIEWERS.append(self)
@@ -244,13 +234,9 @@ class Viewer:
                 self.close(wait=False)
                 raise e
 
-        if self._vite:
-            self._vite.stop()
-
         _VIEWERS.remove(self)
         self._server.stop()
         self._server = None
-        self._vite = None
 
     def open_browser(self) -> None:
         """
@@ -264,8 +250,8 @@ class Viewer:
         """
         Refresh the corresponding Spotlight instance in a browser.
         """
-        #if self._server and self._server.app.websocket_manager:
-        #    self._server.app.websocket_manager.broadcast(RefreshMessage())
+        if self._server:
+            self._server.refresh_frontends()
 
     @property
     def running(self) -> bool:
@@ -280,8 +266,11 @@ class Viewer:
         Get served `DataFrame` if a `DataFrame` is served, `None` otherwise.
         """
 
-        #if self._server and self._server.app.data_source:
-        #    return self._server.app.data_source.df
+        if self._server:
+            datasource = self._server.datasource
+            if datasource is not None:
+                return datasource.df
+
         return None
 
     @property
@@ -298,7 +287,7 @@ class Viewer:
         """
         if not self._server:
             return None
-        # return self._server.config.port
+        return self._server.port
 
     def __repr__(self) -> str:
         return f"http://{self.host}:{self.port}/"
