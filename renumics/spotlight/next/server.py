@@ -1,4 +1,5 @@
 import threading
+import queue
 import socket
 import atexit
 from concurrent.futures import Future
@@ -30,7 +31,9 @@ class Server():
     _vite: Optional[Vite]
 
     process: Optional[subprocess.Popen]
+
     connection: Optional[multiprocessing.connection.Connection]
+    _connection_message_queue: queue.Queue
     _connection_thread: threading.Thread
     _connection_thread_online: threading.Event
     _connection_authkey: str
@@ -62,6 +65,7 @@ class Server():
         self._datasource_up_to_date = threading.Event()
 
         self.connection = None
+        self._connection_message_queue = queue.Queue()
         self._connection_authkey = secrets.token_hex(16)
         self._connection_listener = multiprocessing.connection.Listener(('127.0.0.1', 0), authkey=self._connection_authkey.encode())
         self._connection_thread_online = threading.Event()
@@ -177,7 +181,6 @@ class Server():
     def set_custom_issues(self, issues: List[DataIssue]):
         self.send({"kind": "set_custom_issues", "data": issues})
 
-    # TODO: pass this stuff as a combined configuration object?
     def set_analyze_issues(self, value: bool):
         self.send({"kind": "set_analyze", "data": value})
 
@@ -216,19 +219,30 @@ class Server():
             logger.warning(f"Unknown message from client process:\n\t{message}")
 
     def send(self, message):
-        # TODO: queue messages when no connection is available
-
         if self.connection:
             self.connection.send(message)
+        else: 
+            self._connection_message_queue.put(message)
 
     def _handle_connections(self):
         self._connection_thread_online.set()
         while True:
             self.connection = self._connection_listener.accept()
+
+            # send messages from queue
+            while True: 
+                try:
+                    message = self._connection_message_queue.get()
+                except queue.Empty:
+                    break
+                else:
+                    self.connection.send(message)
+
             while True:
                 try:
                     msg = self.connection.recv()
                 except EOFError:
+                    self.connection = None
                     break
                 self._handle_message(msg)
 

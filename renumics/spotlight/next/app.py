@@ -25,21 +25,14 @@ from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.logging import logger
-
 from renumics.spotlight.backend.apis import plugins as plugin_api
 from renumics.spotlight.backend.apis import websocket
 from renumics.spotlight.settings import settings
-
 from renumics.spotlight.analysis import find_issues
-
 from renumics.spotlight.reporting import emit_exception_event, emit_exit_event, emit_startup_event
-
 from renumics.spotlight.backend.exceptions import Problem
-
 from renumics.spotlight.plugin_loader import load_plugins
-
 from renumics.spotlight.develop.project import get_project_info
-
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 
 
