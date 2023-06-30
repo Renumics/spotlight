@@ -210,21 +210,20 @@ class Viewer:
         elif self._allow_filebrowsing is None:
             self._allow_filebrowsing = is_pathtype(self._dataset_or_folder)
 
-        # app.filebrowsing_allowed = self._allow_filebrowsing
+        self._server.set_filebrowsing_allowed(self._allow_filebrowsing)
 
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
-        """
         if (
             not no_browser
-            and app.websocket_manager
-            and len(app.websocket_manager.connections) == 0
+            and self._server.connected_frontends == 0
         ):
             self.open_browser()
+
         if wait:
             self.close(True)
-        """
+
 
     def close(self, wait: bool = False) -> None:
         """
@@ -234,39 +233,12 @@ class Viewer:
         if self not in _VIEWERS:
             return
 
-        if self._thread is None or self._server is None:
+        if self._server is None:
             return
 
         if wait:
-            wait_event = threading.Event()
-            timer: Optional[threading.Timer] = None
-
-            def stop() -> None:
-                wait_event.set()
-
-            """
-            def on_connect(_: int) -> None:
-                nonlocal timer
-                if timer:
-                    timer.cancel()
-                    timer = None
-
-            def on_disconnect(active_connections: int) -> None:
-                if not active_connections:
-                    ## create timer
-                    nonlocal timer
-                    timer = threading.Timer(3, stop)
-                    timer.start()
-
-            if self._server.app.websocket_manager:
-                self._server.app.websocket_manager.add_disconnect_callback(
-                    on_disconnect
-                )
-                self._server.app.websocket_manager.add_connect_callback(on_connect)
-            """
-
             try:
-                wait_event.wait()
+                self._server.wait_for_frontend_disconnect()
             except KeyboardInterrupt as e:
                 # cleanup on KeyboarInterrupt to prevent zombie processes
                 self.close(wait=False)
@@ -276,7 +248,7 @@ class Viewer:
             self._vite.stop()
 
         _VIEWERS.remove(self)
-        # self._server.should_exit = True
+        self._server.stop()
         self._server = None
         self._vite = None
 

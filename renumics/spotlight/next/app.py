@@ -102,7 +102,17 @@ class SpotlightApp(FastAPI):
             self._receiver_thread = Thread(target=self._receive, daemon=True)
             self._receiver_thread.start()
             self._connection.send({"kind": "startup"})
+
+            def handle_ws_connect(active_connections: int) -> None:
+                self._connection.send({"kind": "frontend_connected", "data": active_connections})
+
+            def handle_ws_disconnect(active_connections: int) -> None:
+                self._connection.send({"kind": "frontend_disconnected", "data": active_connections})
+
             self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
+            self.websocket_manager.add_connect_callback(handle_ws_connect)
+            self.websocket_manager.add_disconnect_callback(handle_ws_disconnect)
+
             emit_startup_event()
 
         @self.on_event("shutdown")
@@ -194,19 +204,25 @@ class SpotlightApp(FastAPI):
 
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
-            return
-        if kind == "set_datasource":
+        elif kind == "set_datasource":
             self.data_source = data
-            return
-        if kind == "set_layout":
+        elif kind == "set_layout":
             self.layout = data
-            return
-
-        logger.warning(f"Unknown message from client process:\n\t{message}")
+        elif kind == "set_project_root":
+            self.project_root = data
+        elif kind == "set_filebrowsing_allowed":
+            self.filebrowsing_allowed = data
+        else:
+            logger.warning(f"Unknown message from client process:\n\t{message}")
 
     def _receive(self):
         while True:
-            self._handle_message(self._connection.recv())
+            try:
+                self._handle_message(self._connection.recv())
+            except EOFError:
+                # the master process closed the connection
+                # just stop receiving
+                return
 
     @property
     def data_source(self) -> Optional[DataSource]:
