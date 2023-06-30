@@ -48,6 +48,8 @@ class Server():
 
     _datasource_up_to_date: threading.Event
 
+    _handled_initial_startup: bool
+
     def __init__(self, host="127.0.0.1", port=8000) -> None:
         self._layout = None
 
@@ -202,7 +204,10 @@ class Server():
             return
 
         if kind == "startup":
-            self.send({"kind": "set_datasource", "data": self._datasource})
+            if self._handled_initial_startup:
+                self.send({"kind": "set_datasource", "data": self._datasource})
+            else:
+                self._handled_initial_startup = True
         elif kind == "frontend_connected":
             self.connected_frontends = message["data"]
             self._all_frontends_disconnected.clear()
@@ -218,10 +223,10 @@ class Server():
         else:
             logger.warning(f"Unknown message from client process:\n\t{message}")
 
-    def send(self, message):
+    def send(self, message, queue=False):
         if self.connection:
             self.connection.send(message)
-        else: 
+        elif queue: 
             self._connection_message_queue.put(message)
 
     def _handle_connections(self):
@@ -232,11 +237,12 @@ class Server():
             # send messages from queue
             while True: 
                 try:
-                    message = self._connection_message_queue.get()
+                    message = self._connection_message_queue.get(block=False)
                 except queue.Empty:
                     break
                 else:
                     self.connection.send(message)
+                    self._connection_message_queue.task_done()
 
             while True:
                 try:

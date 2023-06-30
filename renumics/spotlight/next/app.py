@@ -78,7 +78,7 @@ class SpotlightApp(FastAPI):
         self.vite_url = None
         self.username = ""
         self.filebrowsing_allowed = False
-        self.analyze_issues = True
+        self.analyze_issues = False
         self.issues = None
         self._custom_issues = []
 
@@ -208,11 +208,8 @@ class SpotlightApp(FastAPI):
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
         elif kind == "set_datasource":
-            print(data)
             self.data_source = data
         elif kind == "get_datasource":
-
-            print("send datasource", self.data_source)
             self._connection.send({"kind": "datasource", "data": self.data_source})
         elif kind == "set_layout":
             self.layout = data
@@ -220,6 +217,10 @@ class SpotlightApp(FastAPI):
             self.project_root = data
         elif kind == "set_filebrowsing_allowed":
             self.filebrowsing_allowed = data
+        elif kind == "set_analyze":
+            self.analyze_issues = data
+        elif kind == "set_custom_issues":
+            self.custom_issues = data
         elif kind == "refresh_frontends":
             self._broadcast(RefreshMessage())
         else:
