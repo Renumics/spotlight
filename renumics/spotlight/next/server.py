@@ -241,14 +241,3 @@ class Server():
             self._all_frontends_disconnected.wait()
             if not self._any_frontend_connected.wait(timeout=grace_period):
                 return
-
-
-def show(df: DataFrame):
-    # create datasource
-    datasource = create_datasource(df)
-
-    # setup server process
-    server = Server(datasource)
-    server.start()
-
-    return server
