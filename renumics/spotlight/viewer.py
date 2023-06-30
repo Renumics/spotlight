@@ -50,7 +50,6 @@ Example:
 
 import os
 from pathlib import Path
-import threading
 from typing import Collection, List, Union, Optional
 
 import pandas as pd
@@ -64,7 +63,7 @@ from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
-from renumics.spotlight.next.server import Server
+from renumics.spotlight.server import Server
 
 from renumics.spotlight.analysis.typing import DataIssue
 
@@ -205,15 +204,11 @@ class Viewer:
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
-        if (
-            not no_browser
-            and self._server.connected_frontends == 0
-        ):
+        if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
 
         if wait:
             self.close(True)
-
 
     def close(self, wait: bool = False) -> None:
         """

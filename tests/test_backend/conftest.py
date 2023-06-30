@@ -125,8 +125,8 @@ def testclient() -> TestClient:
     """setup API client with loaded spotlight h5 file in backend"""
 
     # pylint: disable=import-outside-toplevel
-    from renumics.spotlight.backend.app import create_app
+    from renumics.spotlight.app import SpotlightApp
 
-    app = create_app()
+    app = SpotlightApp()
     app.data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
     return TestClient(app)

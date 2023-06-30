@@ -7,7 +7,7 @@ import json
 
 import click
 
-from renumics.spotlight.backend.app import create_app
+from renumics.spotlight.app import SpotlightApp
 
 
 @click.command()
@@ -26,7 +26,7 @@ def generate_api_spec(output_path: str) -> None:
     :return:
     """
     os.environ["SPOTLIGHT_DEV"] = "True"
-    app = create_app()
+    app = SpotlightApp()
 
     with open(output_path, "w", encoding="utf8") as out_f:
         json.dump(app.openapi(), out_f, indent=4)

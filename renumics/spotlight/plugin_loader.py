@@ -7,7 +7,7 @@ import pkgutil
 from dataclasses import dataclass
 from types import ModuleType
 from pathlib import Path
-from typing import Callable, List, Optional, TypeVar
+from typing import Callable, List, Optional
 from fastapi import FastAPI
 
 from renumics.spotlight.settings import settings
@@ -30,7 +30,6 @@ class Plugin:
     activate: Callable[[FastAPI], None]
     dev: bool
     frontend_entrypoint: Optional[Path]
-
 
 
 # pylint: disable=global-statement

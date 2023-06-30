@@ -1,25 +1,33 @@
+"""
+Spotlight wsgi application
+"""
+
 import asyncio
 import time
 import os
-
+from pathlib import Path
 from concurrent.futures import CancelledError, Future
 import re
 from threading import Thread
 import multiprocessing.connection
-from typing import Annotated, Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, List, Literal, Optional, Union
 import uuid
+
 from fastapi import Cookie, FastAPI, Request, status
-from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
-from renumics.spotlight.backend.websockets import Message, RefreshMessage, ResetLayoutMessage, WebsocketManager
+from renumics.spotlight.backend.websockets import (
+    Message,
+    RefreshMessage,
+    ResetLayoutMessage,
+    WebsocketManager,
+)
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
@@ -29,7 +37,11 @@ from renumics.spotlight.backend.apis import plugins as plugin_api
 from renumics.spotlight.backend.apis import websocket
 from renumics.spotlight.settings import settings
 from renumics.spotlight.analysis import find_issues
-from renumics.spotlight.reporting import emit_exception_event, emit_exit_event, emit_startup_event
+from renumics.spotlight.reporting import (
+    emit_exception_event,
+    emit_exit_event,
+    emit_startup_event,
+)
 from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.develop.project import get_project_info
@@ -47,10 +59,14 @@ class IssuesUpdatedMessage(Message):
 
 
 class SpotlightApp(FastAPI):
+    """
+    Spotlight wsgi application
+    """
+    # pylint: disable=too-many-instance-attributes
+
     _connection: multiprocessing.connection.Connection
     _receiver_thread: Thread
     _data_source: Optional[DataSource]
-
 
     task_manager: TaskManager
     websocket_manager: Optional[WebsocketManager]
@@ -69,6 +85,7 @@ class SpotlightApp(FastAPI):
     analyze_issues: bool = True
 
     def __init__(self) -> None:
+        # pylint: disable=too-many-statements
         super().__init__()
         self.task_manager = TaskManager()
         self.websocket_manager = None
@@ -89,9 +106,11 @@ class SpotlightApp(FastAPI):
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
 
-            for _ in range(10): 
-                try: 
-                    self._connection = multiprocessing.connection.Client(('127.0.0.1', port), authkey=authkey.encode())
+            for _ in range(10):
+                try:
+                    self._connection = multiprocessing.connection.Client(
+                        ("127.0.0.1", port), authkey=authkey.encode()
+                    )
                 except ConnectionRefusedError:
                     time.sleep(0.1)
                 else:
@@ -99,16 +118,19 @@ class SpotlightApp(FastAPI):
             else:
                 raise RuntimeError("Failed to connect to parent process")
 
-
             self._receiver_thread = Thread(target=self._receive, daemon=True)
             self._receiver_thread.start()
             self._connection.send({"kind": "startup"})
 
             def handle_ws_connect(active_connections: int) -> None:
-                self._connection.send({"kind": "frontend_connected", "data": active_connections})
+                self._connection.send(
+                    {"kind": "frontend_connected", "data": active_connections}
+                )
 
             def handle_ws_disconnect(active_connections: int) -> None:
-                self._connection.send({"kind": "frontend_disconnected", "data": active_connections})
+                self._connection.send(
+                    {"kind": "frontend_disconnected", "data": active_connections}
+                )
 
             self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
             self.websocket_manager.add_connect_callback(handle_ws_connect)
@@ -168,8 +190,9 @@ class SpotlightApp(FastAPI):
         except AssertionError:
             logger.warning("Frontend module is missing. No frontend will be served.")
 
-
-        templates = Jinja2Templates(directory=Path(__file__).parent.parent / "backend" / "templates")
+        templates = Jinja2Templates(
+            directory=Path(__file__).parent.parent / "backend" / "templates"
+        )
 
         @self.get("/")
         def _(
@@ -186,7 +209,10 @@ class SpotlightApp(FastAPI):
                 },
             )
             response.set_cookie(
-                "browser_id", browser_id or str(uuid.uuid4()), samesite="none", secure=True
+                "browser_id",
+                browser_id or str(uuid.uuid4()),
+                samesite="none",
+                secure=True,
             )
             return response
 
@@ -262,6 +288,9 @@ class SpotlightApp(FastAPI):
 
     @property
     def layout(self) -> Optional[Layout]:
+        """
+        Frontend layout
+        """
         return self._layout
 
     @layout.setter

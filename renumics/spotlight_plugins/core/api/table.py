@@ -19,7 +19,7 @@ from renumics.spotlight.backend.data_source import (
     sanitize_values,
 )
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
-from renumics.spotlight.backend.types import SpotlightApp
+from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
