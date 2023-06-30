@@ -6,7 +6,7 @@ from concurrent.futures import CancelledError, Future
 import re
 from threading import Thread
 import multiprocessing.connection
-from typing import Annotated, Any, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 import uuid
 from fastapi import Cookie, FastAPI, Request, status
 from pathlib import Path
@@ -68,7 +68,7 @@ class SpotlightApp(FastAPI):
     _custom_issues: List[DataIssue] = []
     analyze_issues: bool = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.task_manager = TaskManager()
         self.websocket_manager = None
@@ -85,7 +85,7 @@ class SpotlightApp(FastAPI):
         self.data_source = None
 
         @self.on_event("startup")
-        def _():
+        def _() -> None:
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
 
@@ -201,7 +201,7 @@ class SpotlightApp(FastAPI):
             )
             add_timing_middleware(self)
 
-    def _handle_message(self, message):
+    def _handle_message(self, message: Any) -> None:
         kind = message.get("kind")
         data = message.get("data")
 
@@ -226,7 +226,7 @@ class SpotlightApp(FastAPI):
         else:
             logger.warning(f"Unknown message from client process:\n\t{message}")
 
-    def _receive(self):
+    def _receive(self) -> None:
         while True:
             try:
                 self._handle_message(self._connection.recv())
@@ -265,7 +265,7 @@ class SpotlightApp(FastAPI):
         return self._layout
 
     @layout.setter
-    def layout(self, layout) -> None:
+    def layout(self, layout: Layout) -> None:
         self._layout = layout
         self._broadcast(ResetLayoutMessage())
 

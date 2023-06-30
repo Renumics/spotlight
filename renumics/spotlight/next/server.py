@@ -2,7 +2,6 @@ import threading
 import queue
 import socket
 import atexit
-from concurrent.futures import Future
 
 import os
 import sys
@@ -10,10 +9,8 @@ import secrets
 import multiprocessing
 import subprocess
 import multiprocessing.connection
-from typing import List, Optional
-from pandas import DataFrame
+from typing import List, Optional, Any
 
-from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.logging import logger
 from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.typing import PathType
@@ -48,7 +45,7 @@ class Server():
 
     _datasource_up_to_date: threading.Event
 
-    def __init__(self, host="127.0.0.1", port=8000) -> None:
+    def __init__(self, host: str="127.0.0.1", port: int=8000) -> None:
         self._layout = None
 
         self._vite = None
@@ -76,7 +73,7 @@ class Server():
     def __del__(self) -> None:
         atexit.unregister(self.stop)
 
-    def start(self):
+    def start(self) -> None:
         """
         Start the server process, if it is not running already
         """
@@ -119,7 +116,7 @@ class Server():
                                          "--factory"
                                          ], env=env)
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the server process if it is running
         """
@@ -142,21 +139,21 @@ class Server():
         self._port = self._requested_port
 
     @property
-    def running(self):
+    def running(self) -> bool:
         """
         Is the server process running?
         """
         return self.process is not None
 
     @property
-    def port(self):
+    def port(self) -> int:
         """
         The server's tcp port
         """
         return self._port
 
     @property
-    def datasource(self):
+    def datasource(self) -> Optional[DataSource]:
         # request datasource from app
         self.send({"kind": "get_datasource"})
         # wait for datasource update
@@ -165,36 +162,35 @@ class Server():
         return self._datasource
 
     @datasource.setter
-    def datasource(self, datasource: Optional[DataSource]):
+    def datasource(self, datasource: Optional[DataSource]) -> None:
         self._datasource = datasource
         self.send({"kind": "set_datasource", "data": datasource})
 
     @property
-    def layout(self):
+    def layout(self) -> Optional[Layout]:
         return self._layout
 
     @layout.setter
-    def layout(self, value):
+    def layout(self, value: Layout) -> None:
         self._layout = value
         self.send({"kind": "set_layout", "data": value})
 
-    def set_custom_issues(self, issues: List[DataIssue]):
+    def set_custom_issues(self, issues: List[DataIssue]) -> None:
         self.send({"kind": "set_custom_issues", "data": issues})
 
-    def set_analyze_issues(self, value: bool):
+    def set_analyze_issues(self, value: bool) -> None:
         self.send({"kind": "set_analyze", "data": value})
 
-    def set_project_root(self, value: PathType):
+    def set_project_root(self, value: PathType) -> None:
         self.send({"kind": "set_project_root", "data": value})
 
-    def set_filebrowsing_allowed(self, value: bool):
+    def set_filebrowsing_allowed(self, value: bool) -> None:
         self.send({"kind": "set_filebrowsing_allowed", "data": value})
 
-    def refresh_frontends(self):
+    def refresh_frontends(self) -> None:
         self.send({"kind": "refresh_frontends"})
     
-        
-    def _handle_message(self, message):
+    def _handle_message(self, message: Any) -> None:
         try:
             kind = message["kind"]
         except KeyError:
@@ -218,13 +214,13 @@ class Server():
         else:
             logger.warning(f"Unknown message from client process:\n\t{message}")
 
-    def send(self, message, queue=False):
+    def send(self, message: Any, queue: bool=False) -> None:
         if self.connection:
             self.connection.send(message)
         elif queue: 
             self._connection_message_queue.put(message)
 
-    def _handle_connections(self):
+    def _handle_connections(self) -> None:
         self._connection_thread_online.set()
         while True:
             self.connection = self._connection_listener.accept()
@@ -247,7 +243,7 @@ class Server():
                     break
                 self._handle_message(msg)
 
-    def wait_for_frontend_disconnect(self, grace_period=5):
+    def wait_for_frontend_disconnect(self, grace_period: float=5) -> None:
         """
         Wait for all frontends to disconnect
         """
