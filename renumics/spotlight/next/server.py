@@ -48,8 +48,6 @@ class Server():
 
     _datasource_up_to_date: threading.Event
 
-    _handled_initial_startup: bool
-
     def __init__(self, host="127.0.0.1", port=8000) -> None:
         self._layout = None
 
@@ -204,10 +202,7 @@ class Server():
             return
 
         if kind == "startup":
-            if self._handled_initial_startup:
-                self.send({"kind": "set_datasource", "data": self._datasource})
-            else:
-                self._handled_initial_startup = True
+            self.send({"kind": "set_datasource", "data": self._datasource})
         elif kind == "frontend_connected":
             self.connected_frontends = message["data"]
             self._all_frontends_disconnected.clear()
