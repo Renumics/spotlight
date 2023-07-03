@@ -63,6 +63,7 @@ class SpotlightApp(FastAPI):
     """
     Spotlight wsgi application
     """
+
     # pylint: disable=too-many-instance-attributes
 
     _connection: multiprocessing.connection.Connection
@@ -192,7 +193,7 @@ class SpotlightApp(FastAPI):
             logger.warning("Frontend module is missing. No frontend will be served.")
 
         templates = Jinja2Templates(
-            directory=Path(__file__).parent.parent / "backend" / "templates"
+            directory=Path(__file__).parent / "backend" / "templates"
         )
 
         @self.get("/")
