@@ -10,7 +10,8 @@ from concurrent.futures import CancelledError, Future
 import re
 from threading import Thread
 import multiprocessing.connection
-from typing import Annotated, Any, List, Literal, Optional, Union
+from typing import Any, List, Literal, Optional, Union
+from typing_extensions import Annotated
 import uuid
 
 from fastapi import Cookie, FastAPI, Request, status
