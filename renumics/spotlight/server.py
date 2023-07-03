@@ -29,6 +29,7 @@ class Server:
     """
     Local proxy object for the spotlight server process
     """
+
     # pylint: disable=too-many-instance-attributes
 
     _host: str
