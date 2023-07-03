@@ -15,7 +15,7 @@ NumberType = Union[IntType, FloatType]
 
 PathType = Union[str, os.PathLike]
 PathOrUrlType = Union[str, os.PathLike]
-Indices1DTypeDTypedType = Union[PathOrUrlType, IO]
+FileType = Union[PathOrUrlType, IO]
 
 IndexType = Union[int, np.integer]
 Indices1dType = Union[

@@ -17,7 +17,7 @@ import validators
 from loguru import logger
 
 from renumics.spotlight.requests import headers
-from renumics.spotlight.typing import Indices1DTypeDTypedType, NumberType, PathType
+from renumics.spotlight.typing import FileType, NumberType, PathType
 from . import exceptions, triangulation
 from .base import DType, FileBasedDType
 from ..io import audio, gltf, file as file_io
@@ -614,7 +614,7 @@ class Image(FileBasedDType):
         self.data = data_array.astype("uint8")
 
     @classmethod
-    def from_file(cls, filepath: Indices1DTypeDTypedType) -> "Image":
+    def from_file(cls, filepath: FileType) -> "Image":
         """
         Read image from a filepath, an URL, or a file-like object.
 
@@ -730,7 +730,7 @@ class Audio(FileBasedDType):
         self.sampling_rate = sampling_rate
 
     @classmethod
-    def from_file(cls, filepath: Indices1DTypeDTypedType) -> "Audio":
+    def from_file(cls, filepath: FileType) -> "Audio":
         """
         Read audio file from a filepath, an URL, or a file-like object.
 
