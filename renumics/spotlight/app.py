@@ -48,6 +48,8 @@ from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping
+
 
 @dataclass
 class IssuesUpdatedMessage(Message):
@@ -275,6 +277,15 @@ class SpotlightApp(FastAPI):
         self._data_source = new_data_source
         self._broadcast(RefreshMessage())
         self._update_issues()
+
+    @property
+    def dtype(self) -> Optional[ColumnTypeMapping]:
+        """
+        Data types
+        """
+        if self._data_source is None:
+            return None
+        return self._data_source.dtype
 
     @property
     def custom_issues(self) -> List[DataIssue]:
