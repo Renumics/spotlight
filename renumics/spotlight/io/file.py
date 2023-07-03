@@ -11,12 +11,12 @@ import requests
 import validators
 
 from renumics.spotlight.requests import headers
-from renumics.spotlight.typing import FileType
+from renumics.spotlight.typing import Indices1DTypeDTypedType
 from renumics.spotlight.dtypes import exceptions
 
 
 @contextlib.contextmanager
-def as_file(filepath: FileType) -> Iterator[IO]:
+def as_file(filepath: Indices1DTypeDTypedType) -> Iterator[IO]:
     """
     If a path is given, open the given file.
     If an URL is given, download and open the given file.

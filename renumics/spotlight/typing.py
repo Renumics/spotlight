@@ -14,11 +14,11 @@ FloatType = Union[float, np.floating]
 NumberType = Union[IntType, FloatType]
 
 PathType = Union[str, os.PathLike]
-PathOrURLType = Union[str, os.PathLike]
-FileType = Union[PathOrURLType, IO]
+PathOrUrlType = Union[str, os.PathLike]
+Indices1DTypeDTypedType = Union[PathOrUrlType, IO]
 
 IndexType = Union[int, np.integer]
-Indices1DType = Union[
+Indices1dType = Union[
     slice, List[int], List[np.integer], List[bool], List[np.bool_], np.ndarray
 ]
 
