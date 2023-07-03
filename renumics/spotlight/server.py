@@ -3,7 +3,7 @@ Local proxy object for the spotlight server process
 """
 
 import threading
-import queue
+from queue import Queue, Empty
 import socket
 import atexit
 
@@ -40,7 +40,7 @@ class Server:
     process: Optional[subprocess.Popen]
 
     connection: Optional[multiprocessing.connection.Connection]
-    _connection_message_queue: queue.Queue
+    _connection_message_queue: Queue
     _connection_thread: threading.Thread
     _connection_thread_online: threading.Event
     _connection_authkey: str
@@ -72,7 +72,7 @@ class Server:
         self._datasource_up_to_date = threading.Event()
 
         self.connection = None
-        self._connection_message_queue = queue.Queue()
+        self._connection_message_queue = Queue()
         self._connection_authkey = secrets.token_hex(16)
         self._connection_listener = multiprocessing.connection.Listener(
             ("127.0.0.1", 0), authkey=self._connection_authkey.encode()
@@ -282,7 +282,7 @@ class Server:
             while True:
                 try:
                     message = self._connection_message_queue.get(block=False)
-                except queue.Empty:
+                except Empty:
                     break
                 else:
                     self.connection.send(message)
