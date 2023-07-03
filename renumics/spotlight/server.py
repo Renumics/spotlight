@@ -40,6 +40,8 @@ class Server:
 
     process: Optional[subprocess.Popen]
 
+    _startup_event: threading.Event
+
     connection: Optional[multiprocessing.connection.Connection]
     _connection_message_queue: Queue
     _connection_thread: threading.Thread
@@ -78,6 +80,8 @@ class Server:
         self._connection_listener = multiprocessing.connection.Listener(
             ("127.0.0.1", 0), authkey=self._connection_authkey.encode()
         )
+
+        self._startup_event = threading.Event()
         self._connection_thread_online = threading.Event()
         self._connection_thread = threading.Thread(
             target=self._handle_connections, daemon=True
@@ -168,6 +172,8 @@ class Server:
 
         self._port = self._requested_port
 
+        self._startup_event.clear()
+
     @property
     def running(self) -> bool:
         """
@@ -250,6 +256,7 @@ class Server:
 
         if kind == "startup":
             self.send({"kind": "set_datasource", "data": self._datasource})
+            self._startup_event.set()
         elif kind == "frontend_connected":
             self.connected_frontends = message["data"]
             self._all_frontends_disconnected.clear()
@@ -296,6 +303,12 @@ class Server:
                     self.connection = None
                     break
                 self._handle_message(msg)
+
+    def wait_for_startup(self) -> None:
+        """
+        Wait for server to startup
+        """
+        self._startup_event.wait()
 
     def wait_for_frontend_disconnect(self, grace_period: float = 5) -> None:
         """

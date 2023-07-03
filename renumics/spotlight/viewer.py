@@ -207,6 +207,8 @@ class Viewer:
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
 
+        self._server.wait_for_startup()
+
         if wait:
             self.close(True)
 

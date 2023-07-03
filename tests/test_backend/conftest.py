@@ -22,7 +22,7 @@ def viewer_csv_df() -> Iterator[spotlight.Viewer]:
     csv_df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
     viewer = spotlight.show(
         csv_df,
-        "127.0.0.1",
+        host="127.0.0.1",
         no_browser=True,
         port="auto",
         wait=False,
