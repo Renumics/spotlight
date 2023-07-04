@@ -48,6 +48,7 @@ Example:
 
 """
 
+import time
 import os
 from pathlib import Path
 from typing import Collection, List, Union, Optional
@@ -108,18 +109,6 @@ class Viewer:
         self._server = None
         self._thread = None
 
-    def _init_server(self) -> None:
-        """create a new uvicorn server if necessary"""
-        if self._server:
-            return
-
-        port = 0 if self._requested_port == "auto" else self._requested_port
-        self._server = Server(host=self._host, port=port)
-        self._server.start()
-
-        if self not in _VIEWERS:
-            _VIEWERS.append(self)
-
     def show(
         self,
         dataset_or_folder: Optional[Union[PathType, pd.DataFrame]] = None,
@@ -160,17 +149,19 @@ class Viewer:
         if dtype is not None:
             self._dtype = dtype
 
-        self._init_server()
         if not self._server:
-            raise RuntimeError("Failed to launch backend server")
+            port = 0 if self._requested_port == "auto" else self._requested_port
+            self._server = Server(host=self._host, port=port)
+            self._server.start()
+            self._server.wait_for_startup()
+
+            if self not in _VIEWERS:
+                _VIEWERS.append(self)
 
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
-
-        if analyze is not None:
-            self._server.set_analyze_issues(analyze)
 
         if dataset_or_folder is not None or dtype is not None:
             # set correct project folder
@@ -188,6 +179,9 @@ class Viewer:
                 )
             self.refresh()
 
+        if analyze is not None:
+            self._server.set_analyze_issues(analyze)
+
         if issues is not None:
             self._server.set_custom_issues(list(issues))
 
@@ -204,10 +198,12 @@ class Viewer:
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
+        # give the server some time to process the messages
+        # we might use some sort of ping pong for this instead
+        time.sleep(3)
+
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
-
-        self._server.wait_for_startup()
 
         if wait:
             self.close(True)

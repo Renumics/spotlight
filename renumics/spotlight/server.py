@@ -72,6 +72,7 @@ class Server:
         self._any_frontend_connected = threading.Event()
         self._all_frontends_disconnected = threading.Event()
 
+        self._datasource = None
         self._datasource_up_to_date = threading.Event()
 
         self.connection = None
@@ -255,7 +256,6 @@ class Server:
             return
 
         if kind == "startup":
-            self.send({"kind": "set_datasource", "data": self._datasource})
             self._startup_event.set()
         elif kind == "frontend_connected":
             self.connected_frontends = message["data"]
