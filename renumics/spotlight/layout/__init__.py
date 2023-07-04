@@ -5,7 +5,7 @@ A Spotlight layout consists of multiple widgets, grouped into tabs and splits.
 """
 import os
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Union, cast, overload
+from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
 
 # pylint: disable=no-name-in-module
 from pydantic import (
@@ -302,13 +302,18 @@ _TABLE_TAB_TO_TABLE_VIEW: Dict[_TableTab, _TableView] = {
     "filtered": "filtered",
     "selected": "selected",
 }
+_SortOrder = Literal["ascending", "descending"]
+_SORT_ORDER_MAPPING: Dict[_SortOrder, str] = {
+    "ascending": "ASC",
+    "descending": "DESC",
+}
 
 
 def table(
     name: Optional[str] = None,
     active_view: _TableTab = "all",
     visible_columns: Optional[List[str]] = None,
-    sort_by_columns: Optional[List[str]] = None,
+    sort_by_columns: Optional[List[Tuple[str, _SortOrder]]] = None,
     order_by_relevance: bool = False,
 ) -> _Table:
     """
@@ -319,7 +324,12 @@ def table(
         config=_TableConfig(
             active_view=_TABLE_TAB_TO_TABLE_VIEW[active_view],
             visible_columns=visible_columns,
-            sort_by_columns=sort_by_columns,
+            sort_by_columns=None
+            if sort_by_columns is None
+            else [
+                [column, _SORT_ORDER_MAPPING[order]]
+                for column, order in sort_by_columns
+            ],
             order_by_relevance=order_by_relevance,
         ),
     )
