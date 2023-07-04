@@ -105,7 +105,7 @@ class TableConfig(WidgetConfig):
     # pylint: disable=too-few-public-methods
     active_view: TableView = Field("full", alias="tableView")
     visible_columns: Optional[List[str]] = Field(None, alias="visibleColumns")
-    sort_by_columns: Optional[List[str]] = Field(None, alias="sorting")
+    sort_by_columns: Optional[List[List[str]]] = Field(None, alias="sorting")
     order_by_relevance: bool = Field(False, alias="orderByRelevance")
 
 
