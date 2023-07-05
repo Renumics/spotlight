@@ -120,10 +120,8 @@ jobs:
               uses: druzsan/setup-matrix@v1
               with:
                   matrix: |
-                      os: windows-latest,
-                      python-version: 3.8 3.9 3.10 3.11
-                  include: |
-                      os: ubuntu-latest python-version: 3.8,
+                      os: ubuntu-latest,
+                      python-version: 3.8
             - name: Print matrix
               run: echo "$MATRIX" | yq -P '{"matrix":.}'
             - name: Set output
