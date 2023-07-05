@@ -16,7 +16,7 @@ import {
     TableData,
 } from '../../types';
 import api from '../../api';
-import { notify, notifyAPIError } from '../../notify';
+import { notifyAPIError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
