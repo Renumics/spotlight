@@ -104,7 +104,7 @@ check-wheel: ## Check wheel content
 unit-test: ## Execute tests
 	export SPOTLIGHT_DEV=False
 	poetry run pytest tests
-	poetry run pytest --doctest-modules renumics
+	poetry run pytest --doctest-modules --pyargs renumics
 	pnpm run test
 
 .PHONY: api-test
