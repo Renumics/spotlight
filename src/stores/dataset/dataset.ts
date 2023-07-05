@@ -144,14 +144,6 @@ const fetchTable = async (): Promise<{
         };
     }
 
-    // notify the user if a (demo) limit is hit
-    if (table.maxColumnsHit) {
-        notify('Columns in table exceed column limit.', 'warning');
-    }
-    if (table.maxRowsHit) {
-        notify('Rows in table exceed wow limit.', 'warning');
-    }
-
     const columns = table.columns.map(makeColumn);
     const columnData: TableData = {};
     table.columns.forEach((rawColumn, i) => {

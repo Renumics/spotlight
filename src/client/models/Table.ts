@@ -42,18 +42,6 @@ export interface Table {
     columns: Array<Column>;
     /**
      *
-     * @type {boolean}
-     * @memberof Table
-     */
-    maxRowsHit: boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof Table
-     */
-    maxColumnsHit: boolean;
-    /**
-     *
      * @type {number}
      * @memberof Table
      */
@@ -68,8 +56,6 @@ export function instanceOfTable(value: object): boolean {
     isInstance = isInstance && 'uid' in value;
     isInstance = isInstance && 'filename' in value;
     isInstance = isInstance && 'columns' in value;
-    isInstance = isInstance && 'maxRowsHit' in value;
-    isInstance = isInstance && 'maxColumnsHit' in value;
     isInstance = isInstance && 'generationId' in value;
 
     return isInstance;
@@ -87,8 +73,6 @@ export function TableFromJSONTyped(json: any, ignoreDiscriminator: boolean): Tab
         uid: json['uid'],
         filename: json['filename'],
         columns: (json['columns'] as Array<any>).map(ColumnFromJSON),
-        maxRowsHit: json['max_rows_hit'],
-        maxColumnsHit: json['max_columns_hit'],
         generationId: json['generation_id'],
     };
 }
@@ -104,8 +88,6 @@ export function TableToJSON(value?: Table | null): any {
         uid: value.uid,
         filename: value.filename,
         columns: (value.columns as Array<any>).map(ColumnToJSON),
-        max_rows_hit: value.maxRowsHit,
-        max_columns_hit: value.maxColumnsHit,
         generation_id: value.generationId,
     };
 }

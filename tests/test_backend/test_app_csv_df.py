@@ -28,5 +28,3 @@ def test_read_table(viewer_csv_df: spotlight.Viewer) -> None:
     assert _column_by_name(json_data["columns"], "audio")["role"] == "Audio"
     assert _column_by_name(json_data["columns"], "embedding")["role"] == "Embedding"
     assert _column_by_name(json_data["columns"], "video")["role"] == "Video"
-    assert not json_data["max_rows_hit"]
-    assert not json_data["max_columns_hit"]

@@ -78,5 +78,3 @@ def test_read_table(viewer_tally_df: spotlight.Viewer) -> None:
     json_data = json.loads(response.text)
     assert _column_by_name(json_data["columns"], "even_text")["role"] == "str"
     assert _column_by_name(json_data["columns"], "encoded")["role"] == "Embedding"
-    assert not json_data["max_rows_hit"]
-    assert not json_data["max_columns_hit"]

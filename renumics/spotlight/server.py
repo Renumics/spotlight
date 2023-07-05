@@ -49,7 +49,7 @@ class Server:
     _connection_authkey: str
     _connection_listener: multiprocessing.connection.Listener
 
-    _df_receive_queue: Queue[pd.DataFrame]
+    _df_receive_queue: Queue
 
     connected_frontends: int
     _all_frontends_disconnected: threading.Event
