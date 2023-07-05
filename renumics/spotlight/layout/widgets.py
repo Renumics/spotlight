@@ -178,26 +178,13 @@ class Similaritymap(Widget):
     config: Optional[SimilaritymapConfig] = None
 
 
-InspectorViewNames = Literal[
-    "AudioView",
-    "SpectrogramView",
-    "VideoView",
-    "ImageView",
-    "MeshView",
-    "ScalarView",
-    "SequenceView",
-    "Autocomplete",
-    "Switch",
-]
-
-
 class InspectorView(WidgetConfig):
     """
     Inspector view configuration model.
     """
 
     # pylint: disable=too-few-public-methods
-    type: InspectorViewNames = Field(..., alias="view")
+    type: str = Field(..., alias="view")
     columns: List[str] = Field(..., alias="columns")
     name: Optional[str] = Field(None, alias="name")
     id: Optional[str] = Field(None, alias="key")
