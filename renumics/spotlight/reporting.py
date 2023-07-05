@@ -28,7 +28,11 @@ def _get_node() -> str:
     get the anonymized (hashed) unique node id for this machine
     'spotlight' is added to the hash in order to prevent tracking across different apps
     """
-    return machineid.hashed_id("spotlight")
+    try:
+        return machineid.hashed_id("spotlight")
+    except Exception:  # pylint: disable=broad-exception-caught
+        logger.debug("Unable to obtain machine ID")
+        return "UNKNOWN"
 
 
 TOKEN = _get_node()
