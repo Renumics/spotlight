@@ -82,7 +82,7 @@ class SpotlightApp(FastAPI):
 
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
-    _dtypes: ColumnTypeMapping
+    _dtypes: Optional[ColumnTypeMapping]
     _data_source: Optional[DataSource]
 
     task_manager: TaskManager
@@ -117,6 +117,8 @@ class SpotlightApp(FastAPI):
         self.issues = None
         self._custom_issues = []
 
+        self._dataset = None
+        self._dtypes = None
         self.data_source = None
 
         @self.on_event("startup")
