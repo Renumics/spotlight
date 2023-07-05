@@ -19,7 +19,12 @@ try {
     if ($GenerationID -eq $Null) {
         throw "No connection to Spotlight"
     }
-    Invoke-WebRequest "${URL}/api/table/number/42?generation_id=${GenerationID}"
+    try {
+        Invoke-WebRequest "${URL}/api/table/number/42?generation_id=${GenerationID}"
+    }
+    catch {
+        throw "Connection with generation_id=${GenerationID} failed. Error message: ${_}"
+    }
 }
 finally {
     if ($Process -ne $Null) {
