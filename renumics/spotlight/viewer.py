@@ -48,7 +48,6 @@ Example:
 
 """
 
-import time
 import os
 from pathlib import Path
 from typing import Collection, List, Union, Optional
@@ -61,12 +60,13 @@ import IPython.display
 import __main__
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
-from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
 from renumics.spotlight.server import Server
 
 from renumics.spotlight.analysis.typing import DataIssue
+
+from renumics.spotlight.app_config import AppConfig
 
 
 class ViewerNotFoundError(Exception):
@@ -139,68 +139,57 @@ class Viewer:
             analyze: Automatically analyze common dataset issues (disabled by default).
             issues: Custom dataset issues displayed in the viewer.
         """
-        # pylint: disable=too-many-branches,too-many-arguments
+        # pylint: disable=too-many-branches,too-many-arguments, too-many-locals
 
-        if dataset_or_folder is not None:
-            self._dataset_or_folder = dataset_or_folder
-        elif self._dataset_or_folder is None:
-            self._dataset_or_folder = Path.cwd()
+        if is_pathtype(self._dataset_or_folder):
+            path = Path(self._dataset_or_folder).absolute()
+            if path.is_dir():
+                project_root = path
+                dataset = None
+            else:
+                project_root = path.parent
+                dataset = path
+        elif isinstance(dataset_or_folder, pd.DataFrame):
+            dataset = dataset_or_folder
+            project_root = None
+        else:
+            dataset = None
+            project_root = None
 
-        if dtype is not None:
-            self._dtype = dtype
+        if allow_filebrowsing != "auto":
+            filebrowsing_allowed = allow_filebrowsing
+        elif self._allow_filebrowsing is None:
+            filebrowsing_allowed = is_pathtype(self._dataset_or_folder)
+        else:
+            filebrowsing_allowed = allow_filebrowsing is True
+
+        config = AppConfig(
+            dataset=dataset,
+            dtypes=dtype,
+            project_root=project_root,
+            analyze=analyze,
+            custom_issues=list(issues) if issues else None,
+            layout=parse(layout) if layout else None,
+            filebrowsing_allowed=filebrowsing_allowed,
+        )
 
         if not self._server:
             port = 0 if self._requested_port == "auto" else self._requested_port
             self._server = Server(host=self._host, port=port)
-            self._server.start()
-            self._server.wait_for_startup()
+            self._server.start(config)
 
             if self not in _VIEWERS:
                 _VIEWERS.append(self)
+        else:
+            self._server.update(config)
 
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
 
-        if dataset_or_folder is not None or dtype is not None:
-            # set correct project folder
-            if is_pathtype(self._dataset_or_folder):
-                path = Path(self._dataset_or_folder).absolute()
-                if path.is_dir():
-                    self._server.set_project_root(path)
-                    self._server.datasource = None
-                else:
-                    self._server.set_project_root(path.parent)
-                    self._server.datasource = create_datasource(path, dtype=self._dtype)
-            else:
-                self._server.datasource = create_datasource(
-                    self._dataset_or_folder, dtype=self._dtype
-                )
-            self.refresh()
-
-        if analyze is not None:
-            self._server.set_analyze_issues(analyze)
-
-        if issues is not None:
-            self._server.set_custom_issues(list(issues))
-
-        if layout is not None:
-            self._server.layout = parse(layout)
-
-        if allow_filebrowsing != "auto":
-            self._allow_filebrowsing = allow_filebrowsing
-        elif self._allow_filebrowsing is None:
-            self._allow_filebrowsing = is_pathtype(self._dataset_or_folder)
-
-        self._server.set_filebrowsing_allowed(self._allow_filebrowsing)
-
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
-
-        # give the server some time to process the messages
-        # we might use some sort of ping pong for this instead
-        time.sleep(3)
 
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
@@ -258,11 +247,8 @@ class Viewer:
         """
         Get served `DataFrame` if a `DataFrame` is served, `None` otherwise.
         """
-
         if self._server:
-            datasource = self._server.datasource
-            if datasource is not None:
-                return datasource.df
+            return self._server.get_df()
 
         return None
 

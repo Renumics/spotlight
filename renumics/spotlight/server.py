@@ -13,16 +13,16 @@ import secrets
 import multiprocessing
 import multiprocessing.connection
 import subprocess
-from typing import List, Optional, Any
+from typing import Optional, Any
+
+import pandas as pd
 
 from renumics.spotlight.logging import logger
-from renumics.spotlight.backend.data_source import DataSource
-from renumics.spotlight.typing import PathType
-from renumics.spotlight.analysis.typing import DataIssue
-from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.settings import settings
 
 from renumics.spotlight.develop.vite import Vite
+
+from renumics.spotlight.app_config import AppConfig
 
 
 class Server:
@@ -49,19 +49,16 @@ class Server:
     _connection_authkey: str
     _connection_listener: multiprocessing.connection.Listener
 
-    _datasource: Optional[DataSource]
-    _layout: Optional[Layout]
+    _df_receive_queue: Queue[pd.DataFrame]
 
     connected_frontends: int
     _all_frontends_disconnected: threading.Event
     _any_frontend_connected: threading.Event
 
-    _datasource_up_to_date: threading.Event
-
     def __init__(self, host: str = "127.0.0.1", port: int = 8000) -> None:
-        self._layout = None
-
         self._vite = None
+
+        self._app_config = AppConfig()
 
         self._host = host
         self._requested_port = port
@@ -72,9 +69,6 @@ class Server:
         self._any_frontend_connected = threading.Event()
         self._all_frontends_disconnected = threading.Event()
 
-        self._datasource = None
-        self._datasource_up_to_date = threading.Event()
-
         self.connection = None
         self._connection_message_queue = Queue()
         self._connection_authkey = secrets.token_hex(16)
@@ -83,22 +77,28 @@ class Server:
         )
 
         self._startup_event = threading.Event()
+        self._startup_complete_event = threading.Event()
+
         self._connection_thread_online = threading.Event()
         self._connection_thread = threading.Thread(
             target=self._handle_connections, daemon=True
         )
+
+        self._df_receive_queue = Queue()
 
         atexit.register(self.stop)
 
     def __del__(self) -> None:
         atexit.unregister(self.stop)
 
-    def start(self) -> None:
+    def start(self, config: AppConfig) -> None:
         """
         Start the server process, if it is not running already
         """
         if self.process:
             return
+
+        self._app_config = config
 
         # launch connection thread
         self._connection_thread = threading.Thread(
@@ -151,6 +151,8 @@ class Server:
             env=env,
         )
 
+        self._startup_complete_event.wait(timeout=120)
+
     def stop(self) -> None:
         """
         Stop the server process if it is running
@@ -174,6 +176,7 @@ class Server:
         self._port = self._requested_port
 
         self._startup_event.clear()
+        self._startup_complete_event.clear()
 
     @property
     def running(self) -> bool:
@@ -189,64 +192,19 @@ class Server:
         """
         return self._port
 
-    @property
-    def datasource(self) -> Optional[DataSource]:
+    def update(self, config: AppConfig) -> None:
         """
-        The current datasource
+        Update app config
         """
-        # request datasource from app
-        self.send({"kind": "get_datasource"})
-        # wait for datasource update
-        self._datasource_up_to_date.wait()
-        self._datasource_up_to_date.clear()
-        return self._datasource
+        self._app_config = config
+        self.send({"kind": "update", "data": config})
 
-    @datasource.setter
-    def datasource(self, datasource: Optional[DataSource]) -> None:
-        self._datasource = datasource
-        self.send({"kind": "set_datasource", "data": datasource})
-
-    @property
-    def layout(self) -> Optional[Layout]:
+    def get_df(self) -> Optional[pd.DataFrame]:
         """
-        The configured fronted layout
+        Request and return the current DafaFrame from the server process (if possible)
         """
-        return self._layout
-
-    @layout.setter
-    def layout(self, value: Layout) -> None:
-        self._layout = value
-        self.send({"kind": "set_layout", "data": value})
-
-    def set_custom_issues(self, issues: List[DataIssue]) -> None:
-        """
-        Set the user supplied issues on the server
-        """
-        self.send({"kind": "set_custom_issues", "data": issues})
-
-    def set_analyze_issues(self, value: bool) -> None:
-        """
-        Enable automatic issue analysis
-        """
-        self.send({"kind": "set_analyze", "data": value})
-
-    def set_project_root(self, value: PathType) -> None:
-        """
-        Set the project root
-        """
-        self.send({"kind": "set_project_root", "data": value})
-
-    def set_filebrowsing_allowed(self, value: bool) -> None:
-        """
-        (Dis)allow filebrowsing
-        """
-        self.send({"kind": "set_filebrowsing_allowed", "data": value})
-
-    def refresh_frontends(self) -> None:
-        """
-        Refresh all connected frontends
-        """
-        self.send({"kind": "refresh_frontends"})
+        self.send({"kind": "get_df"})
+        return self._df_receive_queue.get(block=True)
 
     def _handle_message(self, message: Any) -> None:
         try:
@@ -257,6 +215,9 @@ class Server:
 
         if kind == "startup":
             self._startup_event.set()
+            self.update(self._app_config)
+        elif kind == "startup_complete":
+            self._startup_complete_event.set()
         elif kind == "frontend_connected":
             self.connected_frontends = message["data"]
             self._all_frontends_disconnected.clear()
@@ -266,9 +227,8 @@ class Server:
             if self.connected_frontends == 0:
                 self._any_frontend_connected.clear()
                 self._all_frontends_disconnected.set()
-        elif kind == "datasource":
-            self._datasource = message["data"]
-            self._datasource_up_to_date.set()
+        elif kind == "df":
+            self._df_receive_queue.put(message["data"])
         else:
             logger.warning(f"Unknown message from client process:\n\t{message}")
 
@@ -280,6 +240,12 @@ class Server:
             self.connection.send(message)
         elif queue:
             self._connection_message_queue.put(message)
+
+    def refresh_frontends(self) -> None:
+        """
+        Refresh all connected frontends
+        """
+        self.send({"kind": "refresh_frontends"})
 
     def _handle_connections(self) -> None:
         self._connection_thread_online.set()
@@ -303,12 +269,6 @@ class Server:
                     self.connection = None
                     break
                 self._handle_message(msg)
-
-    def wait_for_startup(self) -> None:
-        """
-        Wait for server to startup
-        """
-        self._startup_event.wait()
 
     def wait_for_frontend_disconnect(self, grace_period: float = 5) -> None:
         """

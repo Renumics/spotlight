@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic.dataclasses import dataclass
+import pandas as pd
 
 from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
@@ -50,6 +51,10 @@ from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
+from renumics.spotlight.app_config import AppConfig
+
+from renumics.spotlight.backend import create_datasource
+
 
 @dataclass
 class IssuesUpdatedMessage(Message):
@@ -68,8 +73,16 @@ class SpotlightApp(FastAPI):
 
     # pylint: disable=too-many-instance-attributes
 
+    # lifecycle
+    _startup_complete: bool
+
+    # connection
     _connection: multiprocessing.connection.Connection
     _receiver_thread: Thread
+
+    # datasource
+    _dataset: Optional[Union[PathType, pd.DataFrame]]
+    _dtypes: ColumnTypeMapping
     _data_source: Optional[DataSource]
 
     task_manager: TaskManager
@@ -91,6 +104,7 @@ class SpotlightApp(FastAPI):
     def __init__(self) -> None:
         # pylint: disable=too-many-statements
         super().__init__()
+        self._startup_complete = False
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
@@ -231,26 +245,39 @@ class SpotlightApp(FastAPI):
             )
             add_timing_middleware(self)
 
+    def _update(self, config: AppConfig) -> None:
+        if config.project_root is not None:
+            self.project_root = config.project_root
+        if config.dataset is not None:
+            self._dataset = config.dataset
+        if config.dtypes is not None:
+            self._dtypes = config.dtypes
+        if config.dataset is not None or config.dtypes is not None:
+            self.data_source = create_datasource(self._dataset, self._dtypes)
+        if config.layout is not None:
+            self.layout = config.layout
+        if config.filebrowsing_allowed is not None:
+            self.filebrowsing_allowed = config.filebrowsing_allowed
+        if config.analyze is not None:
+            self.analyze_issues = config.analyze
+        if config.custom_issues is not None:
+            self.custom_issues = config.custom_issues
+
+        if not self._startup_complete:
+            self._startup_complete = True
+            self._connection.send({"kind": "startup_complete"})
+
     def _handle_message(self, message: Any) -> None:
         kind = message.get("kind")
         data = message.get("data")
 
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
-        elif kind == "set_datasource":
-            self.data_source = data
-        elif kind == "get_datasource":
-            self._connection.send({"kind": "datasource", "data": self.data_source})
-        elif kind == "set_layout":
-            self.layout = data
-        elif kind == "set_project_root":
-            self.project_root = data
-        elif kind == "set_filebrowsing_allowed":
-            self.filebrowsing_allowed = data
-        elif kind == "set_analyze":
-            self.analyze_issues = data
-        elif kind == "set_custom_issues":
-            self.custom_issues = data
+        elif kind == "update":
+            self._update(data)
+        elif kind == "get_df":
+            df = self.data_source.df if self.data_source else None
+            self._connection.send({"kind": "df", "data": df})
         elif kind == "refresh_frontends":
             self._broadcast(RefreshMessage())
         else:
