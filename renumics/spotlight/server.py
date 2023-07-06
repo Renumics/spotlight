@@ -125,31 +125,32 @@ class Server:
             sock.bind((self._host, self._port))
             self._port = sock.getsockname()[1]
 
+        command = [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "renumics.spotlight.app:SpotlightApp",
+            "--host",
+            self._host,
+            "--port",
+            str(self._port),
+            "--log-level",
+            "debug",
+            "--http",
+            "httptools",
+            "--ws",
+            "websockets",
+            "--timeout-graceful-shutdown",
+            str(2),
+            "--factory",
+        ]
+
+        if settings.dev:
+            command.extend(["--reload"])
+
         # start uvicorn
         # pylint: disable=consider-using-with
-        self.process = subprocess.Popen(
-            [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "renumics.spotlight.app:SpotlightApp",
-                "--host",
-                self._host,
-                "--port",
-                str(self._port),
-                "--reload",
-                "--log-level",
-                "debug",
-                "--http",
-                "httptools",
-                "--ws",
-                "websockets",
-                "--timeout-graceful-shutdown",
-                str(5),
-                "--factory",
-            ],
-            env=env,
-        )
+        self.process = subprocess.Popen(command, env=env)
 
         self._startup_complete_event.wait(timeout=120)
 
