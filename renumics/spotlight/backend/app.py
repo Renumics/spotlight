@@ -9,14 +9,13 @@ from typing import Any
 
 from fastapi import Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
 
 import httpx
 from httpx import AsyncClient
-from starlette.background import BackgroundTask
 
 from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.develop.project import get_project_info
@@ -109,26 +108,39 @@ def create_app() -> SpotlightApp:
 
     templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
-    async def _reverse_proxy(request: Request) -> StreamingResponse:
+    async def _reverse_proxy(request: Request) -> Response:
         http_server = AsyncClient(base_url=request.app.vite_url)
         url = httpx.URL(path=request.url.path, query=request.url.query.encode("utf-8"))
+
+        # NOTE: URL-encoding is not accepted by vite. Use unencoded path instead.
+        # pylint: disable-next=protected-access
+        url._uri_reference = url._uri_reference._replace(path=request.url.path)
+
+        body = await request.body()
+
         rp_req = http_server.build_request(
             request.method,
             url,
             headers=request.headers.raw,
-            content=await request.body(),
+            content=body,
         )
 
-        rp_resp = await http_server.send(rp_req, stream=True)
+        rp_resp = await http_server.send(rp_req, stream=False)
 
-        return StreamingResponse(
-            rp_resp.aiter_raw(),
+        return Response(
+            content=rp_resp.content,
             status_code=rp_resp.status_code,
             headers=rp_resp.headers,
-            background=BackgroundTask(rp_resp.aclose),
         )
 
     app.add_route("/src/{path:path}", _reverse_proxy, ["POST", "GET"])
+    app.add_route(
+        "/node_modules/.vite/dist/client/{path:path}", _reverse_proxy, ["POST", "GET"]
+    )
+    app.add_route(
+        "/node_modules/.vite/deps/{path:path}", _reverse_proxy, ["POST", "GET"]
+    )
+    app.add_route("/node_modules/.pnpm/{path:path}", _reverse_proxy, ["POST", "GET"])
 
     @app.get("/")
     def _(request: Request) -> Any:
