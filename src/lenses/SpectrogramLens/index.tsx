@@ -11,6 +11,7 @@ import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType } from './Spectrogram';
+import { FFTWorker } from './SpectrogramWorker';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -95,15 +96,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const waveform = useRef<WaveSurfer>();
 
     const spectrogramCanvas = useRef<HTMLCanvasElement>(null);
-    const FFTWorker = useRef(
-        Comlink.wrap(
-            //new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-            new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-                type: 'module',
-            })
-        )
-    );
-
     const wavesurferElement = useRef<HTMLDivElement>(null);
     const wavesurferContainer = useRef<HTMLDivElement>(null);
     const scaleContainer = useRef<SVGSVGElement>(null);
@@ -128,183 +120,130 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         // Trigger redraw
         drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, isLogScale);
     });
-    const initWorker = async () => {
-        if (!waveform.current) return;
-        if (!spectrogramCanvas.current) return;
-
-        if (size[0] === 0) return;
-
-        if (spectrogramCanvas.current) {
-            spectrogramCanvas.current.width = size[0];
-            spectrogramCanvas.current.height = size[1];
-        }
-
-        //const worker = new Worker(new URL('SpectrogramWorker.js', import.meta.url));
-        const backend = waveform.current.backend as unknown as WebAudio_;
-        //worker?.postMessage({
-        //channelData: backend.buffer.getChannelData(0).slice(start, end),
-        //sampleRate: backend.buffer.sampleRate,
-        //width: width,
-        //fftSamples: FFT_SAMPLES,
-        //windowFunc: undefined,
-        //alpha: undefined,
-        //});
-        const buffer = backend.buffer;
-        if (!buffer) return;
-
-        const width = spectrogramCanvas.current.clientWidth;
-        const height = spectrogramCanvas.current.height;
-        const duration = waveform.current.getDuration() ?? 1;
-
-        const fixedWindow: [number, number] = fixWindow(window, duration);
-
-        const start = (fixedWindow[0] / duration) * buffer.length;
-        const end = (fixedWindow[1] / duration) * buffer.length;
-
-        // TODO arguments passed are actually for the function call (e.data or smth)
-        //const workerInstance = await new FFTWorkerClass(backend.buffer.getChannelData(0).slice(start, end), backend.buffer.sampleRate, width, FFT_SAMPLES, undefined, undefined);
-        //calculateFrequencies(bufferSize: number, sampleRate: number, windowFunc: string, alpha: number, e: any) {
-        //columnRelevance = await state.relevanceWorker.computeRelevances(
-        //workerInstance = await new FFTWorkerClass(
-        //buffer.length,
-        //buffer.sampleRate,
-        //backend.windowFunc,
-        //backend.alpha
-        //);
-        console.log(FFTWorker.current);
-        await FFTWorker.current.testFunc();
-        console.log('returned from testfunc');
-        const frequenciesData = await FFTWorker.current.calculateFrequencies(
-            buffer.length,
-            buffer.sampleRate,
-            backend.windowFunc,
-            backend.alpha,
-            buffer.getChannelData(0).slice(start, end)
-        );
-
-        //const frequenciesData = await workerInstance.calculateFrequencies(
-        //buffer.getChannelData(0).slice(start, end)
-        //);
-
-        //worker.onmessage = (e) => {
-        //if (!waveform.current) return;
-        //if (!spectrogramCanvas.current) return;
-
-        setIsComputing(false);
-
-        // Get the canvas render context 2D
-        const spectrCc = spectrogramCanvas.current.getContext('2d');
-
-        //const backend = waveform.current.backend as unknown as WebAudio_;
-
-        //const frequenciesData = frequenciesDict.data;
-
-        const upperLimit = backend.buffer?.sampleRate / 2;
-
-        // 10, ..., half-samplerate (default 22050)
-        const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
-
-        //const width = spectrogramCanvas.current.width;
-
-        // 0, ..., canvas-height
-        const range = [0, height];
-
-        if (!spectrCc) {
-            return;
-        }
-
-        const imageData = new ImageData(width, height);
-
-        const scale = d3.scaleLog(domain, range);
-
-        const heightScale = isLogScale
-            ? d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1])
-            : d3.scaleLinear(domain, [0, upperLimit]);
-
-        const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
-        const colorMap = colorPalette.scale().colors(256, 'gl');
-
-        for (let y = 0; y < height; y++) {
-            const value = isLogScale
-                ? heightScale(scale.invert(height - y))
-                : Math.abs(heightScale(height - y));
-            const indexA = Math.floor(value);
-            const indexB = indexA + 1;
-            const alpha = value - indexA;
-
-            for (let x = 0; x < width; x++) {
-                const x_index = Math.floor(widthScale(x));
-
-                const value_a = frequenciesData[x_index][indexA];
-                const value_b = frequenciesData[x_index][indexB];
-
-                const color_a = colorMap[value_a];
-                const color_b = colorMap[value_b];
-
-                const offset = (y * width + x) * 4;
-
-                // Linear interpolation between two samples
-                imageData.data[offset + 0] =
-                    255 * (color_b[0] * alpha + color_a[0] * (1 - alpha));
-                imageData.data[offset + 1] =
-                    255 * (color_b[1] * alpha + color_a[1] * (1 - alpha));
-                imageData.data[offset + 2] =
-                    255 * (color_b[2] * alpha + color_a[2] * (1 - alpha));
-
-                imageData.data[offset + 3] = 255;
-            }
-        }
-
-        spectrCc.putImageData(imageData, 0, 0);
-        //};
-    };
 
     useEffect(() => {
-        initWorker();
-        console.log('test2');
-
-        const drawSpectrogram = () => {
+        const drawSpectrogram = async () => {
             if (!waveform.current) return;
             if (!spectrogramCanvas.current) return;
 
+            if (size[0] === 0) return;
+
+            if (spectrogramCanvas.current) {
+                spectrogramCanvas.current.width = size[0];
+                spectrogramCanvas.current.height = size[1];
+            }
+            const FFTWorkerClass = Comlink.wrap<typeof FFTWorker>(
+                new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
+                    type: 'module',
+                })
+            );
+
+            const backend = waveform.current.backend as unknown as WebAudio_;
+            const buffer = backend.buffer;
+            if (!buffer) return;
+
             const width = spectrogramCanvas.current.clientWidth;
+            const height = spectrogramCanvas.current.height;
             const duration = waveform.current.getDuration() ?? 1;
 
             const fixedWindow: [number, number] = fixWindow(window, duration);
 
-            const backend = waveform.current.backend as unknown as WebAudio_;
-
-            const start = (fixedWindow[0] / duration) * backend.buffer.length;
-            const end = (fixedWindow[1] / duration) * backend.buffer.length;
+            const start = (fixedWindow[0] / duration) * buffer.length;
+            const end = (fixedWindow[1] / duration) * buffer.length;
 
             if (start + FFT_SAMPLES > end) {
                 setIsValidWindow(false);
                 return;
             }
 
-            //worker?.postMessage({
-            //channelData: backend.buffer.getChannelData(0).slice(start, end),
-            //sampleRate: backend.buffer.sampleRate,
-            //width: width,
-            //fftSamples: FFT_SAMPLES,
-            //windowFunc: undefined,
-            //alpha: undefined,
-            //});
+            const instance = await new FFTWorkerClass(
+                FFT_SAMPLES,
+                buffer.sampleRate,
+                backend.windowFunc,
+                backend.alpha
+            );
+
+            const frequenciesData = await instance.calculateFrequencies({
+                channelData: buffer.getChannelData(0).slice(start, end),
+                sampleRate: buffer.sampleRate,
+                width: width,
+                fftSamples: FFT_SAMPLES,
+                windowFunc: undefined,
+                alpha: undefined,
+            });
+
+            setIsComputing(false);
+
+            // Get the canvas render context 2D
+            const spectrCc = spectrogramCanvas.current.getContext('2d');
+
+            if (!spectrCc) {
+                return;
+            }
+
+            const upperLimit = backend.buffer?.sampleRate / 2;
+
+            // 10, ..., half-samplerate (default 22050)
+            const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+
+            // 0, ..., canvas-height
+            const range = [0, height];
+
+            const imageData = new ImageData(width, height);
+
+            const scale = d3.scaleLog(domain, range);
+
+            const heightScale = isLogScale
+                ? d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1])
+                : d3.scaleLinear(domain, [0, upperLimit]);
+
+            const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
+            const colorMap = colorPalette.scale().colors(256, 'gl');
+
+            for (let y = 0; y < height; y++) {
+                const value = isLogScale
+                    ? heightScale(scale.invert(height - y))
+                    : Math.abs(heightScale(height - y));
+                const indexA = Math.floor(value);
+                const indexB = indexA + 1;
+                const alpha = value - indexA;
+
+                for (let x = 0; x < width; x++) {
+                    const x_index = Math.floor(widthScale(x));
+
+                    const value_a = frequenciesData[x_index][indexA];
+                    const value_b = frequenciesData[x_index][indexB];
+
+                    const color_a = colorMap[value_a];
+                    const color_b = colorMap[value_b];
+
+                    const offset = (y * width + x) * 4;
+
+                    // Linear interpolation between two samples
+                    imageData.data[offset + 0] =
+                        255 * (color_b[0] * alpha + color_a[0] * (1 - alpha));
+                    imageData.data[offset + 1] =
+                        255 * (color_b[1] * alpha + color_a[1] * (1 - alpha));
+                    imageData.data[offset + 2] =
+                        255 * (color_b[2] * alpha + color_a[2] * (1 - alpha));
+
+                    imageData.data[offset + 3] = 255;
+                }
+            }
+
+            spectrCc.putImageData(imageData, 0, 0);
 
             setIsValidWindow(true);
-            setIsComputing(true);
         };
 
         if (waveform.current?.isReady) {
-            console.log('test3');
             drawSpectrogram();
         } else {
             waveform?.current?.on('ready', drawSpectrogram);
         }
-        console.log('test4');
 
         return () => {
-            //FFTWorkerClass?.terminate();
+            //spectrogramWorker?.terminate();
         };
     }, [window, isLogScale, colorPalette, size]);
 
@@ -350,13 +289,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             backend: 'WebAudio',
         });
         waveform.current?.load(url);
-
-        //FFTWorker = Comlink.wrap(
-        ////new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-        //new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-        //type: 'module',
-        //})
-        //);
 
         d3.select(container)
             .on('mousemove', (e) => {
