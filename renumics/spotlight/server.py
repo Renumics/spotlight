@@ -135,7 +135,7 @@ class Server:
             "--port",
             str(self._port),
             "--log-level",
-            "debug",
+            "critical",
             "--http",
             "httptools",
             "--ws",
