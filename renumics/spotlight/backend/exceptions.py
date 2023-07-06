@@ -6,7 +6,7 @@ from typing import Any, Optional, Type
 from fastapi import status
 
 from renumics.spotlight.dtypes.typing import ColumnType
-from renumics.spotlight.typing import IndexType, PathOrURLType, PathType
+from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
 
 
 class Problem(Exception):
@@ -101,7 +101,7 @@ class ColumnNotEditable(Problem):
 class InvalidExternalData(Problem):
     """External data is not readable"""
 
-    def __init__(self, value: PathOrURLType) -> None:
+    def __init__(self, value: PathOrUrlType) -> None:
         super().__init__(
             "Invalid external data",
             f"Failed to read external data '{value}'.",

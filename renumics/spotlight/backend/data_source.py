@@ -13,7 +13,7 @@ import numpy as np
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.io import audio
-from renumics.spotlight.typing import PathOrURLType, PathType, is_iterable
+from renumics.spotlight.typing import PathOrUrlType, PathType, is_iterable
 from renumics.spotlight.dataset import prepare_path_or_url
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
@@ -346,7 +346,7 @@ def read_external_value(
 
 
 def _decode_external_value(
-    path_or_url: PathOrURLType,
+    path_or_url: PathOrUrlType,
     column_type: Type[FileBasedColumnType],
     target_format: Optional[str] = None,
     workdir: PathType = ".",

@@ -102,11 +102,14 @@ check-wheel: ## Check wheel content
 
 .PHONY: unit-test
 unit-test: ## Execute tests
-	poetry run pytest --doctest-modules --ignore=ui_tests --ignore=api-tests --ignore=dev
+	export SPOTLIGHT_DEV=False
+	poetry run pytest tests
+	poetry run pytest --doctest-modules --pyargs renumics
 	pnpm run test
 
 .PHONY: api-test
 api-test: ## Execute API tests
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -128,6 +131,7 @@ api-test: ## Execute API tests
 
 .PHONY: ui-test-%
 ui-test-%:
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -142,6 +146,7 @@ ui-test-%:
 
 .PHONY: test-spotlight-start
 test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -156,6 +161,7 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 
 .PHONY: test-spotlight-notebook-start
 test-spotlight-notebook-start: ## Test Spotlight Notebook start (Spotlight should be installed)
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		rm -f output.log
 	}

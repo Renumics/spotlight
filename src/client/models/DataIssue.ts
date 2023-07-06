@@ -13,9 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Severity } from './Severity';
-import { SeverityFromJSON, SeverityFromJSONTyped, SeverityToJSON } from './Severity';
-
 /**
  * An Issue affecting multiple rows of the dataset
  * @export
@@ -24,10 +21,10 @@ import { SeverityFromJSON, SeverityFromJSONTyped, SeverityToJSON } from './Sever
 export interface DataIssue {
     /**
      *
-     * @type {Severity}
+     * @type {string}
      * @memberof DataIssue
      */
-    severity?: Severity;
+    severity?: DataIssueSeverityEnum;
     /**
      *
      * @type {string}
@@ -55,6 +52,17 @@ export interface DataIssue {
 }
 
 /**
+ * @export
+ */
+export const DataIssueSeverityEnum = {
+    Low: 'low',
+    Medium: 'medium',
+    High: 'high',
+} as const;
+export type DataIssueSeverityEnum =
+    typeof DataIssueSeverityEnum[keyof typeof DataIssueSeverityEnum];
+
+/**
  * Check if a given object implements the DataIssue interface.
  */
 export function instanceOfDataIssue(value: object): boolean {
@@ -77,9 +85,7 @@ export function DataIssueFromJSONTyped(
         return json;
     }
     return {
-        severity: !exists(json, 'severity')
-            ? undefined
-            : SeverityFromJSON(json['severity']),
+        severity: !exists(json, 'severity') ? undefined : json['severity'],
         title: json['title'],
         rows: json['rows'],
         columns: !exists(json, 'columns') ? undefined : json['columns'],
@@ -95,7 +101,7 @@ export function DataIssueToJSON(value?: DataIssue | null): any {
         return null;
     }
     return {
-        severity: SeverityToJSON(value.severity),
+        severity: value.severity,
         title: value.title,
         rows: value.rows,
         columns: value.columns,

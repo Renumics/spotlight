@@ -22,8 +22,8 @@ from . import exceptions, triangulation
 from .base import DType, FileBasedDType
 from ..io import audio, gltf, file as file_io
 
-Array1DLike = Union[Sequence[NumberType], np.ndarray]
-Array2DLike = Union[Sequence[Sequence[NumberType]], np.ndarray]
+Array1dLike = Union[Sequence[NumberType], np.ndarray]
+Array2dLike = Union[Sequence[Sequence[NumberType]], np.ndarray]
 ImageLike = Union[
     Sequence[Sequence[Union[NumberType, Sequence[NumberType]]]], np.ndarray
 ]
@@ -53,7 +53,7 @@ class Embedding(DType):
     data: np.ndarray
 
     def __init__(
-        self, data: Array1DLike, dtype: Optional[Union[str, np.dtype]] = None
+        self, data: Array1dLike, dtype: Optional[Union[str, np.dtype]] = None
     ) -> None:
         data_array = np.asarray(data, dtype)
         if data_array.ndim != 1 or data_array.size == 0:
@@ -110,8 +110,8 @@ class Sequence1D(DType):
 
     def __init__(
         self,
-        index: Optional[Array1DLike],
-        value: Optional[Array1DLike] = None,
+        index: Optional[Array1dLike],
+        value: Optional[Array1dLike] = None,
         dtype: Optional[Union[str, np.dtype]] = None,
     ) -> None:
         if value is None:
@@ -161,7 +161,7 @@ class Sequence1D(DType):
 
     @staticmethod
     def _sanitize_data(
-        data: Array1DLike, dtype: Optional[Union[str, np.dtype]]
+        data: Array1dLike, dtype: Optional[Union[str, np.dtype]]
     ) -> np.ndarray:
         array = np.asarray(data, dtype)
         if array.ndim != 1:
@@ -209,8 +209,8 @@ class Mesh(FileBasedDType):
 
     def __init__(
         self,
-        points: Array2DLike,
-        triangles: Array2DLike,
+        points: Array2dLike,
+        triangles: Array2dLike,
         point_attributes: Optional[Dict[str, np.ndarray]] = None,
         triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
         point_displacements: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
@@ -445,7 +445,7 @@ class Mesh(FileBasedDType):
         ]
 
     def _set_points_triangles(
-        self, points: Array2DLike, triangles: Array2DLike
+        self, points: Array2dLike, triangles: Array2dLike
     ) -> None:
         # Check points.
         points_array = np.asarray(points, np.float32)
@@ -707,7 +707,7 @@ class Audio(FileBasedDType):
     data: np.ndarray
     sampling_rate: int
 
-    def __init__(self, sampling_rate: int, data: Array2DLike) -> None:
+    def __init__(self, sampling_rate: int, data: Array2dLike) -> None:
         data_array = np.asarray(data)
         is_valid_multi_channel = (
             data_array.size > 0 and data_array.ndim == 2 and data_array.shape[1] <= 5

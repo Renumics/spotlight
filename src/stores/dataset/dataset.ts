@@ -16,7 +16,7 @@ import {
     TableData,
 } from '../../types';
 import api from '../../api';
-import { notify, notifyAPIError } from '../../notify';
+import { notifyAPIError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
@@ -142,14 +142,6 @@ const fetchTable = async (): Promise<{
                 data: {},
             },
         };
-    }
-
-    // notify the user if a (demo) limit is hit
-    if (table.maxColumnsHit) {
-        notify('Columns in table exceed column limit.', 'warning');
-    }
-    if (table.maxRowsHit) {
-        notify('Rows in table exceed wow limit.', 'warning');
     }
 
     const columns = table.columns.map(makeColumn);

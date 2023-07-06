@@ -19,7 +19,6 @@ models/Plugin.ts
 models/ResponseGetValue.ts
 models/SetConfigRequest.ts
 models/SetLayoutRequest.ts
-models/Severity.ts
 models/Table.ts
 models/ValidationError.ts
 models/Value.ts

@@ -50,7 +50,6 @@ Example:
 
 import os
 from pathlib import Path
-import threading
 from typing import Collection, List, Union, Optional
 
 import pandas as pd
@@ -61,15 +60,13 @@ import IPython.display
 import __main__
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
-from renumics.spotlight.backend.server import create_server, Server
-from renumics.spotlight.backend.websockets import RefreshMessage, ResetLayoutMessage
-from renumics.spotlight.backend import create_datasource
-from renumics.spotlight.develop.vite import Vite
-from renumics.spotlight.settings import settings
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
+from renumics.spotlight.server import Server
 
 from renumics.spotlight.analysis.typing import DataIssue
+
+from renumics.spotlight.app_config import AppConfig
 
 
 class ViewerNotFoundError(Exception):
@@ -91,12 +88,11 @@ class Viewer:
 
     # pylint: disable=too-many-instance-attributes
 
-    _thread: Optional[threading.Thread]
     _server: Optional[Server]
-    _vite: Optional[Vite]
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
+    _dtype: Optional[ColumnTypeMapping]
     _allow_filebrowsing: Optional[bool]
     _layout: Optional[_LayoutLike]
 
@@ -108,27 +104,10 @@ class Viewer:
         self._host = host
         self._requested_port = port
         self._dataset_or_folder = None
+        self._dtype = None
         self._allow_filebrowsing = None
         self._server = None
         self._thread = None
-        self._vite = None
-
-    def _init_server(self) -> None:
-        """create a new uvicorn server if necessary"""
-        if self._server:
-            return
-
-        self._server = create_server(self._host, self._requested_port)
-        app = self._server.app
-
-        if settings.dev:
-            self._vite = Vite()
-            self._vite.start()
-            app.vite_url = self._vite.url
-
-        self._thread = self._server.run_in_thread()
-        if self not in _VIEWERS:
-            _VIEWERS.append(self)
 
     def show(
         self,
@@ -160,66 +139,61 @@ class Viewer:
             analyze: Automatically analyze common dataset issues (disabled by default).
             issues: Custom dataset issues displayed in the viewer.
         """
-        # pylint: disable=too-many-branches,too-many-arguments
+        # pylint: disable=too-many-branches,too-many-arguments, too-many-locals
 
-        self._init_server()
+        if is_pathtype(self._dataset_or_folder):
+            path = Path(self._dataset_or_folder).absolute()
+            if path.is_dir():
+                project_root = path
+                dataset = None
+            else:
+                project_root = path.parent
+                dataset = path
+        elif isinstance(dataset_or_folder, pd.DataFrame):
+            dataset = dataset_or_folder
+            project_root = None
+        else:
+            dataset = None
+            project_root = None
+
+        if allow_filebrowsing != "auto":
+            filebrowsing_allowed = allow_filebrowsing
+        elif self._allow_filebrowsing is None:
+            filebrowsing_allowed = is_pathtype(self._dataset_or_folder)
+        else:
+            filebrowsing_allowed = allow_filebrowsing is True
+
+        config = AppConfig(
+            dataset=dataset,
+            dtypes=dtype,
+            project_root=project_root,
+            analyze=analyze,
+            custom_issues=list(issues) if issues else None,
+            layout=parse(layout) if layout else None,
+            filebrowsing_allowed=filebrowsing_allowed,
+        )
+
         if not self._server:
-            raise RuntimeError("Failed to launch backend server")
-        app = self._server.app
+            port = 0 if self._requested_port == "auto" else self._requested_port
+            self._server = Server(host=self._host, port=port)
+            self._server.start(config)
+
+            if self not in _VIEWERS:
+                _VIEWERS.append(self)
+        else:
+            self._server.update(config)
 
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
             wait = not in_interactive_session
 
-        if analyze is not None:
-            app.analyze_issues = analyze
-
-        if dataset_or_folder is not None:
-            self._dataset_or_folder = dataset_or_folder
-        elif self._dataset_or_folder is None:
-            self._dataset_or_folder = Path.cwd()
-        if dtype is not None:
-            app.dtype = dtype
-
-        if dataset_or_folder is not None or dtype is not None:
-            # set correct project folder
-            if is_pathtype(self._dataset_or_folder):
-                path = Path(self._dataset_or_folder).absolute()
-                if path.is_dir():
-                    app.project_root = path
-                else:
-                    app.project_root = path.parent
-                    app.data_source = create_datasource(path, dtype=app.dtype)
-            else:
-                app.data_source = create_datasource(
-                    self._dataset_or_folder, dtype=app.dtype
-                )
-            self.refresh()
-
-        if issues is not None:
-            app.custom_issues = list(issues)
-
-        if layout is not None:
-            app.layout = parse(layout)
-            if app.websocket_manager:
-                app.websocket_manager.broadcast(ResetLayoutMessage())
-
-        if allow_filebrowsing != "auto":
-            self._allow_filebrowsing = allow_filebrowsing
-        elif self._allow_filebrowsing is None:
-            self._allow_filebrowsing = is_pathtype(self._dataset_or_folder)
-        app.filebrowsing_allowed = self._allow_filebrowsing
-
         if not in_interactive_session or wait:
             print(f"Spotlight running on http://{self.host}:{self.port}/")
 
-        if (
-            not no_browser
-            and app.websocket_manager
-            and len(app.websocket_manager.connections) == 0
-        ):
+        if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
+
         if wait:
             self.close(True)
 
@@ -231,50 +205,20 @@ class Viewer:
         if self not in _VIEWERS:
             return
 
-        if self._thread is None or self._server is None:
+        if self._server is None:
             return
 
         if wait:
-            wait_event = threading.Event()
-            timer: Optional[threading.Timer] = None
-
-            def stop() -> None:
-                wait_event.set()
-
-            def on_connect(_: int) -> None:
-                nonlocal timer
-                if timer:
-                    timer.cancel()
-                    timer = None
-
-            def on_disconnect(active_connections: int) -> None:
-                if not active_connections:
-                    ## create timer
-                    nonlocal timer
-                    timer = threading.Timer(3, stop)
-                    timer.start()
-
-            if self._server.app.websocket_manager:
-                self._server.app.websocket_manager.add_disconnect_callback(
-                    on_disconnect
-                )
-                self._server.app.websocket_manager.add_connect_callback(on_connect)
             try:
-                wait_event.wait()
+                self._server.wait_for_frontend_disconnect()
             except KeyboardInterrupt as e:
                 # cleanup on KeyboarInterrupt to prevent zombie processes
                 self.close(wait=False)
                 raise e
 
-        if self._vite:
-            self._vite.stop()
-
         _VIEWERS.remove(self)
-        self._server.should_exit = True
-        self._thread.join()
+        self._server.stop()
         self._server = None
-        self._thread = None
-        self._vite = None
 
     def open_browser(self) -> None:
         """
@@ -288,23 +232,24 @@ class Viewer:
         """
         Refresh the corresponding Spotlight instance in a browser.
         """
-        if self._server and self._server.app.websocket_manager:
-            self._server.app.websocket_manager.broadcast(RefreshMessage())
+        if self._server:
+            self._server.refresh_frontends()
 
     @property
     def running(self) -> bool:
         """
         True if the viewer's webserver is running, false otherwise.
         """
-        return self._thread is not None and self._server is not None
+        return self._server is not None and self._server.running
 
     @property
     def df(self) -> Optional[pd.DataFrame]:
         """
         Get served `DataFrame` if a `DataFrame` is served, `None` otherwise.
         """
-        if self._server and self._server.app.data_source:
-            return self._server.app.data_source.df
+        if self._server:
+            return self._server.get_df()
+
         return None
 
     @property
@@ -321,7 +266,7 @@ class Viewer:
         """
         if not self._server:
             return None
-        return self._server.config.port
+        return self._server.port
 
     def __repr__(self) -> str:
         return f"http://{self.host}:{self.port}/"

@@ -19,7 +19,7 @@ from renumics.spotlight.backend.data_source import (
     sanitize_values,
 )
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
-from renumics.spotlight.backend.types import SpotlightApp
+from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
@@ -115,8 +115,6 @@ class Table(BaseModel):
     uid: str
     filename: str
     columns: List[Column]
-    max_rows_hit: bool
-    max_columns_hit: bool
     generation_id: int
 
 
@@ -143,8 +141,6 @@ def get_table(request: Request) -> ORJSONResponse:
                 uid="",
                 filename="",
                 columns=[],
-                max_rows_hit=False,
-                max_columns_hit=False,
                 generation_id=-1,
             ).dict()
         )
@@ -163,8 +159,6 @@ def get_table(request: Request) -> ORJSONResponse:
             uid=table.get_uid(),
             filename=table.get_name(),
             columns=[Column.from_dataset_column(column) for column in columns],
-            max_rows_hit=False,
-            max_columns_hit=False,
             generation_id=table.get_generation_id(),
         ).dict()
     )

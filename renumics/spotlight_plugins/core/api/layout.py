@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 from fastapi import APIRouter, Request, Cookie
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
-from renumics.spotlight.backend.types import SpotlightApp
+from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
 router = APIRouter()

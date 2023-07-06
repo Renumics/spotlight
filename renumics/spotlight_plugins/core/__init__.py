@@ -3,7 +3,7 @@
     Provides core datatypes and sources.
 """
 
-from renumics.spotlight.backend.app import SpotlightApp
+from renumics.spotlight.app import SpotlightApp
 from .api import (
     table as table_api,
     filebrowser as file_api,
