@@ -117,7 +117,7 @@ class FFTWorker {
         }
     }
 
-    calculateSpectrum(buffer: any) {
+    calculateSpectrum(buffer: Float32Array) {
         const real = new Float32Array(this.bufferSize);
         const imag = new Float32Array(this.bufferSize);
         const bSi = 2 / this.bufferSize;
@@ -126,7 +126,7 @@ class FFTWorker {
         let rval;
         let ival;
         let mag;
-        let peakBand = 0;
+        //let peakBand = 0;
         let peak = 0;
         const k = Math.floor(Math.log(this.bufferSize) / Math.LN2);
         if (Math.pow(2, k) !== this.bufferSize) {
@@ -190,7 +190,7 @@ class FFTWorker {
             ival = imag[i];
             mag = bSi * sqrt(rval * rval + ival * ival);
             if (mag > peak) {
-                peakBand = i;
+                //peakBand = i;
                 peak = mag;
             }
             spectrum[i] = mag;
@@ -198,11 +198,9 @@ class FFTWorker {
         return spectrum;
     }
 
-    calculateFrequencies(data: any) {
-        const width = data.width;
-        const fftSamples = data.fftSamples;
+    calculateFrequencies(width: number, fftSamples: number, channelData: Float32Array) {
         const frequencies = [];
-        const uniqueSamplesPerPx = data.channelData.length / width;
+        const uniqueSamplesPerPx = channelData.length / width;
 
         const noverlap = Math.min(
             fftSamples - 1,
@@ -211,10 +209,9 @@ class FFTWorker {
 
         const channels = 1;
         for (let c = 0; c < channels; c++) {
-            const channelData = data.channelData;
             const channelFreq = [];
             let currentOffset = 0;
-            while (currentOffset + fftSamples < data.channelData.length) {
+            while (currentOffset + fftSamples < channelData.length) {
                 const segment = channelData.slice(
                     currentOffset,
                     currentOffset + fftSamples

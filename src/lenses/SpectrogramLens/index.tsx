@@ -163,14 +163,11 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 backend.alpha
             );
 
-            const frequenciesData = await instance.calculateFrequencies({
-                channelData: buffer.getChannelData(0).slice(start, end),
-                sampleRate: buffer.sampleRate,
-                width: width,
-                fftSamples: FFT_SAMPLES,
-                windowFunc: undefined,
-                alpha: undefined,
-            });
+            const frequenciesData = await instance.calculateFrequencies(
+                width,
+                FFT_SAMPLES,
+                buffer.getChannelData(0).slice(start, end)
+            );
 
             setIsComputing(false);
 
