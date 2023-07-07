@@ -10,7 +10,7 @@ from concurrent.futures import CancelledError, Future
 import re
 from threading import Thread
 import multiprocessing.connection
-from typing import Any, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 import uuid
 
 from typing_extensions import Annotated
@@ -54,6 +54,8 @@ from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.app_config import AppConfig
 
 from renumics.spotlight.backend import create_datasource
+
+from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
 
 @dataclass
@@ -329,16 +331,30 @@ class SpotlightApp(FastAPI):
         self._broadcast(IssuesUpdatedMessage())
 
     @property
-    def layout(self) -> Optional[Layout]:
+    def layout(self) -> Layout:
         """
         Frontend layout
         """
-        return self._layout
+        return self._layout or DEFAULT_LAYOUT
 
     @layout.setter
-    def layout(self, layout: Layout) -> None:
+    def layout(self, layout: Optional[Layout]) -> None:
         self._layout = layout
         self._broadcast(ResetLayoutMessage())
+
+    async def get_current_layout_dict(self, user_id: str) -> Optional[Dict]:
+        """
+        Get the user's current layout (as dict)
+        """
+
+        if not self.data_source:
+            return None
+
+        dataset_uid = self.data_source.get_uid()
+        layout = await self.config.get(
+            "layout.current", dataset=dataset_uid, user=user_id
+        ) or self.layout.dict(by_alias=True)
+        return cast(Optional[Dict], layout)
 
     def _update_issues(self) -> None:
         """

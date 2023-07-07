@@ -2,14 +2,13 @@
 Layout API endpoints
 """
 
-from typing import Dict, Optional, cast, Union
+from typing import Dict, Optional, Union
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Request, Cookie
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
 from renumics.spotlight.app import SpotlightApp
-from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
 router = APIRouter()
 
@@ -23,20 +22,7 @@ async def get_layout(
     """
     Get layout.
     """
-    app: SpotlightApp = request.app
-    if app.data_source is None:
-        return None
-    dataset_uid = app.data_source.get_uid()
-    layout = await app.config.get(
-        CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=browser_id or ""
-    )
-    layout = cast(Optional[Dict], layout)
-    if layout is None:
-        layout = (app.layout or DEFAULT_LAYOUT).dict(by_alias=True)
-        await app.config.set(
-            CURRENT_LAYOUT_KEY, layout, dataset=dataset_uid, user=browser_id or ""
-        )
-    return layout
+    return await request.app.get_current_layout_dict(browser_id or "")
 
 
 @router.put(
@@ -52,7 +38,7 @@ async def reset_layout(
     Get layout.
     """
     app: SpotlightApp = request.app
-    layout = app.layout or DEFAULT_LAYOUT
+    layout = app.layout
     if app.data_source:
         dataset_uid = app.data_source.get_uid()
         await app.config.set(
