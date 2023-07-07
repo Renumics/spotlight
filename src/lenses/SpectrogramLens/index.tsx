@@ -32,15 +32,23 @@ const FFT_SAMPLES = 1024;
 const drawScale = (
     scaleContainer: SVGSVGElement | null,
     sampleRate: number,
-    isLogarithmic: boolean
+    scale: string
 ) => {
     const height = scaleContainer?.clientHeight ?? FFT_SAMPLES / 2;
     const upperLimit = sampleRate / 2;
-    const numTicks = Math.round(height / (isLogarithmic ? 20 : 30));
+    let numTicks = 0;
+
+    if (scale === 'logarithmic') {
+        numTicks = Math.round(height / 20);
+    } else if (scale === 'linear') {
+        numTicks = Math.round(height / 30);
+    } else {
+        numTicks = 5;
+    }
 
     let axis;
 
-    if (isLogarithmic) {
+    if (scale === 'logarithmic') {
         const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
         const range = [height, 0];
         const scale = d3.scaleLog(domain, range);
@@ -101,7 +109,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const scaleContainer = useRef<SVGSVGElement>(null);
     const mouseLabel = useRef<SVGTextElement>(null);
 
-    const [isLogScale, setIsLogScale] = useSetting('isLogScale', true);
+    const [scale, setScale] = useSetting('scale', 'log');
     const [size, setSize] = useState([0, 0]);
 
     const colorPalette = useColors(colorPaletteSelector);
@@ -118,7 +126,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         setSize([width, height]);
 
         // Trigger redraw
-        drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, isLogScale);
+        drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
     });
 
     useEffect(() => {
@@ -188,19 +196,29 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
             const imageData = new ImageData(width, height);
 
-            const scale = d3.scaleLog(domain, range);
+            const scaleFunc = d3.scaleLog(domain, range);
 
-            const heightScale = isLogScale
-                ? d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1])
-                : d3.scaleLinear(domain, [0, upperLimit]);
+            // Default to linear scale
+            let heightScale = d3.scaleLinear(domain, [0, upperLimit]);
+
+            if (scale === 'logarithmic') {
+                heightScale = d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1]);
+            } else if (scale === 'linear') {
+                heightScale = d3.scaleLinear(domain, [0, upperLimit]);
+            }
 
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
             const colorMap = colorPalette.scale().colors(256, 'gl');
 
             for (let y = 0; y < height; y++) {
-                const value = isLogScale
-                    ? heightScale(scale.invert(height - y))
-                    : Math.abs(heightScale(height - y));
+                let value = 0;
+
+                if (scale === 'logarithmic') {
+                    value = heightScale(scaleFunc.invert(height - y));
+                } else if (scale === 'linear') {
+                    value = Math.abs(heightScale(height - y));
+                }
+
                 const indexA = Math.floor(value);
                 const indexB = indexA + 1;
                 const alpha = value - indexA;
@@ -242,21 +260,17 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         return () => {
             //spectrogramWorker?.terminate();
         };
-    }, [window, isLogScale, colorPalette, size]);
+    }, [window, scale, colorPalette, size]);
 
-    const handleToggleLogScale = useCallback(
-        (logScaled: boolean) => {
-            setIsLogScale(logScaled);
+    const handleScaleChange = useCallback(
+        (scale: string) => {
+            setScale(scale);
 
             const backend = waveform.current?.backend as unknown as WebAudio_;
 
-            drawScale(
-                scaleContainer.current,
-                backend.buffer?.sampleRate ?? 0,
-                logScaled
-            );
+            drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
         },
-        [setIsLogScale]
+        [setScale]
     );
 
     useEffect(() => {
@@ -264,13 +278,9 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const backend = waveform.current?.backend as unknown as WebAudio_;
 
             // Draw initial scale
-            drawScale(
-                scaleContainer.current,
-                backend.buffer?.sampleRate ?? 0,
-                isLogScale
-            );
+            drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
         });
-    }, [isLogScale]);
+    }, [scale]);
 
     useLayoutEffect(() => {
         // No setup needed, since no audio track
@@ -294,7 +304,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 const upperLimit = backend.buffer?.sampleRate / 2;
                 const coords = d3.pointer(e);
 
-                if (isLogScale) {
+                if (scale === 'logarithmic') {
                     const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
                     const range = [0, height];
 
@@ -307,6 +317,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         .attr('font-size', 10)
                         .attr('fill', theme`colors.white`);
                 } else {
+                    //if (scale === 'linear') {
                     const domain = [upperLimit, 0];
                     const range = [0, height];
                     const scale = d3.scaleLinear(domain, range);
@@ -333,7 +344,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 .on('mouseenter', null)
                 .on('mouseleave', null);
         };
-    }, [url, isLogScale, colorPalette]);
+    }, [url, scale, colorPalette]);
 
     return (
         <Container>
@@ -371,8 +382,9 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
             <MenuBar
                 tw="z-10"
-                isLogScale={isLogScale}
-                onToggleScale={handleToggleLogScale}
+                availableScales={['linear', 'logarithmic']}
+                scale={scale}
+                onChangeScale={handleScaleChange}
             />
         </Container>
     );

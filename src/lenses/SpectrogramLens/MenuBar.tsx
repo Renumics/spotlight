@@ -1,6 +1,7 @@
 import SettingsIcon from '../../icons/Settings';
 import Dropdown from '../../components/ui/Dropdown';
 import Menu from '../../components/ui/Menu';
+import Select from '../../components/ui/Select';
 import { FunctionComponent } from 'react';
 import tw, { styled } from 'twin.macro';
 
@@ -17,21 +18,27 @@ const Styles = styled.div`
 
 interface Props {
     className?: string;
-    isLogScale: boolean;
-    onToggleScale: (enabled: boolean) => void;
+    availableScales: string[];
+    scale: string;
+    onChangeScale: (scale: string) => void;
 }
 
 const MenuBar: FunctionComponent<Props> = ({
     className,
-    isLogScale,
-    onToggleScale,
+    availableScales,
+    scale,
+    onChangeScale,
 }) => {
+    const selectScale = (newScale?: string | null) => onChangeScale(newScale || '');
+
     const content = (
         <Menu>
             <Menu.Title>Scale</Menu.Title>
-            <Menu.Switch value={isLogScale} onChange={onToggleScale}>
-                Logarithmic
-            </Menu.Switch>
+            <Select
+                onChange={selectScale}
+                value={scale}
+                options={[null, ...availableScales]}
+            />
         </Menu>
     );
 
