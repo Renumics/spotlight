@@ -58,14 +58,13 @@ import ipywidgets as widgets
 import IPython.display
 
 import __main__
+from renumics.spotlight.settings import settings
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
 from renumics.spotlight.server import Server
-
 from renumics.spotlight.analysis.typing import DataIssue
-
 from renumics.spotlight.app_config import AppConfig
 
 
@@ -163,13 +162,16 @@ class Viewer:
         else:
             filebrowsing_allowed = allow_filebrowsing is True
 
+        layout = layout or settings.layout
+        parsed_layout = parse(layout) if layout else None
+
         config = AppConfig(
             dataset=dataset,
             dtypes=dtype,
             project_root=project_root,
             analyze=analyze,
             custom_issues=list(issues) if issues else None,
-            layout=parse(layout) if layout else None,
+            layout=parsed_layout,
             filebrowsing_allowed=filebrowsing_allowed,
         )
 
@@ -189,7 +191,7 @@ class Viewer:
             wait = not in_interactive_session
 
         if not in_interactive_session or wait:
-            print(f"Spotlight running on http://{self.host}:{self.port}/")
+            print(f"Spotlight running on {self.url}")
 
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
@@ -268,8 +270,15 @@ class Viewer:
             return None
         return self._server.port
 
-    def __repr__(self) -> str:
+    @property
+    def url(self) -> str:
+        """
+        The viewer's url.
+        """
         return f"http://{self.host}:{self.port}/"
+
+    def __repr__(self) -> str:
+        return self.url
 
     def _ipython_display_(self) -> None:
         if not self._server:
@@ -279,9 +288,7 @@ class Viewer:
         if get_ipython().__class__.__name__ == "ZMQInteractiveShell":  # type: ignore
             # in notebooks display a rich html widget
 
-            label = widgets.Label(
-                f"Spotlight running on http://{self.host}:{self.port}/"
-            )
+            label = widgets.Label(f"Spotlight running on {self.url}")
             open_button = widgets.Button(
                 description="open", tooltip="Open spotlight viewer"
             )
