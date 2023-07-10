@@ -49,7 +49,7 @@ def cli_dtype_callback(
     return dtype
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.argument(
     "table-or-folder",
     type=str,
