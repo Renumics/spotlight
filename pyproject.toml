@@ -85,6 +85,7 @@ websockets = "^11.0.3"
 cleanvision = "^0.3.0"
 py-machineid = "^0.3.0"
 filetype = "^1.2.0"
+setuptools = "*"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^0.991"
