@@ -40,7 +40,7 @@ def _random_choice(
     return np.random.choice(options, count, replace=True).tolist()  # type: ignore
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "-o",
     "--output-folder",
@@ -99,4 +99,5 @@ def generate_test_csv(output_folder: str, num_rows: int, seed: int) -> None:
 
 
 if __name__ == "__main__":
-    generate_test_csv()  # pylint: disable=no-value-for-parameter
+    # pylint: disable=no-value-for-parameter
+    generate_test_csv()  # type: ignore

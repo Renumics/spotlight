@@ -2531,7 +2531,7 @@ class Dataset:
             # We can only write unique sorted indices to `h5py` column, so
             # prepare such indices.
             try:
-                column_indices = np.arange(self._length, dtype=int)[indices]
+                column_indices = np.arange(self._length, dtype=int)[indices]  # type: ignore
             except Exception as e:
                 raise exceptions.InvalidIndexError(
                     f"Indices {indices} of type `{type(indices)}` do not match "
@@ -2544,7 +2544,7 @@ class Dataset:
                     "No values set because the given indices reference no elements."
                 )
                 return
-            column_indices, values_indices = np.unique(
+            column_indices, values_indices = np.unique(  # type: ignore
                 column_indices, return_index=True
             )
             if len(cast(np.ndarray, column_indices)) != indices_length:
@@ -2857,10 +2857,10 @@ class Dataset:
             if encoded_values.ndim == 1:
                 if len(encoded_values) == 2:
                     # A single window, reshape it to an array.
-                    return np.broadcast_to(values, (1, 2))
+                    return np.broadcast_to(values, (1, 2))  # type: ignore
                 if len(encoded_values) == 0:
                     # An empty array, reshape for compatibility.
-                    return np.broadcast_to(values, (0, 2))
+                    return np.broadcast_to(values, (0, 2))  # type: ignore
             elif encoded_values.ndim == 2 and encoded_values.shape[1] == 2:
                 # An array with valid windows.
                 return encoded_values
