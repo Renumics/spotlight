@@ -35,6 +35,7 @@ class Server:
     _host: str
     _port: int
     _requested_port: int
+    _sock: Optional[socket.socket]
 
     _vite: Optional[Vite]
 
@@ -63,6 +64,7 @@ class Server:
         self._host = host
         self._requested_port = port
         self._port = self._requested_port
+        self._sock = None
         self.process = None
 
         self.connected_frontends = 0
@@ -118,12 +120,10 @@ class Server:
             self._vite.start()
             env["VITE_URL"] = self._vite.url
 
-        # automatic port selection
-        if self._requested_port == 0:
-            with socket.socket() as sock:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                sock.bind((self._host, self._port))
-                self._port = sock.getsockname()[1]
+        self._sock = socket.socket()
+        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._sock.bind((self._host, self._port))
+        self._port = self._sock.getsockname()[1]
 
         command = [
             sys.executable,
@@ -132,8 +132,8 @@ class Server:
             "renumics.spotlight.app:SpotlightApp",
             "--host",
             self._host,
-            "--port",
-            str(self._port),
+            "--fd",
+            str(self._sock.fileno()),
             "--log-level",
             "critical",
             "--http",
@@ -150,7 +150,9 @@ class Server:
 
         # start uvicorn
         # pylint: disable=consider-using-with
-        self.process = subprocess.Popen(command, env=env)
+        self.process = subprocess.Popen(
+            command, env=env, pass_fds=(self._sock.fileno(),)
+        )
 
         self._startup_complete_event.wait(timeout=120)
 
