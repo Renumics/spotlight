@@ -89,6 +89,19 @@ const TourButton = ({ onClick }: { onClick: () => void }): JSX.Element => {
     );
 };
 
+const GitHubButton = (): JSX.Element => (
+    <Button tw="w-full" tooltip="GitHub Repository">
+        <a
+            tw="flex flex-row font-normal w-full items-center content-center"
+            href={application.repositoryUrl}
+            target="_blank"
+            rel="noreferrer"
+        >
+            <GithubIcon />
+        </a>
+    </Button>
+);
+
 const HelpMenu = (): JSX.Element => {
     const mainWalkthrough = useRef<MainWalkthroughRef>(null);
     const restartTour = useCallback(() => mainWalkthrough.current?.restartTour(), []);
@@ -108,19 +121,6 @@ const HelpMenu = (): JSX.Element => {
                     >
                         <DocsIcon />
                         <span tw="ml-1 text-sm">Documentation</span>
-                    </a>
-                </Button>
-            </Menu.Item>
-            <Menu.Item>
-                <Button tw="w-full" tooltip="GitHub Repository">
-                    <a
-                        tw="flex flex-row font-normal w-full items-center content-center"
-                        href={application.repositoryUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <GithubIcon />
-                        <span tw="ml-1 text-sm">GitHub</span>
                     </a>
                 </Button>
             </Menu.Item>
@@ -216,6 +216,7 @@ const AppBar = (): JSX.Element => {
             <div tw="flex items-center">
                 <ColorMenu />
                 <HelpMenu />
+                <GitHubButton />
                 {appBarItems.map((item, i) => (
                     <div key={i}>{item}</div>
                 ))}
