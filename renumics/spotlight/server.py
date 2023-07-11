@@ -2,6 +2,7 @@
 Local proxy object for the spotlight server process
 """
 
+import platform
 import threading
 from queue import Queue, Empty
 import socket
@@ -118,12 +119,10 @@ class Server:
             self._vite.start()
             env["VITE_URL"] = self._vite.url
 
-        # automatic port selection
-        if self._requested_port == 0:
-            with socket.socket() as sock:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                sock.bind((self._host, self._port))
-                self._port = sock.getsockname()[1]
+        sock = socket.socket()
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((self._host, self._port))
+        self._port = sock.getsockname()[1]
 
         command = [
             sys.executable,
@@ -132,8 +131,6 @@ class Server:
             "renumics.spotlight.app:SpotlightApp",
             "--host",
             self._host,
-            "--port",
-            str(self._port),
             "--log-level",
             "critical",
             "--http",
@@ -144,14 +141,24 @@ class Server:
             str(2),
             "--factory",
         ]
+        if platform.system() == "Windows":
+            command += ["--port", str(self._port)]
+            sock.close()
+        else:
+            command += ["--fd", str(sock.fileno())]
 
         if settings.dev:
             command.extend(["--reload"])
 
         # start uvicorn
         # pylint: disable=consider-using-with
-        self.process = subprocess.Popen(command, env=env)
-
+        self.process = subprocess.Popen(
+            command,
+            env=env,
+            pass_fds=None if platform.system() == "Windows" else (sock.fileno(),),
+        )
+        if platform.system() != "Windows":
+            sock.close()
         self._startup_complete_event.wait(timeout=120)
 
     def stop(self) -> None:
@@ -169,6 +176,7 @@ class Server:
             self.process.wait(3)
         except subprocess.TimeoutExpired:
             self.process.kill()
+        self.process.wait(timeout=5)
         self.process = None
 
         self._connection_thread.join(0.1)
