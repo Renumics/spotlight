@@ -2,6 +2,7 @@
 Local proxy object for the spotlight server process
 """
 
+import platform
 import threading
 from queue import Queue, Empty
 import socket
@@ -151,7 +152,10 @@ class Server:
         # start uvicorn
         # pylint: disable=consider-using-with
         self.process = subprocess.Popen(
-            command, env=env, pass_fds=(self._sock.fileno(),)
+            command,
+            env=env,
+            pass_fds=None if platform.system() == "Windows" else (self._sock.fileno(),),
+            close_fds=platform.system() != "Windows",
         )
 
         self._startup_complete_event.wait(timeout=120)
