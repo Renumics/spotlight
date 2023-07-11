@@ -173,6 +173,7 @@ class Server:
             self.process.wait(3)
         except subprocess.TimeoutExpired:
             self.process.kill()
+        self.process.wait(timeout=5)
         self.process = None
 
         self._connection_thread.join(0.1)
