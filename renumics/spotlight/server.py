@@ -120,10 +120,10 @@ class Server:
 
         # automatic port selection
         if self._requested_port == 0:
-            sock = socket.socket()
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind((self._host, self._port))
-            self._port = sock.getsockname()[1]
+            with socket.socket() as sock:
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                sock.bind((self._host, self._port))
+                self._port = sock.getsockname()[1]
 
         command = [
             sys.executable,
