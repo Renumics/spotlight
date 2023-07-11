@@ -23,7 +23,7 @@ N_COMPONENTS_EMBEDDINGS = 128
 N_FLOAT_COLS = 100
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "--output-path",
     "-o",

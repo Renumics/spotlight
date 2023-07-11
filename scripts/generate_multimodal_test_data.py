@@ -143,7 +143,7 @@ def _random_data(data_type: Type, num_rows: int, seed: int) -> np.ndarray:
     raise ValueError(f"Unknown data type {data_type}.")
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "--output-path",
     "-o",

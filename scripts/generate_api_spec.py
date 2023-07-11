@@ -10,7 +10,7 @@ import click
 from renumics.spotlight.app import SpotlightApp
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "--output-path",
     "-o",
@@ -33,4 +33,5 @@ def generate_api_spec(output_path: str) -> None:
 
 
 if __name__ == "__main__":
-    generate_api_spec()  # pylint: disable=no-value-for-parameter
+    # pylint: disable=no-value-for-parameter
+    generate_api_spec()  # type: ignore

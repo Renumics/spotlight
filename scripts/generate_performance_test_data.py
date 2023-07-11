@@ -9,7 +9,7 @@ import numpy as np
 from renumics.spotlight import Dataset, Embedding
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "--output-path",
     "-o",
