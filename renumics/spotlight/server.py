@@ -119,43 +119,46 @@ class Server:
             self._vite.start()
             env["VITE_URL"] = self._vite.url
 
-        with socket.socket() as sock:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind((self._host, self._port))
-            self._port = sock.getsockname()[1]
+        sock = socket.socket()
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((self._host, self._port))
+        self._port = sock.getsockname()[1]
 
-            command = [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "renumics.spotlight.app:SpotlightApp",
-                "--host",
-                self._host,
-                "--fd",
-                str(sock.fileno()),
-                "--log-level",
-                "critical",
-                "--http",
-                "httptools",
-                "--ws",
-                "websockets",
-                "--timeout-graceful-shutdown",
-                str(2),
-                "--factory",
-            ]
+        command = [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "renumics.spotlight.app:SpotlightApp",
+            "--host",
+            self._host,
+            "--log-level",
+            "critical",
+            "--http",
+            "httptools",
+            "--ws",
+            "websockets",
+            "--timeout-graceful-shutdown",
+            str(2),
+            "--factory",
+        ]
+        if platform.system() == "Windows":
+            command += ["--port", str(self._port)]
+            sock.close()
+        else:
+            command += ["--fd", str(sock.fileno())]
 
-            if settings.dev:
-                command.extend(["--reload"])
+        if settings.dev:
+            command.extend(["--reload"])
 
-            # start uvicorn
-            # pylint: disable=consider-using-with
-            self.process = subprocess.Popen(
-                command,
-                env=env,
-                pass_fds=None if platform.system() == "Windows" else (sock.fileno(),),
-                close_fds=platform.system() != "Windows",
-            )
-
+        # start uvicorn
+        # pylint: disable=consider-using-with
+        self.process = subprocess.Popen(
+            command,
+            env=env,
+            pass_fds=None if platform.system() == "Windows" else (sock.fileno(),),
+        )
+        if platform.system() != "Windows":
+            sock.close()
         self._startup_complete_event.wait(timeout=120)
 
     def stop(self) -> None:
