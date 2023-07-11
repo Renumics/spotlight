@@ -21,7 +21,7 @@ from sklearn.decomposition import PCA
 from renumics.spotlight import Dataset, Embedding, Image, Mesh, Sequence1D, Audio, Video
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "--output-path",
     "-o",
