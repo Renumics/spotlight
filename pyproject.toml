@@ -85,6 +85,7 @@ websockets = "*"
 cleanvision = "*"
 py-machineid = "*"
 filetype = "*"
+setuptools = "*"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "*"
