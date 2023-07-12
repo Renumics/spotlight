@@ -115,7 +115,7 @@ class Viewer:
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
-        wait: Union[bool, Literal["forever"], Literal["auto"]] = "auto",
+        wait: Union[bool, Literal["auto", "forever"]] = "auto",
         dtype: Optional[ColumnTypeMapping] = None,
         analyze: Optional[bool] = None,
         issues: Optional[Collection[DataIssue]] = None,
@@ -218,7 +218,6 @@ class Viewer:
                     threading.Event().wait()
                 else:
                     self._server.wait_for_frontend_disconnect()
-
             except KeyboardInterrupt as e:
                 # cleanup on KeyboarInterrupt to prevent zombie processes
                 self.close(wait=False)
@@ -338,7 +337,7 @@ def show(
     layout: Optional[_LayoutLike] = None,
     no_browser: bool = False,
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
-    wait: Union[bool, Literal["auto"], Literal["forever"]] = "auto",
+    wait: Union[bool, Literal["auto", "forever"]] = "auto",
     dtype: Optional[ColumnTypeMapping] = None,
     analyze: Optional[bool] = None,
     issues: Optional[Collection[DataIssue]] = None,
