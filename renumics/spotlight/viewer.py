@@ -49,8 +49,8 @@ Example:
 """
 
 import os
-import threading
 from pathlib import Path
+import time
 from typing import Collection, List, Union, Optional
 
 import pandas as pd
@@ -215,7 +215,8 @@ class Viewer:
         if wait:
             try:
                 if wait == "forever":
-                    threading.Event().wait()
+                    while True:
+                        time.sleep(1)
                 else:
                     self._server.wait_for_frontend_disconnect()
             except KeyboardInterrupt as e:
