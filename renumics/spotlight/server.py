@@ -91,6 +91,7 @@ class Server:
         atexit.register(self.stop)
 
     def __del__(self) -> None:
+        self.stop()
         atexit.unregister(self.stop)
 
     def start(self, config: AppConfig) -> None:
