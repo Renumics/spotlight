@@ -49,6 +49,7 @@ Example:
 """
 
 import os
+import threading
 from pathlib import Path
 from typing import Collection, List, Union, Optional
 
@@ -114,7 +115,7 @@ class Viewer:
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
-        wait: Union[bool, Literal["auto"]] = "auto",
+        wait: Union[bool, Literal["auto", "forever"]] = "auto",
         dtype: Optional[ColumnTypeMapping] = None,
         analyze: Optional[bool] = None,
         issues: Optional[Collection[DataIssue]] = None,
@@ -130,9 +131,10 @@ class Viewer:
                 If "auto" (default), allow to browse if `dataset_or_folder` is a path.
             wait: If `True`, block code execution until all Spotlight browser tabs are closed.
                 If `False`, continue code execution after Spotlight start.
-                If "auto" (default), choose the mode automatically: non-blocking for
+                If "forever", keep spotlight running forever, but block.
+                If "auto" (default), choose the mode automatically: non-blocking (`False`) for
                 `jupyter notebook`, `ipython` and other interactive sessions;
-                blocking for scripts.
+                blocking (`True`) for scripts.
             dtype: Optional dict with mapping `column name -> column type` with
                 column types allowed by Spotlight (for dataframes only).
             analyze: Automatically analyze common dataset issues (disabled by default).
@@ -185,6 +187,9 @@ class Viewer:
         else:
             self._server.update(config)
 
+        if not no_browser and self._server.connected_frontends == 0:
+            self.open_browser()
+
         in_interactive_session = not hasattr(__main__, "__file__")
         if wait == "auto":
             # `__main__.__file__` is not set in an interactive session, do not wait then.
@@ -193,13 +198,10 @@ class Viewer:
         if not in_interactive_session or wait:
             print(f"Spotlight running on {self.url}")
 
-        if not no_browser and self._server.connected_frontends == 0:
-            self.open_browser()
-
         if wait:
-            self.close(True)
+            self.close(wait)
 
-    def close(self, wait: bool = False) -> None:
+    def close(self, wait: Union[bool, Literal["forever"]] = False) -> None:
         """
         Shutdown the corresponding Spotlight instance.
         """
@@ -212,7 +214,10 @@ class Viewer:
 
         if wait:
             try:
-                self._server.wait_for_frontend_disconnect()
+                if wait == "forever":
+                    threading.Event().wait()
+                else:
+                    self._server.wait_for_frontend_disconnect()
             except KeyboardInterrupt as e:
                 # cleanup on KeyboarInterrupt to prevent zombie processes
                 self.close(wait=False)
@@ -332,7 +337,7 @@ def show(
     layout: Optional[_LayoutLike] = None,
     no_browser: bool = False,
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
-    wait: Union[bool, Literal["auto"]] = "auto",
+    wait: Union[bool, Literal["auto", "forever"]] = "auto",
     dtype: Optional[ColumnTypeMapping] = None,
     analyze: Optional[bool] = None,
     issues: Optional[Collection[DataIssue]] = None,
@@ -350,10 +355,11 @@ def show(
         allow_filebrowsing: Whether to allow users to browse and open datasets.
             If "auto" (default), allow to browse if `dataset_or_folder` is a path.
         wait: If `True`, block code execution until all Spotlight browser tabs are closed.
-            If `False`, continue code execution after Spotlight start.
-            If "auto" (default), choose the mode automatically: non-blocking for
-            `jupyter notebook`, `ipython` and other interactive sessions;
-            blocking for scripts.
+                If `False`, continue code execution after Spotlight start.
+                If "forever", keep spotlight running forever, but block.
+                If "auto" (default), choose the mode automatically: non-blocking (`False`) for
+                `jupyter notebook`, `ipython` and other interactive sessions;
+                blocking (`True`) for scripts.
         dtype: Optional dict with mapping `column name -> column type` with
             column types allowed by Spotlight (for dataframes only).
         analyze: Automatically analyze common dataset issues (disabled by default).
