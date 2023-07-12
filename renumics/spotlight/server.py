@@ -156,8 +156,8 @@ class Server:
             command,
             env=env,
             pass_fds=None if platform.system() == "Windows" else (sock.fileno(),),
-            stdout=subprocess.STDOUT if settings.verbose else subprocess.DEVNULL,
-            stderr=subprocess.STDOUT if settings.verbose else subprocess.DEVNULL,
+            stdout=None if settings.verbose else subprocess.DEVNULL,
+            stderr=None if settings.verbose else subprocess.DEVNULL,
         )
         if platform.system() != "Windows":
             sock.close()
