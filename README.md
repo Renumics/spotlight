@@ -1,6 +1,6 @@
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
 <h1 align="center">Renumics Spotlight</h1>
-<p align="center">Data curation tool for your modular ML stack.</p>
+<p align="center">Identify critical data slices to build better training datasets.</p>
 
 <p align="center">
 	<a href="https://github.com/Renumics/spotlight/blob/main/LICENSE"><img src="https://img.shields.io/github/license/renumics/spotlight" height="20"/></a>
