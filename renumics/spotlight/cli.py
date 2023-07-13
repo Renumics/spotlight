@@ -3,6 +3,7 @@
     Command line entrypoint for the renumics-spotlight python package
 """
 import os
+import platform
 import signal
 import sys
 from typing import Optional, Tuple, Union
@@ -122,7 +123,8 @@ def main(
 
     signal.signal(signal.SIGINT, lambda *_: sys.exit())
     signal.signal(signal.SIGTERM, lambda *_: sys.exit())
-    signal.signal(signal.SIGHUP, lambda *_: sys.exit())
+    if platform.system() != "Windows":
+        signal.signal(signal.SIGHUP, lambda *_: sys.exit())
 
     spotlight.show(
         table_or_folder,
