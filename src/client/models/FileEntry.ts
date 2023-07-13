@@ -21,28 +21,28 @@ import { exists, mapValues } from '../runtime';
 export interface FileEntry {
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof FileEntry
      */
-    name: string;
+    name: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof FileEntry
      */
-    path: string;
+    path: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof FileEntry
      */
     type: FileEntryTypeEnum;
     /**
      *
-     * @type {number}
+     * @type {any}
      * @memberof FileEntry
      */
-    size: number;
+    size: any | null;
 }
 
 /**

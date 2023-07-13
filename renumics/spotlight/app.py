@@ -57,6 +57,8 @@ from renumics.spotlight.backend import create_datasource
 
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
+from renumics.spotlight_plugins.core.hdf5_data_source import Hdf5DataSource
+
 
 @dataclass
 class IssuesUpdatedMessage(Message):
@@ -84,7 +86,9 @@ class SpotlightApp(FastAPI):
 
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
-    _dtypes: Optional[ColumnTypeMapping]
+    _user_dtypes: ColumnTypeMapping
+    _guessed_dtypes: ColumnTypeMapping
+    _dtypes: ColumnTypeMapping
     _data_source: Optional[DataSource]
 
     task_manager: TaskManager
@@ -120,8 +124,10 @@ class SpotlightApp(FastAPI):
         self._custom_issues = []
 
         self._dataset = None
-        self._dtypes = None
-        self.data_source = None
+        self._guessed_dtypes = {}
+        self._user_dtypes = {}
+        self._dtypes = {}
+        self._data_source = None
 
         @self.on_event("startup")
         def _() -> None:
@@ -249,23 +255,47 @@ class SpotlightApp(FastAPI):
             )
             add_timing_middleware(self)
 
-    def _update(self, config: AppConfig) -> None:
+    @property
+    def dtypes(self) -> ColumnTypeMapping:
+        """
+        Guessed dtypes merged with dtypes requested by user (preferred).
+        """
+        return self._dtypes
+
+    def update(self, config: AppConfig) -> None:
+        """
+        Update application config.
+        """
         if config.project_root is not None:
             self.project_root = config.project_root
-        if config.dataset is not None:
-            self._dataset = config.dataset
         if config.dtypes is not None:
-            self._dtypes = config.dtypes
+            self._user_dtypes = config.dtypes
         if config.analyze is not None:
             self.analyze_issues = config.analyze
         if config.custom_issues is not None:
             self.custom_issues = config.custom_issues
-        if config.dataset is not None or config.dtypes is not None:
-            self.data_source = create_datasource(self._dataset, self._dtypes)
+        if config.dataset is not None:
+            self._dataset = config.dataset
+            self._data_source = create_datasource(self._dataset)
+            self._guessed_dtypes = self._data_source.guess_dtypes()
         if config.layout is not None:
             self.layout = config.layout
         if config.filebrowsing_allowed is not None:
             self.filebrowsing_allowed = config.filebrowsing_allowed
+
+        if config.dtypes is not None or config.dataset is not None:
+            dtypes = self._guessed_dtypes.copy()
+            if not isinstance(self._data_source, Hdf5DataSource):
+                dtypes.update(
+                    {
+                        column_name: column_type
+                        for column_name, column_type in self._user_dtypes.items()
+                        if column_name in self._guessed_dtypes
+                    }
+                )
+            self._dtypes = dtypes
+            self._broadcast(RefreshMessage())
+            self._update_issues()
 
         if not self._startup_complete:
             self._startup_complete = True
@@ -278,7 +308,7 @@ class SpotlightApp(FastAPI):
         if kind is None:
             logger.error(f"Malformed message from client process:\n\t{message}")
         elif kind == "update":
-            self._update(data)
+            self.update(data)
         elif kind == "get_df":
             df = self.data_source.df if self.data_source else None
             self._connection.send({"kind": "df", "data": df})
@@ -302,21 +332,6 @@ class SpotlightApp(FastAPI):
         Current data source.
         """
         return self._data_source
-
-    @data_source.setter
-    def data_source(self, new_data_source: Optional[DataSource]) -> None:
-        self._data_source = new_data_source
-        self._broadcast(RefreshMessage())
-        self._update_issues()
-
-    @property
-    def dtype(self) -> Optional[ColumnTypeMapping]:
-        """
-        Data types
-        """
-        if self._data_source is None:
-            return None
-        return self._data_source.dtype
 
     @property
     def custom_issues(self) -> List[DataIssue]:
@@ -373,7 +388,7 @@ class SpotlightApp(FastAPI):
         if table is None:
             return
         task = self.task_manager.create_task(
-            find_issues, (table, table.dtype), name="update_issues"
+            find_issues, (table, self._dtypes), name="update_issues"
         )
 
         def _on_issues_ready(future: Future) -> None:

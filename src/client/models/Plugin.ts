@@ -21,28 +21,28 @@ import { exists, mapValues } from '../runtime';
 export interface Plugin {
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Plugin
      */
-    name: string;
+    name: any | null;
     /**
      *
-     * @type {number}
+     * @type {any}
      * @memberof Plugin
      */
-    priority: number;
+    priority: any | null;
     /**
      *
-     * @type {boolean}
+     * @type {any}
      * @memberof Plugin
      */
-    dev: boolean;
+    dev: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Plugin
      */
-    entrypoint?: string;
+    entrypoint?: any | null;
 }
 
 /**

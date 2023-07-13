@@ -13,9 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Value } from './Value';
-import { ValueFromJSON, ValueFromJSONTyped, ValueToJSON } from './Value';
-
 /**
  * Set config request model.
  * @export
@@ -24,10 +21,10 @@ import { ValueFromJSON, ValueFromJSONTyped, ValueToJSON } from './Value';
 export interface SetConfigRequest {
     /**
      *
-     * @type {Value}
+     * @type {any}
      * @memberof SetConfigRequest
      */
-    value?: Value;
+    value?: any | null;
 }
 
 /**
@@ -51,7 +48,7 @@ export function SetConfigRequestFromJSONTyped(
         return json;
     }
     return {
-        value: !exists(json, 'value') ? undefined : ValueFromJSON(json['value']),
+        value: !exists(json, 'value') ? undefined : json['value'],
     };
 }
 
@@ -63,6 +60,6 @@ export function SetConfigRequestToJSON(value?: SetConfigRequest | null): any {
         return null;
     }
     return {
-        value: ValueToJSON(value.value),
+        value: value.value,
     };
 }

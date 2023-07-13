@@ -12,6 +12,7 @@ import numpy as np
 
 from renumics.spotlight.dtypes import Category, Embedding
 from renumics.spotlight.dtypes.typing import (
+    ColumnType,
     ColumnTypeMapping,
     get_column_type,
     FileBasedColumnType,
@@ -258,16 +259,9 @@ class Hdf5DataSource(DataSource):
     access h5 table data
     """
 
-    def __init__(self, source: PathType, dtype: ColumnTypeMapping):
+    def __init__(self, source: PathType):
+        # pylint: disable=unused-argument
         self._table_file = Path(source)
-
-    @property
-    def dtype(self) -> ColumnTypeMapping:
-        with self._open_table() as dataset:
-            return {
-                column_name: dataset.get_column_type(column_name)
-                for column_name in dataset.keys()
-            }
 
     @property
     def column_names(self) -> List[str]:
@@ -277,6 +271,13 @@ class Hdf5DataSource(DataSource):
     def __len__(self) -> int:
         with self._open_table() as dataset:
             return len(dataset)
+
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        with self._open_table() as dataset:
+            return {
+                column_name: dataset.get_column_type(column_name)
+                for column_name in self.column_names
+            }
 
     def get_generation_id(self) -> int:
         with self._open_table() as dataset:
@@ -296,12 +297,17 @@ class Hdf5DataSource(DataSource):
             ]
 
     def get_column(
-        self, column_name: str, indices: Optional[List[int]] = None
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
     ) -> Column:
         with self._open_table() as dataset:
             return dataset.read_column(column_name, indices=indices)
 
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         return the value of a single cell
         """

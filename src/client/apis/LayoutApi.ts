@@ -22,16 +22,16 @@ import {
 } from '../models';
 
 export interface GetLayoutRequest {
-    browserId?: string;
+    browserId?: any;
 }
 
 export interface ResetLayoutRequest {
-    browserId?: string;
+    browserId?: any;
 }
 
 export interface SetLayoutOperationRequest {
     setLayoutRequest: SetLayoutRequest;
-    browserId?: string;
+    browserId?: any;
 }
 
 /**
@@ -45,7 +45,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async getLayoutRaw(
         requestParameters: GetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<object>> {
+    ): Promise<runtime.ApiResponse<any>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -60,7 +60,11 @@ export class LayoutApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        return new runtime.JSONApiResponse<any>(response);
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
     }
 
     /**
@@ -70,7 +74,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async getLayout(
         requestParameters: GetLayoutRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<object> {
+    ): Promise<any> {
         const response = await this.getLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -82,7 +86,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async resetLayoutRaw(
         requestParameters: ResetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<object>> {
+    ): Promise<runtime.ApiResponse<any>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -97,7 +101,11 @@ export class LayoutApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        return new runtime.JSONApiResponse<any>(response);
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
     }
 
     /**
@@ -107,7 +115,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async resetLayout(
         requestParameters: ResetLayoutRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<object> {
+    ): Promise<any> {
         const response = await this.resetLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -119,7 +127,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async setLayoutRaw(
         requestParameters: SetLayoutOperationRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<object>> {
+    ): Promise<runtime.ApiResponse<any>> {
         if (
             requestParameters.setLayoutRequest === null ||
             requestParameters.setLayoutRequest === undefined
@@ -147,7 +155,11 @@ export class LayoutApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        return new runtime.JSONApiResponse<any>(response);
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
     }
 
     /**
@@ -157,7 +169,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async setLayout(
         requestParameters: SetLayoutOperationRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<object> {
+    ): Promise<any> {
         const response = await this.setLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }

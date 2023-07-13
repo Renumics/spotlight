@@ -21,34 +21,34 @@ import { exists, mapValues } from '../runtime';
 export interface DataIssue {
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof DataIssue
      */
     severity?: DataIssueSeverityEnum;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof DataIssue
      */
-    title: string;
+    title: any | null;
     /**
      *
-     * @type {Array<number>}
+     * @type {any}
      * @memberof DataIssue
      */
-    rows: Array<number>;
+    rows: any | null;
     /**
      *
-     * @type {Array<string>}
+     * @type {any}
      * @memberof DataIssue
      */
-    columns?: Array<string>;
+    columns?: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof DataIssue
      */
-    description?: string;
+    description?: any | null;
 }
 
 /**

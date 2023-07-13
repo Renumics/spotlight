@@ -15,7 +15,9 @@ router = APIRouter()
 CURRENT_LAYOUT_KEY = "layout.current"
 
 
-@router.get("/", tags=["layout"], response_model=Dict, operation_id="get_layout")
+@router.get(
+    "/", tags=["layout"], response_model=Optional[Dict], operation_id="get_layout"
+)
 async def get_layout(
     request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
 ) -> Optional[Dict]:

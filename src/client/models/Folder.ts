@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { FileEntry } from './FileEntry';
-import {
-    FileEntryFromJSON,
-    FileEntryFromJSONTyped,
-    FileEntryToJSON,
-} from './FileEntry';
-
 /**
  * A single folder
  * @export
@@ -28,28 +21,28 @@ import {
 export interface Folder {
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Folder
      */
-    name: string;
+    name: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Folder
      */
-    path: string;
+    path: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Folder
      */
-    parent?: string;
+    parent?: any | null;
     /**
      *
-     * @type {Array<FileEntry>}
+     * @type {any}
      * @memberof Folder
      */
-    files: Array<FileEntry>;
+    files: any | null;
 }
 
 /**
@@ -76,7 +69,7 @@ export function FolderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Fo
         name: json['name'],
         path: json['path'],
         parent: !exists(json, 'parent') ? undefined : json['parent'],
-        files: (json['files'] as Array<any>).map(FileEntryFromJSON),
+        files: json['files'],
     };
 }
 
@@ -91,6 +84,6 @@ export function FolderToJSON(value?: Folder | null): any {
         name: value.name,
         path: value.path,
         parent: value.parent,
-        files: (value.files as Array<any>).map(FileEntryToJSON),
+        files: value.files,
     };
 }

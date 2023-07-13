@@ -17,7 +17,7 @@ import type { HTTPValidationError } from '../models';
 import { HTTPValidationErrorFromJSON, HTTPValidationErrorToJSON } from '../models';
 
 export interface GetRequest {
-    browserId?: string;
+    browserId?: any;
 }
 
 /**

@@ -22,19 +22,19 @@ import {
 } from '../models';
 
 export interface GetCellRequest {
-    column: string;
-    row: number;
-    generationId: number;
+    column: any;
+    row: any;
+    generationId: any;
 }
 
 export interface GetWaveformRequest {
-    column: string;
-    row: number;
-    generationId: number;
+    column: any;
+    row: any;
+    generationId: any;
 }
 
 export interface OpenRequest {
-    path: string;
+    path: any;
 }
 
 /**
@@ -165,7 +165,7 @@ export class TableApi extends runtime.BaseAPI {
     async getWaveformRaw(
         requestParameters: GetWaveformRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<Array<number>>> {
+    ): Promise<runtime.ApiResponse<any>> {
         if (
             requestParameters.column === null ||
             requestParameters.column === undefined
@@ -219,7 +219,11 @@ export class TableApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        return new runtime.JSONApiResponse<any>(response);
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
     }
 
     /**
@@ -229,7 +233,7 @@ export class TableApi extends runtime.BaseAPI {
     async getWaveform(
         requestParameters: GetWaveformRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<Array<number>> {
+    ): Promise<any> {
         const response = await this.getWaveformRaw(requestParameters, initOverrides);
         return await response.value();
     }

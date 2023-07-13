@@ -13,16 +13,11 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError, Plugin } from '../models';
-import {
-    HTTPValidationErrorFromJSON,
-    HTTPValidationErrorToJSON,
-    PluginFromJSON,
-    PluginToJSON,
-} from '../models';
+import type { HTTPValidationError } from '../models';
+import { HTTPValidationErrorFromJSON, HTTPValidationErrorToJSON } from '../models';
 
 export interface GetEntrypointRequest {
-    name: string;
+    name: any;
 }
 
 /**
@@ -86,7 +81,7 @@ export class PluginsApi extends runtime.BaseAPI {
      */
     async getPluginsRaw(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<Array<Plugin>>> {
+    ): Promise<runtime.ApiResponse<any>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -101,9 +96,11 @@ export class PluginsApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) =>
-            jsonValue.map(PluginFromJSON)
-        );
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
     }
 
     /**
@@ -112,7 +109,7 @@ export class PluginsApi extends runtime.BaseAPI {
      */
     async getPlugins(
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<Array<Plugin>> {
+    ): Promise<any> {
         const response = await this.getPluginsRaw(initOverrides);
         return await response.value();
     }

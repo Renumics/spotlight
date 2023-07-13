@@ -13,34 +13,28 @@
  */
 
 import * as runtime from '../runtime';
-import type {
-    HTTPValidationError,
-    ResponseGetValue,
-    SetConfigRequest,
-} from '../models';
+import type { HTTPValidationError, SetConfigRequest } from '../models';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
-    ResponseGetValueFromJSON,
-    ResponseGetValueToJSON,
     SetConfigRequestFromJSON,
     SetConfigRequestToJSON,
 } from '../models';
 
 export interface GetValueRequest {
-    name: string;
-    browserId?: string;
+    name: any;
+    browserId?: any;
 }
 
 export interface RemoveRequest {
-    name: string;
-    browserId?: string;
+    name: any;
+    browserId?: any;
 }
 
 export interface SetValueRequest {
-    name: string;
+    name: any;
     setConfigRequest: SetConfigRequest;
-    browserId?: string;
+    browserId?: any;
 }
 
 /**
@@ -54,7 +48,7 @@ export class ConfigApi extends runtime.BaseAPI {
     async getValueRaw(
         requestParameters: GetValueRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<ResponseGetValue>> {
+    ): Promise<runtime.ApiResponse<any>> {
         if (requestParameters.name === null || requestParameters.name === undefined) {
             throw new runtime.RequiredError(
                 'name',
@@ -79,9 +73,11 @@ export class ConfigApi extends runtime.BaseAPI {
             initOverrides
         );
 
-        return new runtime.JSONApiResponse(response, (jsonValue) =>
-            ResponseGetValueFromJSON(jsonValue)
-        );
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
     }
 
     /**
@@ -91,7 +87,7 @@ export class ConfigApi extends runtime.BaseAPI {
     async getValue(
         requestParameters: GetValueRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<ResponseGetValue> {
+    ): Promise<any> {
         const response = await this.getValueRaw(requestParameters, initOverrides);
         return await response.value();
     }

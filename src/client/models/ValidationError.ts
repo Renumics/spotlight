@@ -13,13 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { LocationInner } from './LocationInner';
-import {
-    LocationInnerFromJSON,
-    LocationInnerFromJSONTyped,
-    LocationInnerToJSON,
-} from './LocationInner';
-
 /**
  *
  * @export
@@ -28,22 +21,22 @@ import {
 export interface ValidationError {
     /**
      *
-     * @type {Array<LocationInner>}
+     * @type {any}
      * @memberof ValidationError
      */
-    loc: Array<LocationInner>;
+    loc: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof ValidationError
      */
-    msg: string;
+    msg: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof ValidationError
      */
-    type: string;
+    type: any | null;
 }
 
 /**
@@ -70,7 +63,7 @@ export function ValidationErrorFromJSONTyped(
         return json;
     }
     return {
-        loc: (json['loc'] as Array<any>).map(LocationInnerFromJSON),
+        loc: json['loc'],
         msg: json['msg'],
         type: json['type'],
     };
@@ -84,7 +77,7 @@ export function ValidationErrorToJSON(value?: ValidationError | null): any {
         return null;
     }
     return {
-        loc: (value.loc as Array<any>).map(LocationInnerToJSON),
+        loc: value.loc,
         msg: value.msg,
         type: value.type,
     };

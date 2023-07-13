@@ -13,9 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Column } from './Column';
-import { ColumnFromJSON, ColumnFromJSONTyped, ColumnToJSON } from './Column';
-
 /**
  * a table slice
  * @export
@@ -24,28 +21,28 @@ import { ColumnFromJSON, ColumnFromJSONTyped, ColumnToJSON } from './Column';
 export interface Table {
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Table
      */
-    uid: string;
+    uid: any | null;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof Table
      */
-    filename: string;
+    filename: any | null;
     /**
      *
-     * @type {Array<Column>}
+     * @type {any}
      * @memberof Table
      */
-    columns: Array<Column>;
+    columns: any | null;
     /**
      *
-     * @type {number}
+     * @type {any}
      * @memberof Table
      */
-    generationId: number;
+    generationId: any | null;
 }
 
 /**
@@ -72,7 +69,7 @@ export function TableFromJSONTyped(json: any, ignoreDiscriminator: boolean): Tab
     return {
         uid: json['uid'],
         filename: json['filename'],
-        columns: (json['columns'] as Array<any>).map(ColumnFromJSON),
+        columns: json['columns'],
         generationId: json['generation_id'],
     };
 }
@@ -87,7 +84,7 @@ export function TableToJSON(value?: Table | null): any {
     return {
         uid: value.uid,
         filename: value.filename,
-        columns: (value.columns as Array<any>).map(ColumnToJSON),
+        columns: value.columns,
         generation_id: value.generationId,
     };
 }

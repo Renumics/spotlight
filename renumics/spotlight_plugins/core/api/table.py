@@ -10,7 +10,6 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
-from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.backend.data_source import (
     Column as DatasetColumn,
     idx_column,
@@ -20,6 +19,7 @@ from renumics.spotlight.backend.data_source import (
 )
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
@@ -43,8 +43,7 @@ def _isfalsy(value: Optional[np.ndarray]) -> bool:
 
 
 def _isfalsy_array(value: Optional[np.ndarray]) -> bool:
-    # pylint: disable=unneeded-not, use-implicit-booleaness-not-len
-    return value is None or not not len(value)
+    return value is None or len(value) == 0
 
 
 class Column(BaseModel):
@@ -145,7 +144,7 @@ def get_table(request: Request) -> ORJSONResponse:
             ).dict()
         )
 
-    columns = [table.get_column(name) for name in table.column_names]
+    columns = [table.get_column(name, app.dtypes[name]) for name in table.column_names]
     columns.extend(table.get_internal_columns())
     row_count = len(table)
     columns.append(idx_column(row_count))
@@ -181,7 +180,7 @@ async def get_table_cell(
         return None
     table.check_generation_id(generation_id)
 
-    cell_data = table.get_cell_data(column, row)
+    cell_data = table.get_cell_data(column, row, app.dtypes[column])
     value = sanitize_values(cell_data)
 
     if isinstance(value, (bytes, str)):
@@ -240,4 +239,4 @@ async def open_table(path: str, request: Request) -> None:
     if not is_path_relative_to(full_path, app.project_root):
         raise InvalidPath(path)
 
-    app.data_source = create_datasource(full_path, dtype=app.dtype)
+    app.update(AppConfig(dataset=full_path))
