@@ -137,9 +137,19 @@ def to_categorical(column: pd.Series, str_categories: bool = False) -> pd.Series
     return column
 
 
-def prepare_column(
-    column: pd.Series, dtype: Type[ColumnType], copy: bool = False
-) -> pd.Series:
+def prepare_hugging_face_dict(x: Dict) -> Any:
+    """
+    Prepare HuggingFace format for files to be used in Spotlight.
+    """
+    if x.keys() != {"bytes", "path"}:
+        return x
+    blob = x["bytes"]
+    if blob is not None:
+        return blob
+    return x["path"]
+
+
+def prepare_column(column: pd.Series, dtype: Type[ColumnType]) -> pd.Series:
     """
     Convert a `pandas` column to the desired `dtype` and prepare some values,
     but still as `pandas` column.
@@ -147,8 +157,6 @@ def prepare_column(
     Args:
         column: A `pandas` column to prepare.
         dtype: Target data type.
-        copy: whether to copy column. If `False`, input column can be changed
-            inplace.
 
     Returns:
         Prepared `pandas` column.
@@ -156,8 +164,7 @@ def prepare_column(
     Raises:
         TypeError: If `dtype` is not a Spotlight data type.
     """
-    if copy:
-        column = column.copy()
+    column = column.copy()
 
     if dtype is Category:
         # We only support string/`NA` categories, but `pandas` can more, so
@@ -197,15 +204,6 @@ def prepare_column(
 
         if is_file_based_column_type(dtype):
             dict_mask = column.map(type) == dict
-            column[dict_mask] = column[dict_mask].apply(_prepare_dict)
+            column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
 
     return column.mask(na_mask, None)
-
-
-def _prepare_dict(x: Dict) -> Any:
-    if x.keys() != {"bytes", "path"}:
-        return x
-    blob = x["bytes"]
-    if blob is not None:
-        return blob
-    return x["path"]
