@@ -21,88 +21,88 @@ import { exists, mapValues } from '../runtime';
 export interface Column {
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof Column
      */
-    name: any | null;
+    name: string;
     /**
      *
-     * @type {any}
+     * @type {number}
      * @memberof Column
      */
-    index?: any | null;
+    index?: number;
     /**
      *
-     * @type {any}
+     * @type {boolean}
      * @memberof Column
      */
-    hidden: any | null;
+    hidden: boolean;
     /**
      *
-     * @type {any}
+     * @type {boolean}
      * @memberof Column
      */
-    editable: any | null;
+    editable: boolean;
     /**
      *
-     * @type {any}
+     * @type {boolean}
      * @memberof Column
      */
-    optional: any | null;
+    optional: boolean;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof Column
      */
-    role: any | null;
+    role: string;
     /**
      *
-     * @type {any}
+     * @type {Array<any>}
      * @memberof Column
      */
-    values: any | null;
+    values: Array<any>;
     /**
      *
-     * @type {any}
+     * @type {Array<boolean>}
      * @memberof Column
      */
-    references?: any | null;
+    references?: Array<boolean>;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof Column
      */
-    yLabel?: any | null;
+    yLabel?: string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof Column
      */
-    xLabel?: any | null;
+    xLabel?: string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof Column
      */
-    description?: any | null;
+    description?: string;
     /**
      *
-     * @type {any}
+     * @type {Array<string>}
      * @memberof Column
      */
-    tags?: any | null;
+    tags?: Array<string>;
     /**
      *
-     * @type {{ [key: string]: any; }}
+     * @type {{ [key: string]: number; }}
      * @memberof Column
      */
-    categories?: { [key: string]: any } | null;
+    categories?: { [key: string]: number };
     /**
      *
-     * @type {any}
+     * @type {number}
      * @memberof Column
      */
-    embeddingLength?: any | null;
+    embeddingLength?: number;
 }
 
 /**

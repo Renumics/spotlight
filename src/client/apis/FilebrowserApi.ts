@@ -22,7 +22,7 @@ import {
 } from '../models';
 
 export interface GetFolderRequest {
-    path: any;
+    path: string;
 }
 
 /**

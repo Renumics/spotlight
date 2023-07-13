@@ -14,10 +14,13 @@ models/DataIssue.ts
 models/FileEntry.ts
 models/Folder.ts
 models/HTTPValidationError.ts
+models/LocationInner.ts
 models/Plugin.ts
+models/ResponseGetValue.ts
 models/SetConfigRequest.ts
 models/SetLayoutRequest.ts
 models/Table.ts
 models/ValidationError.ts
+models/Value.ts
 models/index.ts
 runtime.ts

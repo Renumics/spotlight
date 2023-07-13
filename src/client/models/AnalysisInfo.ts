@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { DataIssue } from './DataIssue';
+import {
+    DataIssueFromJSON,
+    DataIssueFromJSONTyped,
+    DataIssueToJSON,
+} from './DataIssue';
+
 /**
  * The current analysis status with all issues
  * @export
@@ -21,16 +28,16 @@ import { exists, mapValues } from '../runtime';
 export interface AnalysisInfo {
     /**
      *
-     * @type {any}
+     * @type {boolean}
      * @memberof AnalysisInfo
      */
-    running: any | null;
+    running: boolean;
     /**
      *
-     * @type {any}
+     * @type {Array<DataIssue>}
      * @memberof AnalysisInfo
      */
-    issues: any | null;
+    issues: Array<DataIssue>;
 }
 
 /**
@@ -57,7 +64,7 @@ export function AnalysisInfoFromJSONTyped(
     }
     return {
         running: json['running'],
-        issues: json['issues'],
+        issues: (json['issues'] as Array<any>).map(DataIssueFromJSON),
     };
 }
 
@@ -70,6 +77,6 @@ export function AnalysisInfoToJSON(value?: AnalysisInfo | null): any {
     }
     return {
         running: value.running,
-        issues: value.issues,
+        issues: (value.issues as Array<any>).map(DataIssueToJSON),
     };
 }

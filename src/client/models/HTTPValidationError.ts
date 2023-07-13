@@ -13,6 +13,13 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { ValidationError } from './ValidationError';
+import {
+    ValidationErrorFromJSON,
+    ValidationErrorFromJSONTyped,
+    ValidationErrorToJSON,
+} from './ValidationError';
+
 /**
  *
  * @export
@@ -21,10 +28,10 @@ import { exists, mapValues } from '../runtime';
 export interface HTTPValidationError {
     /**
      *
-     * @type {any}
+     * @type {Array<ValidationError>}
      * @memberof HTTPValidationError
      */
-    detail?: any | null;
+    detail?: Array<ValidationError>;
 }
 
 /**
@@ -48,7 +55,9 @@ export function HTTPValidationErrorFromJSONTyped(
         return json;
     }
     return {
-        detail: !exists(json, 'detail') ? undefined : json['detail'],
+        detail: !exists(json, 'detail')
+            ? undefined
+            : (json['detail'] as Array<any>).map(ValidationErrorFromJSON),
     };
 }
 
@@ -60,6 +69,9 @@ export function HTTPValidationErrorToJSON(value?: HTTPValidationError | null): a
         return null;
     }
     return {
-        detail: value.detail,
+        detail:
+            value.detail === undefined
+                ? undefined
+                : (value.detail as Array<any>).map(ValidationErrorToJSON),
     };
 }

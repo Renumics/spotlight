@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface SetLayoutRequest {
     /**
      *
-     * @type {any}
+     * @type {object}
      * @memberof SetLayoutRequest
      */
-    layout: any | null;
+    layout: object;
 }
 
 /**
