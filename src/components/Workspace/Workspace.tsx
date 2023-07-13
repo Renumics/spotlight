@@ -76,6 +76,11 @@ const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
     }, [datasetUid]);
 
     useEffect(() => {
+        if (!layoutStore.layout) {
+            setModel(undefined);
+            setIsLoading(false);
+            return;
+        }
         const layout = convertAppLayoutToFlexLayout(layoutStore.layout);
         const config: IJsonModel = {
             global: GLOBAL_CONFIG,
