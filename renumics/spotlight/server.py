@@ -161,6 +161,8 @@ class Server:
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
             if platform.system() == "Windows"
             else 0,
+            stdout=None if settings.verbose else subprocess.DEVNULL,
+            stderr=None if settings.verbose else subprocess.DEVNULL,
         )
         if platform.system() != "Windows":
             sock.close()
