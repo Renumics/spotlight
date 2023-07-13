@@ -203,6 +203,7 @@ old-screenshots: ## Generate the API spec and migrations
 
 .PHONY: api-client
 api-client: ## Generate API Spec and CLient
+	export SPOTLIGHT_DEV=False
 	rm -rf /tmp/spotlight-api-client
 	mkdir -p /tmp/spotlight-api-client
 	poetry run python ./scripts/generate_api_spec.py -o /tmp/spotlight-api-spec.json
