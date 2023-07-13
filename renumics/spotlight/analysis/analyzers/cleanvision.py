@@ -133,6 +133,9 @@ def analyze_with_cleanvision(
                 image_paths.append(str(path))
                 indices_list.append(i)
 
+            if len(image_paths) == 0:
+                continue
+
             with open(os.devnull, "w", encoding="utf-8") as devnull:
                 with redirect_stdout(devnull), redirect_stderr(devnull):
                     lab = cleanvision.Imagelab(filepaths=image_paths)
