@@ -256,16 +256,16 @@ class SpotlightApp(FastAPI):
             self._dataset = config.dataset
         if config.dtypes is not None:
             self._dtypes = config.dtypes
+        if config.analyze is not None:
+            self.analyze_issues = config.analyze
+        if config.custom_issues is not None:
+            self.custom_issues = config.custom_issues
         if config.dataset is not None or config.dtypes is not None:
             self.data_source = create_datasource(self._dataset, self._dtypes)
         if config.layout is not None:
             self.layout = config.layout
         if config.filebrowsing_allowed is not None:
             self.filebrowsing_allowed = config.filebrowsing_allowed
-        if config.analyze is not None:
-            self.analyze_issues = config.analyze
-        if config.custom_issues is not None:
-            self.custom_issues = config.custom_issues
 
         if not self._startup_complete:
             self._startup_complete = True

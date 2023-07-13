@@ -30,6 +30,7 @@ from renumics.spotlight.io.pandas import (
     infer_dtypes,
     is_empty,
     prepare_column,
+    prepare_hugging_face_dict,
     stringify_columns,
     to_categorical,
     try_literal_eval,
@@ -45,7 +46,6 @@ from renumics.spotlight.backend.exceptions import (
     DatasetColumnsNotUnique,
 )
 from renumics.spotlight.typing import PathType, is_pathtype
-
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
 
@@ -295,6 +295,8 @@ class PandasDataSource(DataSource):
             return None
         if isinstance(raw_value, str):
             raw_value = try_literal_eval(raw_value)
+        if is_file_based_column_type(dtype) and isinstance(raw_value, dict):
+            raw_value = prepare_hugging_face_dict(raw_value)
         if isinstance(raw_value, trimesh.Trimesh) and dtype is Mesh:
             value = Mesh.from_trimesh(raw_value)
             return value.encode()
