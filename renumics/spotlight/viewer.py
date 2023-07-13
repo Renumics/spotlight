@@ -49,8 +49,8 @@ Example:
 """
 
 import os
-import threading
 from pathlib import Path
+import time
 from typing import Collection, List, Union, Optional
 
 import pandas as pd
@@ -88,13 +88,9 @@ class Viewer:
 
     # pylint: disable=too-many-instance-attributes
 
-    _server: Optional[Server]
     _host: str
     _requested_port: Union[int, Literal["auto"]]
-    _dataset_or_folder: Optional[Union[PathType, pd.DataFrame]]
-    _dtype: Optional[ColumnTypeMapping]
-    _allow_filebrowsing: Optional[bool]
-    _layout: Optional[_LayoutLike]
+    _server: Optional[Server]
 
     def __init__(
         self,
@@ -103,11 +99,7 @@ class Viewer:
     ) -> None:
         self._host = host
         self._requested_port = port
-        self._dataset_or_folder = None
-        self._dtype = None
-        self._allow_filebrowsing = None
         self._server = None
-        self._thread = None
 
     def show(
         self,
@@ -142,8 +134,8 @@ class Viewer:
         """
         # pylint: disable=too-many-branches,too-many-arguments, too-many-locals
 
-        if is_pathtype(self._dataset_or_folder):
-            path = Path(self._dataset_or_folder).absolute()
+        if is_pathtype(dataset_or_folder):
+            path = Path(dataset_or_folder).absolute()
             if path.is_dir():
                 project_root = path
                 dataset = None
@@ -159,8 +151,8 @@ class Viewer:
 
         if allow_filebrowsing != "auto":
             filebrowsing_allowed = allow_filebrowsing
-        elif self._allow_filebrowsing is None:
-            filebrowsing_allowed = is_pathtype(self._dataset_or_folder)
+        elif allow_filebrowsing is None:
+            filebrowsing_allowed = is_pathtype(dataset_or_folder)
         else:
             filebrowsing_allowed = allow_filebrowsing is True
 
@@ -213,15 +205,11 @@ class Viewer:
             return
 
         if wait:
-            try:
-                if wait == "forever":
-                    threading.Event().wait()
-                else:
-                    self._server.wait_for_frontend_disconnect()
-            except KeyboardInterrupt as e:
-                # cleanup on KeyboarInterrupt to prevent zombie processes
-                self.close(wait=False)
-                raise e
+            if wait == "forever":
+                while True:
+                    time.sleep(1)
+            else:
+                self._server.wait_for_frontend_disconnect()
 
         _VIEWERS.remove(self)
         self._server.stop()

@@ -3,13 +3,9 @@
     Command line entrypoint for the renumics-spotlight python package
 """
 import os
-import multiprocessing
 import signal
 import sys
-import time
-import threading
-from types import TracebackType
-from typing import Any, Optional, Tuple, Type, Union
+from typing import Optional, Tuple, Union
 from pathlib import Path
 
 import click
@@ -124,10 +120,9 @@ def main(
     if verbose:
         logging.enable()
 
-    should_exit = threading.Event()
-
-    def _sigint_handler(*_: Any) -> None:
-        should_exit.set()
+    signal.signal(signal.SIGINT, lambda *_: sys.exit())
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit())
+    signal.signal(signal.SIGHUP, lambda *_: sys.exit())
 
     spotlight.show(
         table_or_folder,
@@ -137,25 +132,6 @@ def main(
         layout=layout,
         no_browser=no_browser,
         allow_filebrowsing=filebrowsing,
-        wait=False,
+        wait="forever",
         analyze=analyze,
     )
-
-    signal.signal(signal.SIGINT, _sigint_handler)
-    should_exit.wait()
-
-    def exception_handler(
-        _type: Type[BaseException],
-        _exc: BaseException,
-        _traceback: Optional[TracebackType],
-    ) -> None:
-        pass
-
-    sys.excepthook = exception_handler
-    time.sleep(0.1)
-
-    processes = multiprocessing.active_children()
-    for process in processes:
-        process.terminate()
-    for process in processes:
-        process.join()

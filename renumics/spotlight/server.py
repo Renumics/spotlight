@@ -3,6 +3,7 @@ Local proxy object for the spotlight server process
 """
 
 import platform
+import signal
 import threading
 from queue import Queue, Empty
 import socket
@@ -90,6 +91,7 @@ class Server:
         atexit.register(self.stop)
 
     def __del__(self) -> None:
+        self.stop()
         atexit.unregister(self.stop)
 
     def start(self, config: AppConfig) -> None:
@@ -156,6 +158,9 @@ class Server:
             command,
             env=env,
             pass_fds=None if platform.system() == "Windows" else (sock.fileno(),),
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+            if platform.system() == "Windows"
+            else 0,
             stdout=None if settings.verbose else subprocess.DEVNULL,
             stderr=None if settings.verbose else subprocess.DEVNULL,
         )
@@ -177,8 +182,19 @@ class Server:
         try:
             self.process.wait(3)
         except subprocess.TimeoutExpired:
-            self.process.kill()
-        self.process.wait(timeout=5)
+            if platform.system() == "Windows":
+                self.process.send_signal(
+                    signal.CTRL_C_EVENT  # type: ignore # pylint: disable=no-member
+                )
+                try:
+                    self.process.wait(1)
+                except subprocess.TimeoutExpired:
+                    self.process.send_signal(
+                        signal.CTRL_BREAK_EVENT  # type: ignore # pylint: disable=no-member
+                    )
+            else:
+                self.process.kill()
+        self.process.wait(1)
         self.process = None
 
         self._connection_thread.join(0.1)
