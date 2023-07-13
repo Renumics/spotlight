@@ -57,7 +57,3 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-playbook/stories/vit-base-patch16-224-in21k-ft-cifar10_highres_train/
-
-playbook/stories/pca_dyn_procrustes_300_outlow.gif
