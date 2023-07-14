@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Type
 
 import PIL.Image
 import filetype
+import trimesh
 import numpy as np
 import pandas as pd
 
@@ -34,8 +35,6 @@ from renumics.spotlight.dtypes.typing import (
     is_scalar_column_type,
 )
 from renumics.spotlight.typing import is_iterable, is_pathtype
-import trimesh
-
 from renumics.spotlight.dtypes.base import DType
 
 
@@ -87,6 +86,8 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
     Reises:
         ValueError: If dtype cannot be inferred automatically.
     """
+    # pylint: disable=too-many-return-statements
+
     if pd.api.types.is_bool_dtype(column) and not column.hasnans:
         return bool
     if pd.api.types.is_categorical_dtype(column):
@@ -123,14 +124,16 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
         column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
         try:
             np.asarray(column.to_list(), dtype=float)
-        except (TypeError, ValueError) as e:
+        except (TypeError, ValueError):
             return np.ndarray
-        else:
-            return dtype_mode
+        return dtype_mode
     return dtype_mode
 
 
 def infer_array_dtype(value: np.ndarray) -> Type[ColumnType]:
+    """
+    Infer dtype of a numpy array
+    """
     if value.ndim == 3:
         if value.shape[-1] in (1, 3, 4):
             return Image
@@ -145,6 +148,11 @@ def infer_array_dtype(value: np.ndarray) -> Type[ColumnType]:
 
 
 def infer_value_dtype(value: Any) -> Optional[Type[ColumnType]]:
+    """
+    Infer dtype for value
+    """
+    # pylint: disable=too-many-return-statements, too-many-branches
+
     if isinstance(value, DType):
         return type(value)
     if isinstance(value, PIL.Image.Image):
@@ -165,16 +173,16 @@ def infer_value_dtype(value: Any) -> Optional[Type[ColumnType]]:
             mime_group = kind.mime.split("/")[0]
             if mime_group == "image":
                 return Image
-            elif mime_group == "audio":
+            if mime_group == "audio":
                 return Audio
-            elif mime_group == "video":
+            if mime_group == "video":
                 return Video
         return None
     if is_iterable(value):
         try:
             value = np.asarray(value, dtype=float)
-        except (TypeError, ValueError) as e:
-            ...
+        except (TypeError, ValueError):
+            pass
         else:
             return infer_array_dtype(value)
     return None
