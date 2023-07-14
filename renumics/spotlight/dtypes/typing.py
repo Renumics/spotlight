@@ -8,26 +8,11 @@ from typing import Any, Dict, Union, Type
 import numpy as np
 from typing_extensions import TypeGuard, get_args
 
-from . import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window
+from . import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window, DType
 from .exceptions import NotADType
 
 
-ColumnType = Union[
-    bool,
-    int,
-    float,
-    str,
-    datetime,
-    Category,
-    Window,
-    np.ndarray,
-    Audio,
-    Embedding,
-    Image,
-    Mesh,
-    Sequence1D,
-    Video,
-]
+ColumnType = Union[bool, int, float, str, datetime, Category, Window, np.ndarray, DType]
 ScalarColumnType = Union[bool, int, float, str, datetime, Category]
 FileBasedColumnType = Union[Audio, Image, Mesh, Video]
 ArrayBasedColumnType = Union[Embedding, Image, Sequence1D]
