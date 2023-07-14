@@ -114,6 +114,7 @@ class Sequence1D(DType):
         value: Optional[Array1dLike] = None,
         dtype: Optional[Union[str, np.dtype]] = None,
     ) -> None:
+        # pylint: disable=too-many-branches
         if value is None:
             if index is None:
                 raise ValueError(
@@ -122,13 +123,54 @@ class Sequence1D(DType):
                 )
             value = index
             index = None
-        self.value = self._sanitize_data(value, dtype)
+
+        value_array = np.asarray(value, dtype)
+        if value_array.dtype.str[1] not in "fiu":
+            raise ValueError(
+                f"Input values should be array-likes with integer or float "
+                f"dtype, but dtype {value_array.dtype.name} received."
+            )
         if index is None:
-            if dtype is None:
-                dtype = self.value.dtype
-            self.index = np.arange(len(self.value), dtype=dtype)
+            if value_array.ndim == 2:
+                if value_array.shape[0] == 2:
+                    self.index = value_array[0]
+                    self.value = value_array[1]
+                elif value_array.shape[1] == 2:
+                    self.index = value_array[:, 0]
+                    self.value = value_array[:, 1]
+                else:
+                    raise ValueError(
+                        f"A single 2-dimensional input value should have one "
+                        f"dimension of length 2, but shape {value_array.shape} received."
+                    )
+            elif value_array.ndim == 1:
+                self.value = value_array
+                if dtype is None:
+                    dtype = self.value.dtype
+                self.index = np.arange(len(self.value), dtype=dtype)
+            else:
+                raise ValueError(
+                    f"A single input value should be 1- or 2-dimensional, but "
+                    f"shape {value_array.shape} received."
+                )
         else:
-            self.index = self._sanitize_data(index, dtype)
+            if value_array.ndim != 1:
+                raise ValueError(
+                    f"Value should be 1-dimensional, but shape {value_array.shape} received."
+                )
+            index_array = np.asarray(index, dtype)
+            if index_array.ndim != 1:
+                raise ValueError(
+                    f"INdex should be 1-dimensional array-like, but shape "
+                    f"{index_array.shape} received."
+                )
+            if index_array.dtype.str[1] not in "fiu":
+                raise ValueError(
+                    f"Index should be array-like with integer or float "
+                    f"dtype, but dtype {index_array.dtype.name} received."
+                )
+            self.value = value_array
+            self.index = index_array
         if len(self.value) != len(self.index):
             raise ValueError(
                 f"Lengths of `index` and `value` should match, but lengths "
@@ -158,23 +200,6 @@ class Sequence1D(DType):
         Create an empty sequence.
         """
         return cls(np.empty(0), np.empty(0))
-
-    @staticmethod
-    def _sanitize_data(
-        data: Array1dLike, dtype: Optional[Union[str, np.dtype]]
-    ) -> np.ndarray:
-        array = np.asarray(data, dtype)
-        if array.ndim != 1:
-            raise ValueError(
-                f"Input values should be 1-dimensional array-likes, but shape "
-                f"{array.shape} received."
-            )
-        if array.dtype.str[1] not in "fiu":
-            raise ValueError(
-                f"Input values should be array-likes with integer or float "
-                f"dtype, but dtype {array.dtype.name} received."
-            )
-        return array
 
 
 class Mesh(FileBasedDType):
