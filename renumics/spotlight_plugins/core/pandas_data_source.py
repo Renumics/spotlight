@@ -19,7 +19,7 @@ from renumics.spotlight.dtypes import (
     Video,
     Window,
 )
-from renumics.spotlight.dtypes.exceptions import InvalidFile
+from renumics.spotlight.dtypes.exceptions import InvalidFile, NotADType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
@@ -125,6 +125,7 @@ class PandasDataSource(DataSource):
         column_name: str,
         dtype: Type[ColumnType],
         indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         # pylint: disable=too-many-branches, too-many-statements
         column_index = self._parse_column_index(column_name)
@@ -194,32 +195,35 @@ class PandasDataSource(DataSource):
                     f"sequences of shape {embeddings.shape[1:]} received."
                 )
 
-            if na_mask.any():
-                values = np.empty(len(column), dtype=object)
-                values[np.where(~na_mask)[0]] = list(embeddings)
+            values = np.empty(len(column), dtype=object)
+
+            print(na_mask)
+
+            if simple:
+                values[~na_mask] = "[...]"
             else:
-                values = embeddings
+                values[np.where(~na_mask)[0]] = list(embeddings)
 
             embedding_length = embeddings.shape[1]
+
         elif dtype is Sequence1D:
             na_mask = column.isna()
-            if na_mask.any():
-                values = np.empty(len(column), dtype=object)
-                values[~na_mask] = ""
-            else:
-                values = np.full(len(column), "")
-        else:
-            # A reference column. `dtype` is one of `np.ndarray`, `Audio`,
-            # `Image`, `Mesh`, `Sequence1D` or `Video`. Don't try to check or
-            # convert values at the moment.
+            values = np.empty(len(column), dtype=object)
+            values[~na_mask] = "[...]"
+        elif dtype is np.ndarray:
             na_mask = column.isna()
-            if is_file_based_column_type(dtype):
-                # Strings are paths or URLs, let them inplace. Replace
-                # non-strings with empty strings.
-                column = column.mask(~(column.map(type) == str), "")
-                values = column.to_numpy()
-            else:
-                values = np.full(len(column), "")
+            values = np.empty(len(column), dtype=object)
+            values[~na_mask] = "[...]"
+        elif is_file_based_column_type(dtype):
+            # Strings are paths or URLs, let them inplace. Replace
+            # non-strings with "<in-memory>".
+            na_mask = column.isna()
+            column = column.mask(~(column.map(type) == str), "<in-memory>")
+            values = column.to_numpy(dtype=object)
+            values[na_mask] = None
+        else:
+            raise NotADType()
+
         return Column(
             type=dtype,
             order=None,

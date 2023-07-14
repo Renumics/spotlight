@@ -63,7 +63,7 @@ def is_column_type(x: Any) -> TypeGuard[Type[ColumnType]]:
     """
     Check whether `x` is a Spotlight data type class.
     """
-    return x in get_args(ColumnType)
+    return x in COLUMN_TYPES_BY_NAME.values()
 
 
 def is_scalar_column_type(x: Any) -> TypeGuard[Type[ScalarColumnType]]:

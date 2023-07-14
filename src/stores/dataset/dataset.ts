@@ -152,15 +152,8 @@ const fetchTable = async (): Promise<{
             return;
         }
 
-        columnData[dsColumn.key] = rawColumn.values.map((value, index) =>
-            convertValue(
-                value !== null
-                    ? value
-                    : rawColumn.references?.[index]
-                    ? undefined
-                    : null,
-                dsColumn.type
-            )
+        columnData[dsColumn.key] = rawColumn.values.map((value) =>
+            convertValue(value, dsColumn.type)
         );
 
         switch (dsColumn.type.kind) {

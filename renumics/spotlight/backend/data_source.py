@@ -150,6 +150,7 @@ class DataSource(ABC):
         column_name: str,
         dtype: Type[ColumnType],
         indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         """
         Get column metadata + values
