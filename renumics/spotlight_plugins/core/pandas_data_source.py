@@ -197,8 +197,6 @@ class PandasDataSource(DataSource):
 
             values = np.empty(len(column), dtype=object)
 
-            print(na_mask)
-
             if simple:
                 values[~na_mask] = "[...]"
             else:
