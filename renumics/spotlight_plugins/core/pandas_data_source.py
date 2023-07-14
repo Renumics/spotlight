@@ -15,6 +15,7 @@ from renumics.spotlight.dtypes import (
     Embedding,
     Image,
     Mesh,
+    Sequence1D,
     Video,
     Window,
 )
@@ -200,6 +201,13 @@ class PandasDataSource(DataSource):
                 values = embeddings
 
             embedding_length = embeddings.shape[1]
+        elif dtype is Sequence1D:
+            na_mask = column.isna()
+            if na_mask.any():
+                values = np.empty(len(column), dtype=object)
+                values[~na_mask] = ""
+            else:
+                values = np.full(len(column), "")
         else:
             # A reference column. `dtype` is one of `np.ndarray`, `Audio`,
             # `Image`, `Mesh`, `Sequence1D` or `Video`. Don't try to check or
