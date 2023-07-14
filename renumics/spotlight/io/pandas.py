@@ -98,12 +98,7 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
         return float
     if pd.api.types.is_datetime64_any_dtype(column):
         return datetime
-    # `is_string_dtype` only checks `object` dtype, it's not enough.
-    if (
-        pd.api.types.is_string_dtype(column)
-        and ((column.map(type) == str) | (column.isna())).all()
-    ):
-        return str
+
     column = column.copy()
     str_mask = is_string_mask(column)
     column[str_mask] = column[str_mask].replace("", None)
@@ -111,10 +106,11 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
     column = column[~column.isna()]
     if len(column) == 0:
         return str
-    column_head = column.iloc[:10]
 
+    column_head = column.iloc[:10]
     head_dtypes = column_head.apply(infer_value_dtype).to_list()
     dtype_mode = statistics.mode(head_dtypes)
+
     if dtype_mode is None:
         return str
     if issubclass(dtype_mode, (Window, Embedding)):

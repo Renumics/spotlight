@@ -88,10 +88,11 @@ class PandasDataSource(DataSource):
         return len(self._df)
 
     def guess_dtypes(self) -> ColumnTypeMapping:
-        return {
+        dtype_map = {
             str(column_name): infer_dtype(self.df[column_name])
             for column_name in self.df
         }
+        return dtype_map
 
     def _parse_column_index(self, column_name: str) -> Any:
         column_names = self.column_names
