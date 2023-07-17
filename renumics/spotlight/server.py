@@ -149,6 +149,9 @@ class Server:
         else:
             command += ["--fd", str(sock.fileno())]
 
+        if settings.dev:
+            command.append("--reload")
+
         # start uvicorn
         # pylint: disable=consider-using-with
         self.process = subprocess.Popen(
