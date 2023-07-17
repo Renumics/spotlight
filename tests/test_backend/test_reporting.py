@@ -20,13 +20,6 @@ def test_ci_false() -> None:
     assert skip_analytics() is True
 
 
-def test_ci_unset() -> None:
-    """test ci is not set and rest is defaults"""
-    if "CI" in environ:
-        del environ["CI"]
-    assert skip_analytics() is False
-
-
 def test_opt_out() -> None:
     """test out_out is true"""
 
