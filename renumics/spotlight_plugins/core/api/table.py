@@ -35,7 +35,7 @@ from renumics.spotlight.dtypes import (
 
 # for now specify all lazy dtypes right here
 # we should probably move closer to the actual dtype definition for easier extensibility
-LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio]
+LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio, str]
 
 
 class Column(BaseModel):
