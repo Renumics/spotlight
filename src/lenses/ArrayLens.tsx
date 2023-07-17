@@ -19,7 +19,7 @@ const ArrayLens: Lens = ({ value }) => {
 };
 
 ArrayLens.key = 'ArrayLens';
-ArrayLens.dataTypes = ['array', 'Embedding'];
+ArrayLens.dataTypes = ['array', 'Embedding', 'Window'];
 ArrayLens.defaultHeight = 22;
 ArrayLens.minHeight = 22;
 ArrayLens.maxHeight = 128;
