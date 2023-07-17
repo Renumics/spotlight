@@ -12,6 +12,7 @@ import TextLens from './TextLens';
 import VideoLens from './VideoLens';
 
 export const ALL_LENSES = [
+    ArrayLens,
     AudioLens,
     SpectrogramLens,
     VideoLens,
@@ -19,7 +20,6 @@ export const ALL_LENSES = [
     MeshLens,
     SequenceLens,
     TextLens,
-    ArrayLens,
     SafeHtmlLens,
     HtmlLens,
     MarkdownLens,
