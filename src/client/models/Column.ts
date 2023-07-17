@@ -42,6 +42,12 @@ export interface Column {
      * @type {boolean}
      * @memberof Column
      */
+    lazy: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Column
+     */
     editable: boolean;
     /**
      *
@@ -61,12 +67,6 @@ export interface Column {
      * @memberof Column
      */
     values: Array<any>;
-    /**
-     *
-     * @type {Array<boolean>}
-     * @memberof Column
-     */
-    references?: Array<boolean>;
     /**
      *
      * @type {string}
@@ -112,6 +112,7 @@ export function instanceOfColumn(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && 'name' in value;
     isInstance = isInstance && 'hidden' in value;
+    isInstance = isInstance && 'lazy' in value;
     isInstance = isInstance && 'editable' in value;
     isInstance = isInstance && 'optional' in value;
     isInstance = isInstance && 'role' in value;
@@ -132,11 +133,11 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
         name: json['name'],
         index: !exists(json, 'index') ? undefined : json['index'],
         hidden: json['hidden'],
+        lazy: json['lazy'],
         editable: json['editable'],
         optional: json['optional'],
         role: json['role'],
         values: json['values'],
-        references: !exists(json, 'references') ? undefined : json['references'],
         yLabel: !exists(json, 'y_label') ? undefined : json['y_label'],
         xLabel: !exists(json, 'x_label') ? undefined : json['x_label'],
         description: !exists(json, 'description') ? undefined : json['description'],
@@ -159,11 +160,11 @@ export function ColumnToJSON(value?: Column | null): any {
         name: value.name,
         index: value.index,
         hidden: value.hidden,
+        lazy: value.lazy,
         editable: value.editable,
         optional: value.optional,
         role: value.role,
         values: value.values,
-        references: value.references,
         y_label: value.yLabel,
         x_label: value.xLabel,
         description: value.description,

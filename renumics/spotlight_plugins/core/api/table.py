@@ -10,7 +10,6 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
-from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.backend.data_source import (
     Column as DatasetColumn,
     idx_column,
@@ -20,6 +19,7 @@ from renumics.spotlight.backend.data_source import (
 )
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
@@ -33,18 +33,9 @@ from renumics.spotlight.dtypes import (
     Video,
 )
 
-
+# for now specify all lazy dtypes right here
+# we should probably move closer to the actual dtype definition for easier extensibility
 LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio]
-
-
-def _isfalsy(value: Optional[np.ndarray]) -> bool:
-    # pylint: disable=unneeded-not
-    return value is None or not not value
-
-
-def _isfalsy_array(value: Optional[np.ndarray]) -> bool:
-    # pylint: disable=unneeded-not, use-implicit-booleaness-not-len
-    return value is None or not not len(value)
 
 
 class Column(BaseModel):
@@ -57,11 +48,11 @@ class Column(BaseModel):
     name: str
     index: Optional[int]
     hidden: bool
+    lazy: bool
     editable: bool
     optional: bool
     role: str
     values: List[Any]
-    references: Optional[List[bool]]
     y_label: Optional[str]
     x_label: Optional[str]
     description: Optional[str]
@@ -75,28 +66,15 @@ class Column(BaseModel):
         Instantiate column from a dataset column.
         """
 
-        if column.type in LAZY_DTYPES:
-            if column.type in [Sequence1D, np.ndarray, Embedding]:
-                references = [_isfalsy_array(value) for value in column.values]
-            else:
-                references = [_isfalsy(value) for value in column.values]
-        else:
-            references = None
-
-        if column.type == Embedding:
-            values = [""] * len(column.values)
-        else:
-            values = sanitize_values(column.values)
-
         return cls(
             name=column.name,
             index=column.order,
             hidden=column.hidden,
+            lazy=column.type in LAZY_DTYPES,
             editable=column.editable,
             optional=column.optional,
             role=get_column_type_name(column.type),
-            values=values,
-            references=references,
+            values=sanitize_values(column.values),
             x_label=column.x_label,
             y_label=column.y_label,
             description=column.description,
@@ -145,7 +123,10 @@ def get_table(request: Request) -> ORJSONResponse:
             ).dict()
         )
 
-    columns = [table.get_column(name) for name in table.column_names]
+    columns = [
+        table.get_column(name, app.dtypes[name], simple=True)
+        for name in table.column_names
+    ]
     columns.extend(table.get_internal_columns())
     row_count = len(table)
     columns.append(idx_column(row_count))
@@ -181,7 +162,7 @@ async def get_table_cell(
         return None
     table.check_generation_id(generation_id)
 
-    cell_data = table.get_cell_data(column, row)
+    cell_data = table.get_cell_data(column, row, app.dtypes[column])
     value = sanitize_values(cell_data)
 
     if isinstance(value, (bytes, str)):
@@ -240,4 +221,4 @@ async def open_table(path: str, request: Request) -> None:
     if not is_path_relative_to(full_path, app.project_root):
         raise InvalidPath(path)
 
-    app.data_source = create_datasource(full_path, dtype=app.dtype)
+    app.update(AppConfig(dataset=full_path))

@@ -4,7 +4,7 @@ find issues in images
 
 import os
 import inspect
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Type
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
@@ -14,7 +14,7 @@ import cleanvision
 
 from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.exceptions import ConversionFailed
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping, ColumnType
 from renumics.spotlight.dtypes import Image
 
 from ..decorator import data_analyzer
@@ -93,10 +93,10 @@ def _make_issue(cleanvision_key: str, column: str, rows: List[int]) -> DataIssue
 
 
 def _get_cell_data_safe(
-    data_source: DataSource, column_name: str, row: int
+    data_source: DataSource, column_name: str, row: int, dtype: Type[ColumnType]
 ) -> Optional[bytes]:
     try:
-        return data_source.get_cell_data(column_name, row)
+        return data_source.get_cell_data(column_name, row, dtype)
     except ConversionFailed:
         return None
 
@@ -115,7 +115,7 @@ def analyze_with_cleanvision(
     for column_name in image_columns:
         # load image data from data source
         images = (
-            _get_cell_data_safe(data_source, column_name, row)
+            _get_cell_data_safe(data_source, column_name, row, dtypes[column_name])
             for row in range(len(data_source))
         )
 

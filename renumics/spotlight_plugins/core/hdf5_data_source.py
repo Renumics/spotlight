@@ -12,6 +12,7 @@ import numpy as np
 
 from renumics.spotlight.dtypes import Category, Embedding
 from renumics.spotlight.dtypes.typing import (
+    ColumnType,
     ColumnTypeMapping,
     get_column_type,
     FileBasedColumnType,
@@ -117,11 +118,12 @@ class H5Dataset(Dataset):
         return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
 
     def read_value(
-        self, column_name: str, index: IndexType
+        self, column_name: str, index: IndexType, simple: bool = False
     ) -> Optional[Union[np.generic, str, np.void, np.ndarray]]:
         """
         Get a dataset value as it is stored in the H5 dataset, resolve references.
         """
+        # pylint: disable=unused-argument
         self._assert_column_exists(column_name, internal=True)
         self._assert_index_exists(index)
         column = self._h5_file[column_name]
@@ -146,11 +148,12 @@ class H5Dataset(Dataset):
         self,
         column_name: str,
         indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         """
         Read a dataset column for serialization.
         """
-        # pylint: disable=too-many-branches, too-many-nested-blocks, too-many-locals
+        # pylint: disable=too-many-branches, too-many-nested-blocks, too-many-locals, unused-argument
         self._assert_column_exists(column_name, internal=True)
 
         column = self._h5_file[column_name]
@@ -258,16 +261,9 @@ class Hdf5DataSource(DataSource):
     access h5 table data
     """
 
-    def __init__(self, source: PathType, dtype: ColumnTypeMapping):
+    def __init__(self, source: PathType):
+        # pylint: disable=unused-argument
         self._table_file = Path(source)
-
-    @property
-    def dtype(self) -> ColumnTypeMapping:
-        with self._open_table() as dataset:
-            return {
-                column_name: dataset.get_column_type(column_name)
-                for column_name in dataset.keys()
-            }
 
     @property
     def column_names(self) -> List[str]:
@@ -277,6 +273,13 @@ class Hdf5DataSource(DataSource):
     def __len__(self) -> int:
         with self._open_table() as dataset:
             return len(dataset)
+
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        with self._open_table() as dataset:
+            return {
+                column_name: dataset.get_column_type(column_name)
+                for column_name in self.column_names
+            }
 
     def get_generation_id(self) -> int:
         with self._open_table() as dataset:
@@ -296,12 +299,18 @@ class Hdf5DataSource(DataSource):
             ]
 
     def get_column(
-        self, column_name: str, indices: Optional[List[int]] = None
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         with self._open_table() as dataset:
-            return dataset.read_column(column_name, indices=indices)
+            return dataset.read_column(column_name, indices=indices, simple=simple)
 
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         return the value of a single cell
         """

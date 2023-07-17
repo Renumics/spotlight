@@ -150,7 +150,7 @@ class Server:
             command += ["--fd", str(sock.fileno())]
 
         if settings.dev:
-            command.extend(["--reload"])
+            command.append("--reload")
 
         # start uvicorn
         # pylint: disable=consider-using-with

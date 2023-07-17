@@ -77,7 +77,7 @@ function useCellValues(
                           return fetchValue(
                               rowIndex,
                               columnKeys[i],
-                              !['Embedding', 'Array'].includes(column.type.kind)
+                              !['Embedding', 'array'].includes(column.type.kind)
                           );
                       }
                   })

@@ -5,7 +5,7 @@ import hashlib
 import io
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Type, Optional, List, Dict, Any, cast
+from typing import Optional, List, Dict, Type, Any, cast
 
 import filetype
 import pandas as pd
@@ -82,7 +82,7 @@ class DataSource(ABC):
     """abstract base class for different data sources"""
 
     @abstractmethod
-    def __init__(self, source: Any, dtype: Optional[ColumnTypeMapping]):
+    def __init__(self, source: Any):
         """
         Create Data Source from matching source and dtype mapping.
         """
@@ -121,6 +121,12 @@ class DataSource(ABC):
             raise GenerationIDMismatch()
 
     @abstractmethod
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        """
+        Guess data source's dtypes.
+        """
+
+    @abstractmethod
     def get_uid(self) -> str:
         """
         Get the table's unique ID.
@@ -138,23 +144,22 @@ class DataSource(ABC):
         """
         return []
 
-    @property
-    @abstractmethod
-    def dtype(self) -> ColumnTypeMapping:
-        """
-        Get the dtypes of the data source.
-        """
-
     @abstractmethod
     def get_column(
-        self, column_name: str, indices: Optional[List[int]] = None
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         """
         Get column metadata + values
         """
 
     @abstractmethod
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         return the value of a single cell
         """
@@ -163,7 +168,7 @@ class DataSource(ABC):
         """
         return the waveform of an audio cell
         """
-        blob = self.get_cell_data(column_name, row_index)
+        blob = self.get_cell_data(column_name, row_index, Audio)
         if blob is None:
             return None
         value_hash = hashlib.blake2b(blob.tolist()).hexdigest()
@@ -178,7 +183,7 @@ class DataSource(ABC):
         return waveform
 
     def replace_cells(
-        self, column_name: str, indices: List[int], value: Any
+        self, column_name: str, indices: List[int], value: Any, dtype: Type[ColumnType]
     ) -> CellsUpdate:
         """
         replace multiple cell's value

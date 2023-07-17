@@ -41,7 +41,7 @@ export function makeColumn(
         order: column.index ?? 0,
         type: type,
         hidden: column.hidden,
-        lazy: !!column.references,
+        lazy: column.lazy,
         editable: column.editable,
         optional: column.optional,
         description: column.description,

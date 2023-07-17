@@ -9,6 +9,7 @@ import pandas as pd
 
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.dtypes import Category, Embedding
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from ..data_source import DataSource
 
 SEED = 42
@@ -21,7 +22,10 @@ class ColumnNotEmbeddable(Exception):
 
 
 def get_aligned_data(
-    table: DataSource, column_names: List[str], indices: List[int]
+    table: DataSource,
+    dtypes: ColumnTypeMapping,
+    column_names: List[str],
+    indices: List[int],
 ) -> Tuple[np.ndarray, List[int]]:
     """
     Align data from table's columns, remove `NaN`'s.
@@ -34,7 +38,7 @@ def get_aligned_data(
 
     values = []
     for column_name in column_names:
-        column = table.get_column(column_name, indices)
+        column = table.get_column(column_name, dtypes[column_name], indices)
         if column.type is Embedding:
             if column.embedding_length:
                 none_replacement = np.full(column.embedding_length, np.nan)
@@ -69,6 +73,7 @@ def get_aligned_data(
 
 def compute_umap(
     table: DataSource,
+    dtypes: ColumnTypeMapping,
     column_names: List[str],
     indices: List[int],
     n_neighbors: int,
@@ -81,7 +86,7 @@ def compute_umap(
     # pylint: disable=import-outside-toplevel, too-many-arguments
 
     try:
-        data, indices = get_aligned_data(table, column_names, indices)
+        data, indices = get_aligned_data(table, dtypes, column_names, indices)
     except (ColumnNotExistsError, ColumnNotEmbeddable):
         return np.empty(0, np.float64), []
     if data.size == 0:
@@ -108,6 +113,7 @@ def compute_umap(
 
 def compute_pca(
     table: DataSource,
+    dtypes: ColumnTypeMapping,
     column_names: List[str],
     indices: List[int],
     normalization: str,
@@ -119,7 +125,7 @@ def compute_pca(
     from sklearn import preprocessing, decomposition
 
     try:
-        data, indices = get_aligned_data(table, column_names, indices)
+        data, indices = get_aligned_data(table, dtypes, column_names, indices)
     except (ColumnNotExistsError, ValueError):
         return np.empty(0, np.float64), []
     if data.size == 0:

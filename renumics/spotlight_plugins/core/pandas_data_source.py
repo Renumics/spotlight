@@ -15,10 +15,11 @@ from renumics.spotlight.dtypes import (
     Embedding,
     Image,
     Mesh,
+    Sequence1D,
     Video,
     Window,
 )
-from renumics.spotlight.dtypes.exceptions import InvalidFile, UnsupportedDType
+from renumics.spotlight.dtypes.exceptions import InvalidFile, NotADType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
@@ -27,7 +28,7 @@ from renumics.spotlight.dtypes.typing import (
     is_scalar_column_type,
 )
 from renumics.spotlight.io.pandas import (
-    infer_dtypes,
+    infer_dtype,
     is_empty,
     prepare_column,
     prepare_hugging_face_dict,
@@ -59,14 +60,8 @@ class PandasDataSource(DataSource):
     _generation_id: int
     _uid: str
     _df: pd.DataFrame
-    _dtype: ColumnTypeMapping
-    _inferred_dtype: ColumnTypeMapping
 
-    def __init__(
-        self,
-        source: Union[PathType, pd.DataFrame],
-        dtype: Optional[ColumnTypeMapping] = None,
-    ):
+    def __init__(self, source: Union[PathType, pd.DataFrame]):
         if is_pathtype(source):
             df = pd.read_csv(source)
         else:
@@ -77,8 +72,6 @@ class PandasDataSource(DataSource):
         self._generation_id = 0
         self._uid = str(id(df))
         self._df = df.copy()
-        self._dtype = dtype.copy() if dtype else {}
-        self._inferred_dtype = infer_dtypes(self._df, self._dtype)
 
     @property
     def column_names(self) -> List[str]:
@@ -91,15 +84,15 @@ class PandasDataSource(DataSource):
         """
         return self._df.copy()
 
-    @property
-    def dtype(self) -> ColumnTypeMapping:
-        """
-        Get **a copy** of dict with the desired data types.
-        """
-        return self._inferred_dtype.copy()
-
     def __len__(self) -> int:
         return len(self._df)
+
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        dtype_map = {
+            str(column_name): infer_dtype(self.df[column_name])
+            for column_name in self.df
+        }
+        return dtype_map
 
     def _parse_column_index(self, column_name: str) -> Any:
         column_names = self.column_names
@@ -129,12 +122,15 @@ class PandasDataSource(DataSource):
         return "pd.DataFrame"
 
     def get_column(
-        self, column_name: str, indices: Optional[List[int]] = None
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         # pylint: disable=too-many-branches, too-many-statements
         column_index = self._parse_column_index(column_name)
 
-        dtype = self._inferred_dtype[column_index]
         column = self._df[column_index]
         if indices is not None:
             column = column.iloc[indices]
@@ -200,25 +196,33 @@ class PandasDataSource(DataSource):
                     f"sequences of shape {embeddings.shape[1:]} received."
                 )
 
-            if na_mask.any():
-                values = np.empty(len(column), dtype=object)
-                values[np.where(~na_mask)[0]] = list(embeddings)
+            values = np.empty(len(column), dtype=object)
+
+            if simple:
+                values[~na_mask] = "[...]"
             else:
-                values = embeddings
+                values[np.where(~na_mask)[0]] = list(embeddings)
 
             embedding_length = embeddings.shape[1]
-        else:
-            # A reference column. `dtype` is one of `np.ndarray`, `Audio`,
-            # `Image`, `Mesh`, `Sequence1D` or `Video`. Don't try to check or
-            # convert values at the moment.
+
+        elif dtype is Sequence1D:
             na_mask = column.isna()
-            if is_file_based_column_type(dtype):
-                # Strings are paths or URLs, let them inplace. Replace
-                # non-strings with empty strings.
-                column = column.mask(~(column.map(type) == str), "")
-                values = column.to_numpy()
-            else:
-                values = np.full(len(column), "")
+            values = np.empty(len(column), dtype=object)
+            values[~na_mask] = "[...]"
+        elif dtype is np.ndarray:
+            na_mask = column.isna()
+            values = np.empty(len(column), dtype=object)
+            values[~na_mask] = "[...]"
+        elif is_file_based_column_type(dtype):
+            # Strings are paths or URLs, let them inplace. Replace
+            # non-strings with "<in-memory>".
+            na_mask = column.isna()
+            column = column.mask(~(column.map(type) == str), "<in-memory>")
+            values = column.to_numpy(dtype=object)
+            values[na_mask] = None
+        else:
+            raise NotADType()
+
         return Column(
             type=dtype,
             order=None,
@@ -235,7 +239,9 @@ class PandasDataSource(DataSource):
             values=values,
         )
 
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         Return the value of a single cell, warn if not possible.
         """
@@ -246,7 +252,6 @@ class PandasDataSource(DataSource):
         column_index = self._parse_column_index(column_name)
 
         raw_value = self._df.iloc[row_index, self._df.columns.get_loc(column_index)]
-        dtype = self._inferred_dtype[column_index]
 
         if dtype is Category:
             if pd.isna(raw_value):
@@ -346,12 +351,6 @@ class PandasDataSource(DataSource):
         At the moment, there is no way to add a new category in Spotlight, so we
         rely on the previously cached ones.
         """
-        dtype = self._inferred_dtype[column_index]
-        if dtype is not Category:
-            raise UnsupportedDType(
-                f"Column categories exist for categorical columns only, but "
-                f"column '{str(column_index)}' of type {dtype} received."
-            )
         column = self._df[column_index]
         column = to_categorical(column, str_categories=as_string)
         return {category: i for i, category in enumerate(column.cat.categories)}

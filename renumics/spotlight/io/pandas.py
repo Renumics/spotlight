@@ -3,13 +3,28 @@ This module contains helpers for importing `pandas.DataFrame`s.
 """
 
 import ast
+import os.path
+import statistics
 from contextlib import suppress
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Type
 
+import PIL.Image
+import filetype
+import trimesh
+import numpy as np
 import pandas as pd
 
-from renumics.spotlight.dtypes import Category
+from renumics.spotlight.dtypes import (
+    Audio,
+    Category,
+    Embedding,
+    Image,
+    Mesh,
+    Sequence1D,
+    Video,
+    Window,
+)
 from renumics.spotlight.dtypes.exceptions import NotADType, UnsupportedDType
 from renumics.spotlight.dtypes.typing import (
     COLUMN_TYPES_BY_NAME,
@@ -19,7 +34,8 @@ from renumics.spotlight.dtypes.typing import (
     is_file_based_column_type,
     is_scalar_column_type,
 )
-from renumics.spotlight.typing import is_iterable
+from renumics.spotlight.typing import is_iterable, is_pathtype
+from renumics.spotlight.dtypes.base import DType
 
 
 def is_empty(value: Any) -> bool:
@@ -70,6 +86,8 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
     Reises:
         ValueError: If dtype cannot be inferred automatically.
     """
+    # pylint: disable=too-many-return-statements
+
     if pd.api.types.is_bool_dtype(column) and not column.hasnans:
         return bool
     if pd.api.types.is_categorical_dtype(column):
@@ -80,13 +98,90 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
         return float
     if pd.api.types.is_datetime64_any_dtype(column):
         return datetime
-    # `is_string_dtype` only checks `object` dtype, it's not enough.
-    if (
-        pd.api.types.is_string_dtype(column)
-        and ((column.map(type) == str) | (column.isna())).all()
-    ):
+
+    column = column.copy()
+    str_mask = is_string_mask(column)
+    column[str_mask] = column[str_mask].replace("", None)
+
+    column = column[~column.isna()]
+    if len(column) == 0:
         return str
-    raise UnsupportedDType("Column dtype cannot be inferred automatically.")
+
+    column_head = column.iloc[:10]
+    head_dtypes = column_head.apply(infer_value_dtype).to_list()
+    dtype_mode = statistics.mode(head_dtypes)
+
+    if dtype_mode is None:
+        return str
+    if issubclass(dtype_mode, (Window, Embedding)):
+        str_mask = is_string_mask(column)
+        column[str_mask] = column[str_mask].apply(try_literal_eval)
+        dict_mask = column.map(type) == dict
+        column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
+        try:
+            np.asarray(column.to_list(), dtype=float)
+        except (TypeError, ValueError):
+            return np.ndarray
+        return dtype_mode
+    return dtype_mode
+
+
+def infer_array_dtype(value: np.ndarray) -> Type[ColumnType]:
+    """
+    Infer dtype of a numpy array
+    """
+    if value.ndim == 3:
+        if value.shape[-1] in (1, 3, 4):
+            return Image
+    elif value.ndim == 2:
+        if value.shape[0] == 2 or value.shape[1] == 2:
+            return Sequence1D
+    elif value.ndim == 1:
+        if len(value) == 2:
+            return Window
+        return Embedding
+    return np.ndarray
+
+
+def infer_value_dtype(value: Any) -> Optional[Type[ColumnType]]:
+    """
+    Infer dtype for value
+    """
+    # pylint: disable=too-many-return-statements, too-many-branches
+
+    if isinstance(value, DType):
+        return type(value)
+    if isinstance(value, PIL.Image.Image):
+        return Image
+    if isinstance(value, trimesh.Trimesh):
+        return Mesh
+    if isinstance(value, np.ndarray):
+        return infer_array_dtype(value)
+
+    # When `pandas` reads a csv, arrays and lists are read as literal strings,
+    # try to interpret them.
+    value = try_literal_eval(value)
+    if isinstance(value, dict):
+        value = prepare_hugging_face_dict(value)
+    if isinstance(value, bytes) or (is_pathtype(value) and os.path.isfile(value)):
+        kind = filetype.guess(value)
+        if kind is not None:
+            mime_group = kind.mime.split("/")[0]
+            if mime_group == "image":
+                return Image
+            if mime_group == "audio":
+                return Audio
+            if mime_group == "video":
+                return Video
+        return None
+    if is_iterable(value):
+        try:
+            value = np.asarray(value, dtype=float)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return infer_array_dtype(value)
+    return None
 
 
 def infer_dtypes(
