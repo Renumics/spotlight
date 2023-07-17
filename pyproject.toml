@@ -87,6 +87,7 @@ py-machineid = "*"
 filetype = "*"
 setuptools = "*"
 numba = "^0.57.1"
+pillow = "^10.0.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "*"
