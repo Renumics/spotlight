@@ -124,9 +124,9 @@ def non_existing_image_df_viewer() -> Iterator[spotlight.Viewer]:
 def testclient() -> TestClient:
     """setup API client with loaded spotlight h5 file in backend"""
 
-    # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel, protected-access
     from renumics.spotlight.app import SpotlightApp
 
     app = SpotlightApp()
-    app.data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
+    app._data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
     return TestClient(app)
