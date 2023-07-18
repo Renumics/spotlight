@@ -71,13 +71,14 @@ function useCellValues(
 
         const fetchers = cellEntries.map((entry, i) => {
             const column = columns[i];
+
             return entry !== null && column?.lazy
                 ? delay(deferLoading ? 250 : 0).then(() => {
                       if (!cancelled) {
                           return fetchValue(
                               rowIndex,
                               columnKeys[i],
-                              !['Embedding', 'array', 'str'].includes(column.type.kind)
+                              column.type.binary
                           );
                       }
                   })

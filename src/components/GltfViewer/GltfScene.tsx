@@ -47,12 +47,12 @@ function getTypedArrayDataType(array: TypedArray): DataType {
         case Int32Array:
         case Uint32Array:
         case Uint8ClampedArray:
-            return { kind: 'int', optional: false };
+            return { kind: 'int', optional: false, binary: false };
         case Float32Array:
         case Float64Array:
-            return { kind: 'float', optional: false };
+            return { kind: 'float', optional: false, binary: false };
         default:
-            return { kind: 'Unknown', optional: false };
+            return { kind: 'Unknown', optional: false, binary: false };
     }
 }
 

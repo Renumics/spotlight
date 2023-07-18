@@ -51,7 +51,11 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const [columnSorting, sortBy, resetSorting] = useSortByColumn(column.key);
 
     const tags = useDataset(tagsSelector);
-    const tagColorTransferFunction = useColorTransferFunction(tags, { kind: 'str' });
+    const tagColorTransferFunction = useColorTransferFunction(tags, {
+        kind: 'str',
+        optional: true,
+        binary: false,
+    });
 
     const statsSelector = useCallback(
         (d: Dataset) => d.columnStats.full[column.key],
@@ -109,6 +113,8 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
                         <Tag
                             tag={`mean: ${dataformat.format(stats.mean, {
                                 kind: 'float',
+                                optional: false,
+                                binary: false,
                             })}`}
                         />
                     </div>

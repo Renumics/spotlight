@@ -19,7 +19,11 @@ const tagsSelector = (d: Dataset) => d.tags;
 
 const ColumnListItem = ({ column, selected, onChangeSelected }: Props): JSX.Element => {
     const tags = useDataset(tagsSelector);
-    const tagColorTransferFunction = useColorTransferFunction(tags, { kind: 'str' });
+    const tagColorTransferFunction = useColorTransferFunction(tags, {
+        kind: 'str',
+        optional: true,
+        binary: false,
+    });
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
