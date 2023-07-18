@@ -18,26 +18,41 @@ const Styles = styled.div`
 
 interface Props {
     className?: string;
-    availableScales: string[];
-    scale: string;
-    onChangeScale: (scale: string) => void;
+    availableFreqScales: string[];
+    availableAmpScales: string[];
+    freqScale: string;
+    ampScale: string;
+    onChangeFreqScale: (scale: string) => void;
+    onChangeAmpScale: (scale: string) => void;
 }
 
 const MenuBar: FunctionComponent<Props> = ({
     className,
-    availableScales,
-    scale,
-    onChangeScale,
+    availableFreqScales,
+    availableAmpScales,
+    freqScale,
+    ampScale,
+    onChangeFreqScale,
+    onChangeAmpScale,
 }) => {
-    const selectScale = (newScale?: string | null) => onChangeScale(newScale || '');
+    const selectFreqScale = (newFreqScale?: string | null) =>
+        onChangeFreqScale(newFreqScale || '');
+    const selectAmpScale = (newAmpScale?: string | null) =>
+        onChangeAmpScale(newAmpScale || '');
 
     const content = (
         <Menu>
-            <Menu.Title>Scale</Menu.Title>
+            <Menu.Title>Frequency Scale</Menu.Title>
             <Select
-                onChange={selectScale}
-                value={scale}
-                options={[null, ...availableScales]}
+                onChange={selectFreqScale}
+                value={freqScale}
+                options={[null, ...availableFreqScales]}
+            />
+            <Menu.Title>Amplitude Scale</Menu.Title>
+            <Select
+                onChange={selectAmpScale}
+                value={ampScale}
+                options={[null, ...availableAmpScales]}
             />
         </Menu>
     );

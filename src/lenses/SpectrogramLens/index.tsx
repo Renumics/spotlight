@@ -10,7 +10,7 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import { fixWindow, freqType, unitType } from './Spectrogram';
+import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
 import { FFTWorker } from './SpectrogramWorker';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
@@ -109,7 +109,8 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const scaleContainer = useRef<SVGSVGElement>(null);
     const mouseLabel = useRef<SVGTextElement>(null);
 
-    const [scale, setScale] = useSetting('scale', 'log');
+    const [freqScale, setFreqScale] = useSetting('freqScale', 'log');
+    const [ampScale, setAmpScale] = useSetting('ampScale', 'log');
     const [size, setSize] = useState([0, 0]);
 
     const colorPalette = useColors(colorPaletteSelector);
@@ -126,7 +127,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         setSize([width, height]);
 
         // Trigger redraw
-        drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
+        drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, freqScale);
     });
 
     useEffect(() => {
@@ -201,21 +202,64 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             // Default to linear scale
             let heightScale = d3.scaleLinear(domain, [0, upperLimit]);
 
-            if (scale === 'logarithmic') {
+            if (freqScale === 'logarithmic') {
                 heightScale = d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1]);
-            } else if (scale === 'linear') {
+            } else if (freqScale === 'linear') {
                 heightScale = d3.scaleLinear(domain, [0, upperLimit]);
             }
 
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
-            const colorMap = colorPalette.scale().colors(256, 'gl');
+
+            let drawData = [];
+            let colorScale;
+
+            if (ampScale === 'decibel') {
+                let ref = 0;
+                for (let i = 0; i < frequenciesData.length; i++) {
+                    const maxI = Math.max(...frequenciesData[i]);
+
+                    if (maxI > ref) {
+                        ref = maxI;
+                    }
+                }
+                //const top_db = 80;
+                const amin = 1e-5;
+
+                let log_spec_max = 0;
+                let log_spec_min = 0;
+
+                // Convert amplitudes to decibels
+                for (let i = 0; i < frequenciesData.length; i++) {
+                    const col = [];
+
+                    for (let j = 0; j < frequenciesData[i].length; j++) {
+                        const amplitude = frequenciesData[i][j];
+                        col[j] = amplitudeToDb(amplitude, ref, amin);
+
+                        if (col[j] > log_spec_max) {
+                            log_spec_max = col[j];
+                        }
+
+                        if (col[j] < log_spec_min) {
+                            log_spec_min = col[j];
+                        }
+                    }
+
+                    drawData[i] = col;
+                }
+                colorScale = colorPalette.scale().domain([log_spec_min, log_spec_max]);
+            } else {
+                // ampScale === 'linear'
+                colorScale = colorPalette.scale().domain([0, 256]);
+                drawData = frequenciesData;
+            }
 
             for (let y = 0; y < height; y++) {
                 let value = 0;
 
-                if (scale === 'logarithmic') {
+                if (freqScale === 'logarithmic') {
                     value = heightScale(scaleFunc.invert(height - y));
-                } else if (scale === 'linear') {
+                } else if (freqScale === 'linear') {
                     value = Math.abs(heightScale(height - y));
                 }
 
@@ -226,11 +270,12 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 for (let x = 0; x < width; x++) {
                     const x_index = Math.floor(widthScale(x));
 
-                    const value_a = frequenciesData[x_index][indexA];
-                    const value_b = frequenciesData[x_index][indexB];
+                    // TODO check if decibels
+                    const value_a = drawData[x_index][indexA];
+                    const value_b = drawData[x_index][indexB];
 
-                    const color_a = colorMap[value_a];
-                    const color_b = colorMap[value_b];
+                    const color_a = colorScale(value_a).gl();
+                    const color_b = colorScale(value_b).gl();
 
                     const offset = (y * width + x) * 4;
 
@@ -260,17 +305,29 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         return () => {
             //spectrogramWorker?.terminate();
         };
-    }, [window, scale, colorPalette, size]);
+    }, [window, freqScale, ampScale, colorPalette, size]);
 
-    const handleScaleChange = useCallback(
+    const handleFreqScaleChange = useCallback(
         (scale: string) => {
-            setScale(scale);
+            setFreqScale(scale);
 
             const backend = waveform.current?.backend as unknown as WebAudio_;
 
             drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
         },
-        [setScale]
+        [setFreqScale]
+    );
+
+    const handleAmpScaleChange = useCallback(
+        (scale: string) => {
+            setAmpScale(scale);
+
+            // TODO trigger redraw of spectrogram
+            //const backend = waveform.current?.backend as unknown as WebAudio_;
+
+            //drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
+        },
+        [setAmpScale]
     );
 
     useEffect(() => {
@@ -278,9 +335,13 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const backend = waveform.current?.backend as unknown as WebAudio_;
 
             // Draw initial scale
-            drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
+            drawScale(
+                scaleContainer.current,
+                backend.buffer?.sampleRate ?? 0,
+                freqScale
+            );
         });
-    }, [scale]);
+    }, [freqScale]);
 
     useLayoutEffect(() => {
         // No setup needed, since no audio track
@@ -304,7 +365,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 const upperLimit = backend.buffer?.sampleRate / 2;
                 const coords = d3.pointer(e);
 
-                if (scale === 'logarithmic') {
+                if (freqScale === 'logarithmic') {
                     const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
                     const range = [0, height];
 
@@ -317,7 +378,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         .attr('font-size', 10)
                         .attr('fill', theme`colors.white`);
                 } else {
-                    //if (scale === 'linear') {
+                    //if (freqScale === 'linear') {
                     const domain = [upperLimit, 0];
                     const range = [0, height];
                     const scale = d3.scaleLinear(domain, range);
@@ -344,7 +405,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 .on('mouseenter', null)
                 .on('mouseleave', null);
         };
-    }, [url, scale, colorPalette]);
+    }, [url, freqScale, colorPalette]);
 
     return (
         <Container>
@@ -382,9 +443,12 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
             <MenuBar
                 tw="z-10"
-                availableScales={['linear', 'logarithmic']}
-                scale={scale}
-                onChangeScale={handleScaleChange}
+                availableFreqScales={['linear', 'logarithmic']}
+                freqScale={freqScale}
+                onChangeFreqScale={handleFreqScaleChange}
+                availableAmpScales={['decibel', 'linear']}
+                ampScale={ampScale}
+                onChangeAmpScale={handleAmpScaleChange}
             />
         </Container>
     );
