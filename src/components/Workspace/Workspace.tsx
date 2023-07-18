@@ -9,7 +9,7 @@ import {
     TabNode,
     TabSetNode,
 } from 'flexlayout-react';
-import type { IJsonModel, IJsonRowNode } from 'flexlayout-react';
+import type { IJsonModel } from 'flexlayout-react';
 import type { ITabSetRenderValues } from 'flexlayout-react/declarations/view/Layout';
 import {
     forwardRef,
