@@ -274,7 +274,11 @@ const SimilarityMap: Widget = () => {
                       filter ? 'filtered' : 'full'
                   ][0]
                 : createConstantTransferFunction(
-                      colorBy?.type || { kind: 'Unknown', optional: false }
+                      colorBy?.type || {
+                          kind: 'Unknown',
+                          optional: false,
+                          binary: false,
+                      }
                   ),
         [colorByKey, filter, colorBy?.type]
     );

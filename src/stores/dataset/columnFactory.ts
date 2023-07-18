@@ -1,15 +1,38 @@
-import { datakinds, DataType } from '../../datatypes';
+import { DataType } from '../../datatypes';
 import _ from 'lodash';
 import { Column } from '../../client';
 import { DataColumn, isSequence1DColumn, Sequence1DColumn } from '../../types';
 
-function makeDatatype(column: Column) {
+function makeDatatype(column: Column): DataType {
     const kind = column.role as DataType['kind'];
 
     switch (kind) {
+        case 'int':
+        case 'float':
+        case 'str':
+        case 'bool':
+        case 'Window':
+        case 'array':
+        case 'datetime':
+            return {
+                kind,
+                binary: false,
+                optional: column.optional,
+            };
+        case 'Image':
+        case 'Video':
+        case 'Audio':
+        case 'Mesh':
+        case 'Sequence1D':
+            return {
+                kind,
+                binary: true,
+                optional: column.optional,
+            };
         case 'Category':
             return {
                 kind,
+                binary: false,
                 optional: column.optional,
                 categories: column.categories ?? {},
                 invertedCategories: _.invert(column.categories ?? {}),
@@ -17,15 +40,16 @@ function makeDatatype(column: Column) {
         case 'Embedding':
             return {
                 kind,
+                binary: false,
                 embeddingLength: column.embeddingLength ?? 0,
                 optional: column.optional,
             };
-        default:
-            return {
-                kind: datakinds.includes(kind) ? kind : 'Unknown',
-                optional: column.optional,
-            };
     }
+    return {
+        kind: 'Unknown',
+        binary: false,
+        optional: column.optional,
+    };
 }
 
 export function makeColumn(

@@ -117,7 +117,11 @@ const createColorTransferFunction = (
     const robustColoring = useColors.getState().useRobustColorScales;
 
     if (dType === undefined)
-        return createConstantTransferFunction({ kind: 'Unknown', optional: false });
+        return createConstantTransferFunction({
+            kind: 'Unknown',
+            optional: false,
+            binary: false,
+        });
     if (data === undefined) return createConstantTransferFunction(dType);
 
     if (['int', 'bool', 'Category', 'str'].includes(dType.kind)) {

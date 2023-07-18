@@ -155,6 +155,13 @@ class PandasDataSource(DataSource):
             # Replace `NA`s with empty strings.
             column = column.mask(column.isna(), "")
             values = column.to_numpy()
+            if simple:
+                values = np.array(
+                    [
+                        value[:47] + "..." if len(value) > 50 else value
+                        for value in values
+                    ]
+                )
         elif is_scalar_column_type(dtype):
             values = column.to_numpy()
         elif dtype is Window:

@@ -18,24 +18,26 @@ export const datakinds = [
 ] as const;
 export type DataKind = typeof datakinds[number];
 
-export interface BaseDataType<K extends DataKind> {
+export interface BaseDataType<K extends DataKind, B extends boolean = false> {
     kind: K;
+    binary: B;
     optional: boolean;
 }
 
 // type definitions
+export type UnknownDataType = BaseDataType<'Unknown'>;
 export type IntegerDataType = BaseDataType<'int'>;
 export type FloatDataType = BaseDataType<'float'>;
 export type BooleanDataType = BaseDataType<'bool'>;
 export type StringDataType = BaseDataType<'str'>;
 export type ArrayDataType = BaseDataType<'array'>;
 export type DateTimeDataType = BaseDataType<'datetime'>;
-export type MeshDataType = BaseDataType<'Mesh'>;
-export type SequenceDataType = BaseDataType<'Sequence1D'>;
-export type ImageDataType = BaseDataType<'Image'>;
-export type AudioDataType = BaseDataType<'Audio'>;
-export type VideoDataType = BaseDataType<'Video'>;
 export type WindowDataType = BaseDataType<'Window'>;
+export type SequenceDataType = BaseDataType<'Sequence1D', true>;
+export type MeshDataType = BaseDataType<'Mesh', true>;
+export type ImageDataType = BaseDataType<'Image', true>;
+export type AudioDataType = BaseDataType<'Audio', true>;
+export type VideoDataType = BaseDataType<'Video', true>;
 export interface CategoricalDataType extends BaseDataType<'Category'> {
     kind: 'Category';
     categories: Record<string, number>;
@@ -45,7 +47,6 @@ export interface EmbeddingDataType extends BaseDataType<'Embedding'> {
     kind: 'Embedding';
     embeddingLength: number;
 }
-export type UnknownDataType = BaseDataType<'Unknown'>;
 
 export type DataType =
     | UnknownDataType
@@ -62,9 +63,7 @@ export type DataType =
     | AudioDataType
     | VideoDataType
     | WindowDataType
-    | CategoricalDataType
-    | NumericalDataType
-    | ScalarDataType;
+    | CategoricalDataType;
 
 // type guards
 export const isInteger = (type: DataType): type is IntegerDataType =>
@@ -93,15 +92,11 @@ export const isUnknown = (type: DataType): type is UnknownDataType =>
     type.kind === 'Unknown';
 
 // composite helper types and guards
-export interface NumericalDataType {
-    kind: 'int' | 'float';
-}
+export type NumericalDataType = IntegerDataType | FloatDataType;
 export const isNumerical = (type: DataType): type is NumericalDataType =>
     ['int', 'float'].includes(type.kind);
 
-export interface ScalarDataType {
-    kind: 'int' | 'float' | 'str' | 'bool';
-}
+export type ScalarDataType = NumericalDataType | StringDataType | BooleanDataType;
 export const isScalar = (type: DataType): type is ScalarDataType =>
     ['int', 'float', 'str', 'bool'].includes(type.kind);
 
