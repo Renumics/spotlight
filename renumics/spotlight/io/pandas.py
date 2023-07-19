@@ -121,7 +121,7 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
         try:
             np.asarray(column.to_list(), dtype=float)
         except (TypeError, ValueError):
-            return np.ndarray
+            return Sequence1D
         return dtype_mode
     return dtype_mode
 
