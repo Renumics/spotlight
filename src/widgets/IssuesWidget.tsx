@@ -128,7 +128,7 @@ const IssuesWidget: Widget = () => {
 
     return (
         <div tw="flex flex-col w-full h-full">
-            <div tw="flex items-stretch bg-gray-100 h-6 border-b border-b-gray-400 divide-x divide-gray-400 text-xs overflow-hidden">
+            <div tw="flex flex-initial h-6 items-stretch bg-gray-100 border-b border-b-gray-400 divide-x divide-gray-400 text-xs">
                 {
                     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
                     <div
@@ -158,7 +158,7 @@ const IssuesWidget: Widget = () => {
                     </div>
                 </div>
             </div>
-            <div tw="flex-grow flex flex-col overflow-auto">
+            <div tw="flex flex-1 flex-col overflow-auto">
                 {issues.map((problem, i) => (
                     <Issue key={i} issue={problem} />
                 ))}
