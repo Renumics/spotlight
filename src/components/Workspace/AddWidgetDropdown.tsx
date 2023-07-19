@@ -1,16 +1,17 @@
 import AddWidgetIcon from '../../icons/Add';
 import Dropdown, { DropdownContext } from '../ui/Dropdown';
 import { Widget } from '../../widgets/types';
-import { widgets } from '../../widgets/WidgetFactory';
 import { useContext } from 'react';
 import 'twin.macro';
 import AddWidgetButton from './AddWidgetButton';
+import { useComponentsStore } from '../../stores/components';
 
 interface Props {
     addWidget: (widget: Widget) => void;
 }
 
 const Content = ({ addWidget }: Props) => {
+    const widgets = useComponentsStore((state) => state.widgets);
     const dropdown = useContext(DropdownContext);
 
     return (

@@ -1,6 +1,6 @@
 import { isAudio } from '../datatypes';
 import { useEffect, useState } from 'react';
-import { Lens } from './types';
+import { Lens } from '../types';
 import AudioViewer from '../components/shared/AudioViewer';
 import { useDataset } from '../stores/dataset';
 import api from '../api';
@@ -11,7 +11,7 @@ async function fetchWaveform(row: number, column: string): Promise<number[]> {
     return waveform;
 }
 
-const AudioView: Lens = ({ rowIndex, columns, urls, values }) => {
+const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
     const windowIndex = columns.findIndex((col) => col.type.kind === 'Window');
     const audioIndex = columns.findIndex((col) => col.type.kind === 'Audio');
     const window = values[windowIndex] as [number, number] | undefined;
@@ -38,11 +38,12 @@ const AudioView: Lens = ({ rowIndex, columns, urls, values }) => {
     );
 };
 
-AudioView.defaultHeight = 120;
-AudioView.displayName = 'Audio Player';
-AudioView.dataTypes = ['Audio', 'Window'];
-AudioView.multi = true;
-AudioView.filterAllowedColumns = (allColumns, selectedColumns) => {
+AudioLens.key = 'AudioView';
+AudioLens.defaultHeight = 120;
+AudioLens.displayName = 'Audio Player';
+AudioLens.dataTypes = ['Audio', 'Window'];
+AudioLens.multi = true;
+AudioLens.filterAllowedColumns = (allColumns, selectedColumns) => {
     if (selectedColumns.length === 2) return [];
     switch (selectedColumns[0]?.type.kind) {
         case 'Audio':
@@ -52,8 +53,8 @@ AudioView.filterAllowedColumns = (allColumns, selectedColumns) => {
     }
     return allColumns.filter((col) => ['Audio', 'Window'].includes(col.type.kind));
 };
-AudioView.isSatisfied = (columns) => {
+AudioLens.isSatisfied = (columns) => {
     return columns.some((col) => isAudio(col.type));
 };
 
-export default AudioView;
+export default AudioLens;

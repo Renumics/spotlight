@@ -40,10 +40,7 @@ def datasource(
     return func
 
 
-def create_datasource(
-    source: Union[pd.DataFrame, os.PathLike, str],
-    dtype: Optional[ColumnTypeMapping] = None,
-) -> DataSource:
+def create_datasource(source: Union[pd.DataFrame, os.PathLike, str]) -> DataSource:
     """
     open the specified data source
     """
@@ -59,4 +56,4 @@ def create_datasource(
     except KeyError as e:
         raise InvalidDataSource() from e
 
-    return data_source(source, dtype)
+    return data_source(source)

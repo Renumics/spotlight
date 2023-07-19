@@ -3,26 +3,23 @@
     Command line entrypoint for the renumics-spotlight python package
 """
 import os
-import multiprocessing
+import platform
 import signal
 import sys
-import time
-import threading
-from types import TracebackType
-from typing import Any, Dict, Optional, Tuple, Type, Union
+from typing import Optional, Tuple, Union
 from pathlib import Path
 
 import click
 
 from renumics import spotlight
-from renumics.spotlight.dtypes.typing import ColumnType, COLUMN_TYPES_BY_NAME
+from renumics.spotlight.dtypes.typing import COLUMN_TYPES_BY_NAME, ColumnTypeMapping
 
 from renumics.spotlight import logging
 
 
 def cli_dtype_callback(
     _ctx: click.Context, _param: click.Option, value: Tuple[str, ...]
-) -> Optional[Dict[str, Type[ColumnType]]]:
+) -> Optional[ColumnTypeMapping]:
     """
     Parse column types from multiple strings in format
     `COLUMN_NAME=DTYPE` to a dict.
@@ -49,7 +46,7 @@ def cli_dtype_callback(
     return dtype
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.argument(
     "table-or-folder",
     type=str,
@@ -91,6 +88,18 @@ def cli_dtype_callback(
     default=False,
     help="Do not automatically show Spotlight in browser.",
 )
+@click.option(
+    "--filebrowsing/--no-filebrowsing",
+    is_flag=True,
+    default=True,
+    help="Whether to allow users to browse and open datasets.",
+)
+@click.option(
+    "--analyze",
+    is_flag=True,
+    default=False,
+    help="Automatically analyze common dataset errors.",
+)
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
@@ -98,8 +107,10 @@ def main(
     host: str,
     port: Union[int, str],
     layout: Optional[str],
-    dtype: Optional[Dict[str, Type[ColumnType]]],
+    dtype: Optional[ColumnTypeMapping],
     no_browser: bool,
+    filebrowsing: bool,
+    analyze: bool,
     verbose: bool,
 ) -> None:
     """
@@ -110,10 +121,10 @@ def main(
     if verbose:
         logging.enable()
 
-    should_exit = threading.Event()
-
-    def _sigint_handler(*_: Any) -> None:
-        should_exit.set()
+    signal.signal(signal.SIGINT, lambda *_: sys.exit())
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit())
+    if platform.system() != "Windows":
+        signal.signal(signal.SIGHUP, lambda *_: sys.exit())
 
     spotlight.show(
         table_or_folder,
@@ -122,24 +133,7 @@ def main(
         port="auto" if port == "auto" else int(port),
         layout=layout,
         no_browser=no_browser,
-        wait=False,
+        allow_filebrowsing=filebrowsing,
+        wait="forever",
+        analyze=analyze,
     )
-
-    signal.signal(signal.SIGINT, _sigint_handler)
-    should_exit.wait()
-
-    def exception_handler(
-        _type: Type[BaseException],
-        _exc: BaseException,
-        _traceback: Optional[TracebackType],
-    ) -> None:
-        pass
-
-    sys.excepthook = exception_handler
-    time.sleep(0.1)
-
-    processes = multiprocessing.active_children()
-    for process in processes:
-        process.terminate()
-    for process in processes:
-        process.join()

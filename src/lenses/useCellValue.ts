@@ -4,22 +4,29 @@ import { Problem } from '../types';
 import api from '../api';
 import { shallow } from 'zustand/shallow';
 
-async function fetchValue(row: number, column: string) {
+async function fetchValue(row: number, column: string, raw = true) {
     const response = await api.table.getCellRaw({
         row,
         column,
         generationId: useDataset.getState().generationID,
     });
-    return response.raw.arrayBuffer();
+    if (raw) {
+        return response.raw.arrayBuffer();
+    } else {
+        return response.value();
+    }
 }
 
 async function keepValue(value: unknown) {
     return value;
 }
 
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 function useCellValues(
     rowIndex: number,
-    columnKeys: string[]
+    columnKeys: string[],
+    deferLoading = false
 ): [unknown[] | undefined, Problem | undefined] {
     const cellsSelector = useCallback(
         (d: Dataset) => {
@@ -62,11 +69,21 @@ function useCellValues(
             return;
         }
 
-        const fetchers = cellEntries.map((entry, i) =>
-            entry !== null && columns[i]?.lazy
-                ? fetchValue(rowIndex, columnKeys[i])
-                : keepValue(entry)
-        );
+        const fetchers = cellEntries.map((entry, i) => {
+            const column = columns[i];
+
+            return entry !== null && column?.lazy
+                ? delay(deferLoading ? 250 : 0).then(() => {
+                      if (!cancelled) {
+                          return fetchValue(
+                              rowIndex,
+                              columnKeys[i],
+                              column.type.binary
+                          );
+                      }
+                  })
+                : keepValue(entry);
+        });
 
         Promise.all(fetchers)
             .then((values) => {
@@ -79,7 +96,15 @@ function useCellValues(
         return () => {
             cancelled = true;
         };
-    }, [cellEntries, rowIndex, columnKeys, needsFetch, columns, hasFetchedValues]);
+    }, [
+        cellEntries,
+        rowIndex,
+        columnKeys,
+        needsFetch,
+        columns,
+        hasFetchedValues,
+        deferLoading,
+    ]);
 
     const values = needsFetch ? fetchedValues : cellEntries;
 

@@ -27,9 +27,6 @@ def test_read_table(
     assert len(response.text) > 1000
     json_data1 = json.loads((response.text))
 
-    assert not json_data1["max_rows_hit"]
-    assert not json_data1["max_columns_hit"]
-
     viewer_tally_df = viewer_double_tally_df[1]
     app_url = f"http://{viewer_tally_df.host}:{viewer_tally_df.port}"
 
@@ -37,9 +34,6 @@ def test_read_table(
     assert response.status_code == 200
     assert len(response.text) > 1000
     json_data2 = json.loads((response.text))
-
-    assert not json_data2["max_rows_hit"]
-    assert not json_data2["max_columns_hit"]
 
     assert all(
         v < 100 for v in _column_by_name(json_data1["columns"], "number")["values"]

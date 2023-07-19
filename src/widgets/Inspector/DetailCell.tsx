@@ -44,6 +44,7 @@ const columnsSelector = (d: Dataset) => d.columns;
 
 const Cell: FunctionComponent<Props> = ({
     style,
+    isScrolling,
     columnIndex: dataRowIndex,
     rowIndex: dataColumnIndex,
 }) => {
@@ -90,6 +91,7 @@ const Cell: FunctionComponent<Props> = ({
                     rowIndex={originalIndex}
                     columns={columns}
                     syncKey={view.key}
+                    deferLoading={isScrolling}
                 />
             ) : (
                 <div>{`Columns Not Found`}</div>

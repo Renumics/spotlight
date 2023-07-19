@@ -4,7 +4,6 @@ import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
 import { CallbackOrData, Dataset, useDataset } from '../../../stores/dataset';
 import { DataColumn } from '../../../types';
 import { shallow } from 'zustand/shallow';
-import columnWidthByType from '../columnWidthByType';
 
 type ColumnContextState = {
     allColumns: DataColumn[];
@@ -124,14 +123,6 @@ export const useColumn = (index: number): DataColumn => {
 export const useColumns = (): DataColumn[] => {
     const context = useContext(ColumnContext);
     return context.columns;
-};
-
-export const useColumnWidth = (): ((index: number) => number) => {
-    const context = useContext(ColumnContext);
-    return useCallback(
-        (index: number) => columnWidthByType[context.columns[index].type.kind],
-        [context.columns]
-    );
 };
 
 export const useColumnCount = (): number => {

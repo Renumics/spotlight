@@ -8,6 +8,10 @@ from typing_extensions import Literal
 from fastapi import APIRouter, Request
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
+from renumics.spotlight.backend.exceptions import (
+    FilebrowsingNotAllowed,
+)  # pylint: disable=no-name-in-module
+
 router = APIRouter()
 
 FileType = Literal["file", "folder"]
@@ -48,6 +52,9 @@ async def get_folder(path: str, request: Request) -> Folder:
     """
     fetch a folder
     """
+
+    if not request.app.filebrowsing_allowed:
+        raise FilebrowsingNotAllowed()
 
     full_path = Path(request.app.project_root) / path
     relative_path = full_path.relative_to(request.app.project_root)

@@ -5,7 +5,7 @@ A Spotlight layout consists of multiple widgets, grouped into tabs and splits.
 """
 import os
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Union, cast, overload
+from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
 
 # pylint: disable=no-name-in-module
 from pydantic import (
@@ -16,7 +16,7 @@ from pydantic import (
 
 # pylint: enable=no-name-in-module
 
-from typing_extensions import Literal, get_args
+from typing_extensions import Literal
 
 from requests import JSONDecodeError
 import requests
@@ -47,11 +47,11 @@ from .widgets import (
     TableView as _TableView,
     UmapMetric as _UmapMetric,
     Widget as _Widget,
-    WidgetName as _WidgetName,
+    Issues as _Issues,
 )
 
 
-_WidgetLike = Union[_Widget, _WidgetName]
+_WidgetLike = Union[_Widget, str]
 _NodeLike = Union[_Split, _Tab, _WidgetLike, List]
 _LayoutLike = Union[str, os.PathLike, _Layout, _NodeLike]
 
@@ -123,21 +123,14 @@ def parse(layout_: _LayoutLike) -> _Layout:
         try:
             resp = requests.get(str(layout_), timeout=2)
             return _Layout(**resp.json())
-        except (ValidationError, JSONDecodeError) as exc:
-            raise InvalidLayout(
-                f"Could not load and parse layout from {layout_}."
-            ) from exc
+        except (ValidationError, JSONDecodeError) as e:
+            raise InvalidLayout() from e
     except ValidationError:
         pass
 
-    if (
-        isinstance(layout_, os.PathLike)
-        or isinstance(layout_, str)
-        and layout_ not in get_args(_WidgetName)
-    ):
-        if os.path.isfile(layout_):
-            return _Layout.parse_file(Path(layout_))
-        raise FileNotFoundError(f"Path {layout_} does not exist or is not a file.")
+    if (isinstance(layout_, (os.PathLike, str))) and os.path.isfile(layout_):
+        return _Layout.parse_file(Path(layout_))
+
     layout_ = cast(_NodeLike, layout_)
     return layout(layout_)
 
@@ -309,13 +302,18 @@ _TABLE_TAB_TO_TABLE_VIEW: Dict[_TableTab, _TableView] = {
     "filtered": "filtered",
     "selected": "selected",
 }
+_SortOrder = Literal["ascending", "descending"]
+_SORT_ORDER_MAPPING: Dict[_SortOrder, str] = {
+    "ascending": "ASC",
+    "descending": "DESC",
+}
 
 
 def table(
     name: Optional[str] = None,
     active_view: _TableTab = "all",
     visible_columns: Optional[List[str]] = None,
-    sort_by_columns: Optional[List[str]] = None,
+    sort_by_columns: Optional[List[Tuple[str, _SortOrder]]] = None,
     order_by_relevance: bool = False,
 ) -> _Table:
     """
@@ -326,7 +324,22 @@ def table(
         config=_TableConfig(
             active_view=_TABLE_TAB_TO_TABLE_VIEW[active_view],
             visible_columns=visible_columns,
-            sort_by_columns=sort_by_columns,
+            sort_by_columns=None
+            if sort_by_columns is None
+            else [
+                [column, _SORT_ORDER_MAPPING[order]]
+                for column, order in sort_by_columns
+            ],
             order_by_relevance=order_by_relevance,
         ),
     )
+
+
+def issues(
+    name: Optional[str] = None,
+) -> _Issues:
+    """
+    Add a widget displaying data issues.
+    """
+
+    return _Issues(name=name)

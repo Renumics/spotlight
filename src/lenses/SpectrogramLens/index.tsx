@@ -7,7 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import tw, { styled, theme } from 'twin.macro';
 import { default as WaveSurfer, default as WebAudio } from 'wavesurfer.js';
 import { ColorsState, useColors } from '../../stores/colors';
-import { Lens } from '../types';
+import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
@@ -454,6 +454,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     );
 };
 
+SpectrogramLens.key = 'SpectrogramView';
 SpectrogramLens.defaultHeight = 120;
 SpectrogramLens.displayName = 'Spectrogram';
 SpectrogramLens.dataTypes = ['Audio', 'Window'];

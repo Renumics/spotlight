@@ -12,8 +12,8 @@ from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 from pydantic.dataclasses import dataclass
 from typing_extensions import Literal
-from wsproto.utilities import LocalProtocolError
 
+from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from .data_source import DataSource, sanitize_values
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
@@ -186,7 +186,7 @@ class WebsocketConnection:
             await self.websocket.send_json(dataclasses.asdict(message))
         except WebSocketDisconnect:
             self._on_disconnect()
-        except LocalProtocolError:
+        except RuntimeError:
             # connection already disconnected
             pass
 
@@ -308,6 +308,7 @@ class WebsocketManager:
 @handle_message.register
 async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
     table: Optional[DataSource] = connection.websocket.app.data_source
+    dtypes: ColumnTypeMapping = connection.websocket.app.dtypes
     if table is None:
         return None
     try:
@@ -320,6 +321,7 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
             compute_umap,
             (
                 table,
+                dtypes,
                 request.data.columns,
                 request.data.indices,
                 request.data.n_neighbors,
@@ -347,6 +349,7 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
 @handle_message.register
 async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
     table: Optional[DataSource] = connection.websocket.app.data_source
+    dtypes: ColumnTypeMapping = connection.websocket.app.dtypes
     if table is None:
         return None
     try:
@@ -359,6 +362,7 @@ async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
             compute_pca,
             (
                 table,
+                dtypes,
                 request.data.columns,
                 request.data.indices,
                 request.data.normalization,

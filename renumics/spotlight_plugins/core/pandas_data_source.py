@@ -8,22 +8,30 @@ from typing import Any, Dict, List, Optional, Union, Type, cast
 import numpy as np
 import pandas as pd
 import trimesh
-from loguru import logger
 
-from renumics.spotlight.dtypes import Category, Embedding, Mesh, Window
-from renumics.spotlight.dtypes.exceptions import InvalidFile, UnsupportedDType
+from renumics.spotlight.dtypes import (
+    Audio,
+    Category,
+    Embedding,
+    Image,
+    Mesh,
+    Sequence1D,
+    Video,
+    Window,
+)
+from renumics.spotlight.dtypes.exceptions import InvalidFile, NotADType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
-    get_column_type_name,
     is_array_based_column_type,
     is_file_based_column_type,
     is_scalar_column_type,
 )
 from renumics.spotlight.io.pandas import (
-    infer_dtypes,
+    infer_dtype,
     is_empty,
     prepare_column,
+    prepare_hugging_face_dict,
     stringify_columns,
     to_categorical,
     try_literal_eval,
@@ -39,7 +47,6 @@ from renumics.spotlight.backend.exceptions import (
     DatasetColumnsNotUnique,
 )
 from renumics.spotlight.typing import PathType, is_pathtype
-
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
 
@@ -53,14 +60,8 @@ class PandasDataSource(DataSource):
     _generation_id: int
     _uid: str
     _df: pd.DataFrame
-    _dtype: ColumnTypeMapping
-    _inferred_dtype: ColumnTypeMapping
 
-    def __init__(
-        self,
-        source: Union[PathType, pd.DataFrame],
-        dtype: Optional[ColumnTypeMapping] = None,
-    ):
+    def __init__(self, source: Union[PathType, pd.DataFrame]):
         if is_pathtype(source):
             df = pd.read_csv(source)
         else:
@@ -71,8 +72,6 @@ class PandasDataSource(DataSource):
         self._generation_id = 0
         self._uid = str(id(df))
         self._df = df.copy()
-        self._dtype = dtype.copy() if dtype else {}
-        self._inferred_dtype = infer_dtypes(self._df, self._dtype)
 
     @property
     def column_names(self) -> List[str]:
@@ -85,17 +84,15 @@ class PandasDataSource(DataSource):
         """
         return self._df.copy()
 
-    @property
-    def dtype(self) -> Optional[ColumnTypeMapping]:
-        """
-        Get **a copy** of dict with the desired data types.
-        """
-        if self._dtype is None:
-            return None
-        return self._dtype.copy()
-
     def __len__(self) -> int:
         return len(self._df)
+
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        dtype_map = {
+            str(column_name): infer_dtype(self.df[column_name])
+            for column_name in self.df
+        }
+        return dtype_map
 
     def _parse_column_index(self, column_name: str) -> Any:
         column_names = self.column_names
@@ -124,30 +121,16 @@ class PandasDataSource(DataSource):
     def get_name(self) -> str:
         return "pd.DataFrame"
 
-    def get_columns(self, column_names: Optional[List[str]] = None) -> List[Column]:
-        if column_names is None:
-            column_names = self.column_names
-        columns = []
-        for column_name in column_names:
-            try:
-                column = self.get_column(column_name, None)
-            except Exception as e:  # pylint: disable=broad-except
-                if column_name in self._dtype:
-                    raise e
-                logger.warning(
-                    f"Column '{column_name}' not imported from "
-                    f"`pandas.DataFrame` because of the following error:\n{e}"
-                )
-            else:
-                columns.append(column)
-
-        return columns
-
-    def get_column(self, column_name: str, indices: Optional[List[int]]) -> Column:
+    def get_column(
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
+        simple: bool = False,
+    ) -> Column:
         # pylint: disable=too-many-branches, too-many-statements
         column_index = self._parse_column_index(column_name)
 
-        dtype = self._inferred_dtype[column_index]
         column = self._df[column_index]
         if indices is not None:
             column = column.iloc[indices]
@@ -155,7 +138,6 @@ class PandasDataSource(DataSource):
 
         categories = None
         embedding_length = None
-        references = None
 
         if dtype is Category:
             # `NaN` category is listed neither in `pandas`, not in our format.
@@ -173,6 +155,13 @@ class PandasDataSource(DataSource):
             # Replace `NA`s with empty strings.
             column = column.mask(column.isna(), "")
             values = column.to_numpy()
+            if simple:
+                values = np.array(
+                    [
+                        value[:47] + "..." if len(value) > 50 else value
+                        for value in values
+                    ]
+                )
         elif is_scalar_column_type(dtype):
             values = column.to_numpy()
         elif dtype is Window:
@@ -213,27 +202,35 @@ class PandasDataSource(DataSource):
                     f"should be sequences of the same shape (n,) or `NA`s, but "
                     f"sequences of shape {embeddings.shape[1:]} received."
                 )
-            if na_mask.any():
-                values = np.empty(len(column), dtype=object)
+
+            values = np.empty(len(column), dtype=object)
+
+            if simple:
+                values[~na_mask] = "[...]"
+            else:
                 values[np.where(~na_mask)[0]] = list(embeddings)
-            else:
-                values = embeddings
+
             embedding_length = embeddings.shape[1]
-        else:
-            # A reference column. `dtype` is one of `np.ndarray`, `Audio`,
-            # `Image`, `Mesh`, `Sequence1D` or `Video`. Don't try to check or
-            # convert values at the moment.
+
+        elif dtype is Sequence1D:
             na_mask = column.isna()
-            references = na_mask.to_numpy()
-            if is_file_based_column_type(dtype):
-                # Strings are paths or URLs, let them inplace. Replace
-                # non-strings with empty strings.
-                column = column.mask(~(column.map(type) == str), "")
-                values = column.to_numpy()
-            else:
-                values = np.full(len(column), "")
+            values = np.empty(len(column), dtype=object)
+            values[~na_mask] = "[...]"
+        elif dtype is np.ndarray:
+            na_mask = column.isna()
+            values = np.empty(len(column), dtype=object)
+            values[~na_mask] = "[...]"
+        elif is_file_based_column_type(dtype):
+            # Strings are paths or URLs, let them inplace. Replace
+            # non-strings with "<in-memory>".
+            na_mask = column.isna()
+            column = column.mask(~(column.map(type) == str), "<in-memory>")
+            values = column.to_numpy(dtype=object)
+            values[na_mask] = None
+        else:
+            raise NotADType()
+
         return Column(
-            type_name=get_column_type_name(dtype),
             type=dtype,
             order=None,
             hidden=column_name.startswith("_"),
@@ -245,24 +242,23 @@ class PandasDataSource(DataSource):
             x_label=None,
             y_label=None,
             embedding_length=embedding_length,
-            has_lookup=False,
-            is_external=False,
             name=column_name,
             values=values,
-            references=references,
         )
 
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         Return the value of a single cell, warn if not possible.
         """
         # pylint: disable=too-many-return-statements, too-many-branches
+        # pylint: disable=too-many-statements
         self._assert_index_exists(row_index)
 
         column_index = self._parse_column_index(column_name)
 
         raw_value = self._df.iloc[row_index, self._df.columns.get_loc(column_index)]
-        dtype = self._inferred_dtype[column_index]
 
         if dtype is Category:
             if pd.isna(raw_value):
@@ -311,6 +307,8 @@ class PandasDataSource(DataSource):
             return None
         if isinstance(raw_value, str):
             raw_value = try_literal_eval(raw_value)
+        if is_file_based_column_type(dtype) and isinstance(raw_value, dict):
+            raw_value = prepare_hugging_face_dict(raw_value)
         if isinstance(raw_value, trimesh.Trimesh) and dtype is Mesh:
             value = Mesh.from_trimesh(raw_value)
             return value.encode()
@@ -319,6 +317,12 @@ class PandasDataSource(DataSource):
                 return read_external_value(str(raw_value), dtype)
             except Exception as e:
                 raise ConversionFailed(dtype, raw_value) from e
+        if isinstance(raw_value, bytes) and dtype in (Audio, Image, Video):
+            try:
+                value = dtype.from_bytes(raw_value)  # type: ignore
+            except Exception as e:
+                raise ConversionFailed(dtype, raw_value) from e
+            return value.encode()
         if not isinstance(raw_value, dtype) and is_array_based_column_type(dtype):
             try:
                 value = dtype(raw_value)
@@ -354,12 +358,6 @@ class PandasDataSource(DataSource):
         At the moment, there is no way to add a new category in Spotlight, so we
         rely on the previously cached ones.
         """
-        dtype = self._inferred_dtype[column_index]
-        if dtype is not Category:
-            raise UnsupportedDType(
-                f"Column categories exist for categorical columns only, but "
-                f"column '{str(column_index)}' of type {dtype} received."
-            )
         column = self._df[column_index]
         column = to_categorical(column, str_categories=as_string)
         return {category: i for i, category in enumerate(column.cat.categories)}

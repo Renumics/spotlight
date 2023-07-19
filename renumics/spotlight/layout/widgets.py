@@ -8,17 +8,6 @@ from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-modul
 from typing_extensions import Literal
 
 
-WidgetName = Literal[
-    "table",
-    "similaritymap",
-    "inspector",
-    "scatterplot",
-    "histogram",
-    "experimental/audio-overview",
-    "experimental/scatterplot-gl",
-]
-
-
 class WidgetConfig(BaseModel, allow_population_by_field_name=True):
     # pylint: disable=too-few-public-methods
     """
@@ -32,7 +21,7 @@ class Widget(BaseModel, extra=Extra.forbid):
     """
 
     # pylint: disable=too-few-public-methods
-    type: WidgetName
+    type: str
     name: Optional[str] = None
     config: Optional[WidgetConfig] = None
     kind: Literal["widget"] = "widget"
@@ -116,7 +105,7 @@ class TableConfig(WidgetConfig):
     # pylint: disable=too-few-public-methods
     active_view: TableView = Field("full", alias="tableView")
     visible_columns: Optional[List[str]] = Field(None, alias="visibleColumns")
-    sort_by_columns: Optional[List[str]] = Field(None, alias="sorting")
+    sort_by_columns: Optional[List[List[str]]] = Field(None, alias="sorting")
     order_by_relevance: bool = Field(False, alias="orderByRelevance")
 
 
@@ -189,26 +178,13 @@ class Similaritymap(Widget):
     config: Optional[SimilaritymapConfig] = None
 
 
-InspectorViewNames = Literal[
-    "AudioView",
-    "SpectrogramView",
-    "VideoView",
-    "ImageView",
-    "MeshView",
-    "ScalarView",
-    "SequenceView",
-    "Autocomplete",
-    "Switch",
-]
-
-
 class InspectorView(WidgetConfig):
     """
     Inspector view configuration model.
     """
 
     # pylint: disable=too-few-public-methods
-    type: InspectorViewNames = Field(..., alias="view")
+    type: str = Field(..., alias="view")
     columns: List[str] = Field(..., alias="columns")
     name: Optional[str] = Field(None, alias="name")
     id: Optional[str] = Field(None, alias="key")
@@ -232,3 +208,12 @@ class Inspector(Widget):
     # pylint: disable=too-few-public-methods
     type: Literal["inspector"] = "inspector"
     config: Optional[InspectorConfig] = None
+
+
+class Issues(Widget):
+    """
+    Spotlight issues widget
+    """
+
+    # pylint: disable=too-few-public-methods
+    type: Literal["IssuesWidget"] = "IssuesWidget"

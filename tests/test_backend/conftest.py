@@ -1,6 +1,7 @@
 """
 Helper methods for tests
 """
+import tempfile
 from typing import Iterator, Tuple
 from urllib.parse import urljoin
 
@@ -21,7 +22,7 @@ def viewer_csv_df() -> Iterator[spotlight.Viewer]:
     csv_df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
     viewer = spotlight.show(
         csv_df,
-        "127.0.0.1",
+        host="127.0.0.1",
         no_browser=True,
         port="auto",
         wait=False,
@@ -85,13 +86,7 @@ def viewer_double_tally_df() -> Iterator[Tuple[spotlight.Viewer, spotlight.Viewe
             embedding if embedding is not None else None
             for embedding in dataset["encoded"]  # pylint: disable=(not-an-iterable)
         ]
-    viewer = spotlight.show(
-        df,
-        "127.0.0.1",
-        no_browser=True,
-        port="auto",
-        wait=False,
-    )
+    viewer = spotlight.show(df, "127.0.0.1", no_browser=True, port="auto", wait=False)
 
     with spotlight.Dataset("build/datasets/tallymarks_dataset.h5", "r") as dataset:
         df2 = dataset.to_pandas()
@@ -100,25 +95,38 @@ def viewer_double_tally_df() -> Iterator[Tuple[spotlight.Viewer, spotlight.Viewe
             for embedding in dataset["encoded"]  # pylint: disable=(not-an-iterable)
         ]
     df2["number"] = df2["number"] + 2000
-    viewer2 = spotlight.show(
-        df2,
-        "127.0.0.1",
-        no_browser=True,
-        port="auto",
-        wait=False,
-    )
+    viewer2 = spotlight.show(df2, "127.0.0.1", no_browser=True, port="auto", wait=False)
     yield viewer, viewer2
     viewer.close()
     viewer2.close()
 
 
 @pytest.fixture()
+def non_existing_image_df_viewer() -> Iterator[spotlight.Viewer]:
+    """
+    Setup a viewer with a single non-existing external image inside.
+    """
+    with tempfile.TemporaryDirectory() as temp_dir:
+        df = pd.DataFrame({"image": [f"{temp_dir}/image.jpg"]})
+        viewer = spotlight.show(
+            df,
+            "127.0.0.1",
+            no_browser=True,
+            port="auto",
+            wait=False,
+            dtype={"image": spotlight.Image},
+        )
+        yield viewer
+        viewer.close()
+
+
+@pytest.fixture()
 def testclient() -> TestClient:
     """setup API client with loaded spotlight h5 file in backend"""
 
-    # pylint: disable=import-outside-toplevel
-    from renumics.spotlight.backend.app import create_app
+    # pylint: disable=import-outside-toplevel, protected-access
+    from renumics.spotlight.app import SpotlightApp
 
-    app = create_app()
-    app.data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
+    app = SpotlightApp()
+    app._data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
     return TestClient(app)

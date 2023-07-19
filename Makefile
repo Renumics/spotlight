@@ -55,7 +55,7 @@ lint: ## Lint all source files
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
-	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=true poetry run spotlight
+	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} poetry run spotlight --analyze
 
 .PHONY: datasets
 datasets: ## Build datasets (only needed for UI tests)
@@ -102,11 +102,14 @@ check-wheel: ## Check wheel content
 
 .PHONY: unit-test
 unit-test: ## Execute tests
-	poetry run pytest --doctest-modules --ignore=ui_tests --ignore=api-tests --ignore=dev
+	export SPOTLIGHT_DEV=False
+	poetry run pytest tests
+	poetry run pytest --doctest-modules --pyargs renumics
 	pnpm run test
 
 .PHONY: api-test
 api-test: ## Execute API tests
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -128,6 +131,7 @@ api-test: ## Execute API tests
 
 .PHONY: ui-test-%
 ui-test-%:
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -142,6 +146,7 @@ ui-test-%:
 
 .PHONY: test-spotlight-start
 test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
 	}
@@ -156,6 +161,7 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 
 .PHONY: test-spotlight-notebook-start
 test-spotlight-notebook-start: ## Test Spotlight Notebook start (Spotlight should be installed)
+	export SPOTLIGHT_DEV=False
 	function teardown {
 		rm -f output.log
 	}
@@ -197,6 +203,7 @@ old-screenshots: ## Generate the API spec and migrations
 
 .PHONY: api-client
 api-client: ## Generate API Spec and CLient
+	export SPOTLIGHT_DEV=False
 	rm -rf /tmp/spotlight-api-client
 	mkdir -p /tmp/spotlight-api-client
 	poetry run python ./scripts/generate_api_spec.py -o /tmp/spotlight-api-spec.json
@@ -207,9 +214,9 @@ api-client: ## Generate API Spec and CLient
 	find /tmp/spotlight-api-client \
 		-type f -exec sed -i -e "s/formData.append('mesh_files',.*$$/for (let meshFile of requestParameters.meshFiles) { formData.append('mesh_files', meshFile) }/g" {} \;
 	# replace existing code
-	rsync -a --delete /tmp/spotlight-api-client/ "./frontend/src/client"
+	rsync -a --delete /tmp/spotlight-api-client/ "./src/client"
 	# auto format generated code
-	npx prettier --write './frontend/src/client/**/*.{js,ts,tsx,json,yaml,css}'
+	npx prettier --write './src/client/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: notebook-theme
 notebook-theme: ## Generate custom css for jupyter notebook

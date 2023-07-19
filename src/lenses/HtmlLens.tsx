@@ -1,11 +1,12 @@
 import 'twin.macro';
 import Html from '../components/ui/Html';
-import { Lens } from './types';
+import { Lens } from '../types';
 
 const HtmlLens: Lens = ({ value }) => {
     return <Html html={value as string} />;
 };
 
+HtmlLens.key = 'HtmlLens';
 HtmlLens.dataTypes = ['str'];
 HtmlLens.defaultHeight = 48;
 HtmlLens.minHeight = 22;

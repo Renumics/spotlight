@@ -41,17 +41,16 @@ python = ">=3.8, <3.12"
 numpy = "*"
 tqdm = "*"
 loguru = "*"
-fastapi = ">=0.65.2"
+fastapi = ">=0.65.2,<0.99"
 orjson = "*"
-pydantic = "*"
+pydantic = "<2.0.0"
 uvicorn = "*"
 aiofiles = "*"
 click = "*"
 h5py = ">3.0"
-requests = "*"
+requests = ">=2.31"
 umap-learn = "*"
 typing-extensions = "*"
-wsproto = ">=0.14"
 httptools = "*"
 uvloop = [
     {version = ">=0.17.0", platform = "linux"},
@@ -79,11 +78,19 @@ av = "*"
 validators = "*"
 ipywidgets = "*"
 pycatch22 = "*"
-jinja2 = "^3.1.2"
-toml = "^0.10.2"
+jinja2 = "*"
+toml = "*"
+cleanlab = "*"
+websockets = "*"
+cleanvision = "*"
+py-machineid = "*"
+filetype = "*"
+setuptools = "*"
+numba = "^0.57.1"
+pillow = "^10.0.0"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^0.991"
+mypy = "*"
 types-setuptools = "^57.4.14"
 types-requests = "^2.27.20"
 numpy = "< 1.22"
@@ -98,12 +105,11 @@ check-wheel-contents = "^0.3.4"
 typed-ast = "^1.5.3"
 packaging = "^21.3"
 nbmake = "^1.3.0"
-selenium = "^4.1.3"
+selenium = "^4.1.3, <4.10"
 diffimg = "^0.3.0"
 lesscpy = "^0.15.0"
 safety = "^1.10.3"
 pylint = "^2.13.7"
-numba = "<=0.56.0"
 typer = "^0.4.1"
 pre-commit = "^2.19.0"
 certifi = "^2022.6.15"
@@ -112,16 +118,16 @@ types-tqdm = "^4.64.7.11"
 twine = "^4.0.2"
 pdoc3 = "^0.10.0"
 nptyping = "^2.5.0"
-datasets = "^2.10.1"
+datasets = {extras = ["audio"], version = "^2.12.0"}
 types-toml = "^0.10.8.6"
 httpx = "^0.23.0"
+types-pillow = "^10.0.0.1"
 
 [tool.poetry.group.playbook.dependencies]
 datasets = "^2.12.0"
 transformers = "^4.29.2"
 torch = "^2.0.1"
 towhee = "^0.9.0"
-cleanvision = "^0.3.0"
 annoy = "^1.17.2"
 cleanlab = "^2.4.0"
 
@@ -172,6 +178,9 @@ module = [
     "ipywidgets",
     "dotenv",
     "pycatch22",
+    "cleanlab.*",
+    "machineid",
+    "filetype",
 ]
 ignore_missing_imports = true
 

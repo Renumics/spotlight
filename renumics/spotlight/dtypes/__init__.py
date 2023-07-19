@@ -5,7 +5,6 @@ This module provides custom data types for Spotlight dataset.
 import io
 import math
 import os
-from abc import ABC, abstractmethod
 from typing import Dict, IO, List, Optional, Sequence, Tuple, Union
 from urllib.parse import urlparse
 
@@ -18,57 +17,19 @@ import validators
 from loguru import logger
 
 from renumics.spotlight.requests import headers
-from renumics.spotlight.typing import NumberType, PathType
-from . import triangulation
-from ..io import audio, gltf
-from . import exceptions
+from renumics.spotlight.typing import FileType, NumberType, PathType
+from . import exceptions, triangulation
+from .base import DType, FileBasedDType
+from ..io import audio, gltf, file as file_io
 
-Array1DLike = Union[Sequence[NumberType], np.ndarray]
-Array2DLike = Union[Sequence[Sequence[NumberType]], np.ndarray]
+Array1dLike = Union[Sequence[NumberType], np.ndarray]
+Array2dLike = Union[Sequence[Sequence[NumberType]], np.ndarray]
 ImageLike = Union[
     Sequence[Sequence[Union[NumberType, Sequence[NumberType]]]], np.ndarray
 ]
 
 
-class _BaseData(ABC):
-    """
-    Base Spotlight dataset field data.
-    """
-
-    @classmethod
-    @abstractmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "_BaseData":
-        """
-        Restore class from its numpy representation.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def encode(self, target: Optional[str] = None) -> Union[np.ndarray, np.void]:
-        """
-        Convert to numpy for storing in dataset.
-
-        Args:
-            target: Optional target format.
-        """
-        raise NotImplementedError
-
-
-class _BaseFileBasedData(_BaseData):
-    """
-    Spotlight dataset field data which can be read from a file.
-    """
-
-    @classmethod
-    @abstractmethod
-    def from_file(cls, filepath: PathType) -> "_BaseFileBasedData":
-        """
-        Read data from a file.
-        """
-        raise NotImplementedError
-
-
-class Embedding(_BaseData):
+class Embedding(DType):
     """
     Data sample projected onto a new space.
 
@@ -92,7 +53,7 @@ class Embedding(_BaseData):
     data: np.ndarray
 
     def __init__(
-        self, data: Array1DLike, dtype: Optional[Union[str, np.dtype]] = None
+        self, data: Array1dLike, dtype: Optional[Union[str, np.dtype]] = None
     ) -> None:
         data_array = np.asarray(data, dtype)
         if data_array.ndim != 1 or data_array.size == 0:
@@ -121,7 +82,7 @@ class Embedding(_BaseData):
         return self.data
 
 
-class Sequence1D(_BaseData):
+class Sequence1D(DType):
     """
     One-dimensional ndarray with optional index values.
 
@@ -149,10 +110,11 @@ class Sequence1D(_BaseData):
 
     def __init__(
         self,
-        index: Optional[Array1DLike],
-        value: Optional[Array1DLike] = None,
+        index: Optional[Array1dLike],
+        value: Optional[Array1dLike] = None,
         dtype: Optional[Union[str, np.dtype]] = None,
     ) -> None:
+        # pylint: disable=too-many-branches
         if value is None:
             if index is None:
                 raise ValueError(
@@ -161,13 +123,54 @@ class Sequence1D(_BaseData):
                 )
             value = index
             index = None
-        self.value = self._sanitize_data(value, dtype)
+
+        value_array = np.asarray(value, dtype)
+        if value_array.dtype.str[1] not in "fiu":
+            raise ValueError(
+                f"Input values should be array-likes with integer or float "
+                f"dtype, but dtype {value_array.dtype.name} received."
+            )
         if index is None:
-            if dtype is None:
-                dtype = self.value.dtype
-            self.index = np.arange(len(self.value), dtype=dtype)
+            if value_array.ndim == 2:
+                if value_array.shape[0] == 2:
+                    self.index = value_array[0]
+                    self.value = value_array[1]
+                elif value_array.shape[1] == 2:
+                    self.index = value_array[:, 0]
+                    self.value = value_array[:, 1]
+                else:
+                    raise ValueError(
+                        f"A single 2-dimensional input value should have one "
+                        f"dimension of length 2, but shape {value_array.shape} received."
+                    )
+            elif value_array.ndim == 1:
+                self.value = value_array
+                if dtype is None:
+                    dtype = self.value.dtype
+                self.index = np.arange(len(self.value), dtype=dtype)
+            else:
+                raise ValueError(
+                    f"A single input value should be 1- or 2-dimensional, but "
+                    f"shape {value_array.shape} received."
+                )
         else:
-            self.index = self._sanitize_data(index, dtype)
+            if value_array.ndim != 1:
+                raise ValueError(
+                    f"Value should be 1-dimensional, but shape {value_array.shape} received."
+                )
+            index_array = np.asarray(index, dtype)
+            if index_array.ndim != 1:
+                raise ValueError(
+                    f"INdex should be 1-dimensional array-like, but shape "
+                    f"{index_array.shape} received."
+                )
+            if index_array.dtype.str[1] not in "fiu":
+                raise ValueError(
+                    f"Index should be array-like with integer or float "
+                    f"dtype, but dtype {index_array.dtype.name} received."
+                )
+            self.value = value_array
+            self.index = index_array
         if len(self.value) != len(self.index):
             raise ValueError(
                 f"Lengths of `index` and `value` should match, but lengths "
@@ -198,25 +201,8 @@ class Sequence1D(_BaseData):
         """
         return cls(np.empty(0), np.empty(0))
 
-    @staticmethod
-    def _sanitize_data(
-        data: Array1DLike, dtype: Optional[Union[str, np.dtype]]
-    ) -> np.ndarray:
-        array = np.asarray(data, dtype)
-        if array.ndim != 1:
-            raise ValueError(
-                f"Input values should be 1-dimensional array-likes, but shape "
-                f"{array.shape} received."
-            )
-        if array.dtype.str[1] not in "fiu":
-            raise ValueError(
-                f"Input values should be array-likes with integer or float "
-                f"dtype, but dtype {array.dtype.name} received."
-            )
-        return array
 
-
-class Mesh(_BaseFileBasedData):
+class Mesh(FileBasedDType):
     """
     Triangular 3D mesh with optional per-point and per-triangle attributes and
     optional per-point displacements over time.
@@ -248,8 +234,8 @@ class Mesh(_BaseFileBasedData):
 
     def __init__(
         self,
-        points: Array2DLike,
-        triangles: Array2DLike,
+        points: Array2dLike,
+        triangles: Array2dLike,
         point_attributes: Optional[Dict[str, np.ndarray]] = None,
         triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
         point_displacements: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
@@ -484,7 +470,7 @@ class Mesh(_BaseFileBasedData):
         ]
 
     def _set_points_triangles(
-        self, points: Array2DLike, triangles: Array2DLike
+        self, points: Array2dLike, triangles: Array2dLike
     ) -> None:
         # Check points.
         points_array = np.asarray(points, np.float32)
@@ -596,7 +582,7 @@ class Mesh(_BaseFileBasedData):
         return valid_triangle_attributes
 
 
-class Image(_BaseFileBasedData):
+class Image(FileBasedDType):
     """
     An RGB(A) or grayscale image that will be saved in encoded form.
 
@@ -653,28 +639,33 @@ class Image(_BaseFileBasedData):
         self.data = data_array.astype("uint8")
 
     @classmethod
-    def from_file(cls, filepath: Union[str, os.PathLike, IO]) -> "Image":
+    def from_file(cls, filepath: FileType) -> "Image":
         """
         Read image from a filepath, an URL, or a file-like object.
 
         `imageio` is used inside, so only supported formats are allowed.
         """
-        file = str(filepath) if isinstance(filepath, os.PathLike) else filepath
-        if isinstance(file, str):
-            if validators.url(file):
-                response = requests.get(file, headers=headers, timeout=30)
-                if not response.ok:
-                    raise exceptions.InvalidFile(f"URL {file} does not exist.")
-                file = io.BytesIO(response.content)
-            elif not os.path.isfile(file):
+        with file_io.as_file(filepath) as file:
+            try:
+                image_array = iio.imread(file, index=False)  # type: ignore
+            except Exception as e:
                 raise exceptions.InvalidFile(
-                    f"File {file} is neither an existing file nor an existing URL."
-                )
+                    f"Image {filepath} does not exist or could not be read."
+                ) from e
+        return cls(image_array)
+
+    @classmethod
+    def from_bytes(cls, blob: bytes) -> "Image":
+        """
+        Read image from raw bytes.
+
+        `imageio` is used inside, so only supported formats are allowed.
+        """
         try:
-            image_array = iio.imread(file, index=False)  # type: ignore
+            image_array = iio.imread(blob, index=False)  # type: ignore
         except Exception as e:
             raise exceptions.InvalidFile(
-                f"Image {filepath} does not exist or could not be read."
+                "Image could not be read from the given bytes."
             ) from e
         return cls(image_array)
 
@@ -701,7 +692,7 @@ class Image(_BaseFileBasedData):
         return np.void(buf.getvalue())
 
 
-class Audio(_BaseFileBasedData):
+class Audio(FileBasedDType):
     """
     An Audio Signal that will be saved in encoded form.
 
@@ -741,7 +732,7 @@ class Audio(_BaseFileBasedData):
     data: np.ndarray
     sampling_rate: int
 
-    def __init__(self, sampling_rate: int, data: Array2DLike) -> None:
+    def __init__(self, sampling_rate: int, data: Array2dLike) -> None:
         data_array = np.asarray(data)
         is_valid_multi_channel = (
             data_array.size > 0 and data_array.ndim == 2 and data_array.shape[1] <= 5
@@ -764,7 +755,7 @@ class Audio(_BaseFileBasedData):
         self.sampling_rate = sampling_rate
 
     @classmethod
-    def from_file(cls, filepath: Union[str, os.PathLike, IO]) -> "Audio":
+    def from_file(cls, filepath: FileType) -> "Audio":
         """
         Read audio file from a filepath, an URL, or a file-like object.
 
@@ -776,7 +767,22 @@ class Audio(_BaseFileBasedData):
             raise exceptions.InvalidFile(
                 f"Audio file {filepath} does not exist or could not be read."
             ) from e
-        return Audio(sampling_rate, data)
+        return cls(sampling_rate, data)
+
+    @classmethod
+    def from_bytes(cls, blob: bytes) -> "Audio":
+        """
+        Read audio from raw bytes.
+
+        `pyav` is used inside, so only supported formats are allowed.
+        """
+        try:
+            data, sampling_rate = audio.read_audio(io.BytesIO(blob))
+        except Exception as e:
+            raise exceptions.InvalidFile(
+                "Audio could not be read from the given bytes."
+            ) from e
+        return cls(sampling_rate, data)
 
     @classmethod
     def empty(cls) -> "Audio":
@@ -852,7 +858,7 @@ class Category(str):
     """
 
 
-class Video(_BaseFileBasedData):
+class Video(FileBasedDType):
     """
     A video object. No encoding or decoding is currently performed on the python
     side, so all formats will be saved into dataset without compatibility check,
@@ -895,6 +901,13 @@ class Video(_BaseFileBasedData):
         raise exceptions.InvalidFile(
             f"File {prepared_file} is neither an existing file nor an existing URL."
         )
+
+    @classmethod
+    def from_bytes(cls, blob: bytes) -> "Video":
+        """
+        Read video from raw bytes.
+        """
+        return cls(blob)
 
     @classmethod
     def empty(cls) -> "Video":

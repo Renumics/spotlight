@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { Widget } from '../../widgets/types';
 import {
     Actions,
@@ -16,6 +17,7 @@ import {
     useCallback,
     useEffect,
     useImperativeHandle,
+    useRef,
     useState,
 } from 'react';
 import guid from 'short-uuid';
@@ -28,6 +30,7 @@ import icons from './icons';
 import { convertAppLayoutToFlexLayout, convertFlexLayoutToAppLayout } from './layout';
 import Styles from './Styles';
 import { useLayout } from '../../stores/layout';
+import { AppLayout } from '../../types';
 
 const datasetUidSelector = (d: Dataset) => d.uid;
 const useDatasetUid = () => useDataset(datasetUidSelector);
@@ -63,7 +66,7 @@ const GLOBAL_CONFIG = {
     tabDragSpeed: 0.2,
 };
 
-const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
+const Workspace: ForwardRefRenderFunction<Handle> = (_props, ref) => {
     const [model, setModel] = useState<Model>();
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const datasetUid = useDatasetUid();
@@ -76,6 +79,11 @@ const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
     }, [datasetUid]);
 
     useEffect(() => {
+        if (!layoutStore.layout) {
+            setModel(undefined);
+            setIsLoading(false);
+            return;
+        }
         const layout = convertAppLayoutToFlexLayout(layoutStore.layout);
         const config: IJsonModel = {
             global: GLOBAL_CONFIG,
@@ -100,11 +108,17 @@ const Workspace: ForwardRefRenderFunction<Handle> = (_, ref) => {
         [model]
     );
 
+    const lastAppLayout = useRef<AppLayout>();
     const handleModelChange = useCallback(() => {
         if (!model) return;
 
         const flexLayout = model.toJson().layout;
         const appLayout = convertFlexLayoutToAppLayout(flexLayout);
+
+        // only set layout via api if it actually changed
+        if (_.isEqual(appLayout, lastAppLayout.current)) return;
+        lastAppLayout.current = appLayout;
+
         api.layout.setLayout({ setLayoutRequest: { layout: appLayout } });
     }, [model]);
 

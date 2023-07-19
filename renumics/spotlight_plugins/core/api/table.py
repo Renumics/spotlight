@@ -5,11 +5,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
-from renumics.spotlight.backend import create_datasource
 from renumics.spotlight.backend.data_source import (
     Column as DatasetColumn,
     idx_column,
@@ -17,11 +17,25 @@ from renumics.spotlight.backend.data_source import (
     last_edited_by_column,
     sanitize_values,
 )
-from renumics.spotlight.backend.exceptions import InvalidPath
-from renumics.spotlight.backend.types import SpotlightApp
+from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
+from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
+
+from renumics.spotlight.dtypes import (
+    Audio,
+    Embedding,
+    Image,
+    Mesh,
+    Sequence1D,
+    Video,
+)
+
+# for now specify all lazy dtypes right here
+# we should probably move closer to the actual dtype definition for easier extensibility
+LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio, str]
 
 
 class Column(BaseModel):
@@ -34,11 +48,11 @@ class Column(BaseModel):
     name: str
     index: Optional[int]
     hidden: bool
+    lazy: bool
     editable: bool
     optional: bool
     role: str
     values: List[Any]
-    references: Optional[List[bool]]
     y_label: Optional[str]
     x_label: Optional[str]
     description: Optional[str]
@@ -51,15 +65,16 @@ class Column(BaseModel):
         """
         Instantiate column from a dataset column.
         """
+
         return cls(
             name=column.name,
             index=column.order,
             hidden=column.hidden,
+            lazy=column.type in LAZY_DTYPES,
             editable=column.editable,
             optional=column.optional,
             role=get_column_type_name(column.type),
             values=sanitize_values(column.values),
-            references=sanitize_values(column.references),
             x_label=column.x_label,
             y_label=column.y_label,
             description=column.description,
@@ -78,8 +93,6 @@ class Table(BaseModel):
     uid: str
     filename: str
     columns: List[Column]
-    max_rows_hit: bool
-    max_columns_hit: bool
     generation_id: int
 
 
@@ -106,13 +119,14 @@ def get_table(request: Request) -> ORJSONResponse:
                 uid="",
                 filename="",
                 columns=[],
-                max_rows_hit=False,
-                max_columns_hit=False,
                 generation_id=-1,
             ).dict()
         )
 
-    columns = table.get_columns()
+    columns = [
+        table.get_column(name, app.dtypes[name], simple=True)
+        for name in table.column_names
+    ]
     columns.extend(table.get_internal_columns())
     row_count = len(table)
     columns.append(idx_column(row_count))
@@ -126,8 +140,6 @@ def get_table(request: Request) -> ORJSONResponse:
             uid=table.get_uid(),
             filename=table.get_name(),
             columns=[Column.from_dataset_column(column) for column in columns],
-            max_rows_hit=False,
-            max_columns_hit=False,
             generation_id=table.get_generation_id(),
         ).dict()
     )
@@ -150,7 +162,7 @@ async def get_table_cell(
         return None
     table.check_generation_id(generation_id)
 
-    cell_data = table.get_cell_data(column, row)
+    cell_data = table.get_cell_data(column, row, app.dtypes[column])
     value = sanitize_values(cell_data)
 
     if isinstance(value, (bytes, str)):
@@ -198,10 +210,15 @@ async def open_table(path: str, request: Request) -> None:
     :raises InvalidPath: if the supplied path is outside the project root
                          or points to an incompatible file
     """
-    full_path = Path(request.app.project_root) / path
+    app: SpotlightApp = request.app
+
+    if not app.filebrowsing_allowed:
+        raise FilebrowsingNotAllowed()
+
+    full_path = Path(app.project_root) / path
 
     # assert that the path is inside our project root
-    if not is_path_relative_to(full_path, request.app.project_root):
+    if not is_path_relative_to(full_path, app.project_root):
         raise InvalidPath(path)
 
-    request.app.data_source = create_datasource(full_path, dtype=None)
+    app.update(AppConfig(dataset=full_path))

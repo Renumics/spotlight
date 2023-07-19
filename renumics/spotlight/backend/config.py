@@ -41,7 +41,9 @@ class Config:
             await self.database.execute(query)
             self.connected = True
 
-    async def get(self, name: str, *, dataset: str = "") -> Optional[ConfigValue]:
+    async def get(
+        self, name: str, *, dataset: str = "", user: str = ""
+    ) -> Optional[ConfigValue]:
         """
         get a stored value by name
         """
@@ -53,21 +55,23 @@ class Config:
         """
 
         row = await self.database.fetch_one(
-            query, {"name": name, "user": "", "dataset": dataset}
+            query, {"name": name, "user": user, "dataset": dataset}
         )
         if not row:
             return None
         value = json.loads(row[0])
         return cast(ConfigValue, value)
 
-    async def set(self, name: str, value: ConfigValue, *, dataset: str = "") -> None:
+    async def set(
+        self, name: str, value: ConfigValue, *, dataset: str = "", user: str = ""
+    ) -> None:
         """
         set a config value by name
         """
         await self._lazy_init()
         values = {
             "name": name,
-            "user": "",
+            "user": user,
             "dataset": dataset,
             "value": json.dumps(value),
         }
@@ -77,7 +81,7 @@ class Config:
         """
         await self.database.execute(query, values)
 
-    async def remove(self, name: str, *, dataset: str = "") -> None:
+    async def remove(self, name: str, *, dataset: str = "", user: str = "") -> None:
         """
         remove a config value by name
         """
@@ -87,5 +91,5 @@ class Config:
         WHERE name = :name AND user = :user AND dataset = :dataset
         """
         await self.database.execute(
-            query, values={"name": name, "user": "", "dataset": dataset}
+            query, values={"name": name, "user": user, "dataset": dataset}
         )

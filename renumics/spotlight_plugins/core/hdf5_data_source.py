@@ -4,7 +4,7 @@ access h5 table data
 import os
 from hashlib import sha1
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast, Union, Type
+from typing import Any, Dict, List, Optional, cast, Union, Type, Tuple
 from dataclasses import asdict
 
 import h5py
@@ -12,6 +12,7 @@ import numpy as np
 
 from renumics.spotlight.dtypes import Category, Embedding
 from renumics.spotlight.dtypes.typing import (
+    ColumnType,
     ColumnTypeMapping,
     get_column_type,
     FileBasedColumnType,
@@ -46,7 +47,7 @@ def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
     return np.array([unescape_dataset_name(value) for value in refs])
 
 
-def decode_attrs(raw_attrs: h5py.AttributeManager) -> Attrs:
+def _decode_attrs(raw_attrs: h5py.AttributeManager) -> Tuple[Attrs, bool, bool]:
     """
     Get relevant subset of column attributes.
     """
@@ -72,21 +73,25 @@ def decode_attrs(raw_attrs: h5py.AttributeManager) -> Attrs:
     if "tags" in raw_attrs:
         tags = raw_attrs["tags"].tolist()
 
-    return Attrs(
-        type_name=column_type_name,
-        type=column_type,
-        order=raw_attrs.get("order", None),
-        hidden=raw_attrs.get("hidden", False),
-        optional=raw_attrs.get("optional", False),
-        description=raw_attrs.get("description", None),
-        tags=tags,
-        editable=raw_attrs.get("editable", False),
-        categories=categories,
-        x_label=raw_attrs.get("x_label", None),
-        y_label=raw_attrs.get("y_label", None),
-        embedding_length=embedding_length,
-        has_lookup="lookup_keys" in raw_attrs,
-        is_external=raw_attrs.get("external", False),
+    has_lookup = "lookup_keys" in raw_attrs
+    is_external = raw_attrs.get("external", False)
+
+    return (
+        Attrs(
+            type=column_type,
+            order=raw_attrs.get("order", None),
+            hidden=raw_attrs.get("hidden", False),
+            optional=raw_attrs.get("optional", False),
+            description=raw_attrs.get("description", None),
+            tags=tags,
+            editable=raw_attrs.get("editable", False),
+            categories=categories,
+            x_label=raw_attrs.get("x_label", None),
+            y_label=raw_attrs.get("y_label", None),
+            embedding_length=embedding_length,
+        ),
+        has_lookup,
+        is_external,
     )
 
 
@@ -113,11 +118,12 @@ class H5Dataset(Dataset):
         return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
 
     def read_value(
-        self, column_name: str, index: IndexType
+        self, column_name: str, index: IndexType, simple: bool = False
     ) -> Optional[Union[np.generic, str, np.void, np.ndarray]]:
         """
         Get a dataset value as it is stored in the H5 dataset, resolve references.
         """
+        # pylint: disable=unused-argument
         self._assert_column_exists(column_name, internal=True)
         self._assert_index_exists(index)
         column = self._h5_file[column_name]
@@ -141,17 +147,17 @@ class H5Dataset(Dataset):
     def read_column(
         self,
         column_name: str,
-        max_elements_per_cell: int = 2048,
         indices: Optional[List[int]] = None,
+        simple: bool = False,
     ) -> Column:
         """
         Read a dataset column for serialization.
         """
-        # pylint: disable=too-many-branches, too-many-nested-blocks
+        # pylint: disable=too-many-branches, too-many-nested-blocks, too-many-locals, unused-argument
         self._assert_column_exists(column_name, internal=True)
 
         column = self._h5_file[column_name]
-        attrs = decode_attrs(column.attrs)
+        attrs, has_lookup, is_external = _decode_attrs(column.attrs)
         is_ref_column = self._is_ref_column(column)
         is_string_dtype = h5py.check_string_dtype(column.dtype)
 
@@ -166,24 +172,12 @@ class H5Dataset(Dataset):
         refs: Optional[np.ndarray] = None
         # Submit scalars, windows and small embeddings only
         if attrs.type is Embedding:
-            # Handle embeddings first.
-            if (
-                attrs.embedding_length is not None
-                and attrs.embedding_length <= max_elements_per_cell
-            ):
-                # Embeddings are small enough to send them.
-                if not is_ref_column:
-                    none_mask = [len(x) == 0 for x in raw_values]
-                    raw_values[none_mask] = np.array(None)
-                else:
-                    raw_values = self._resolve_refs(raw_values, column_name)
+            if not is_ref_column:
+                none_mask = [len(x) == 0 for x in raw_values]
+                raw_values[none_mask] = np.array(None)
             else:
-                if not is_ref_column:
-                    refs = np.array([len(x) != 0 for x in raw_values])
-                else:
-                    refs = raw_values.astype(bool)
-                raw_values = ref_placeholder_names(refs)
-        elif attrs.is_external:
+                raw_values = self._resolve_refs(raw_values, column_name)
+        elif is_external:
             refs = raw_values != ""
         elif is_ref_column:
             if is_string_dtype:
@@ -194,7 +188,7 @@ class H5Dataset(Dataset):
                 # Old-style H5 references.
                 # Invalid refs evaluated to `False`.
                 refs = raw_values.astype(bool)
-                if attrs.has_lookup:
+                if has_lookup:
                     values = []
                     for ref in raw_values:
                         if ref:
@@ -210,9 +204,7 @@ class H5Dataset(Dataset):
                 else:
                     raw_values = ref_placeholder_names(refs)
 
-        return Column(
-            name=column_name, values=raw_values, references=refs, **asdict(attrs)
-        )
+        return Column(name=column_name, values=raw_values, **asdict(attrs))
 
     def duplicate_row(self, from_index: IndexType, to_index: IndexType) -> None:
         """
@@ -239,14 +231,6 @@ class H5Dataset(Dataset):
             column[int(to_index)] = column[from_index]
         self._length += 1
         self._update_generation_id()
-
-    def read_attrs(self, column_name: str) -> Attrs:
-        """
-        Read relevant attributes of a column.
-        """
-        self._assert_column_exists(column_name, internal=True)
-        raw_attrs = self._h5_file[column_name].attrs
-        return decode_attrs(raw_attrs)
 
     def min_order(self) -> int:
         """
@@ -277,7 +261,8 @@ class Hdf5DataSource(DataSource):
     access h5 table data
     """
 
-    def __init__(self, source: PathType, dtype: ColumnTypeMapping):
+    def __init__(self, source: PathType):
+        # pylint: disable=unused-argument
         self._table_file = Path(source)
 
     @property
@@ -289,6 +274,13 @@ class Hdf5DataSource(DataSource):
         with self._open_table() as dataset:
             return len(dataset)
 
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        with self._open_table() as dataset:
+            return {
+                column_name: dataset.get_column_type(column_name)
+                for column_name in self.column_names
+            }
+
     def get_generation_id(self) -> int:
         with self._open_table() as dataset:
             return dataset.get_generation_id()
@@ -299,12 +291,6 @@ class Hdf5DataSource(DataSource):
     def get_name(self) -> str:
         return str(self._table_file.name)
 
-    def get_columns(self, column_names: Optional[List[str]] = None) -> List[Column]:
-        with self._open_table() as dataset:
-            if column_names is None:
-                column_names = dataset.keys()
-            return [dataset.read_column(column_name) for column_name in column_names]
-
     def get_internal_columns(self) -> List[Column]:
         with self._open_table() as dataset:
             return [
@@ -312,11 +298,19 @@ class Hdf5DataSource(DataSource):
                 for column_name in INTERNAL_COLUMN_NAMES
             ]
 
-    def get_column(self, column_name: str, indices: Optional[List[int]]) -> Column:
+    def get_column(
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
+        simple: bool = False,
+    ) -> Column:
         with self._open_table() as dataset:
-            return dataset.read_column(column_name, indices=indices)
+            return dataset.read_column(column_name, indices=indices, simple=simple)
 
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         return the value of a single cell
         """

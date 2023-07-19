@@ -9,6 +9,8 @@ import dataclasses
 
 import toml
 
+from ..settings import settings
+
 
 def _find_upwards(filename: str, folder: Path) -> Optional[Path]:
     """
@@ -43,6 +45,9 @@ def get_project_info() -> ProjectInfo:
     "plugin": Inside a spotlight plugin project.
     None: neither.
     """
+
+    if not settings.dev:
+        return ProjectInfo(name="", type=None, root=None)
 
     pyproject_toml = _find_upwards("pyproject.toml", Path.cwd())
     if not pyproject_toml:

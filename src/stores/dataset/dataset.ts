@@ -10,12 +10,13 @@ import {
     DataColumn,
     DataFrame,
     DataRow,
+    DataIssue as DataIssue,
     Filter,
     IndexArray,
     TableData,
 } from '../../types';
 import api from '../../api';
-import { notify, notifyAPIError } from '../../notify';
+import { notifyAPIError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
@@ -34,6 +35,9 @@ export interface Dataset {
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
     columnData: TableData;
+    isAnalysisRunning: boolean;
+    issues: DataIssue[];
+    rowsWithIssues: IndexArray;
     colorTransferFunctions: Record<
         string,
         {
@@ -60,6 +64,7 @@ export interface Dataset {
     lastFocusedRow?: number; // the last row that has been focused by a view
     openTable: (path: string) => void; //open the table file at path
     fetch: () => void; // fetch the dataset from the backend
+    fetchIssues: () => void; // fetch the ready issues
     refresh: () => void; // refresh the dataset from the backend
     addFilter: (filter: Filter) => void; // add a new filter
     removeFilter: (filter: Filter) => void; // remove an existing filter
@@ -68,6 +73,7 @@ export interface Dataset {
     selectRows: (rows: CallbackOrData<IndexArray>) => void; // select a set of rows
     setHighlightedRows: (mask: boolean[]) => void;
     highlightRowAt: (rowIndex: number, only?: boolean) => void;
+    highlightRows: (rows: CallbackOrData<IndexArray>) => void;
     dehighlightRowAt: (rowIndex: number) => void;
     dehighlightAll: () => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,14 +144,6 @@ const fetchTable = async (): Promise<{
         };
     }
 
-    // notify the user if a (demo) limit is hit
-    if (table.maxColumnsHit) {
-        notify('Columns in table exceed column limit.', 'warning');
-    }
-    if (table.maxRowsHit) {
-        notify('Rows in table exceed wow limit.', 'warning');
-    }
-
     const columns = table.columns.map(makeColumn);
     const columnData: TableData = {};
     table.columns.forEach((rawColumn, i) => {
@@ -154,15 +152,8 @@ const fetchTable = async (): Promise<{
             return;
         }
 
-        columnData[dsColumn.key] = rawColumn.values.map((value, index) =>
-            convertValue(
-                value !== null
-                    ? value
-                    : rawColumn.references?.[index]
-                    ? undefined
-                    : null,
-                dsColumn.type
-            )
+        columnData[dsColumn.key] = rawColumn.values.map((value) =>
+            convertValue(value, dsColumn.type)
         );
 
         switch (dsColumn.type.kind) {
@@ -203,6 +194,9 @@ export const useDataset = create<Dataset>(
             columnsByKey: {},
             columnData: {},
             length: 0,
+            issues: [],
+            rowsWithIssues: [],
+            isAnalysisRunning: false,
             indices: new Int32Array(),
             columnStats: { full: {}, filtered: {}, selected: {} },
             colorTransferFunctions: {},
@@ -250,9 +244,13 @@ export const useDataset = create<Dataset>(
                     sortColumns: new Map<DataColumn, Sorting>(),
                     columnRelevance: new Map<string, number>(),
                     filters: [],
+                    issues: [],
+                    rowsWithIssues: [],
+                    isAnalysisRunning: true,
                 }));
 
-                const { uid, generationID, filename, dataframe } = await fetchTable();
+                const tableFetcher = fetchTable();
+                const { uid, generationID, filename, dataframe } = await tableFetcher;
 
                 const columnStats = {
                     full: makeColumnsStats(dataframe.columns, dataframe.data),
@@ -270,6 +268,18 @@ export const useDataset = create<Dataset>(
                     columnData: dataframe.data,
                     columnStats,
                 }));
+            },
+            fetchIssues: async () => {
+                const analysis = await api.issues.getAll();
+                const rowsWithIssues = new Set<number>();
+                for (const issue of analysis.issues) {
+                    issue.rows.forEach(rowsWithIssues.add, rowsWithIssues);
+                }
+                set({
+                    issues: analysis.issues as DataIssue[],
+                    rowsWithIssues: Int32Array.from(rowsWithIssues),
+                    isAnalysisRunning: analysis.running,
+                });
             },
             refresh: async () => {
                 const { uid, generationID, filename, dataframe } = await fetchTable();
@@ -349,6 +359,15 @@ export const useDataset = create<Dataset>(
                     isIndexHighlighted: mask,
                     highlightedIndices: Int32Array.from(highlightedIndices),
                 }));
+            },
+            highlightRows: (rowIndicesOrCallback) => {
+                const rowIndices =
+                    typeof rowIndicesOrCallback === 'function'
+                        ? rowIndicesOrCallback(get().selectedIndices)
+                        : rowIndicesOrCallback;
+                const mask = new Array(get().length).fill(false);
+                rowIndices.forEach((index: number) => (mask[index] = true));
+                get().setHighlightedRows(mask);
             },
             highlightRowAt: (rowIndex, only = false) => {
                 // early out if the index is highlighted anyway

@@ -6,7 +6,7 @@ from typing import Any, Optional, Type
 from fastapi import status
 
 from renumics.spotlight.dtypes.typing import ColumnType
-from renumics.spotlight.typing import IndexType, PathOrURLType, PathType
+from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
 
 
 class Problem(Exception):
@@ -101,7 +101,7 @@ class ColumnNotEditable(Problem):
 class InvalidExternalData(Problem):
     """External data is not readable"""
 
-    def __init__(self, value: PathOrURLType) -> None:
+    def __init__(self, value: PathOrUrlType) -> None:
         super().__init__(
             "Invalid external data",
             f"Failed to read external data '{value}'.",
@@ -162,9 +162,20 @@ class DatasetColumnsNotUnique(Problem):
 class InvalidLayout(Problem):
     """The layout could not be parsed from the given source"""
 
-    def __init__(
-        self,
-        detail: str = "The layout could not be loaded from given source.",
-        status_code: int = 500,
-    ) -> None:
-        super().__init__("Invalid Layout", detail, status_code)
+    def __init__(self) -> None:
+        super().__init__(
+            "Invalid layout",
+            "The layout could not be loaded from given source.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+class FilebrowsingNotAllowed(Problem):
+    """Filebrowsing is not allowed"""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Filebrowsing not allowed",
+            "Filebrowsing is not allowed.",
+            status.HTTP_403_FORBIDDEN,
+        )

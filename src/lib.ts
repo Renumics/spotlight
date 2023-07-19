@@ -39,7 +39,7 @@ export type { ColorsState } from './stores/colors';
 export type { Widget } from './widgets/types';
 export { useWidgetContext } from './widgets/WidgetContext';
 
-export type { Lens, LensProps } from './lenses/types';
+export type { Lens, LensProps } from './types';
 export { default as useSetting } from './lenses/useSetting';
 
 export * as icons from './icons';
@@ -59,7 +59,7 @@ export { default as api } from './api';
 export type { App } from './stores/pluginStore';
 export { useDataset, convertValue, compareColumnOrder } from './stores/dataset';
 export { useColors } from './stores/colors';
-export { isAudio, isBoolean, getNullValue } from './datatypes';
+export { isAudio, isBoolean, getNullValue, isCategorical } from './datatypes';
 export type {
     EmbeddingDataType,
     DataType,

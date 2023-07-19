@@ -5,27 +5,30 @@ import hashlib
 import io
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Type, Optional, List, Dict, Any, cast
+from typing import Optional, List, Dict, Type, Any, cast
 
+import filetype
 import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.io import audio
-from renumics.spotlight.typing import PathOrURLType, PathType, is_iterable
+from renumics.spotlight.typing import PathOrUrlType, PathType, is_iterable
 from renumics.spotlight.dataset import prepare_path_or_url
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
-from renumics.spotlight.dtypes import Audio
+from renumics.spotlight.dtypes import Audio, Image
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
     FileBasedColumnType,
     get_column_type_name,
 )
-from .cache import Cache
+from renumics.spotlight.cache import Cache
+
+from renumics.spotlight.io.file import as_file
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
 
 cache = Cache("external-data")
@@ -39,7 +42,6 @@ class Attrs:
 
     # pylint: disable=too-many-instance-attributes
 
-    type_name: str
     type: Type[ColumnType]
     order: Optional[int]
     hidden: bool
@@ -47,12 +49,12 @@ class Attrs:
     description: Optional[str]
     tags: List[str]
     editable: bool
+
+    # data type specific fields
     categories: Optional[Dict[str, int]]
     x_label: Optional[str]
     y_label: Optional[str]
     embedding_length: Optional[int]
-    has_lookup: bool
-    is_external: Optional[bool]
 
 
 @dataclasses.dataclass
@@ -63,7 +65,6 @@ class Column(Attrs):
 
     name: str
     values: np.ndarray
-    references: Optional[np.ndarray]
 
 
 @dataclass
@@ -81,7 +82,7 @@ class DataSource(ABC):
     """abstract base class for different data sources"""
 
     @abstractmethod
-    def __init__(self, source: Any, dtype: Optional[ColumnTypeMapping]):
+    def __init__(self, source: Any):
         """
         Create Data Source from matching source and dtype mapping.
         """
@@ -120,6 +121,12 @@ class DataSource(ABC):
             raise GenerationIDMismatch()
 
     @abstractmethod
+    def guess_dtypes(self) -> ColumnTypeMapping:
+        """
+        Guess data source's dtypes.
+        """
+
+    @abstractmethod
     def get_uid(self) -> str:
         """
         Get the table's unique ID.
@@ -131,12 +138,6 @@ class DataSource(ABC):
         Get the table's human-readable name.
         """
 
-    @abstractmethod
-    def get_columns(self, column_names: Optional[List[str]] = None) -> List[Column]:
-        """
-        Get table's columns by names.
-        """
-
     def get_internal_columns(self) -> List[Column]:
         """
         Get internal columns if there are any.
@@ -144,13 +145,21 @@ class DataSource(ABC):
         return []
 
     @abstractmethod
-    def get_column(self, column_name: str, indices: Optional[List[int]]) -> Column:
+    def get_column(
+        self,
+        column_name: str,
+        dtype: Type[ColumnType],
+        indices: Optional[List[int]] = None,
+        simple: bool = False,
+    ) -> Column:
         """
-        return a column with data
+        Get column metadata + values
         """
 
     @abstractmethod
-    def get_cell_data(self, column_name: str, row_index: int) -> Any:
+    def get_cell_data(
+        self, column_name: str, row_index: int, dtype: Type[ColumnType]
+    ) -> Any:
         """
         return the value of a single cell
         """
@@ -159,7 +168,7 @@ class DataSource(ABC):
         """
         return the waveform of an audio cell
         """
-        blob = self.get_cell_data(column_name, row_index)
+        blob = self.get_cell_data(column_name, row_index, Audio)
         if blob is None:
             return None
         value_hash = hashlib.blake2b(blob.tolist()).hexdigest()
@@ -174,7 +183,7 @@ class DataSource(ABC):
         return waveform
 
     def replace_cells(
-        self, column_name: str, indices: List[int], value: Any
+        self, column_name: str, indices: List[int], value: Any, dtype: Type[ColumnType]
     ) -> CellsUpdate:
         """
         replace multiple cell's value
@@ -261,7 +270,6 @@ def sanitize_values(values: Any) -> Any:
 def idx_column(row_count: int) -> Column:
     """create a column containing the index"""
     return Column(
-        type_name="int",
         type=int,
         order=None,
         description=None,
@@ -270,9 +278,6 @@ def idx_column(row_count: int) -> Column:
         x_label=None,
         y_label=None,
         embedding_length=None,
-        has_lookup=False,
-        is_external=False,
-        references=None,
         name="__idx__",
         hidden=True,
         editable=False,
@@ -284,7 +289,6 @@ def idx_column(row_count: int) -> Column:
 def last_edited_at_column(row_count: int, value: datetime) -> Column:
     """create a column containing a constant datetime"""
     return Column(
-        type_name="datetime",
         type=datetime,
         order=None,
         description=None,
@@ -293,9 +297,6 @@ def last_edited_at_column(row_count: int, value: datetime) -> Column:
         x_label=None,
         y_label=None,
         embedding_length=None,
-        has_lookup=False,
-        is_external=False,
-        references=None,
         name="__last_edited_at__",
         hidden=True,
         editable=False,
@@ -307,7 +308,6 @@ def last_edited_at_column(row_count: int, value: datetime) -> Column:
 def last_edited_by_column(row_count: int, value: str) -> Column:
     """create a column containing a constant username"""
     return Column(
-        type_name="str",
         type=str,
         order=None,
         description=None,
@@ -316,9 +316,6 @@ def last_edited_by_column(row_count: int, value: str) -> Column:
         x_label=None,
         y_label=None,
         embedding_length=None,
-        has_lookup=False,
-        is_external=False,
-        references=None,
         name="__last_edited_by__",
         hidden=True,
         editable=False,
@@ -347,13 +344,14 @@ def read_external_value(
         return value
     except KeyError:
         ...
+
     value = _decode_external_value(path_or_url, column_type, target_format, workdir)
     cache[cache_key] = value.tolist()
     return value
 
 
 def _decode_external_value(
-    path_or_url: PathOrURLType,
+    path_or_url: PathOrUrlType,
     column_type: Type[FileBasedColumnType],
     target_format: Optional[str] = None,
     workdir: PathType = ".",
@@ -394,5 +392,23 @@ def _decode_external_value(
         buffer = io.BytesIO()
         audio.transcode_audio(file, buffer, output_format, output_codec)
         return np.void(buffer.getvalue())
-    data_class = column_type.from_file(path_or_url)
-    return data_class.encode(target_format)
+
+    if column_type is Image:
+        with as_file(path_or_url) as file:
+            kind = filetype.guess(file)
+            if kind is not None and kind.mime.split("/")[1] in (
+                "apng",
+                "avif",
+                "gif",
+                "jpeg",
+                "png",
+                "webp",
+                "bmp",
+                "x-icon",
+            ):
+                return np.void(file.read())
+            # `image/tiff`s become blank in frontend, so convert them too.
+            return Image.from_file(file).encode(target_format)
+
+    data_obj = column_type.from_file(path_or_url)
+    return data_obj.encode(target_format)

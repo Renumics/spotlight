@@ -1,64 +1,45 @@
 """
 test reporting module
 """
-from os import environ
 from renumics.spotlight.reporting import skip_analytics
 from renumics.spotlight.settings import settings
 
 
-def test_ci_true() -> None:
-    """test ci is true"""
+def test_opt_out(monkeypatch) -> None:
+    """test opt_out is true"""
 
-    environ["CI"] = "true"
-    assert skip_analytics() is True
-
-
-def test_ci_false() -> None:
-    """test ci is false and rest is defaults"""
-
-    environ["CI"] = "false"
-    assert skip_analytics() is True
-
-
-def test_ci_unset() -> None:
-    """test ci is not set and rest is defaults"""
-    if "CI" in environ:
-        del environ["CI"]
-    assert skip_analytics() is False
-
-
-def test_opt_out() -> None:
-    """test out_out is true"""
-
+    monkeypatch.delenv("CI")
     settings.opt_out = True
     assert skip_analytics() is True
 
 
-def test_opt_in():
+def test_opt_in(monkeypatch):
     """
     test opt_in is true opt_out also
     as opt_in is False by default
     dont opt_out
     """
 
+    monkeypatch.delenv("CI")
     settings.opt_out = True
     settings.opt_in = True
     assert skip_analytics() is False
 
 
-def test_opt_in_and_opt_out():
+def test_opt_in_and_opt_out(monkeypatch):
     """if opt_out is true and opt_in is false
     skip analytics"""
 
+    monkeypatch.delenv("CI")
     settings.opt_out = True
     settings.opt_in = False
     assert skip_analytics() is True
 
 
-def test_opt_in_and_ci():
+def test_opt_in_and_ci(monkeypatch):
     """when ci is true always skip analytics"""
 
     settings.opt_out = False
     settings.opt_in = True
-    environ["CI"] = "true"
+    monkeypatch.setenv("CI", "True")
     assert skip_analytics() is True

@@ -38,16 +38,16 @@ function drawPoints(
     hidden: boolean[],
     selected: boolean[],
     isPointHighlighted: (index: number) => boolean,
-    hoveredIndex: number | undefined,
+    active: boolean,
     xScale: d3.ScaleContinuousNumeric<number, number>,
     yScale: d3.ScaleContinuousNumeric<number, number>,
     transform: d3.ZoomTransform
 ) {
-    points.forEach((point, i) => {
-        if (!hidden[i]) return;
+    for (let i = 0; i < points.length; i++) {
+        if (!hidden[i]) continue;
         drawCircle(
             ctx,
-            point,
+            points[i],
             colors[i],
             sizes[i] * 5.0,
             0.7,
@@ -55,14 +55,14 @@ function drawPoints(
             yScale,
             transform
         );
-    });
+    }
     fade(ctx, 0.85);
 
-    points.forEach((point, i) => {
-        if (isPointHighlighted(i) || hidden[i] || selected[i]) return;
+    for (let i = 0; i < points.length; i++) {
+        if (isPointHighlighted(i) || hidden[i] || selected[i]) continue;
         drawCircle(
             ctx,
-            point,
+            points[i],
             colors[i],
             sizes[i] * 5.0,
             0.7,
@@ -70,13 +70,13 @@ function drawPoints(
             yScale,
             transform
         );
-    });
+    }
 
-    points.forEach((point, i) => {
-        if (isPointHighlighted(i) || hidden[i] || !selected[i]) return;
+    for (let i = 0; i < points.length; i++) {
+        if (isPointHighlighted(i) || hidden[i] || !selected[i]) continue;
         drawCircle(
             ctx,
-            point,
+            points[i],
             theme`colors.red.400`,
             sizes[i] * 5.0 + 2.0,
             1.0,
@@ -84,13 +84,13 @@ function drawPoints(
             yScale,
             transform
         );
-    });
+    }
 
-    points.forEach((point, i) => {
-        if (isPointHighlighted(i) || hidden[i] || !selected[i]) return;
+    for (let i = 0; i < points.length; i++) {
+        if (isPointHighlighted(i) || hidden[i] || !selected[i]) continue;
         drawCircle(
             ctx,
-            point,
+            points[i],
             colors[i],
             sizes[i] * 5.0,
             0.7,
@@ -98,9 +98,9 @@ function drawPoints(
             yScale,
             transform
         );
-    });
+    }
 
-    if (!hoveredIndex) {
+    if (!active) {
         for (let i = 0; i < points.length; ++i) {
             if (isPointHighlighted(i)) {
                 fade(ctx, 0.5);
@@ -109,8 +109,8 @@ function drawPoints(
         }
     }
 
-    points.forEach((point, i) => {
-        if (!isPointHighlighted(i)) return;
+    for (let i = 0; i < points.length; i++) {
+        if (!isPointHighlighted(i)) continue;
         const outlineColor = selected[i] ? theme`colors.red.500` : theme`colors.white`;
 
         drawCircle(
@@ -123,10 +123,10 @@ function drawPoints(
             yScale,
             transform
         );
-    });
+    }
 
-    points.forEach((point, i) => {
-        if (!isPointHighlighted(i)) return;
+    for (let i = 0; i < points.length; i++) {
+        if (!isPointHighlighted(i)) continue;
         drawCircle(
             ctx,
             points[i],
@@ -137,7 +137,7 @@ function drawPoints(
             yScale,
             transform
         );
-    });
+    }
 }
 
 function clear(ctx: CanvasRenderingContext2D) {
@@ -160,8 +160,9 @@ const Points = ({ colors, sizes, hidden, selected, onClick }: Props): JSX.Elemen
         height,
         transformRef,
         isPointHighlighted,
-        hoveredIndex,
         setHoveredIndex,
+        active,
+        setActive,
         xScale,
         yScale,
         setXScale,
@@ -204,7 +205,7 @@ const Points = ({ colors, sizes, hidden, selected, onClick }: Props): JSX.Elemen
             hidden,
             selected,
             isPointHighlighted,
-            hoveredIndex,
+            active,
             xScale,
             yScale,
             transformRef?.current
@@ -219,7 +220,7 @@ const Points = ({ colors, sizes, hidden, selected, onClick }: Props): JSX.Elemen
         xScale,
         yScale,
         isPointHighlighted,
-        hoveredIndex,
+        active,
         transformRef,
     ]);
 
@@ -298,8 +299,11 @@ const Points = ({ colors, sizes, hidden, selected, onClick }: Props): JSX.Elemen
             const hoveredIndex = findHoveredIndex(d3.pointer(event));
             setHoveredIndex(hoveredIndex);
         });
-
+        d3.select<Element, unknown>(svgRef.current).on('pointerenter', () => {
+            setActive(true);
+        });
         d3.select<Element, unknown>(svgRef.current).on('pointerleave', () => {
+            setActive(false);
             setHoveredIndex(undefined);
             isClick = false;
         });
@@ -339,6 +343,7 @@ const Points = ({ colors, sizes, hidden, selected, onClick }: Props): JSX.Elemen
         yScale,
         transformRef,
         setHoveredIndex,
+        setActive,
         onClick,
     ]);
 

@@ -15,9 +15,9 @@ import numpy as np
 import trimesh
 from typing_extensions import get_args
 
-from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrURLType
+from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrUrlType
 from renumics.spotlight.dtypes import (
-    Array1DLike,
+    Array1dLike,
     Embedding,
     Mesh,
     Sequence1D,
@@ -46,12 +46,12 @@ WindowColumnInputType = Optional[
     Union[List[NumberType], Tuple[NumberType, NumberType], np.ndarray]
 ]
 ArrayColumnInputType = Optional[Union[np.ndarray, Sequence]]
-EmbeddingColumnInputType = Optional[Union[Embedding, Array1DLike]]
-AudioColumnInputType = Optional[Union[Audio, PathOrURLType]]
-ImageColumnInputType = Optional[Union[Image, ImageLike, PathOrURLType]]
-MeshColumnInputType = Optional[Union[Mesh, trimesh.Trimesh, PathOrURLType]]
-Sequence1DColumnInputType = Optional[Union[Sequence1D, Array1DLike]]
-VideoColumnInputType = Optional[Union[Video, PathOrURLType]]
+EmbeddingColumnInputType = Optional[Union[Embedding, Array1dLike]]
+AudioColumnInputType = Optional[Union[Audio, PathOrUrlType, bytes]]
+ImageColumnInputType = Optional[Union[Image, ImageLike, PathOrUrlType, bytes]]
+MeshColumnInputType = Optional[Union[Mesh, trimesh.Trimesh, PathOrUrlType]]
+Sequence1DColumnInputType = Optional[Union[Sequence1D, Array1dLike]]
+VideoColumnInputType = Optional[Union[Video, PathOrUrlType, bytes]]
 # Aggregated input types.
 SimpleColumnInputType = Union[
     BoolColumnInputType,
@@ -73,7 +73,7 @@ RefColumnInputType = Union[
     VideoColumnInputType,
 ]
 ColumnInputType = Union[SimpleColumnInputType, RefColumnInputType]
-ExternalColumnInputType = Optional[PathOrURLType]
+ExternalColumnInputType = Optional[PathOrUrlType]
 
 REF_COLUMN_TYPE_NAMES = [
     NAME_BY_COLUMN_TYPE[column_type] for column_type in get_args(RefColumnType)

@@ -3,16 +3,15 @@ performance and crash reporting
 """
 
 import datetime
-import hashlib
 import platform
 import sys
 import threading
 import time
-import uuid
 from functools import wraps
 from os import environ
 from typing import Any, Callable, Dict, Optional, Union
 from uuid import uuid4
+import machineid
 
 import requests
 from loguru import logger
@@ -25,18 +24,15 @@ ANALYTICS_URL = "https://analytics.renumics.com/v1/spotlight"
 
 
 def _get_node() -> str:
+    """
+    get the anonymized (hashed) unique node id for this machine
+    'spotlight' is added to the hash in order to prevent tracking across different apps
+    """
     try:
-        node_id = uuid.getnode()
-        token = hashlib.sha256(str(node_id).encode()).hexdigest()
-        if node_id & 0x10000000000 > 0:
-            # when getnode() fails to get a node id
-            # it returns a random 48-bit number with its eighth bit set to 1
-            token = "RANDOM_" + token[7:]
-    # pylint: disable-next=broad-exception-caught
-    except Exception as e:
-        token = "TOKEN_ERROR " + str(e)
-        logger.warning("could not determine node id", token)
-    return token
+        return machineid.hashed_id("spotlight")
+    except Exception:  # pylint: disable=broad-exception-caught
+        logger.debug("Unable to obtain machine ID")
+        return "UNKNOWN"
 
 
 TOKEN = _get_node()
@@ -74,6 +70,8 @@ def _get_python_runtime() -> str:
                 python_runtime += (
                     f"_kaggle_{environ.get('KAGGLE_KERNEL_RUN_TYPE', None)}"
                 )
+            elif "SPACE_ID" in environ:
+                python_runtime += "huggingface"
         except NameError:
             pass
     # pylint: disable-next=broad-exception-caught
@@ -97,6 +95,7 @@ key_map = {
     "version": "v",
     "plugins": "pls",
     "token": "tk",
+    "space_id": "spid",
 }
 
 event_type_key_map = {
@@ -121,6 +120,7 @@ def report_event(event: Dict[str, Any]) -> None:
     event["event_id"] = str(uuid4())
     event["version"] = str(__version__)
     event["python_version"] = _get_python_runtime()
+    event["space_id"] = environ.get("SPACE_ID", None)
     event["type"] = event_type_key_map[event["type"]]
     event["plugins"] = []
     if settings.dev:

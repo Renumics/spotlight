@@ -31,6 +31,7 @@ const Tooltip = ({ content }: Props): JSX.Element => {
     return (
         <UITooltip
             content={tooltipContent}
+            disabled={false}
             visible={tooltipVisible}
             followCursor={true}
             borderless={true}

@@ -49,7 +49,8 @@ const FileBar = () => {
             <Button
                 data-tour="fileBrowser"
                 onClick={openBrowser}
-                tw="flex-grow h-6 mx-2 px-1 border border-gray-400 rounded w-full flex flex-row bg-gray-300 justify-start items-center font-bold text-xs divide-gray-400 divide-x hover:(bg-gray-200 text-blue-600) active:hover:(text-midnight-600)"
+                disabled={!application.filebrowsingAllowed}
+                tw="flex-grow h-6 mx-2 px-1 border border-gray-400 rounded w-full flex flex-row bg-gray-300 justify-start items-center font-bold text-xs divide-gray-400 divide-x hover:(bg-gray-200 text-blue-600) active:hover:(text-midnight-600) disabled:(bg-gray-200 text-gray-700) active:disabled:(text-gray-700)"
             >
                 <div tw="px-1 h-full flex items-center">
                     <OpenFolderIcon />
@@ -88,6 +89,19 @@ const TourButton = ({ onClick }: { onClick: () => void }): JSX.Element => {
     );
 };
 
+const GitHubButton = (): JSX.Element => (
+    <Button tw="w-full" tooltip="GitHub Repository">
+        <a
+            tw="flex flex-row font-normal w-full items-center content-center"
+            href={application.repositoryUrl}
+            target="_blank"
+            rel="noreferrer"
+        >
+            <GithubIcon />
+        </a>
+    </Button>
+);
+
 const HelpMenu = (): JSX.Element => {
     const mainWalkthrough = useRef<MainWalkthroughRef>(null);
     const restartTour = useCallback(() => mainWalkthrough.current?.restartTour(), []);
@@ -107,19 +121,6 @@ const HelpMenu = (): JSX.Element => {
                     >
                         <DocsIcon />
                         <span tw="ml-1 text-sm">Documentation</span>
-                    </a>
-                </Button>
-            </Menu.Item>
-            <Menu.Item>
-                <Button tw="w-full" tooltip="GitHub Repository">
-                    <a
-                        tw="flex flex-row font-normal w-full items-center content-center"
-                        href={application.repositoryUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <GithubIcon />
-                        <span tw="ml-1 text-sm">GitHub</span>
                     </a>
                 </Button>
             </Menu.Item>
@@ -215,6 +216,7 @@ const AppBar = (): JSX.Element => {
             <div tw="flex items-center">
                 <ColorMenu />
                 <HelpMenu />
+                <GitHubButton />
                 {appBarItems.map((item, i) => (
                     <div key={i}>{item}</div>
                 ))}

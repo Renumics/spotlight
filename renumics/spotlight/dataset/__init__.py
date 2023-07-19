@@ -2,7 +2,6 @@
 This module provides Spotlight dataset.
 """
 # pylint: disable=too-many-lines
-import getpass
 import os
 import shutil
 import uuid
@@ -32,7 +31,7 @@ import validators
 from loguru import logger
 from typing_extensions import Literal, TypeGuard
 
-from renumics.spotlight import __version__
+from renumics.spotlight.__version__ import __version__
 from renumics.spotlight.io.pandas import (
     infer_dtypes,
     prepare_column,
@@ -42,15 +41,13 @@ from renumics.spotlight.io.pandas import (
 from renumics.spotlight.typing import (
     BoolType,
     IndexType,
-    Indices1DType,
-    PathOrURLType,
+    Indices1dType,
+    PathOrUrlType,
     PathType,
     is_integer,
     is_iterable,
 )
 from renumics.spotlight.dtypes import (
-    _BaseData,
-    _BaseFileBasedData,
     Embedding,
     Mesh,
     Sequence1D,
@@ -60,6 +57,7 @@ from renumics.spotlight.dtypes import (
     Video,
     Window,
 )
+from renumics.spotlight.dtypes.base import DType, FileBasedDType
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
@@ -105,7 +103,7 @@ def get_current_datetime() -> datetime:
     return datetime.now().astimezone()
 
 
-def prepare_path_or_url(path_or_url: PathOrURLType, workdir: PathType) -> str:
+def prepare_path_or_url(path_or_url: PathOrUrlType, workdir: PathType) -> str:
     """
     For a relative path, prefix it with the `workdir`.
     For an absolute path or an URL, do nothing.
@@ -230,7 +228,7 @@ class Dataset:
         if column_type is Sequence1D:
             attribute_names["x_label"] = str
             attribute_names["y_label"] = str
-        if issubclass(column_type, _BaseFileBasedData):
+        if issubclass(column_type, FileBasedDType):
             attribute_names["lookup"] = dict
             attribute_names["external"] = bool
         if column_type is Audio:
@@ -247,7 +245,7 @@ class Dataset:
             return float("nan")
         if column_type is Window:
             return [np.nan, np.nan]
-        if column_type is np.ndarray or issubclass(column_type, _BaseData):
+        if column_type is np.ndarray or issubclass(column_type, DType):
             return None
         raise exceptions.InvalidAttributeError(
             f"`default` argument for optional column of type "
@@ -288,7 +286,7 @@ class Dataset:
     def __exit__(self, *args: Any) -> None:
         self.close()
 
-    def __delitem__(self, item: Union[str, IndexType, Indices1DType]) -> None:
+    def __delitem__(self, item: Union[str, IndexType, Indices1dType]) -> None:
         """
         Delete a dataset column or row.
 
@@ -374,7 +372,7 @@ class Dataset:
 
     @overload
     def __getitem__(
-        self, item: Union[str, Tuple[str, Indices1DType], Tuple[Indices1DType, str]]
+        self, item: Union[str, Tuple[str, Indices1dType], Tuple[Indices1dType, str]]
     ) -> np.ndarray:
         ...
 
@@ -393,8 +391,8 @@ class Dataset:
         item: Union[
             str,
             IndexType,
-            Tuple[str, Union[IndexType, Indices1DType]],
-            Tuple[Union[IndexType, Indices1DType], str],
+            Tuple[str, Union[IndexType, Indices1dType]],
+            Tuple[Union[IndexType, Indices1dType], str],
         ],
     ) -> Union[np.ndarray, Dict[str, Optional[ColumnType]], Optional[ColumnType],]:
         """
@@ -443,7 +441,7 @@ class Dataset:
     @overload
     def __setitem__(
         self,
-        item: Union[str, Tuple[str, Indices1DType], Tuple[Indices1DType, str]],
+        item: Union[str, Tuple[str, Indices1dType], Tuple[Indices1dType, str]],
         value: Union[ColumnInputType, Iterable[ColumnInputType]],
     ) -> None:
         ...
@@ -465,8 +463,8 @@ class Dataset:
         item: Union[
             str,
             IndexType,
-            Tuple[str, Union[IndexType, Indices1DType]],
-            Tuple[Union[IndexType, Indices1DType], str],
+            Tuple[str, Union[IndexType, Indices1dType]],
+            Tuple[Union[IndexType, Indices1dType], str],
         ],
         value: Union[
             ColumnInputType, Iterable[ColumnInputType], Dict[str, ColumnInputType]
@@ -530,10 +528,10 @@ class Dataset:
     def _prepare_item(
         item: Union[
             str,
-            Tuple[str, Union[IndexType, Indices1DType]],
-            Tuple[Union[IndexType, Indices1DType], str],
+            Tuple[str, Union[IndexType, Indices1dType]],
+            Tuple[Union[IndexType, Indices1dType], str],
         ],
-    ) -> Tuple[str, Optional[Union[IndexType, Indices1DType]]]:
+    ) -> Tuple[str, Optional[Union[IndexType, Indices1dType]]]:
         if isinstance(item, str):
             return item, None
         if isinstance(item, tuple) and len(item) == 2:
@@ -2478,7 +2476,7 @@ class Dataset:
         elif column_type is Window:
             shape = (0, 2)
             maxshape = (None, 2)
-        elif issubclass(column_type, _BaseFileBasedData):
+        elif issubclass(column_type, FileBasedDType):
             lookup = attrs.get("lookup", None)
             if is_iterable(lookup) and not isinstance(lookup, dict):
                 # Assume that we can keep all the lookup values in memory.
@@ -2533,7 +2531,7 @@ class Dataset:
             # We can only write unique sorted indices to `h5py` column, so
             # prepare such indices.
             try:
-                column_indices = np.arange(self._length, dtype=int)[indices]
+                column_indices = np.arange(self._length, dtype=int)[indices]  # type: ignore
             except Exception as e:
                 raise exceptions.InvalidIndexError(
                     f"Indices {indices} of type `{type(indices)}` do not match "
@@ -2546,7 +2544,7 @@ class Dataset:
                     "No values set because the given indices reference no elements."
                 )
                 return
-            column_indices, values_indices = np.unique(
+            column_indices, values_indices = np.unique(  # type: ignore
                 column_indices, return_index=True
             )
             if len(cast(np.ndarray, column_indices)) != indices_length:
@@ -2665,7 +2663,7 @@ class Dataset:
     def _get_column(
         self,
         column: h5py.Dataset,
-        indices: Optional[Indices1DType] = None,
+        indices: Optional[Indices1dType] = None,
     ) -> np.ndarray:
         """
         Read and decode values of the given existing column.
@@ -2859,10 +2857,10 @@ class Dataset:
             if encoded_values.ndim == 1:
                 if len(encoded_values) == 2:
                     # A single window, reshape it to an array.
-                    return np.broadcast_to(values, (1, 2))
+                    return np.broadcast_to(values, (1, 2))  # type: ignore
                 if len(encoded_values) == 0:
                     # An empty array, reshape for compatibility.
-                    return np.broadcast_to(values, (0, 2))
+                    return np.broadcast_to(values, (0, 2))  # type: ignore
             elif encoded_values.ndim == 2 and encoded_values.shape[1] == 2:
                 # An array with valid windows.
                 return encoded_values
@@ -3035,7 +3033,7 @@ class Dataset:
                 f'No value given for the non-optional column "{column_name}".'
             )
         if attrs.get("external", False):
-            value = cast(PathOrURLType, value)
+            value = cast(PathOrUrlType, value)
             return self._encode_external_value(value, column)
         column_type = self._get_column_type(attrs)
         if self._is_ref_column(column):
@@ -3115,6 +3113,10 @@ class Dataset:
         lookup_keys: List[str] = []
         if column_type is Mesh and isinstance(value, trimesh.Trimesh):
             value = Mesh.from_trimesh(value)
+        elif issubclass(column_type, (Audio, Image, Video)) and isinstance(
+            value, bytes
+        ):
+            value = column_type.from_bytes(value)
         elif is_file_based_column_type(column_type) and isinstance(
             value, (str, os.PathLike)
         ):
@@ -3169,7 +3171,7 @@ class Dataset:
             h5_dataset.attrs["key"] = key
         return ref
 
-    def _encode_external_value(self, value: PathOrURLType, column: h5py.Dataset) -> str:
+    def _encode_external_value(self, value: PathOrUrlType, column: h5py.Dataset) -> str:
         """
         Encode an external value, i.e. an URL or a path.
         Value *should not* be a `None`.
@@ -3361,7 +3363,7 @@ class Dataset:
                     )
 
     def _update_internal_columns(
-        self, index: Optional[Union[IndexType, Indices1DType]] = None
+        self, index: Optional[Union[IndexType, Indices1dType]] = None
     ) -> None:
         """
         Update internal columns.

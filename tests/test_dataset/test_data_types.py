@@ -158,6 +158,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_filepath(self, filename: str) -> None:
@@ -182,6 +183,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_file(self, filename: str) -> None:
@@ -206,6 +208,7 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_io(self, filename: str) -> None:
@@ -232,6 +235,33 @@ class TestImage:
             "nature-720p.jpg",
             "nature-1080p.jpg",
             "sea-360p.gif",
+            "sea-360p.apng",
+        ],
+    )
+    def test_image_from_bytes(self, filename: str) -> None:
+        """
+        Test reading image from bytes.
+        """
+        filepath = self.data_folder / filename
+        assert filepath.is_file()
+        with filepath.open("rb") as file:
+            blob = file.read()
+            _ = Image.from_file(blob)
+
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            "nature-256p.ico",
+            "nature-360p.bmp",
+            "nature-360p.gif",
+            "nature-360p.jpg",
+            "nature-360p.png",
+            "nature-360p.tif",
+            "nature-360p.webp",
+            "nature-720p.jpg",
+            "nature-1080p.jpg",
+            "sea-360p.gif",
+            "sea-360p.apng",
         ],
     )
     def test_image_from_url(self, filename: str) -> None:
@@ -515,6 +545,32 @@ class TestAudio:
             "gs-16b-2c-44100hz.ac3",
             "gs-16b-2c-44100hz.aiff",
             "gs-16b-2c-44100hz.flac",
+            "gs-16b-2c-44100hz.m4a",
+            "gs-16b-2c-44100hz.mp3",
+            "gs-16b-2c-44100hz.mp4",
+            "gs-16b-2c-44100hz.ogg",
+            "gs-16b-2c-44100hz.ogx",
+            "gs-16b-2c-44100hz.wav",
+            "gs-16b-2c-44100hz.wma",
+        ],
+    )
+    def test_audio_from_bytes(self, filename: str) -> None:
+        """
+        Test reading audio from bytes.
+        """
+        filepath = self.data_folder / "stereo" / filename
+        assert filepath.is_file()
+        with filepath.open("rb") as file:
+            blob = file.read()
+            _ = Audio.from_bytes(blob)
+
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            "gs-16b-2c-44100hz.aac",
+            "gs-16b-2c-44100hz.ac3",
+            "gs-16b-2c-44100hz.aiff",
+            "gs-16b-2c-44100hz.flac",
             "gs-16b-2c-44100hz.mp3",
             "gs-16b-2c-44100hz.ogg",
             "gs-16b-2c-44100hz.ogx",
@@ -552,7 +608,7 @@ class TestVideo:
             "sea-360p-10s.mp4",
         ],
     )
-    def test_mesh_from_filepath(self, filename: str) -> None:
+    def test_video_from_filepath(self, filename: str) -> None:
         """
         Test reading video from an existing file.
         """
@@ -575,7 +631,31 @@ class TestVideo:
             "sea-360p-10s.mp4",
         ],
     )
-    def test_mesh_from_url(self, filename: str) -> None:
+    def test_video_from_bytes(self, filename: str) -> None:
+        """
+        Test reading video from bytes.
+        """
+        filepath = self.data_folder / filename
+        assert filepath.is_file()
+        with filepath.open("rb") as file:
+            blob = file.read()
+            _ = Video.from_bytes(blob)
+
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            "sea-360p.avi",
+            "sea-360p.mkv",
+            "sea-360p.mov",
+            "sea-360p.mp4",
+            "sea-360p.mpg",
+            "sea-360p.ogg",
+            "sea-360p.webm",
+            "sea-360p.wmv",
+            "sea-360p-10s.mp4",
+        ],
+    )
+    def test_video_from_url(self, filename: str) -> None:
         """
         Test reading video from an URL.
         """

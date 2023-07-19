@@ -2,20 +2,17 @@
 Implementation of layout models and interfaces for layout creation.
 """
 
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-module
+from pydantic import (  # pylint: disable=no-name-in-module
+    BaseModel,
+    Extra,
+    Field,
+    validator,
+)
 from typing_extensions import Literal
 
-from .widgets import (
-    AudioOverview,
-    Histogram,
-    Inspector,
-    Scatterplot,
-    ScatterplotGL,
-    Similaritymap,
-    Table,
-)
+from .widgets import Widget
 
 
 Orientation = Optional[Literal["horizontal", "vertical"]]
@@ -27,19 +24,27 @@ class Tab(BaseModel, extra=Extra.forbid):
     """
 
     # pylint: disable=too-few-public-methods
-    children: List[
-        Union[
-            AudioOverview,
-            Histogram,
-            Inspector,
-            Scatterplot,
-            ScatterplotGL,
-            Similaritymap,
-            Table,
-        ]
-    ] = Field(default_factory=list)
+
+    children: List[Widget] = Field(default_factory=list)
     weight: Union[float, int] = 1
     kind: Literal["tab"] = "tab"
+
+    @validator("children", pre=True, each_item=True)
+    @classmethod
+    def validate_widget(cls, value: Any) -> Widget:
+        """
+        Narrow the widget object's class based on its type.
+        """
+        if isinstance(value, dict):
+            try:
+                widget_type = value["type"]
+            except KeyError:
+                pass
+            else:
+                for subclass in Widget.__subclasses__():
+                    if subclass.__fields__["type"].default == widget_type:
+                        return subclass(**value)
+        return value
 
 
 class Split(BaseModel, extra=Extra.forbid):

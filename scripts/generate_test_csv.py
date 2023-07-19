@@ -22,6 +22,30 @@ IMAGE_FOLDER = DATA_FOLDER / "images"
 MESH_FOLDER = DATA_FOLDER / "meshes"
 VIDEO_FOLDER = DATA_FOLDER / "videos"
 
+FLOAT_SCALE = 100
+
+
+def _random_sequences(
+    num_rows: int,
+    seed: int,
+    min_length: int = 3,
+    max_length: int = 5,
+) -> List[Optional[List[float]]]:
+    np.random.seed(seed)
+
+    null_mask = np.random.choice([True, False], num_rows, replace=True, p=[0.2, 0.8])
+
+    sequences = []
+    for _ in range((~null_mask).sum()):
+        sequence_length = np.random.randint(min_length, max_length)
+        shape = (2, sequence_length) if np.random.normal() > 0 else (sequence_length, 2)
+        sequence = np.random.normal(0.0, FLOAT_SCALE, shape).astype("float32")
+        sequences.append(sequence)
+
+    data = np.full(num_rows, None, object)
+    data[~null_mask] = sequences
+    return [s.tolist() if isinstance(s, np.ndarray) else s for s in data]
+
 
 def _random_embeddings_list(
     count: int, seed: int, dim: int, optional: bool = False
@@ -40,7 +64,7 @@ def _random_choice(
     return np.random.choice(options, count, replace=True).tolist()  # type: ignore
 
 
-@click.command()
+@click.command()  # type: ignore
 @click.option(
     "-o",
     "--output-folder",
@@ -80,6 +104,7 @@ def generate_test_csv(output_folder: str, num_rows: int, seed: int) -> None:
     )
     df["embedding"] = _random_embeddings_list(num_rows, seed + 4, 4, optional=True)
     df["window"] = _random_embeddings_list(num_rows, seed + 5, 2, optional=True)
+    df["sequences"] = _random_sequences(num_rows, seed + 6)
     # df["datetime"] = pd.to_datetime(_random_data(datetime.datetime, num_rows, seed + 6))
     for i, data_type in enumerate(
         (
@@ -99,4 +124,5 @@ def generate_test_csv(output_folder: str, num_rows: int, seed: int) -> None:
 
 
 if __name__ == "__main__":
-    generate_test_csv()  # pylint: disable=no-value-for-parameter
+    # pylint: disable=no-value-for-parameter
+    generate_test_csv()  # type: ignore

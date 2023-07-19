@@ -1,6 +1,6 @@
 import 'twin.macro';
 import dataformat from '../dataformat';
-import { Lens } from './types';
+import { Lens } from '../types';
 
 const ArrayLens: Lens = ({ value }) => {
     const array = value as Array<number>;
@@ -18,7 +18,8 @@ const ArrayLens: Lens = ({ value }) => {
     );
 };
 
-ArrayLens.dataTypes = ['array', 'Embedding'];
+ArrayLens.key = 'ArrayLens';
+ArrayLens.dataTypes = ['array', 'Embedding', 'Window'];
 ArrayLens.defaultHeight = 22;
 ArrayLens.minHeight = 22;
 ArrayLens.maxHeight = 128;
