@@ -64,7 +64,7 @@ const StoreProvider = ({ children }: ProviderProps): JSX.Element => {
     const allColumns = useDataset((d) => d.columns);
     const lenses = useComponentsStore((d) => d.lensesByKey);
     const defaultLenses = useMemo(() => {
-        const defaultColumns = allColumns.filter((c) => c.lazy).slice(0, 5);
+        const defaultColumns = allColumns.filter((c) => c.lazy && !c.isInternal);
         return _.compact(
             defaultColumns.map((column) => {
                 const lens = Object.values(lenses).filter((lens) =>
