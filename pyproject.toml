@@ -34,7 +34,6 @@ exclude = []
 
 [tool.poetry.scripts]
 spotlight = "renumics.spotlight.cli:main"
-spotlight-notebook = "renumics.spotlight.notebook.cli:main"
 
 [tool.poetry.dependencies]
 python = ">=3.8, <3.12"
@@ -65,7 +64,6 @@ prettytable = "*"
 networkx = "*"
 trimesh = "*"
 imageio = ">=2.18.0"
-notebook = "*"
 pygltflib = ">=1.15.1"
 scikit-learn = "*"
 pandas = "*"
@@ -171,7 +169,6 @@ module = [
     "diskcache",
     "umap",
     "sklearn.*",
-    "notebook.*",
     "scipy.*",
     "skimage.*",
     "lesscpy",
