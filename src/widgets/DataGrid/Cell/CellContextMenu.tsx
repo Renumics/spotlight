@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import AddIcon from '../../../icons/Add';
 import CheckedIcon from '../../../icons/Checked';
 import DeleteIcon from '../../../icons/Delete';
@@ -70,7 +71,10 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
         if (!canBeFiltered || !column) return;
 
         const operation = getApplicablePredicates(column.type.kind).equal;
-        const newFilter = new PredicateFilter(column, operation, value);
+
+        const filterValue =
+            column.type.kind == 'str' || column.lazy ? _.escapeRegExp(value) : value;
+        const newFilter = new PredicateFilter(column, operation, filterValue);
 
         addFilter(newFilter);
     }, [addFilter, canBeFiltered, column, hideContextMenu, value]);
