@@ -5,7 +5,6 @@ from typing import Callable, Iterator
 from datetime import datetime
 from contextlib import contextmanager
 import pytest
-import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
