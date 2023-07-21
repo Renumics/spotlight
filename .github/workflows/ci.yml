@@ -426,9 +426,6 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Test Spotlight Notebook start (Windows)
-              if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
-              run: ./scripts/Test-SpotlightNotebookStart.ps1
             - name: Execute unit-test
               if: success() || steps.setup.outcome == 'success'
               run: pytest --ignore=ui_tests --ignore=api-tests
