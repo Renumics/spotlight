@@ -222,6 +222,7 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     audio_bytes = convert_to_dtype(value, dtypes.Audio)
     assert len(audio_bytes.tolist()) > 0
 
+
 @pytest.mark.parametrize(
     "value",
     [
