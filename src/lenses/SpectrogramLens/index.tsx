@@ -11,7 +11,6 @@ import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
-import { FFTWorker } from './SpectrogramWorker';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -109,9 +108,16 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const scaleContainer = useRef<SVGSVGElement>(null);
     const mouseLabel = useRef<SVGTextElement>(null);
 
-    const [freqScale, setFreqScale] = useSetting('freqScale', 'log');
-    const [ampScale, setAmpScale] = useSetting('ampScale', 'log');
+    const [freqScale, setFreqScale] = useSetting('freqScale', 'linear');
+    const [ampScale, setAmpScale] = useSetting('ampScale', 'decibel');
     const [size, setSize] = useState([0, 0]);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const worker: any = Comlink.wrap(
+        new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
+            type: 'module',
+        })
+    );
 
     const colorPalette = useColors(colorPaletteSelector);
 
@@ -141,11 +147,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 spectrogramCanvas.current.width = size[0];
                 spectrogramCanvas.current.height = size[1];
             }
-            const FFTWorkerClass = Comlink.wrap<typeof FFTWorker>(
-                new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-                    type: 'module',
-                })
-            );
 
             const backend = waveform.current.backend as unknown as WebAudio_;
             const buffer = backend.buffer;
@@ -165,14 +166,10 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 return;
             }
 
-            const instance = await new FFTWorkerClass(
+            const frequenciesData = await worker(
                 FFT_SAMPLES,
-                buffer.sampleRate,
                 backend.windowFunc,
-                backend.alpha
-            );
-
-            const frequenciesData = await instance.calculateFrequencies(
+                backend.alpha,
                 width,
                 FFT_SAMPLES,
                 buffer.getChannelData(0).slice(start, end)
@@ -270,7 +267,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 for (let x = 0; x < width; x++) {
                     const x_index = Math.floor(widthScale(x));
 
-                    // TODO check if decibels
                     const value_a = drawData[x_index][indexA];
                     const value_b = drawData[x_index][indexB];
 
@@ -301,10 +297,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         } else {
             waveform?.current?.on('ready', drawSpectrogram);
         }
-
-        return () => {
-            //spectrogramWorker?.terminate();
-        };
     }, [window, freqScale, ampScale, colorPalette, size]);
 
     const handleFreqScaleChange = useCallback(
@@ -321,11 +313,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const handleAmpScaleChange = useCallback(
         (scale: string) => {
             setAmpScale(scale);
-
-            // TODO trigger redraw of spectrogram
-            //const backend = waveform.current?.backend as unknown as WebAudio_;
-
-            //drawScale(scaleContainer.current, backend.buffer?.sampleRate ?? 0, scale);
         },
         [setAmpScale]
     );
