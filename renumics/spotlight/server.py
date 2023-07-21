@@ -157,7 +157,7 @@ class Server:
         self.process = subprocess.Popen(
             command,
             env=env,
-            pass_fds=None if platform.system() == "Windows" else (sock.fileno(),),
+            pass_fds=() if platform.system() == "Windows" else (sock.fileno(),),
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
             if platform.system() == "Windows"
             else 0,
