@@ -2,7 +2,7 @@
 Tests for conversions from source to internal types
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, Union
 from pathlib import Path
 import io
 import datetime
@@ -199,7 +199,7 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
         np.array(PIL.Image.new(mode="RGBA", size=(1, 1))),
     ],
 )
-def test_conversion_to_image(value: str) -> None:
+def test_conversion_to_image(value: Union[str, bytes]) -> None:
     """
     Convert values to image
     """
@@ -208,4 +208,45 @@ def test_conversion_to_image(value: str) -> None:
     assert image.width > 0
 
 
-# TODO: add tests for audio, video and mesh types
+@pytest.mark.parametrize(
+    "value",
+    [
+        "./data/audio/1.wav",
+        Path("./data/audio/1.wav").read_bytes(),
+    ],
+)
+def test_conversion_to_audio(value: Union[str, bytes]) -> None:
+    """
+    Convert values to audio
+    """
+    audio_bytes = convert_to_dtype(value, dtypes.Audio)
+    assert len(audio_bytes.tolist()) > 0
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "./data/videos/sea-360p.ogg",
+        Path("./data/videos/sea-360p.ogg").read_bytes(),
+    ],
+)
+def test_conversion_to_video(value: Union[str, bytes]) -> None:
+    """
+    Convert values to video
+    """
+    video_bytes = convert_to_dtype(value, dtypes.Video)
+    assert len(video_bytes.tolist()) > 0
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "./data/meshes/tree.glb",
+        Path("./data/meshes/tree.glb").read_bytes(),
+    ],
+)
+def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
+    """
+    Convert values to mesh
+    """
+    mesh_bytes = convert_to_dtype(value, dtypes.Mesh)
+    assert len(mesh_bytes.tolist()) > 0
