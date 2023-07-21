@@ -3,7 +3,9 @@ import { DataType, isCategorical, isScalar } from '../../datatypes';
 import { TransferFunction } from '../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useColors } from '../colors';
-import create from 'zustand-store-addons';
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import { shallow } from 'zustand/shallow';
 import { Table } from '../../client';
 import {
     ColumnsStats,
@@ -184,8 +186,8 @@ const fetchTable = async (): Promise<{
     };
 };
 
-export const useDataset = create<Dataset>(
-    (set, get) => {
+export const useDataset = create(
+    subscribeWithSelector<Dataset>((set, get) => {
         return {
             loading: false,
             uid: '',
@@ -233,13 +235,13 @@ export const useDataset = create<Dataset>(
                 set(() => ({
                     loading: true,
                     columns: [],
+                    columnsByKey: {},
                     length: 0,
                     indices: new Int32Array(),
                     isIndexSelected: [],
                     selectedIndices: new Int32Array(),
                     isIndexHighlighted: [],
                     highlightedIndices: new Int32Array(),
-                    isIndexFiltered: [],
                     filteredIndices: new Int32Array(),
                     sortColumns: new Map<DataColumn, Sorting>(),
                     columnRelevance: new Map<string, number>(),
@@ -265,6 +267,7 @@ export const useDataset = create<Dataset>(
                     length: dataframe.length,
                     loading: false,
                     columns: dataframe.columns,
+                    columnsByKey: _.keyBy(dataframe.columns, 'key'),
                     columnData: dataframe.data,
                     columnStats,
                 }));
@@ -295,6 +298,7 @@ export const useDataset = create<Dataset>(
                     length: dataframe.length,
                     loading: false,
                     columns: dataframe.columns,
+                    columnsByKey: _.keyBy(dataframe.columns, 'key'),
                     columnData: dataframe.data,
                     columnStats,
                 }));
@@ -455,90 +459,93 @@ export const useDataset = create<Dataset>(
                 });
             },
         };
+    })
+);
+
+useDataset.subscribe(
+    (state) => state.length,
+    (length: number) => {
+        useDataset.setState({ indices: new Int32Array(Array(length).keys()) });
     },
-    {
-        computed: {
-            columnsByKey() {
-                return _.keyBy(this.columns, 'key');
-            },
-            isIndexFiltered() {
-                const filters = this.filters as Filter[];
-                const data = this.columnData;
-                const length = this.length;
+    { fireImmediately: true }
+);
 
-                const applyFilter = (filter: Filter, rowIndex: number) => {
-                    const inFilter = filter.apply(rowIndex, data);
-                    return (
-                        !filter.isEnabled || (filter.isInverted ? !inFilter : inFilter)
-                    );
-                };
-
-                const filtered = Array(length);
-                for (let i = 0; i < length; i++) {
-                    filtered[i] = filters.every((filter) => applyFilter(filter, i));
-                }
-                return filtered;
-            },
-            tags() {
-                return _.uniq(
-                    this.columns.reduce((prev: string[], current: DataColumn) => {
-                        current.tags?.forEach((t) => prev.push(t));
-                        return prev;
-                    }, [] as string[])
-                );
-            },
-            indices() {
-                return new Int32Array(this.length).map((_, i) => i);
-            },
-        },
-        watchers: {
-            isIndexFiltered(newIndices: boolean[]) {
-                const columns = this.get().columns as DataColumn[];
-                const columnData = this.get().columnData;
-
-                if (columns === undefined) return;
-
-                const filteredIndices: number[] = [];
-                newIndices.forEach((isFiltered, i) => {
-                    if (isFiltered) {
-                        filteredIndices.push(i);
-                    }
-                });
-
-                const stats = makeColumnsStats(columns, columnData, newIndices);
-
-                this.set({
-                    filteredIndices: Int32Array.from(filteredIndices),
-                    columnStats: Object.assign(this.get().columnStats, {
-                        filtered: stats,
-                    }),
-                });
-            },
-            columnData() {
-                this.get().recomputeColorTransferFunctions();
-            },
-            isIndexSelected(newIndices: boolean[]) {
-                const columns = this.get().columns as DataColumn[];
-                const columnData = this.get().columnData;
-
-                if (columns === undefined) return;
-
-                const stats = makeColumnsStats(columns, columnData, newIndices);
-                this.set({
-                    columnStats: Object.assign(this.get().columnStats, {
-                        selected: stats,
-                    }),
-                });
-            },
-            filteredIndices() {
-                this.get().recomputeColumnRelevance();
-                this.get().recomputeColorTransferFunctions();
-            },
-            selectedIndices() {
-                this.get().recomputeColumnRelevance();
-            },
-        },
+useDataset.subscribe(
+    (state) => state.columns,
+    (columns: DataColumn[]) => {
+        useDataset.setState({
+            tags: _.uniq(columns.flatMap((column) => column.tags ?? [])),
+        });
     }
+);
+
+useDataset.subscribe(
+    (state) => ({
+        length: state.length,
+        filters: state.filters,
+        columns: state.columns,
+        data: state.columnData,
+    }),
+    ({ length, filters, columns, data }) => {
+        const applyFilter = (filter: Filter, rowIndex: number) => {
+            const inFilter = filter.apply(rowIndex, data);
+            return !filter.isEnabled || (filter.isInverted ? !inFilter : inFilter);
+        };
+
+        const isIndexFiltered = Array(length);
+        for (let i = 0; i < length; i++) {
+            isIndexFiltered[i] = filters.every((filter) => applyFilter(filter, i));
+        }
+        const filteredIndices: number[] = [];
+        isIndexFiltered.forEach((isFiltered, i) => {
+            if (isFiltered) {
+                filteredIndices.push(i);
+            }
+        });
+
+        const filteredStats = makeColumnsStats(columns, data, isIndexFiltered);
+        useDataset.setState((state) => ({
+            isIndexFiltered,
+            filteredIndices: Int32Array.from(filteredIndices),
+            columnStats: { ...state.columnStats, filtered: filteredStats },
+        }));
+    },
+    { equalityFn: shallow }
+);
+
+useDataset.subscribe(
+    (state) => state.isIndexSelected,
+    (newIndices: boolean[]) => {
+        const columns = useDataset.getState().columns as DataColumn[];
+        const columnData = useDataset.getState().columnData;
+
+        if (columns === undefined) return;
+
+        const stats = makeColumnsStats(columns, columnData, newIndices);
+        useDataset.setState({
+            columnStats: Object.assign(useDataset.getState().columnStats, {
+                selected: stats,
+            }),
+        });
+    }
+);
+
+useDataset.subscribe(
+    (state) => state.columnData,
+    useDataset.getState().recomputeColorTransferFunctions
+);
+
+useDataset.subscribe(
+    (state) => state.filteredIndices,
+    () => {
+        useDataset.getState().recomputeColumnRelevance();
+        useDataset.getState().recomputeColorTransferFunctions();
+    }
+);
+
+useDataset.subscribe(
+    (state) => state.selectedIndices,
+    useDataset.getState().recomputeColumnRelevance
 );
 
 useColors.subscribe(() => useDataset.getState().recomputeColorTransferFunctions());
