@@ -9,7 +9,7 @@ interface Props {
     yKey?: BinKey;
     histogramm: HistogramData;
     children?: ReactNode;
-    transferFunction: TransferFunction;
+    transferFunction?: TransferFunction;
 }
 
 interface TooltipEntry {
@@ -124,7 +124,9 @@ const Tooltip = ({
                     filteredCount,
                     key,
                     highlight: key === yKey,
-                    color: transferFunction(histogramm.yBins[b.yBin]?.value).css(),
+                    color: transferFunction
+                        ? transferFunction(histogramm.yBins[b.yBin]?.value).css()
+                        : undefined,
                 };
             })
             .reverse()

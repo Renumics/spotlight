@@ -5,13 +5,14 @@ import { useEffect, useRef } from 'react';
 import { Dataset, useDataset } from '../../stores/dataset';
 import { theme } from 'twin.macro';
 import { BinKey, Bucket, HistogramData, Stack } from './types';
+import { NO_DATA } from '../../palettes';
 
 interface Props {
     width: number;
     height: number;
     histogram: HistogramData;
     hideUnfiltered: boolean;
-    transferFunction: TransferFunction;
+    transferFunction?: TransferFunction;
     onHoverBin: (kwargs?: { xKey?: BinKey; yKey?: BinKey }) => void;
 }
 
@@ -174,8 +175,11 @@ const Bars = ({
                     xScale(max) - xScale(min) - (max === xScale.domain()[1] ? 2 : 1)
                 );
             })
-            .style('fill', (bucket) =>
-                transferFunction(yBins[bucket.yBin]?.value).alpha(0.2).css()
+            .style(
+                'fill',
+                (bucket) =>
+                    transferFunction?.(yBins[bucket.yBin]?.value).alpha(0.2).css() ??
+                    NO_DATA.css()
             );
 
         group
@@ -302,9 +306,11 @@ const Bars = ({
                 const indices =
                     binToRowIndices.get(bucket.xBin)?.get(bucket.yBin) || [];
                 const highlighted = indices.some((index) => isIndexHighlighted[index]);
-                return transferFunction(yBins[bucket.yBin]?.value)
-                    .alpha(areSomeHighlighted && !highlighted ? 0.5 : 1)
-                    .css();
+                return (
+                    transferFunction?.(yBins[bucket.yBin]?.value)
+                        .alpha(areSomeHighlighted && !highlighted ? 0.5 : 1)
+                        .css() ?? NO_DATA.css()
+                );
             });
     }, [
         histogram.binToRowIndices,

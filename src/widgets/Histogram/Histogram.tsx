@@ -10,7 +10,7 @@ import {
     createContinuousTransferFunction,
 } from '../../hooks/useColorTransferFunction';
 import useSize from '../../hooks/useSize';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dataset, useDataset } from '../../stores/dataset';
 
 import HistogramIcon from '../../icons/Histogram';
@@ -47,9 +47,18 @@ const Histogram: Widget = () => {
         columnKeys[0]
     );
 
+    useEffect(() => {
+        if (columnKey && !columnKeys.includes(columnKey)) setColumnKey(columnKeys[0]);
+    }, [columnKey, columnKeys, setColumnKey]);
+
     const [stackByColumnKey, setStackByColumnKey] = useWidgetConfig<string | undefined>(
         'stackByColumnKey'
     );
+
+    useEffect(() => {
+        if (stackByColumnKey && !columnKeys.includes(stackByColumnKey))
+            setStackByColumnKey(undefined);
+    }, [stackByColumnKey, columnKeys, setStackByColumnKey]);
 
     const { width, height } = useSize(wrapper);
 
@@ -73,7 +82,7 @@ const Histogram: Widget = () => {
     const columnColorTransferFunction = useDataset(columnColorTransferFunctionSelector);
 
     const transferFunction = useMemo(() => {
-        if (columnColorTransferFunction.kind !== 'continuous')
+        if (columnColorTransferFunction?.kind !== 'continuous')
             return columnColorTransferFunction;
         // if tf is continuous a new scale has to be generated with class breaks
 
