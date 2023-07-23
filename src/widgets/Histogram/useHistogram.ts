@@ -3,7 +3,6 @@ import { useCallback, useMemo } from 'react';
 import { Dataset, useDataset } from '../../stores/dataset';
 import { ColumnData, DataColumn, isCategoricalColumn } from '../../types';
 import { Bin, BinKey, HistogramData, HistogramType } from './types';
-import { isCategorical } from '../../datatypes';
 
 const MAX_BUCKETS_X = 50;
 const MAX_BUCKETS_Y = 50;
