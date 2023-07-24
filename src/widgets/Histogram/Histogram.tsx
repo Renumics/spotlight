@@ -42,14 +42,22 @@ const Histogram: Widget = () => {
 
     const [filter, setFilter] = useWidgetConfig('filter', false);
 
-    const [columnKey, setColumnKey] = useWidgetConfig<string | undefined>(
+    const [_columnKey, setColumnKey] = useWidgetConfig<string | undefined>(
         'columnKey',
         columnKeys[0]
     );
 
-    const [stackByColumnKey, setStackByColumnKey] = useWidgetConfig<string | undefined>(
-        'stackByColumnKey'
-    );
+    const columnKey =
+        _columnKey && columnKeys.includes(_columnKey) ? _columnKey : undefined;
+
+    const [_stackByColumnKey, setStackByColumnKey] = useWidgetConfig<
+        string | undefined
+    >('stackByColumnKey');
+
+    const stackByColumnKey =
+        _stackByColumnKey && columnKeys.includes(_stackByColumnKey)
+            ? _stackByColumnKey
+            : undefined;
 
     const { width, height } = useSize(wrapper);
 
