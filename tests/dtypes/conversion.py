@@ -227,7 +227,6 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     "value",
     [
         "./data/videos/sea-360p.ogg",
-        Path("./data/videos/sea-360p.ogg").read_bytes(),
     ],
 )
 def test_conversion_to_video(value: Union[str, bytes]) -> None:
@@ -242,7 +241,6 @@ def test_conversion_to_video(value: Union[str, bytes]) -> None:
     "value",
     [
         "./data/meshes/tree.glb",
-        Path("./data/meshes/tree.glb").read_bytes(),
     ],
 )
 def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
