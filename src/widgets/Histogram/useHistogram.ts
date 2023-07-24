@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { useCallback, useMemo } from 'react';
 import { Dataset, useDataset } from '../../stores/dataset';
-import { ColumnData, DataColumn } from '../../types';
+import { ColumnData, DataColumn, isCategoricalColumn } from '../../types';
 import { Bin, BinKey, HistogramData, HistogramType } from './types';
 
 const MAX_BUCKETS_X = 50;
@@ -84,7 +84,10 @@ function binContinuousData(
  * @param {ColumnData} columnData values of the column that should be binned
  * @returns {Bin[], number[]}
  */
-function binDiscreteData(columnData: ColumnData): [Bin[], (BinKey | undefined)[]] {
+function binDiscreteData(
+    columnData: ColumnData,
+    column?: DataColumn
+): [Bin[], (BinKey | undefined)[]] {
     const data = Array(columnData.length)
         .fill(0)
         .map((_, i) => [columnData[i], i]);
@@ -95,7 +98,15 @@ function binDiscreteData(columnData: ColumnData): [Bin[], (BinKey | undefined)[]
         ([value]) => value
     );
 
-    const orderedKeys = [...unorderedCounts.keys()].sort((a, b) => a - b);
+    const categorical = column && isCategoricalColumn(column);
+
+    const orderedKeys = [...unorderedCounts.keys()].sort((a, b) =>
+        categorical
+            ? column.type.invertedCategories[a] > column.type.invertedCategories[b]
+                ? 1
+                : -1
+            : a - b
+    );
 
     const binnedIds = new Map(
         orderedKeys
@@ -106,14 +117,16 @@ function binDiscreteData(columnData: ColumnData): [Bin[], (BinKey | undefined)[]
             .flat()
     );
 
+    const bins = orderedKeys.map((key, index) => ({
+        index,
+        key: categorical ? column.type.invertedCategories[key] : key,
+        value: key,
+        min: index,
+        max: index + 1,
+    }));
+
     return [
-        orderedKeys.map((key, index) => ({
-            index,
-            key,
-            value: key,
-            min: index,
-            max: index + 1,
-        })),
+        bins,
         Array(columnData.length)
             .fill(0)
             .map((_, i) => binnedIds.get(i)),
@@ -166,7 +179,7 @@ function useHistogram(xColumnKey?: string, yColumnKey?: string): HistogramData {
                 return [bins, binned, 'continuous'];
             }
             if (column.type.kind === 'int') {
-                const [bins, d] = binDiscreteData(data);
+                const [bins, d] = binDiscreteData(data, column);
 
                 if (bins.length > maxBuckets) {
                     const [bins, binned] = binContinuousData(data, maxBuckets);
@@ -175,7 +188,7 @@ function useHistogram(xColumnKey?: string, yColumnKey?: string): HistogramData {
                 return [bins, d, 'discrete'];
             }
 
-            const [bins, binned] = binDiscreteData(data);
+            const [bins, binned] = binDiscreteData(data, column);
 
             return [bins, binned, 'discrete'];
         },
