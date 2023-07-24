@@ -3,6 +3,7 @@ DType Conversion
 """
 
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Union, Type, Optional, Dict
 import datetime
 
@@ -81,8 +82,8 @@ def convert_to_dtype(
                 return -1
             if isinstance(value, str):
                 return dtype_options.categories[value]
-            if isinstance(value, int):
-                if value not in dtype_options.categories.values():
+            if np.issubdtype(np.dtype(type(value)), np.integer):
+                if int(value) not in dtype_options.categories.values():  # type: ignore
                     raise ConversionError()
                 return value
 
@@ -137,13 +138,15 @@ def convert_to_dtype(
             if isinstance(value, str):
                 return read_external_value(value, Video)
             if isinstance(value, bytes):
-                return Audio.from_bytes(value).encode()
+                return Video.from_bytes(value).encode()
 
         elif dtype is Mesh:
             if value is None:
                 return None
             if isinstance(value, str):
                 return read_external_value(value, Mesh)
+            if isinstance(value, bytes):
+                return value
             if isinstance(value, trimesh.Trimesh):
                 return Mesh.from_trimesh(value).encode()
 

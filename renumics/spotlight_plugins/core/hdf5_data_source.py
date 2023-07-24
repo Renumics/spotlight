@@ -39,7 +39,7 @@ from renumics.spotlight.backend.exceptions import (
 
 from renumics.spotlight.backend import datasource
 
-from renumics.spotlight.dtypes.conversion import convert_to_dtype
+from renumics.spotlight.dtypes.conversion import DTypeOptions, convert_to_dtype
 
 
 def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
@@ -321,11 +321,21 @@ class Hdf5DataSource(DataSource):
             except IndexError as e:
                 raise NoRowFound(row_index) from e
 
-        # normalize raw value
-        normalized_value = raw_value
+            # normalize raw value
+            if isinstance(raw_value, np.void):
+                normalized_value = raw_value.tolist()
+            else:
+                normalized_value = raw_value
 
-        # convert normalized value to requested dtype
-        return convert_to_dtype(normalized_value, dtype)
+            cast(NormalizedType, normalized_value)
+
+            # convert normalized value to requested dtype
+            if dtype is Category:
+                categories = dataset.get_column_attributes(column_name)["categories"]
+                categories = cast(Dict[str, int], categories)
+                return convert_to_dtype(normalized_value, dtype, DTypeOptions(categories=categories))
+            else:
+                return convert_to_dtype(normalized_value, dtype)
 
     def _open_table(self, mode: str = "r") -> H5Dataset:
         try:
