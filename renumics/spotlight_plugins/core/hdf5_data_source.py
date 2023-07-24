@@ -39,6 +39,8 @@ from renumics.spotlight.backend.exceptions import (
 
 from renumics.spotlight.backend import datasource
 
+from renumics.spotlight.dtypes.conversion import convert_to_dtype
+
 
 def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
     """
@@ -69,9 +71,7 @@ def _decode_attrs(raw_attrs: h5py.AttributeManager) -> Tuple[Attrs, bool, bool]:
     elif column_type is Embedding:
         embedding_length = raw_attrs.get("value_shape", [0])[0]
 
-    tags: List[str] = []
-    if "tags" in raw_attrs:
-        tags = raw_attrs["tags"].tolist()
+    tags = raw_attrs.get("tags", np.array([])).tolist()
 
     has_lookup = "lookup_keys" in raw_attrs
     is_external = raw_attrs.get("external", False)
@@ -314,11 +314,18 @@ class Hdf5DataSource(DataSource):
         """
         return the value of a single cell
         """
+        # read raw value from h5 table
         with self._open_table() as dataset:
             try:
-                return dataset.read_value(column_name, row_index)
+                raw_value = dataset.read_value(column_name, row_index)
             except IndexError as e:
                 raise NoRowFound(row_index) from e
+
+        # normalize raw value
+        normalized_value = raw_value
+
+        # convert normalized value to requested dtype
+        return convert_to_dtype(normalized_value, dtype)
 
     def _open_table(self, mode: str = "r") -> H5Dataset:
         try:
