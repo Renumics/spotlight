@@ -138,6 +138,8 @@ const GltfScene = ({
             const material = mesh.material as THREE.MeshStandardMaterial;
 
             if (attributeName in geometry.attributes && colorPalette !== undefined) {
+                const colorScale = colorPalette.scale();
+
                 const attribute = geometry.attributes[
                     attributeName
                 ] as THREE.BufferAttribute;
@@ -159,9 +161,7 @@ const GltfScene = ({
                     for (let i = 0; i < attribute.count; ++i) {
                         const value = attribute.getX(i);
 
-                        const color = colorPalette
-                            .scale()(value % colorPalette.maxClasses)
-                            .gl();
+                        const color = colorScale(value % colorPalette.maxClasses).gl();
 
                         colorAttribute.setXYZ(i, color[0], color[1], color[2]);
                     }
@@ -175,7 +175,7 @@ const GltfScene = ({
                             minValue === maxValue
                                 ? 0
                                 : value - minValue / (maxValue - minValue);
-                        const color = colorPalette.scale()(at).gl();
+                        const color = colorScale(at).gl();
 
                         colorAttribute.setXYZ(i, color[0], color[1], color[2]);
                     }
