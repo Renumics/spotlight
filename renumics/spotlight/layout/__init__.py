@@ -8,19 +8,14 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
 
-# pylint: disable=no-name-in-module
-from pydantic import (
+from pydantic import (  # pylint: disable=no-name-in-module
     HttpUrl,
     ValidationError,
     parse_obj_as,
 )
 
-# pylint: enable=no-name-in-module
-
-from typing_extensions import Literal
-
 import requests
-from requests import JSONDecodeError
+from typing_extensions import Literal
 
 from renumics.spotlight.backend.exceptions import InvalidLayout
 from .nodes import (
@@ -31,13 +26,20 @@ from .nodes import (
 )
 from .widgets import (
     Histogram,
+    HistogramConfig,
     Inspector,
+    InspectorConfig,
+    InspectorView,
     Issues,
+    NumInspectorColumns as _NumInspectorColumns,
     PCANormalization as _PCANormalization,
     ReductionMethod as _ReductionMethod,
     Scatterplot,
+    ScatterplotConfig,
     Similaritymap,
+    SimilaritymapConfig,
     Table,
+    TableConfig,
     TableView as _TableView,
     UmapMetric as _UmapMetric,
     Widget as _Widget,
@@ -116,7 +118,7 @@ def parse(layout_: _LayoutLike) -> Layout:
         try:
             resp = requests.get(str(layout_), timeout=20)
             return Layout(**resp.json())
-        except (ValidationError, JSONDecodeError) as e:
+        except (ValidationError, requests.JSONDecodeError) as e:
             raise InvalidLayout() from e
     except ValidationError:
         pass
@@ -140,21 +142,75 @@ def histogram(
     # pylint: disable=redefined-builtin
     return Histogram(
         name=name,
-        config={
-            "column": column,
-            "stack_by_column": stack_by_column,
-            "filter": filter,
-        },
+        config=HistogramConfig(
+            column=column,
+            stack_by_column=stack_by_column,
+            filter=filter,
+        ),
     )
 
 
 def inspector(
-    name: Optional[str] = None, num_columns: Literal[1, 2, 4, 6, 8] = 4
+    name: Optional[str] = None,
+    views: Optional[Iterable[Tuple[str, Union[str, List[str]]]]] = None,
+    num_columns: _NumInspectorColumns = 4,
 ) -> Inspector:
     """
-    Add (unconfigured) inspector widget to Spotlight layout.
+    Add an inspector widget with optionally preconfigured lenses.
+
+    For inspector views, pairs of view types and column/columns are expected.
+    Following combinations are supported by default (but can be further extended):
+        "ScalarView": single column of type `bool`, `int`, `float`, `str`,
+            `datetime.datetime` or `spotlight.Category`
+        "TextLens": single column of type `str`
+        "HtmlLens": single column of type `str`
+        "SafeHtmlLens": single column of type `str`
+        "MarkdownLens": single column of type `str`
+        "ArrayLens": single column of type `np.ndarray`,
+            `spotlight.Embedding` or `spotlight.Window`
+        "SequenceView": single or multiple columns of type `spotlight.Sequence1D`
+        "MeshView": single column of type `spotlight.Mesh`
+        "ImageView": single column of type `spotlight.Image`
+        "VideoView": single column of type `spotlight.Video`
+        "AudioView": single column of type `spotlight.Audio`, optional
+            single column of type `spotlight.Window`
+        "SpectrogramView": single column of type `spotlight.Audio`, optional
+            single column of type `spotlight.Window`
+
+    Example:
+        >>> from renumics.spotlight import layout
+        >>> spotlight_layout = layout.layout(
+        ...     layout.inspector(
+        ...         "My Inspector",
+        ...         [
+        ...             ("ScalarView", "bool"),
+        ...             ("ScalarView", "datetime"),
+        ...             ("TextLens", "str"),
+        ...             ("ArrayLens", "embedding"),
+        ...             ("SequenceView", ["sequence1", "sequence2"]),
+        ...             ("ImageView", "image"),
+        ...             ("AudioView", "audio"),
+        ...             ("AudioView", ["audio", "window"]),
+        ...         ],
+        ...         2,
+        ...     )
+        ... )
     """
-    return Inspector(name=name, config={"num_columns": num_columns})
+    return Inspector(
+        name=name,
+        config=InspectorConfig(
+            views=views
+            if views is None
+            else [
+                InspectorView(  # type: ignore
+                    type=view_type,
+                    columns=[columns] if isinstance(columns, str) else columns,
+                )
+                for view_type, columns in views
+            ],
+            num_columns=num_columns,
+        ),
+    )
 
 
 def scatterplot(
@@ -171,13 +227,13 @@ def scatterplot(
     # pylint: disable=too-many-arguments,redefined-builtin
     return Scatterplot(
         name=name,
-        config={
-            "x_column": x_column,
-            "y_column": y_column,
-            "color_by_column": color_by_column,
-            "size_by_column": size_by_column,
-            "filter": filter,
-        },
+        config=ScatterplotConfig(
+            x_column=x_column,
+            y_column=y_column,
+            color_by_column=color_by_column,
+            size_by_column=size_by_column,
+            filter=filter,
+        ),
     )
 
 
@@ -259,16 +315,16 @@ def similaritymap(
         umap_balance = None
     return Similaritymap(
         name=name,
-        config={
-            "columns": columns,
-            "reduction_method": reduction_method,
-            "color_by_column": color_by_column,
-            "size_by_column": size_by_column,
-            "filter": filter,
-            "umap_metric": umap_metric,
-            "umap_balance": umap_balance_float,
-            "pca_normalization": pca_normalization,
-        },
+        config=SimilaritymapConfig(
+            columns=columns,
+            reduction_method=reduction_method,
+            color_by_column=color_by_column,
+            size_by_column=size_by_column,
+            filter=filter,
+            umap_metric=umap_metric,
+            umap_balance=umap_balance_float,
+            pca_normalization=pca_normalization,
+        ),
     )
 
 
@@ -297,23 +353,21 @@ def table(
     """
     return Table(
         name=name,
-        config={
-            "active_view": _TABLE_TAB_TO_TABLE_VIEW[active_view],
-            "visible_columns": visible_columns,
-            "sort_by_columns": None
+        config=TableConfig(
+            active_view=_TABLE_TAB_TO_TABLE_VIEW[active_view],
+            visible_columns=visible_columns,
+            sort_by_columns=None
             if sort_by_columns is None
             else [
                 [column, _SORT_ORDER_MAPPING[order]]
                 for column, order in sort_by_columns
             ],
-            "order_by_relevance": order_by_relevance,
-        },
+            order_by_relevance=order_by_relevance,
+        ),
     )
 
 
-def issues(
-    name: Optional[str] = None,
-) -> Issues:
+def issues(name: Optional[str] = None) -> Issues:
     """
     Add a widget displaying data issues.
     """

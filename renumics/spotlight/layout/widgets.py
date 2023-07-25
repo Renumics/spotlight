@@ -138,6 +138,25 @@ class Similaritymap(Widget):
 class InspectorView(WidgetConfig):
     """
     Inspector view configuration model.
+
+    Following combinations of view types and column types are supported by
+    default (but can be further extended):
+        "ScalarView": single column of type `bool`, `int`, `float`, `str`,
+            `datetime.datetime` or `spotlight.Category`
+        "TextLens": single column of type `str`
+        "HtmlLens": single column of type `str`
+        "SafeHtmlLens": single column of type `str`
+        "MarkdownLens": single column of type `str`
+        "ArrayLens": single column of type `np.ndarray`,
+            `spotlight.Embedding` or `spotlight.Window`
+        "SequenceView": single or multiple columns of type `spotlight.Sequence1D`
+        "MeshView": single column of type `spotlight.Mesh`
+        "ImageView": single column of type `spotlight.Image`
+        "VideoView": single column of type `spotlight.Video`
+        "AudioView": single column of type `spotlight.Audio`, optional
+            single column of type `spotlight.Window`
+        "SpectrogramView": single column of type `spotlight.Audio`, optional
+            single column of type `spotlight.Window`
     """
 
     # pylint: disable=too-few-public-methods
@@ -147,6 +166,9 @@ class InspectorView(WidgetConfig):
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), alias="key")
 
 
+NumInspectorColumns = Literal[1, 2, 4, 6, 8]
+
+
 class InspectorConfig(WidgetConfig):
     """
     Inspector configuration model.
@@ -154,7 +176,7 @@ class InspectorConfig(WidgetConfig):
 
     # pylint: disable=too-few-public-methods
     views: Optional[List[InspectorView]] = Field(default_factory=None, alias="views")
-    num_columns: Literal[1, 2, 4, 6, 8] = Field(4, alias="visibleColumns")
+    num_columns: NumInspectorColumns = Field(4, alias="visibleColumns")
 
 
 class Inspector(Widget):
