@@ -333,7 +333,9 @@ class Hdf5DataSource(DataSource):
             if dtype is Category:
                 categories = dataset.get_column_attributes(column_name)["categories"]
                 categories = cast(Dict[str, int], categories)
-                return convert_to_dtype(normalized_value, dtype, DTypeOptions(categories=categories))
+                return convert_to_dtype(
+                    normalized_value, dtype, DTypeOptions(categories=categories)
+                )
             else:
                 return convert_to_dtype(normalized_value, dtype)
 

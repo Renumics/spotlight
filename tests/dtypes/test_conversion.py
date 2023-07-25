@@ -220,7 +220,7 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     Convert values to audio
     """
     audio_bytes = convert_to_dtype(value, dtypes.Audio)
-    assert len(audio_bytes.tolist()) > 0
+    assert len(audio_bytes) > 0
 
 
 @pytest.mark.parametrize(
@@ -234,7 +234,7 @@ def test_conversion_to_video(value: Union[str, bytes]) -> None:
     Convert values to video
     """
     video_bytes = convert_to_dtype(value, dtypes.Video)
-    assert len(video_bytes.tolist()) > 0
+    assert len(video_bytes) > 0
 
 
 @pytest.mark.parametrize(
@@ -248,4 +248,4 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
     Convert values to mesh
     """
     mesh_bytes = convert_to_dtype(value, dtypes.Mesh)
-    assert len(mesh_bytes.tolist()) > 0
+    assert len(mesh_bytes) > 0
