@@ -1,7 +1,7 @@
 """
 Implementation of widget models and interfaces for widget creation.
 """
-
+import uuid
 from typing import List, Optional
 
 from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-module
@@ -187,7 +187,7 @@ class InspectorView(WidgetConfig):
     type: str = Field(..., alias="view")
     columns: List[str] = Field(..., alias="columns")
     name: Optional[str] = Field(None, alias="name")
-    id: Optional[str] = Field(None, alias="key")
+    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), alias="key")
 
 
 class InspectorConfig(WidgetConfig):
