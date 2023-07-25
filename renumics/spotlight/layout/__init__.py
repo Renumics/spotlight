@@ -3,6 +3,7 @@ This module allows user customize layout to start Spotlight from a python script
 
 A Spotlight layout consists of multiple widgets, grouped into tabs and splits.
 """
+
 import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
@@ -18,45 +19,37 @@ from pydantic import (
 
 from typing_extensions import Literal
 
-from requests import JSONDecodeError
 import requests
+from requests import JSONDecodeError
 
 from renumics.spotlight.backend.exceptions import InvalidLayout
-
 from .nodes import (
-    Layout as _Layout,
+    Layout,
     Orientation as _Orientation,
-    Split as _Split,
-    Tab as _Tab,
+    Split,
+    Tab,
 )
 from .widgets import (
-    AudioOverview as _AudioOverview,
-    AudioOverviewConfig as _AudioOverviewConfig,
-    Histogram as _Histogram,
-    HistogramConfig as _HistogramConfig,
-    Inspector as _Inspector,
-    InspectorConfig as _InspectorConfig,
+    Histogram,
+    Inspector,
+    Issues,
     PCANormalization as _PCANormalization,
     ReductionMethod as _ReductionMethod,
-    Scatterplot as _Scatterplot,
-    ScatterplotGL as _ScatterplotGL,
-    Similaritymap as _Similaritymap,
-    SimilaritymapConfig as _SimilaritymapConfig,
-    Table as _Table,
-    TableConfig as _TableConfig,
+    Scatterplot,
+    Similaritymap,
+    Table,
     TableView as _TableView,
     UmapMetric as _UmapMetric,
     Widget as _Widget,
-    Issues as _Issues,
 )
 
 
 _WidgetLike = Union[_Widget, str]
-_NodeLike = Union[_Split, _Tab, _WidgetLike, List]
-_LayoutLike = Union[str, os.PathLike, _Layout, _NodeLike]
+_NodeLike = Union[Split, Tab, _WidgetLike, List]
+_LayoutLike = Union[str, os.PathLike, Layout, _NodeLike]
 
 
-def _clean_nodes(nodes: Iterable[_NodeLike]) -> List[Union[_Split, _Tab]]:
+def _clean_nodes(nodes: Iterable[_NodeLike]) -> List[Union[Split, Tab]]:
     """
     Wrap standalone widgets into tabs with a single widget inside and
     lists of widgets into common tabs. Pass splits and tabs as is.
@@ -66,7 +59,7 @@ def _clean_nodes(nodes: Iterable[_NodeLike]) -> List[Union[_Split, _Tab]]:
         return [tab(*nodes)]
     cleaned_nodes = []
     for node in nodes:
-        if isinstance(node, (_Split, _Tab)):
+        if isinstance(node, (Split, Tab)):
             cleaned_nodes.append(node)
         elif isinstance(node, (_Widget, str)):
             cleaned_nodes.append(tab(node))
@@ -84,71 +77,55 @@ def _clean_nodes(nodes: Iterable[_NodeLike]) -> List[Union[_Split, _Tab]]:
     return cleaned_nodes
 
 
-def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> _Layout:
+def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> Layout:
     """
     Create a new layout with the given orientation and given nodes inside.
     """
-    return _Layout(children=_clean_nodes(nodes), orientation=orientation)
+    return Layout(children=_clean_nodes(nodes), orientation=orientation)
 
 
 def split(
     *nodes: _NodeLike, weight: Union[float, int] = 1, orientation: _Orientation = None
-) -> _Split:
+) -> Split:
     """
     Create a new split with the given weight, orientation and given nodes inside.
     """
-    return _Split(children=_clean_nodes(nodes), weight=weight, orientation=orientation)
+    return Split(children=_clean_nodes(nodes), weight=weight, orientation=orientation)
 
 
-def tab(*widgets: _WidgetLike, weight: Union[float, int] = 1) -> _Tab:
+def tab(*widgets: _WidgetLike, weight: Union[float, int] = 1) -> Tab:
     """
     Create a new tab with the given weight and given widgets inside.
     """
-    return _Tab(
+    return Tab(
         children=[_Widget(type=x) if isinstance(x, str) else x for x in widgets],
         weight=weight,
     )
 
 
-def parse(layout_: _LayoutLike) -> _Layout:
+def parse(layout_: _LayoutLike) -> Layout:
     """
     Parse layout from a file, url, layout or given nodes.
     """
 
-    if isinstance(layout_, _Layout):
+    if isinstance(layout_, Layout):
         return layout_
 
     try:
         parse_obj_as(HttpUrl, layout_)
         try:
             resp = requests.get(str(layout_), timeout=20)
-            return _Layout(**resp.json())
+            return Layout(**resp.json())
         except (ValidationError, JSONDecodeError) as e:
             raise InvalidLayout() from e
     except ValidationError:
         pass
 
     if (isinstance(layout_, (os.PathLike, str))) and os.path.isfile(layout_):
-        return _Layout.parse_file(Path(layout_))
+        return Layout.parse_file(Path(layout_))
 
     layout_ = cast(_NodeLike, layout_)
     return layout(layout_)
-
-
-def audio_overview(
-    name: Optional[str] = None,
-    audio_column: Optional[str] = None,
-    window_column: Optional[str] = None,
-) -> _AudioOverview:
-    """
-    Add configured audio overview to Spotlight layout.
-    """
-    return _AudioOverview(
-        name=name,
-        config=_AudioOverviewConfig(
-            audio_column=audio_column, window_column=window_column
-        ),
-    )
 
 
 def histogram(
@@ -156,28 +133,28 @@ def histogram(
     column: Optional[str] = None,
     stack_by_column: Optional[str] = None,
     filter: bool = False,
-) -> _Histogram:
+) -> Histogram:
     """
     Add configured histogram to Spotlight layout.
     """
     # pylint: disable=redefined-builtin
-    return _Histogram(
+    return Histogram(
         name=name,
-        config=_HistogramConfig(
-            column=column,
-            stack_by_column=stack_by_column,
-            filter=filter,
-        ),
+        config={
+            "column": column,
+            "stack_by_column": stack_by_column,
+            "filter": filter,
+        },
     )
 
 
 def inspector(
     name: Optional[str] = None, num_columns: Literal[1, 2, 4, 6, 8] = 4
-) -> _Inspector:
+) -> Inspector:
     """
     Add (unconfigured) inspector widget to Spotlight layout.
     """
-    return _Inspector(name=name, config=_InspectorConfig(num_columns=num_columns))
+    return Inspector(name=name, config={"num_columns": num_columns})
 
 
 def scatterplot(
@@ -187,22 +164,21 @@ def scatterplot(
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
     filter: bool = False,
-    use_gl: bool = False,
-) -> Union[_Scatterplot, _ScatterplotGL]:
+) -> Scatterplot:
     """
     Add configured scatter plot to Spotlight layout.
     """
     # pylint: disable=too-many-arguments,redefined-builtin
-    config = {
-        "x_column": x_column,
-        "y_column": y_column,
-        "color_by_column": color_by_column,
-        "size_by_column": size_by_column,
-        "filter": filter,
-    }
-    if use_gl:
-        return _ScatterplotGL(name=name, config=config)
-    return _Scatterplot(name=name, config=config)
+    return Scatterplot(
+        name=name,
+        config={
+            "x_column": x_column,
+            "y_column": y_column,
+            "color_by_column": color_by_column,
+            "size_by_column": size_by_column,
+            "filter": filter,
+        },
+    )
 
 
 _UmapBalance = Literal["local", "normal", "global"]
@@ -221,7 +197,7 @@ def similaritymap(
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
     filter: bool = False,
-) -> _Similaritymap:
+) -> Similaritymap:
     # pylint: disable=too-many-arguments,redefined-builtin
     ...
 
@@ -237,7 +213,7 @@ def similaritymap(
     *,
     umap_metric: Optional[_UmapMetric] = None,
     umap_balance: Optional[_UmapBalance] = None,
-) -> _Similaritymap:
+) -> Similaritymap:
     # pylint: disable=too-many-arguments,redefined-builtin
     ...
 
@@ -252,7 +228,7 @@ def similaritymap(
     filter: bool = False,
     *,
     pca_normalization: Optional[_PCANormalization] = None,
-) -> _Similaritymap:
+) -> Similaritymap:
     # pylint: disable=too-many-arguments,redefined-builtin
     ...
 
@@ -268,7 +244,7 @@ def similaritymap(
     umap_metric: Optional[_UmapMetric] = None,
     umap_balance: Optional[_UmapBalance] = None,
     pca_normalization: Optional[_PCANormalization] = None,
-) -> _Similaritymap:
+) -> Similaritymap:
     """
     Add configured similarity map to Spotlight layout.
     """
@@ -281,18 +257,18 @@ def similaritymap(
     elif reduction_method == "pca":
         umap_metric = None
         umap_balance = None
-    return _Similaritymap(
+    return Similaritymap(
         name=name,
-        config=_SimilaritymapConfig(
-            columns=columns,
-            reduction_method=reduction_method,
-            color_by_column=color_by_column,
-            size_by_column=size_by_column,
-            filter=filter,
-            umap_metric=umap_metric,
-            umap_balance=umap_balance_float,
-            pca_normalization=pca_normalization,
-        ),
+        config={
+            "columns": columns,
+            "reduction_method": reduction_method,
+            "color_by_column": color_by_column,
+            "size_by_column": size_by_column,
+            "filter": filter,
+            "umap_metric": umap_metric,
+            "umap_balance": umap_balance_float,
+            "pca_normalization": pca_normalization,
+        },
     )
 
 
@@ -315,31 +291,31 @@ def table(
     visible_columns: Optional[List[str]] = None,
     sort_by_columns: Optional[List[Tuple[str, _SortOrder]]] = None,
     order_by_relevance: bool = False,
-) -> _Table:
+) -> Table:
     """
     Add configured table to Spotlight layout.
     """
-    return _Table(
+    return Table(
         name=name,
-        config=_TableConfig(
-            active_view=_TABLE_TAB_TO_TABLE_VIEW[active_view],
-            visible_columns=visible_columns,
-            sort_by_columns=None
+        config={
+            "active_view": _TABLE_TAB_TO_TABLE_VIEW[active_view],
+            "visible_columns": visible_columns,
+            "sort_by_columns": None
             if sort_by_columns is None
             else [
                 [column, _SORT_ORDER_MAPPING[order]]
                 for column, order in sort_by_columns
             ],
-            order_by_relevance=order_by_relevance,
-        ),
+            "order_by_relevance": order_by_relevance,
+        },
     )
 
 
 def issues(
     name: Optional[str] = None,
-) -> _Issues:
+) -> Issues:
     """
     Add a widget displaying data issues.
     """
 
-    return _Issues(name=name)
+    return Issues(name=name)

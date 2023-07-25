@@ -1,6 +1,7 @@
 """
 Implementation of widget models and interfaces for widget creation.
 """
+
 import uuid
 from typing import List, Optional
 
@@ -71,29 +72,6 @@ class Scatterplot(Widget):
     config: Optional[ScatterplotConfig] = None
 
 
-class ScatterplotGLConfig(WidgetConfig):
-    """
-    Experimental GL scatter plot configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    x_column: Optional[str] = Field(None, alias="xColumnKey")
-    y_column: Optional[str] = Field(None, alias="yColumnKey")
-    color_by_column: Optional[str] = Field(None, alias="colorColumnKey")
-    size_by_column: Optional[str] = Field(None, alias="sizeColumnKey")
-    filter: bool = Field(False, alias="filter")
-
-
-class ScatterplotGL(Widget):
-    """
-    Experimental GL scatter scatter plot model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: Literal["experimental/scatterplot-gl"] = "experimental/scatterplot-gl"
-    config: Optional[ScatterplotGLConfig] = None
-
-
 TableView = Literal["full", "filtered", "selected"]
 
 
@@ -117,27 +95,6 @@ class Table(Widget):
     # pylint: disable=too-few-public-methods
     type: Literal["table"] = "table"
     config: Optional[TableConfig] = None
-
-
-class AudioOverviewConfig(WidgetConfig):
-    """
-    Audio overview configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    audio_column: Optional[str] = Field(None, alias="audioColumnKey")
-    window_column: Optional[str] = Field(None, alias="windowColumnKey")
-    audio_column_value: Optional[str] = Field(None, alias="audioName")
-
-
-class AudioOverview(Widget):
-    """
-    Spotlight audio overview model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: Literal["experimental/audio-overview"] = "experimental/audio-overview"
-    config: Optional[AudioOverviewConfig] = None
 
 
 ReductionMethod = Literal["umap", "pca"]
