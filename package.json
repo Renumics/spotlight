@@ -85,8 +85,7 @@
         "unique-names-generator": "^4.7.1",
         "uuid": "^9.0.0",
         "wavesurfer.js": "^6.4.0",
-        "zustand": "^4.3.3",
-        "zustand-store-addons": "^0.1.12"
+        "zustand": "^4.3.3"
     },
     "devDependencies": {
         "@testing-library/react": "^14.0.0",

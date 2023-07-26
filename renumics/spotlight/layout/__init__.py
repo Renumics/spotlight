@@ -121,7 +121,7 @@ def parse(layout_: _LayoutLike) -> _Layout:
     try:
         parse_obj_as(HttpUrl, layout_)
         try:
-            resp = requests.get(str(layout_), timeout=2)
+            resp = requests.get(str(layout_), timeout=20)
             return _Layout(**resp.json())
         except (ValidationError, JSONDecodeError) as e:
             raise InvalidLayout() from e

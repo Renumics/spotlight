@@ -159,19 +159,6 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 	GENERATION_ID=$$(wget -qO- "$${URL}/api/table/" | jq ".generation_id")
 	wget --delete-after "$${URL}/api/table/number/42?generation_id=$${GENERATION_ID}"
 
-.PHONY: test-spotlight-notebook-start
-test-spotlight-notebook-start: ## Test Spotlight Notebook start (Spotlight should be installed)
-	export SPOTLIGHT_DEV=False
-	function teardown {
-		rm -f output.log
-	}
-	trap teardown EXIT
-	# kill -INT (s. start-spotlight-test) somehow does not work in CI, so we use timeout.
-	timeout 20 spotlight-notebook -y --no-browser |& tee output.log &
-	GREP_PATTERN='http://127.0.0.1:\S*'
-	for i in {1..20}; do sleep 0.5; grep -qom1 $$GREP_PATTERN output.log && break; done
-	wget -w1 --delete-after "$$(grep -om1 $$GREP_PATTERN output.log)"
-
 .PHONY: docs
 docs: ## Generate API docs
 	rm -rf build/docs/api
@@ -217,7 +204,3 @@ api-client: ## Generate API Spec and CLient
 	rsync -a --delete /tmp/spotlight-api-client/ "./src/client"
 	# auto format generated code
 	npx prettier --write './src/client/**/*.{js,ts,tsx,json,yaml,css}'
-
-.PHONY: notebook-theme
-notebook-theme: ## Generate custom css for jupyter notebook
-	poetry run python ./scripts/build_notebook_theme.py
