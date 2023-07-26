@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from renumics.spotlight import Audio, Embedding, Mesh, Sequence1D, Image, Video
-from tests.test_dataset.conftest import approx
+from tests.dataset.conftest import approx
 
 
 SEED = 42

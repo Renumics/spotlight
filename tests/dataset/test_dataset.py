@@ -26,7 +26,7 @@ from renumics.spotlight import (
     Window,
 )
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
-from tests.test_dataset.conftest import approx, get_append_column_fn_name, ColumnData
+from tests.dataset.conftest import approx, get_append_column_fn_name, ColumnData
 
 
 @pytest.mark.parametrize(

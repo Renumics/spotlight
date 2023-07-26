@@ -63,18 +63,29 @@ ConverterWithoutOptions = Callable[[N], ConvertedValue]
 _converters_table: Dict[
     Type[NormalizedValue], Dict[Type[ColumnType], List[Converter]]
 ] = defaultdict(lambda: defaultdict(list))
+_simple_converters_table: Dict[
+    Type[NormalizedValue], Dict[Type[ColumnType], List[Converter]]
+] = defaultdict(lambda: defaultdict(list))
 
 
 def register_converter(
-    from_type: Type[N], to_type: Type[ColumnType], converter: Converter[N]
+    from_type: Type[N],
+    to_type: Type[ColumnType],
+    converter: Converter[N],
+    simple: bool = False,
 ) -> None:
     """
     register a converter from NormalizedType to ColumnType
     """
-    _converters_table[from_type][to_type].append(converter)  # type: ignore
+    if simple:
+        _simple_converters_table[from_type][to_type].append(converter)  # type: ignore
+    else:
+        _converters_table[from_type][to_type].append(converter)  # type: ignore
 
 
-def convert(from_type: Type[N], to_type: Type[ColumnType]) -> Callable:
+def convert(
+    from_type: Type[N], to_type: Type[ColumnType], simple: bool = False
+) -> Callable:
     """
     Decorator for simplified registration of converters
     """
@@ -90,7 +101,7 @@ def convert(from_type: Type[N], to_type: Type[ColumnType]) -> Callable:
         else:
             _converter = func  # type: ignore
 
-        register_converter(from_type, to_type, _converter)
+        register_converter(from_type, to_type, _converter, simple)
         return _converter
 
     return _decorate
@@ -100,12 +111,20 @@ def convert_to_dtype(
     value: NormalizedValue,
     dtype: Type[ColumnType],
     dtype_options: DTypeOptions = DTypeOptions(),
+    simple: bool = False,
 ) -> ConvertedValue:
     """
     Convert normalized type from data source to internal Spotlight DType
     """
     # pylint: disable=too-many-return-statements, too-many-branches, too-many-statements
-    registered_converters = _converters_table[type(value)][dtype]
+    registered_converters = (
+        (
+            _simple_converters_table[type(value)][dtype]
+            or _converters_table[type(value)][dtype]
+        )
+        if simple
+        else _converters_table[type(value)][dtype]
+    )
     for converter in registered_converters:
         try:
             return converter(value, dtype_options)
@@ -120,10 +139,15 @@ def convert_to_dtype(
         if dtype is float:
             return float(value)  # type: ignore
         if dtype is str:
-            return str(value)
+            str_value = str(value)
+            if simple and len(str_value) > 100:
+                return str_value[:97] + "..."
+            return str_value
         if value is None:
             return None
         if dtype is np.ndarray:
+            if simple:
+                return "[...]"
             if isinstance(value, list):
                 return np.array(value)
             if isinstance(value, np.ndarray):
@@ -138,6 +162,11 @@ def convert_to_dtype(
     except (TypeError, ValueError) as e:
         raise ConversionError() from e
     raise ConversionError()
+
+
+@convert(datetime.datetime, datetime.datetime)
+def _(value: datetime.datetime) -> datetime.datetime:
+    return value
 
 
 @convert(str, datetime.datetime)
@@ -253,6 +282,36 @@ def _(value: bytes) -> bytes:
 
 
 # this should not be necessary
-@convert(trimesh.Trimesh, Mesh)  # type: ignore
+@convert(trimesh.Trimesh, Mesh)
 def _(value: trimesh.Trimesh) -> bytes:
     return Mesh.from_trimesh(value).encode().tolist()
+
+
+@convert(list, Embedding, simple=True)
+@convert(np.ndarray, Embedding, simple=True)
+@convert(list, Sequence1D, simple=True)
+@convert(np.ndarray, Sequence1D, simple=True)
+@convert(np.ndarray, Image, simple=True)
+def _(_value: Union[np.ndarray, list]) -> str:
+    return "[...]"
+
+
+@convert(str, Image, simple=True)
+@convert(str, Audio, simple=True)
+@convert(str, Video, simple=True)
+@convert(str, Mesh, simple=True)
+def _(value: str) -> str:
+    return value
+
+
+@convert(bytes, Image, simple=True)
+@convert(bytes, Audio, simple=True)
+@convert(bytes, Video, simple=True)
+def _(_value: bytes) -> str:
+    return "<bytes>"
+
+
+# this should not be necessary
+@convert(trimesh.Trimesh, Mesh, simple=True)
+def _(_value: trimesh.Trimesh) -> str:
+    return "<object>"

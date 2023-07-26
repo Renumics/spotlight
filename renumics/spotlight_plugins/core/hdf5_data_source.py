@@ -39,7 +39,11 @@ from renumics.spotlight.backend.exceptions import (
 
 from renumics.spotlight.backend import datasource
 
-from renumics.spotlight.dtypes.conversion import DTypeOptions, convert_to_dtype
+from renumics.spotlight.dtypes.conversion import (
+    DTypeOptions,
+    NormalizedValue,
+    convert_to_dtype,
+)
 
 
 def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
@@ -327,7 +331,7 @@ class Hdf5DataSource(DataSource):
             else:
                 normalized_value = raw_value
 
-            cast(NormalizedType, normalized_value)
+            normalized_value = cast(NormalizedValue, normalized_value)
 
             # convert normalized value to requested dtype
             if dtype is Category:
@@ -336,8 +340,7 @@ class Hdf5DataSource(DataSource):
                 return convert_to_dtype(
                     normalized_value, dtype, DTypeOptions(categories=categories)
                 )
-            else:
-                return convert_to_dtype(normalized_value, dtype)
+            return convert_to_dtype(normalized_value, dtype)
 
     def _open_table(self, mode: str = "r") -> H5Dataset:
         try:

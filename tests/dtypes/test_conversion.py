@@ -2,7 +2,7 @@
 Tests for conversions from source to internal types
 """
 
-from typing import Any, Dict, Union
+from typing import Any, Dict, Type, Union
 from pathlib import Path
 import io
 import datetime
@@ -11,6 +11,8 @@ import numpy as np
 import PIL.Image
 from renumics.spotlight import dtypes
 from renumics.spotlight.dtypes.conversion import convert_to_dtype, DTypeOptions
+
+from renumics.spotlight.dtypes.typing import ColumnType
 
 
 @pytest.mark.parametrize(
@@ -83,6 +85,7 @@ def test_conversion_to_bool(value: Any, target_value: int) -> None:
 @pytest.mark.parametrize(
     "value, target_value",
     [
+        (datetime.datetime.max, datetime.datetime.max),
         (
             "2023-07-21T14:43:56.880476",
             datetime.datetime.fromisoformat("2023-07-21T14:43:56.880476"),
@@ -249,3 +252,39 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
     """
     mesh_bytes = convert_to_dtype(value, dtypes.Mesh)
     assert len(mesh_bytes) > 0
+
+
+@pytest.mark.parametrize(
+    "dtype,value,target_value",
+    [
+        (bool, True, True),
+        (int, 42, 42),
+        (float, 1.0, 1.0),
+        (str, "foobar", "foobar"),
+        (str, "foobar" * 20, ("foobar" * 20)[:97] + "..."),
+        (datetime.datetime, datetime.datetime.min, datetime.datetime.min),
+        (np.ndarray, np.array([1, 2, 3]), "[...]"),
+        (np.ndarray, [], "[...]"),
+        (np.ndarray, None, None),
+        (dtypes.Embedding, np.array([1, 2, 3]), "[...]"),
+        (dtypes.Sequence1D, np.array([1, 2, 3]), "[...]"),
+        (dtypes.Image, np.array([[0.5, 0.7], [0.5, 0.7]]), "[...]"),
+        (
+            dtypes.Image,
+            "./data/images/nature-360p.jpg",
+            "./data/images/nature-360p.jpg",
+        ),
+        (dtypes.Audio, "./data/audio/1.wav", "./data/audio/1.wav"),
+        (dtypes.Video, "./data/videos/sea-360p.ogg", "./data/videos/sea-360p.ogg"),
+        (dtypes.Mesh, "./data/meshes/tree.glb", "./data/meshes/tree.glb"),
+        (dtypes.Image, Path("./data/images/nature-360p.jpg").read_bytes(), "<bytes>"),
+        (dtypes.Audio, Path("./data/audio/1.wav").read_bytes(), "<bytes>"),
+        (dtypes.Video, Path("./data/videos/sea-360p.ogg").read_bytes(), "<bytes>"),
+    ],
+)
+def test_simple_conversion(dtype: Type[ColumnType], value: Any, target_value: Any):
+    """
+    Convert values for simple view.
+    """
+    simple_converted_value = convert_to_dtype(value, dtype, simple=True)
+    assert simple_converted_value == target_value
