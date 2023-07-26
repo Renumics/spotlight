@@ -12,7 +12,7 @@ const ArrayComponent = ({ value }: ArrayProps): JSX.Element => {
             <div tw="font-bold">[</div>
             {value.map((element, i) =>
                 Array.isArray(element) ? (
-                    <ArrayComponent value={element} />
+                    <ArrayComponent value={element} key={i} />
                 ) : (
                     <div tw="m-1" key={i}>
                         {dataformat.formatNumber(element)}
