@@ -7,6 +7,8 @@ from typing import List, Optional
 from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-module
 from typing_extensions import Literal
 
+from .lenses import Lens
+
 
 class WidgetConfig(BaseModel, allow_population_by_field_name=True):
     # pylint: disable=too-few-public-methods
@@ -71,29 +73,6 @@ class Scatterplot(Widget):
     config: Optional[ScatterplotConfig] = None
 
 
-class ScatterplotGLConfig(WidgetConfig):
-    """
-    Experimental GL scatter plot configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    x_column: Optional[str] = Field(None, alias="xColumnKey")
-    y_column: Optional[str] = Field(None, alias="yColumnKey")
-    color_by_column: Optional[str] = Field(None, alias="colorColumnKey")
-    size_by_column: Optional[str] = Field(None, alias="sizeColumnKey")
-    filter: bool = Field(False, alias="filter")
-
-
-class ScatterplotGL(Widget):
-    """
-    Experimental GL scatter scatter plot model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: Literal["experimental/scatterplot-gl"] = "experimental/scatterplot-gl"
-    config: Optional[ScatterplotGLConfig] = None
-
-
 TableView = Literal["full", "filtered", "selected"]
 
 
@@ -117,27 +96,6 @@ class Table(Widget):
     # pylint: disable=too-few-public-methods
     type: Literal["table"] = "table"
     config: Optional[TableConfig] = None
-
-
-class AudioOverviewConfig(WidgetConfig):
-    """
-    Audio overview configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    audio_column: Optional[str] = Field(None, alias="audioColumnKey")
-    window_column: Optional[str] = Field(None, alias="windowColumnKey")
-    audio_column_value: Optional[str] = Field(None, alias="audioName")
-
-
-class AudioOverview(Widget):
-    """
-    Spotlight audio overview model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: Literal["experimental/audio-overview"] = "experimental/audio-overview"
-    config: Optional[AudioOverviewConfig] = None
 
 
 ReductionMethod = Literal["umap", "pca"]
@@ -178,16 +136,7 @@ class Similaritymap(Widget):
     config: Optional[SimilaritymapConfig] = None
 
 
-class InspectorView(WidgetConfig):
-    """
-    Inspector view configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: str = Field(..., alias="view")
-    columns: List[str] = Field(..., alias="columns")
-    name: Optional[str] = Field(None, alias="name")
-    id: Optional[str] = Field(None, alias="key")
+NumInspectorColumns = Literal[1, 2, 4, 6, 8]
 
 
 class InspectorConfig(WidgetConfig):
@@ -196,8 +145,8 @@ class InspectorConfig(WidgetConfig):
     """
 
     # pylint: disable=too-few-public-methods
-    views: Optional[List[InspectorView]] = Field(default_factory=None, alias="views")
-    num_columns: Literal[1, 2, 4, 6, 8] = Field(4, alias="visibleColumns")
+    lenses: Optional[List[Lens]] = Field(default_factory=None, alias="views")
+    num_columns: NumInspectorColumns = Field(4, alias="visibleColumns")
 
 
 class Inspector(Widget):
