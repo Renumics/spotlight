@@ -10,6 +10,7 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
+import chroma from 'chroma-js';
 import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
@@ -112,13 +113,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     const [ampScale, setAmpScale] = useSetting('ampScale', 'decibel');
     const [size, setSize] = useState([0, 0]);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const worker: any = Comlink.wrap(
-        new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-            type: 'module',
-        })
-    );
-
     const colorPalette = useColors(colorPaletteSelector);
 
     // Waveform height does not automatically adapt to container size
@@ -137,6 +131,13 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     });
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const worker: any = Comlink.wrap(
+            new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
+                type: 'module',
+            })
+        );
+
         const drawSpectrogram = async () => {
             if (!waveform.current) return;
             if (!spectrogramCanvas.current) return;
@@ -208,7 +209,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
 
             let drawData = [];
-            let colorScale;
+            let colorScale: chroma.Scale<chroma.Color>;
 
             if (ampScale === 'decibel') {
                 let ref = 0;
@@ -270,18 +271,22 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                     const value_a = drawData[x_index][indexA];
                     const value_b = drawData[x_index][indexB];
 
-                    const color_a = colorScale(value_a).gl();
-                    const color_b = colorScale(value_b).gl();
+                    // eslint-disable-next-line
+                    // @ts-ignore
+                    const color_a = colorScale(value_a).rgb();
+                    // eslint-disable-next-line
+                    // @ts-ignore
+                    const color_b = colorScale(value_b).rgb();
 
                     const offset = (y * width + x) * 4;
 
                     // Linear interpolation between two samples
                     imageData.data[offset + 0] =
-                        255 * (color_b[0] * alpha + color_a[0] * (1 - alpha));
+                        color_b[0] * alpha + color_a[0] * (1 - alpha);
                     imageData.data[offset + 1] =
-                        255 * (color_b[1] * alpha + color_a[1] * (1 - alpha));
+                        color_b[1] * alpha + color_a[1] * (1 - alpha);
                     imageData.data[offset + 2] =
-                        255 * (color_b[2] * alpha + color_a[2] * (1 - alpha));
+                        color_b[2] * alpha + color_a[2] * (1 - alpha);
 
                     imageData.data[offset + 3] = 255;
                 }
@@ -297,6 +302,10 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         } else {
             waveform?.current?.on('ready', drawSpectrogram);
         }
+
+        return () => {
+            worker.terminate();
+        };
     }, [window, freqScale, ampScale, colorPalette, size]);
 
     const handleFreqScaleChange = useCallback(
@@ -429,7 +438,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             }
 
             <MenuBar
-                tw="z-10"
                 availableFreqScales={['linear', 'logarithmic']}
                 freqScale={freqScale}
                 onChangeFreqScale={handleFreqScaleChange}

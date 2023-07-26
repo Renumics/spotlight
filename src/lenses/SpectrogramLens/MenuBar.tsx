@@ -6,7 +6,7 @@ import { FunctionComponent } from 'react';
 import tw, { styled } from 'twin.macro';
 
 const Styles = styled.div`
-    ${tw`px-2 py-1 absolute top-0 right-0 items-start flex flex-row-reverse`}
+    ${tw`z-10 px-2 py-1 absolute top-0 right-0 items-start flex flex-row-reverse`}
     button {
         ${tw`text-gray-100
         hover:text-gray-400
@@ -35,9 +35,9 @@ const MenuBar: FunctionComponent<Props> = ({
     onChangeFreqScale,
     onChangeAmpScale,
 }) => {
-    const selectFreqScale = (newFreqScale?: string | null) =>
+    const selectFreqScale = (newFreqScale?: string) =>
         onChangeFreqScale(newFreqScale || '');
-    const selectAmpScale = (newAmpScale?: string | null) =>
+    const selectAmpScale = (newAmpScale?: string) =>
         onChangeAmpScale(newAmpScale || '');
 
     const content = (
@@ -46,13 +46,13 @@ const MenuBar: FunctionComponent<Props> = ({
             <Select
                 onChange={selectFreqScale}
                 value={freqScale}
-                options={[null, ...availableFreqScales]}
+                options={[...availableFreqScales]}
             />
             <Menu.Title>Amplitude Scale</Menu.Title>
             <Select
                 onChange={selectAmpScale}
                 value={ampScale}
-                options={[null, ...availableAmpScales]}
+                options={[...availableAmpScales]}
             />
         </Menu>
     );
