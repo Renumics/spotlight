@@ -35,7 +35,7 @@ class Lens(BaseModel, allow_population_by_field_name=True):
     """
 
     # pylint: disable=too-few-public-methods
-    kind: str = Field(..., alias="view")
+    type: str = Field(..., alias="view")
     columns: List[str] = Field(..., alias="columns")
     name: Optional[str] = Field(None, alias="name")
     id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), alias="key")
@@ -53,7 +53,7 @@ def lens(
     Prefer to use explicit lens functions defined below.
     """
     return Lens(
-        kind=internal_type,
+        type=internal_type,  # type: ignore
         columns=[columns] if isinstance(columns, str) else columns,
         name=name,
     )
@@ -66,7 +66,7 @@ def scalar(column: str, name: Optional[str] = None) -> Lens:
     Supports a single column of type `bool`, `int`, `float`, `str`,
     `datetime.datetime` or `spotlight.Category`.
     """
-    return Lens(kind="ScalarView", columns=[column], name=name)
+    return Lens(type="ScalarView", columns=[column], name=name)  # type: ignore
 
 
 def text(column: str, name: Optional[str] = None) -> Lens:
@@ -75,7 +75,7 @@ def text(column: str, name: Optional[str] = None) -> Lens:
 
     Supports a single column of type `str`.
     """
-    return Lens(kind="TextLens", columns=[column], name=name)
+    return Lens(type="TextLens", columns=[column], name=name)  # type: ignore
 
 
 def html(column: str, name: Optional[str] = None, unsafe: bool = False) -> Lens:
@@ -85,8 +85,8 @@ def html(column: str, name: Optional[str] = None, unsafe: bool = False) -> Lens:
     Supports a single column of type `str`.
     """
     if unsafe:
-        return Lens(kind="HtmlLens", columns=[column], name=name)
-    return Lens(kind="SafeHtmlLens", columns=[column], name=name)
+        return Lens(type="HtmlLens", columns=[column], name=name)  # type: ignore
+    return Lens(type="SafeHtmlLens", columns=[column], name=name)  # type: ignore
 
 
 def markdown(column: str, name: Optional[str] = None) -> Lens:
@@ -95,7 +95,7 @@ def markdown(column: str, name: Optional[str] = None) -> Lens:
 
     Supports a single column of type `str`.
     """
-    return Lens(kind="MarkdownLens", columns=[column], name=name)
+    return Lens(type="MarkdownLens", columns=[column], name=name)  # type: ignore
 
 
 def array(column: str, name: Optional[str] = None) -> Lens:
@@ -105,7 +105,7 @@ def array(column: str, name: Optional[str] = None) -> Lens:
     Supports a single column of type `np.ndarray`, `spotlight.Embedding` or
     `spotlight.Window`.
     """
-    return Lens(kind="ArrayLens", columns=[column], name=name)
+    return Lens(type="ArrayLens", columns=[column], name=name)  # type: ignore
 
 
 def sequences(columns: Union[str, List[str]], name: Optional[str] = None) -> Lens:
@@ -115,7 +115,7 @@ def sequences(columns: Union[str, List[str]], name: Optional[str] = None) -> Len
     Supports one or multiple columns of type `spotlight.Sequence1D`.
     """
     return Lens(
-        kind="SequenceView",
+        type="SequenceView",  # type: ignore
         columns=[columns] if isinstance(columns, str) else columns,
         name=name,
     )
@@ -127,7 +127,7 @@ def mesh(column: str, name: Optional[str] = None) -> Lens:
 
     Supports a single column of type `spotlight.Mesh`.
     """
-    return Lens(kind="MeshView", columns=[column], name=name)
+    return Lens(type="MeshView", columns=[column], name=name)  # type: ignore
 
 
 def image(column: str, name: Optional[str] = None) -> Lens:
@@ -136,7 +136,7 @@ def image(column: str, name: Optional[str] = None) -> Lens:
 
     Supports a single column of type `spotlight.Image`.
     """
-    return Lens(kind="ImageView", columns=[column], name=name)
+    return Lens(type="ImageView", columns=[column], name=name)  # type: ignore
 
 
 def video(column: str, name: Optional[str] = None) -> Lens:
@@ -145,7 +145,7 @@ def video(column: str, name: Optional[str] = None) -> Lens:
 
     Supports a single column of type `spotlight.Video`.
     """
-    return Lens(kind="VideoView", columns=[column], name=name)
+    return Lens(type="VideoView", columns=[column], name=name)  # type: ignore
 
 
 def audio(
@@ -158,7 +158,7 @@ def audio(
     column of type `spotlight.Window`.
     """
     return Lens(
-        kind="AudioView",
+        type="AudioView",  # type: ignore
         columns=[column] if window_column is None else [column, window_column],
         name=name,
     )
@@ -174,7 +174,7 @@ def spectrogram(
     column of type `spotlight.Window`.
     """
     return Lens(
-        kind="SpectrogramView",
+        type="SpectrogramView",  # type: ignore
         columns=[column] if window_column is None else [column, window_column],
         name=name,
     )
