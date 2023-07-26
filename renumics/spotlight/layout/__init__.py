@@ -24,12 +24,12 @@ from .nodes import (
     Split,
     Tab,
 )
+from .lenses import Lens
 from .widgets import (
     Histogram,
     HistogramConfig,
     Inspector,
     InspectorConfig,
-    InspectorView,
     Issues,
     NumInspectorColumns as _NumInspectorColumns,
     PCANormalization as _PCANormalization,
@@ -152,45 +152,41 @@ def histogram(
 
 def inspector(
     name: Optional[str] = None,
-    views: Optional[Iterable[Tuple[str, Union[str, List[str]]]]] = None,
+    lenses: Optional[Iterable[Lens]] = None,
     num_columns: _NumInspectorColumns = 4,
 ) -> Inspector:
     """
-    Add an inspector widget with optionally preconfigured lenses.
-
-    For inspector views, pairs of view types and column/columns are expected.
-    Following combinations are supported by default (but can be further extended):
-        "ScalarView": single column of type `bool`, `int`, `float`, `str`,
-            `datetime.datetime` or `spotlight.Category`
-        "TextLens": single column of type `str`
-        "HtmlLens": single column of type `str`
-        "SafeHtmlLens": single column of type `str`
-        "MarkdownLens": single column of type `str`
-        "ArrayLens": single column of type `np.ndarray`,
-            `spotlight.Embedding` or `spotlight.Window`
-        "SequenceView": single or multiple columns of type `spotlight.Sequence1D`
-        "MeshView": single column of type `spotlight.Mesh`
-        "ImageView": single column of type `spotlight.Image`
-        "VideoView": single column of type `spotlight.Video`
-        "AudioView": single column of type `spotlight.Audio`, optional
-            single column of type `spotlight.Window`
-        "SpectrogramView": single column of type `spotlight.Audio`, optional
-            single column of type `spotlight.Window`
+    Add an inspector widget with optionally preconfigured viewers (lenses).
 
     Example:
         >>> from renumics.spotlight import layout
+        >>> from renumics.spotlight.layout import lenses
         >>> spotlight_layout = layout.layout(
         ...     layout.inspector(
         ...         "My Inspector",
         ...         [
-        ...             ("ScalarView", "bool"),
-        ...             ("ScalarView", "datetime"),
-        ...             ("TextLens", "str"),
-        ...             ("ArrayLens", "embedding"),
-        ...             ("SequenceView", ["sequence1", "sequence2"]),
-        ...             ("ImageView", "image"),
-        ...             ("AudioView", "audio"),
-        ...             ("AudioView", ["audio", "window"]),
+        ...             lenses.scalar("bool"),
+        ...             lenses.scalar("float"),
+        ...             lenses.scalar("str"),
+        ...             lenses.scalar("datetime"),
+        ...             lenses.scalar("category"),
+        ...             lenses.scalar("int"),
+        ...             lenses.text("str", "text"),
+        ...             lenses.html("str", "HTML (safe)"),
+        ...             lenses.html("str", "HTML", unsafe=True),
+        ...             lenses.markdown("str", "MD"),
+        ...             lenses.array("embedding"),
+        ...             lenses.array("window"),
+        ...             lenses.array("array"),
+        ...             lenses.sequences("sequence"),
+        ...             lenses.sequences(["sequence1", "sequence2"], "sequences"),
+        ...             lenses.mesh("mesh"),
+        ...             lenses.image("image"),
+        ...             lenses.video("video"),
+        ...             lenses.audio("audio"),
+        ...             lenses.audio("audio", "window", "windowed audio"),
+        ...             lenses.spectrogram("audio"),
+        ...             lenses.spectrogram("audio", "window", "windowed spectrogram"),
         ...         ],
         ...         2,
         ...     )
@@ -199,16 +195,7 @@ def inspector(
     return Inspector(
         name=name,
         config=InspectorConfig(
-            views=views
-            if views is None
-            else [
-                InspectorView(  # type: ignore
-                    type=view_type,
-                    columns=[columns] if isinstance(columns, str) else columns,
-                )
-                for view_type, columns in views
-            ],
-            num_columns=num_columns,
+            lenses=lenses if lenses is None else list(lenses), num_columns=num_columns
         ),
     )
 

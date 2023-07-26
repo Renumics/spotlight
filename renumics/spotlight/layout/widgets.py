@@ -2,11 +2,12 @@
 Implementation of widget models and interfaces for widget creation.
 """
 
-import uuid
 from typing import List, Optional
 
 from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-module
 from typing_extensions import Literal
+
+from .lenses import Lens
 
 
 class WidgetConfig(BaseModel, allow_population_by_field_name=True):
@@ -135,37 +136,6 @@ class Similaritymap(Widget):
     config: Optional[SimilaritymapConfig] = None
 
 
-class InspectorView(WidgetConfig):
-    """
-    Inspector view configuration model.
-
-    Following combinations of view types and column types are supported by
-    default (but can be further extended):
-        "ScalarView": single column of type `bool`, `int`, `float`, `str`,
-            `datetime.datetime` or `spotlight.Category`
-        "TextLens": single column of type `str`
-        "HtmlLens": single column of type `str`
-        "SafeHtmlLens": single column of type `str`
-        "MarkdownLens": single column of type `str`
-        "ArrayLens": single column of type `np.ndarray`,
-            `spotlight.Embedding` or `spotlight.Window`
-        "SequenceView": single or multiple columns of type `spotlight.Sequence1D`
-        "MeshView": single column of type `spotlight.Mesh`
-        "ImageView": single column of type `spotlight.Image`
-        "VideoView": single column of type `spotlight.Video`
-        "AudioView": single column of type `spotlight.Audio`, optional
-            single column of type `spotlight.Window`
-        "SpectrogramView": single column of type `spotlight.Audio`, optional
-            single column of type `spotlight.Window`
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: str = Field(..., alias="view")
-    columns: List[str] = Field(..., alias="columns")
-    name: Optional[str] = Field(None, alias="name")
-    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), alias="key")
-
-
 NumInspectorColumns = Literal[1, 2, 4, 6, 8]
 
 
@@ -175,7 +145,7 @@ class InspectorConfig(WidgetConfig):
     """
 
     # pylint: disable=too-few-public-methods
-    views: Optional[List[InspectorView]] = Field(default_factory=None, alias="views")
+    lenses: Optional[List[Lens]] = Field(default_factory=None, alias="views")
     num_columns: NumInspectorColumns = Field(4, alias="visibleColumns")
 
 
