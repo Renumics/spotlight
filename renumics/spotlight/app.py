@@ -228,7 +228,7 @@ class SpotlightApp(FastAPI):
             http_server = AsyncClient(base_url=request.app.vite_url)
             url = URL(path=request.url.path, query=request.url.query.encode("utf-8"))
 
-            # NOTE: URL-encoding is not accepted by vite. Use unencoded path instead.
+            # URL-encoding is not accepted by vite. Use unencoded path instead.
             # pylint: disable-next=protected-access
             url._uri_reference = url._uri_reference._replace(path=request.url.path)
 
@@ -282,6 +282,7 @@ class SpotlightApp(FastAPI):
             )
             add_timing_middleware(self)
 
+            # Reverse proxy routes for webworker loading in dev mode
             self.add_route("/src/{path:path}", _reverse_proxy, ["POST", "GET"])
             self.add_route(
                 "/node_modules/.vite/dist/client/{path:path}",
