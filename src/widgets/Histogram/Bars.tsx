@@ -19,6 +19,7 @@ const highlightRowsSelector = (d: Dataset) => d.setHighlightedRows;
 const dehighlightAllSelector = (d: Dataset) => d.dehighlightAll;
 const isIndexHighlightedSelector = (d: Dataset) => d.isIndexHighlighted;
 const selectRowsSelector = (d: Dataset) => d.selectRows;
+const isIndexFilteredSelector = (d: Dataset) => d.isIndexFiltered;
 
 const Bars = ({
     width,
@@ -34,6 +35,7 @@ const Bars = ({
     const isIndexHighlighted = useDataset(isIndexHighlightedSelector);
     const dehighlightAll = useDataset(dehighlightAllSelector);
     const selectRows = useDataset(selectRowsSelector);
+    const isIndexFiltered = useDataset(isIndexFilteredSelector);
 
     useEffect(() => {
         const { all, filtered, xBins, yBins, binToRowIndices } = histogram;
@@ -120,7 +122,7 @@ const Bars = ({
                 [...(binToRowIndices.get(bin.index)?.values() || [])]
                     .flat()
                     ?.forEach((index) => {
-                        highlightMap[index] = true;
+                        highlightMap[index] = true && isIndexFiltered[index];
                     });
                 setHighlightedRows(highlightMap);
             })
@@ -128,7 +130,7 @@ const Bars = ({
                 const indices = [
                     ...(binToRowIndices.get(bin.index)?.values() || []),
                 ].flat();
-                selectRows(indices);
+                selectRows(indices.filter((index) => isIndexFiltered[index]));
             });
 
         group
@@ -243,12 +245,15 @@ const Bars = ({
                 binToRowIndices
                     .get(xBin)
                     ?.get(yBin)
-                    ?.forEach((index) => (highlightMap[index] = true));
+                    ?.forEach(
+                        (index) =>
+                            (highlightMap[index] = true && isIndexFiltered[index])
+                    );
                 setHighlightedRows(highlightMap);
             })
             .on('click', (_, { xBin, yBin }) => {
                 const indices = binToRowIndices.get(xBin)?.get(yBin) || [];
-                selectRows(indices);
+                selectRows(indices.filter((index) => isIndexFiltered[index]));
             });
 
         group
@@ -283,6 +288,7 @@ const Bars = ({
         hideUnfiltered,
         onHoverBin,
         transferFunction,
+        isIndexFiltered,
     ]);
 
     useEffect(() => {

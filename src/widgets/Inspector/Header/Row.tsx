@@ -133,6 +133,10 @@ const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
         (!view?.name || view?.name === 'view') && columnNames
             ? columnNames
             : view?.name;
+    const longViewName =
+        viewName === columnNames || !viewName || !columnNames
+            ? viewName
+            : `${viewName} (${columnNames})`;
 
     const onRemoveView = useCallback(
         () => view && removeView(view),
@@ -145,7 +149,7 @@ const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
                 <XIcon />
             </Button>
             <ViewNameWrapper>
-                <Tooltip content={columnNames} followCursor={true}>
+                <Tooltip content={longViewName} followCursor={true}>
                     <ViewName>{viewName}</ViewName>
                 </Tooltip>
             </ViewNameWrapper>

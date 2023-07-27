@@ -38,4 +38,17 @@ const fixWindow = (
     return fixedWindow;
 };
 
-export { unitType, freqType, fixWindow };
+const amplitudeToDb = (amplitude: number, ref: number, amin: number) => {
+    const magnitude = Math.abs(amplitude);
+    const power = magnitude ** 2;
+    const amin_square = amin ** 2;
+    const ref_square = ref ** 2;
+
+    const log_spec =
+        10 * Math.log10(Math.max(amin_square, power)) -
+        10 * Math.log10(Math.max(amin_square, ref_square));
+
+    return log_spec;
+};
+
+export { unitType, freqType, fixWindow, amplitudeToDb };

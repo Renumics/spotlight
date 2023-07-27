@@ -16,11 +16,13 @@ import uuid
 from typing_extensions import Annotated
 from fastapi import Cookie, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic.dataclasses import dataclass
 import pandas as pd
+
+from httpx import AsyncClient, URL
 
 from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
@@ -222,6 +224,31 @@ class SpotlightApp(FastAPI):
             directory=Path(__file__).parent / "backend" / "templates"
         )
 
+        async def _reverse_proxy(request: Request) -> Response:
+            http_server = AsyncClient(base_url=request.app.vite_url)
+            url = URL(path=request.url.path, query=request.url.query.encode("utf-8"))
+
+            # URL-encoding is not accepted by vite. Use unencoded path instead.
+            # pylint: disable-next=protected-access
+            url._uri_reference = url._uri_reference._replace(path=request.url.path)
+
+            body = await request.body()
+
+            rp_req = http_server.build_request(
+                request.method,
+                url,
+                headers=request.headers.raw,
+                content=body,
+            )
+
+            rp_resp = await http_server.send(rp_req, stream=False)
+
+            return Response(
+                content=rp_resp.content,
+                status_code=rp_resp.status_code,
+                headers=rp_resp.headers,
+            )
+
         @self.get("/")
         def _(
             request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
@@ -254,6 +281,20 @@ class SpotlightApp(FastAPI):
                 allow_headers=["*"],
             )
             add_timing_middleware(self)
+
+            # Reverse proxy routes for webworker loading in dev mode
+            self.add_route("/src/{path:path}", _reverse_proxy, ["POST", "GET"])
+            self.add_route(
+                "/node_modules/.vite/dist/client/{path:path}",
+                _reverse_proxy,
+                ["POST", "GET"],
+            )
+            self.add_route(
+                "/node_modules/.vite/deps/{path:path}", _reverse_proxy, ["POST", "GET"]
+            )
+            self.add_route(
+                "/node_modules/.pnpm/{path:path}", _reverse_proxy, ["POST", "GET"]
+            )
 
     @property
     def dtypes(self) -> ColumnTypeMapping:
