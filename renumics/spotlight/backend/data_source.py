@@ -171,7 +171,9 @@ class DataSource(ABC):
         blob = self.get_cell_data(column_name, row_index, Audio)
         if blob is None:
             return None
-        value_hash = hashlib.blake2b(blob.tolist()).hexdigest()
+        if isinstance(blob, np.void):
+            blob = blob.tolist()
+        value_hash = hashlib.blake2b(blob).hexdigest()
         cache_key = f"waveform-v2:{value_hash}"
         try:
             waveform = cache[cache_key]

@@ -1,7 +1,6 @@
 """
 access h5 table data
 """
-import os
 from hashlib import sha1
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast, Union, Type, Tuple
@@ -15,7 +14,6 @@ from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
     get_column_type,
-    FileBasedColumnType,
 )
 from renumics.spotlight.typing import PathType, IndexType
 from renumics.spotlight.dataset import (
@@ -24,17 +22,11 @@ from renumics.spotlight.dataset import (
     unescape_dataset_name,
 )
 
-from renumics.spotlight.backend.data_source import (
-    DataSource,
-    Attrs,
-    Column,
-    read_external_value,
-)
+from renumics.spotlight.backend.data_source import DataSource, Attrs, Column
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
     NoRowFound,
-    InvalidExternalData,
 )
 
 from renumics.spotlight.backend import datasource
@@ -134,35 +126,22 @@ class H5Dataset(Dataset):
         value = column[index]
         if isinstance(value, bytes):
             value = value.decode("utf-8")
-        if column.attrs.get("external", False):
-            column_type = self._get_column_type(column)
-            target_format = column.attrs.get("format", None)
-            try:
-                column_type = cast(Type[FileBasedColumnType], column_type)
-                return read_external_value(
-                    value, column_type, target_format, os.path.dirname(self._filepath)
-                )
-            except Exception as e:
-                raise InvalidExternalData(value) from e
         if self._is_ref_column(column):
-            return self._resolve_ref(value, column_name)[()] if value else None
+            if value:
+                value = self._resolve_ref(value, column_name)[()]
+                return value.tolist() if isinstance(value, np.void) else value
+            return None
         return value
 
     def read_column(
-        self,
-        column_name: str,
-        indices: Optional[List[int]] = None,
-        simple: bool = False,
-    ) -> Column:
+        self, column_name: str, indices: Optional[List[int]] = None
+    ) -> np.ndarray:
         """
-        Read a dataset column for serialization.
+        Get a decoded dataset column.
         """
-        # pylint: disable=too-many-branches, too-many-nested-blocks, too-many-locals, unused-argument
         self._assert_column_exists(column_name, internal=True)
 
         column = self._h5_file[column_name]
-        attrs, has_lookup, is_external = _decode_attrs(column.attrs)
-        is_ref_column = self._is_ref_column(column)
         is_string_dtype = h5py.check_string_dtype(column.dtype)
 
         raw_values: np.ndarray
@@ -173,42 +152,18 @@ class H5Dataset(Dataset):
         if is_string_dtype:
             raw_values = np.array([x.decode("utf-8") for x in raw_values])
 
-        refs: Optional[np.ndarray] = None
-        # Submit scalars, windows and small embeddings only
-        if attrs.type is Embedding:
-            if not is_ref_column:
-                none_mask = [len(x) == 0 for x in raw_values]
-                raw_values[none_mask] = np.array(None)
-            else:
-                raw_values = self._resolve_refs(raw_values, column_name)
-        elif is_external:
-            refs = raw_values != ""
-        elif is_ref_column:
-            if is_string_dtype:
-                # New-style string references.
-                raw_values = unescape_dataset_names(raw_values)
-                refs = raw_values != ""
-            else:
-                # Old-style H5 references.
-                # Invalid refs evaluated to `False`.
-                refs = raw_values.astype(bool)
-                if has_lookup:
-                    values = []
-                    for ref in raw_values:
-                        if ref:
-                            h5_dataset: h5py.Dataset = self._h5_file[ref]
-                            try:
-                                name = h5_dataset.attrs["key"]
-                            except KeyError:
-                                name = self._get_column_name(h5_dataset)
-                            values.append(name)
-                        else:
-                            values.append(None)
-                    raw_values = np.array(values, dtype=object)
-                else:
-                    raw_values = ref_placeholder_names(refs)
-
-        return Column(name=column_name, values=raw_values, **asdict(attrs))
+        if self._is_ref_column(column):
+            assert is_string_dtype, "Only new-style string h5 references supported."
+            raw_values = np.array(
+                [
+                    value.tolist() if isinstance(value, np.void) else value
+                    for value in self._resolve_refs(raw_values, column_name)
+                ]
+            )
+        elif self._get_column_type(column.attrs) is Embedding:
+            none_mask = [len(x) == 0 for x in raw_values]
+            raw_values[none_mask] = np.array(None)
+        return raw_values
 
     def duplicate_row(self, from_index: IndexType, to_index: IndexType) -> None:
         """
@@ -298,7 +253,7 @@ class Hdf5DataSource(DataSource):
     def get_internal_columns(self) -> List[Column]:
         with self._open_table() as dataset:
             return [
-                dataset.read_column(column_name)
+                self.get_column(column_name, dataset.get_column_type(column_name))
                 for column_name in INTERNAL_COLUMN_NAMES
             ]
 
@@ -310,7 +265,24 @@ class Hdf5DataSource(DataSource):
         simple: bool = False,
     ) -> Column:
         with self._open_table() as dataset:
-            return dataset.read_column(column_name, indices=indices, simple=simple)
+            normalized_values = dataset.read_column(column_name, indices=indices)
+            if dtype is Category:
+                categories = dataset.get_column_attributes(column_name)["categories"]
+                categories = cast(Dict[str, int], categories)
+                dtype_options = DTypeOptions(categories=categories)
+                values = [
+                    convert_to_dtype(value, dtype, dtype_options, simple)
+                    for value in normalized_values
+                ]
+            else:
+                values = [
+                    convert_to_dtype(value, dtype, simple=simple)
+                    for value in normalized_values
+                ]
+            attrs, _, _ = _decode_attrs(
+                dataset._h5_file[column_name].attrs  # pylint: disable=protected-access
+            )
+        return Column(name=column_name, values=np.array(values), **asdict(attrs))
 
     def get_cell_data(
         self, column_name: str, row_index: int, dtype: Type[ColumnType]

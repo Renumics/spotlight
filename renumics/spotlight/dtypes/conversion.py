@@ -41,7 +41,7 @@ ConvertedValue = Union[
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class DTypeOptions:
     """
     All possible dtype options
@@ -155,9 +155,11 @@ def convert_to_dtype(
 
         # TODO: normalize integer types in datasource?
         if dtype is Category and np.issubdtype(np.dtype(type(value)), np.integer):
-            if int(value) not in dtype_options.categories.values():  # type: ignore
+            assert dtype_options.categories is not None
+            value_int = int(value)  # type: ignore
+            if value_int != -1 and value_int not in dtype_options.categories.values():
                 raise ConversionError()
-            return int(value)  # type: ignore
+            return value_int
 
     except (TypeError, ValueError) as e:
         raise ConversionError() from e
@@ -170,7 +172,10 @@ def _(value: datetime.datetime) -> datetime.datetime:
 
 
 @convert(str, datetime.datetime)
-def _(value: str) -> datetime.datetime:
+@convert(np.str_, datetime.datetime)
+def _(value: Union[str, np.str_]) -> Optional[datetime.datetime]:
+    if value == "":
+        return None
     return datetime.datetime.fromisoformat(value)
 
 
@@ -182,7 +187,7 @@ def _(value: np.datetime64) -> datetime.datetime:
 @convert(str, Category)
 def _(value: str, options: DTypeOptions) -> int:
     if not options.categories:
-        raise ConversionError()
+        return -1
     return options.categories[value]
 
 
@@ -307,6 +312,7 @@ def _(value: str) -> str:
 @convert(bytes, Image, simple=True)
 @convert(bytes, Audio, simple=True)
 @convert(bytes, Video, simple=True)
+@convert(bytes, Mesh, simple=True)
 def _(_value: bytes) -> str:
     return "<bytes>"
 
