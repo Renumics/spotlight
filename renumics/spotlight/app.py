@@ -50,16 +50,10 @@ from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
-
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-
 from renumics.spotlight.app_config import AppConfig
-
 from renumics.spotlight.backend import create_datasource
-
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
-
-from renumics.spotlight_plugins.core.hdf5_data_source import Hdf5DataSource
 
 
 @dataclass
@@ -326,14 +320,13 @@ class SpotlightApp(FastAPI):
 
         if config.dtypes is not None or config.dataset is not None:
             dtypes = self._guessed_dtypes.copy()
-            if not isinstance(self._data_source, Hdf5DataSource):
-                dtypes.update(
-                    {
-                        column_name: column_type
-                        for column_name, column_type in self._user_dtypes.items()
-                        if column_name in self._guessed_dtypes
-                    }
-                )
+            dtypes.update(
+                {
+                    column_name: column_type
+                    for column_name, column_type in self._user_dtypes.items()
+                    if column_name in self._guessed_dtypes
+                }
+            )
             self._dtypes = dtypes
             self._broadcast(RefreshMessage())
             self._update_issues()

@@ -134,6 +134,7 @@ class Viewer:
         """
         # pylint: disable=too-many-branches,too-many-arguments, too-many-locals
 
+        dataset: Union[pd.DataFrame, Path, None]
         if is_pathtype(dataset_or_folder):
             path = Path(dataset_or_folder).absolute()
             if path.is_dir():

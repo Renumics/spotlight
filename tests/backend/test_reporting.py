@@ -8,7 +8,7 @@ from renumics.spotlight.settings import settings
 def test_opt_out(monkeypatch) -> None:
     """test opt_out is true"""
 
-    monkeypatch.delenv("CI")
+    monkeypatch.delenv("CI", raising=False)
     settings.opt_out = True
     assert skip_analytics() is True
 
@@ -20,7 +20,7 @@ def test_opt_in(monkeypatch):
     dont opt_out
     """
 
-    monkeypatch.delenv("CI")
+    monkeypatch.delenv("CI", raising=False)
     settings.opt_out = True
     settings.opt_in = True
     assert skip_analytics() is False
@@ -30,7 +30,7 @@ def test_opt_in_and_opt_out(monkeypatch):
     """if opt_out is true and opt_in is false
     skip analytics"""
 
-    monkeypatch.delenv("CI")
+    monkeypatch.delenv("CI", raising=False)
     settings.opt_out = True
     settings.opt_in = False
     assert skip_analytics() is True

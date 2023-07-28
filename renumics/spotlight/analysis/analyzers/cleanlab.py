@@ -6,7 +6,6 @@ import inspect
 from typing import Iterable
 
 import numpy as np
-import pandas as pd
 import cleanlab.outlier
 from renumics.spotlight.dtypes import Embedding
 
@@ -28,8 +27,9 @@ def analyze_with_cleanlab(
 
     embedding_columns = (col for col, dtype in dtypes.items() if dtype == Embedding)
     for column_name in embedding_columns:
-        embeddings = data_source.get_column(column_name, dtypes[column_name]).values
-
+        embeddings = np.array(
+            data_source.get_column(column_name, dtypes[column_name]).values
+        )
         mask = _detect_outliers(embeddings)
         rows = np.where(mask)[0].tolist()
 
@@ -76,7 +76,7 @@ def _calculate_outlier_scores(embeddings: np.ndarray) -> np.ndarray:
     return scores
 
 
-def _detect_outliers(embeddings: pd.Series) -> np.ndarray:
+def _detect_outliers(embeddings: np.ndarray) -> np.ndarray:
     """
     detect outliers in an embedding column
     """

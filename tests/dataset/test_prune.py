@@ -8,7 +8,7 @@ from typing import List
 import numpy as np
 
 from renumics import spotlight
-from tests.test_dataset.conftest import ColumnData
+from tests.dataset.conftest import ColumnData
 
 
 def test_prune(

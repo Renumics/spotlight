@@ -5,33 +5,26 @@ import hashlib
 import io
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Type, Any, cast
+from typing import Optional, List, Dict, Type, Any, Union, cast
 
-import filetype
 import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.io import audio
-from renumics.spotlight.typing import PathOrUrlType, PathType, is_iterable
-from renumics.spotlight.dataset import prepare_path_or_url
+from renumics.spotlight.typing import is_iterable
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
-from renumics.spotlight.dtypes import Audio, Image
+from renumics.spotlight.dtypes import Audio
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
-    FileBasedColumnType,
-    get_column_type_name,
 )
-from renumics.spotlight.cache import Cache
-
-from renumics.spotlight.io.file import as_file
+from renumics.spotlight.dtypes.conversion import ConvertedValue
+from renumics.spotlight.cache import external_data_cache
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
-
-cache = Cache("external-data")
 
 
 @dataclasses.dataclass
@@ -64,7 +57,7 @@ class Column(Attrs):
     """
 
     name: str
-    values: np.ndarray
+    values: Union[np.ndarray, List[ConvertedValue]]
 
 
 @dataclass
@@ -171,15 +164,17 @@ class DataSource(ABC):
         blob = self.get_cell_data(column_name, row_index, Audio)
         if blob is None:
             return None
-        value_hash = hashlib.blake2b(blob.tolist()).hexdigest()
+        if isinstance(blob, np.void):
+            blob = blob.tolist()
+        value_hash = hashlib.blake2b(blob).hexdigest()
         cache_key = f"waveform-v2:{value_hash}"
         try:
-            waveform = cache[cache_key]
+            waveform = external_data_cache[cache_key]
             return waveform
         except KeyError:
             ...
         waveform = audio.get_waveform(io.BytesIO(blob))
-        cache[cache_key] = waveform
+        external_data_cache[cache_key] = waveform
         return waveform
 
     def replace_cells(
@@ -322,93 +317,3 @@ def last_edited_by_column(row_count: int, value: str) -> Column:
         optional=False,
         values=np.array(row_count * [value]),
     )
-
-
-def read_external_value(
-    path_or_url: Optional[str],
-    column_type: Type[FileBasedColumnType],
-    target_format: Optional[str] = None,
-    workdir: PathType = ".",
-) -> Optional[np.void]:
-    """
-    Read a new external value and cache it or get it from the cache if already
-    cached.
-    """
-    if not path_or_url:
-        return None
-    cache_key = f"external:{path_or_url},{get_column_type_name(column_type)}"
-    if target_format is not None:
-        cache_key += f"/{target_format}"
-    try:
-        value = np.void(cache[cache_key])
-        return value
-    except KeyError:
-        ...
-
-    value = _decode_external_value(path_or_url, column_type, target_format, workdir)
-    cache[cache_key] = value.tolist()
-    return value
-
-
-def _decode_external_value(
-    path_or_url: PathOrUrlType,
-    column_type: Type[FileBasedColumnType],
-    target_format: Optional[str] = None,
-    workdir: PathType = ".",
-) -> np.void:
-    """
-    Decode an external value as expected by the rest of the backend.
-    """
-    # pylint: disable=too-many-return-statements
-    path_or_url = prepare_path_or_url(path_or_url, workdir)
-    if column_type is Audio:
-        file = audio.prepare_input_file(path_or_url, reusable=True)
-        # `file` is a filepath of type `str` or an URL downloaded as `io.BytesIO`.
-        input_format, input_codec = audio.get_format_codec(file)
-        if not isinstance(file, str):
-            file.seek(0)
-        if target_format is None:
-            # Try to send data as is.
-            if input_format in ("flac", "mp3", "wav") or input_codec in (
-                "aac",
-                "libvorbis",
-                "vorbis",
-            ):
-                # Format is directly supported by the browser.
-                if isinstance(file, str):
-                    with open(file, "rb") as f:
-                        return np.void(f.read())
-                return np.void(file.read())
-            # Convert all other formats/codecs to flac.
-            output_format, output_codec = "flac", "flac"
-        else:
-            output_format, output_codec = Audio.get_format_codec(target_format)
-        if output_format == input_format and output_codec == input_codec:
-            # Nothing to transcode
-            if isinstance(file, str):
-                with open(file, "rb") as f:
-                    return np.void(f.read())
-            return np.void(file.read())
-        buffer = io.BytesIO()
-        audio.transcode_audio(file, buffer, output_format, output_codec)
-        return np.void(buffer.getvalue())
-
-    if column_type is Image:
-        with as_file(path_or_url) as file:
-            kind = filetype.guess(file)
-            if kind is not None and kind.mime.split("/")[1] in (
-                "apng",
-                "avif",
-                "gif",
-                "jpeg",
-                "png",
-                "webp",
-                "bmp",
-                "x-icon",
-            ):
-                return np.void(file.read())
-            # `image/tiff`s become blank in frontend, so convert them too.
-            return Image.from_file(file).encode(target_format)
-
-    data_obj = column_type.from_file(path_or_url)
-    return data_obj.encode(target_format)
