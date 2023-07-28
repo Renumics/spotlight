@@ -131,6 +131,8 @@ class H5Dataset(Dataset):
                 value = self._resolve_ref(value, column_name)[()]
                 return value.tolist() if isinstance(value, np.void) else value
             return None
+        elif self._get_column_type(column.attrs) is Embedding and len(value) == 0:
+            return None
         return value
 
     def read_column(

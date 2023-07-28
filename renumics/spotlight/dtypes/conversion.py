@@ -55,6 +55,14 @@ class ConversionError(Exception):
     Type Conversion failed
     """
 
+class NoConverterAvailable(Exception):
+    """
+    No matching converter could be applied
+    """
+
+    def __init__(self, value: NormalizedValue, dtype: Type[ColumnType]) -> None:
+        msg = f"No Converter for {type(value)} -> {dtype}"
+        super().__init__(msg)
 
 N = TypeVar("N", bound=NormalizedValue)
 
@@ -72,19 +80,22 @@ def register_converter(
     from_type: Type[N],
     to_type: Type[ColumnType],
     converter: Converter[N],
-    simple: bool = False,
+    simple: Optional[bool] = None,
 ) -> None:
     """
     register a converter from NormalizedType to ColumnType
     """
-    if simple:
+    if simple is None:
+        _simple_converters_table[from_type][to_type].append(converter)  # type: ignore
+        _converters_table[from_type][to_type].append(converter)  # type: ignore
+    elif simple:
         _simple_converters_table[from_type][to_type].append(converter)  # type: ignore
     else:
         _converters_table[from_type][to_type].append(converter)  # type: ignore
 
 
 def convert(
-    from_type: Type[N], to_type: Type[ColumnType], simple: bool = False
+    from_type: Type[N], to_type: Type[ColumnType], simple: Optional[bool] = None
 ) -> Callable:
     """
     Decorator for simplified registration of converters
@@ -118,10 +129,7 @@ def convert_to_dtype(
     """
     # pylint: disable=too-many-return-statements, too-many-branches, too-many-statements
     registered_converters = (
-        (
-            _simple_converters_table[type(value)][dtype]
-            or _converters_table[type(value)][dtype]
-        )
+        _simple_converters_table[type(value)][dtype]
         if simple
         else _converters_table[type(value)][dtype]
     )
@@ -163,7 +171,8 @@ def convert_to_dtype(
 
     except (TypeError, ValueError) as e:
         raise ConversionError() from e
-    raise ConversionError()
+
+    raise NoConverterAvailable(value, dtype)
 
 
 @convert(datetime.datetime, datetime.datetime)
@@ -216,23 +225,23 @@ def _(value: np.ndarray) -> np.ndarray:
     return value.astype(np.float64)
 
 
-@convert(list, Embedding)
+@convert(list, Embedding, simple=False)
 def _(value: list) -> np.ndarray:
     return np.array(value, dtype=np.float64)
 
 
-@convert(np.ndarray, Embedding)
+@convert(np.ndarray, Embedding, simple=False)
 def _(value: np.ndarray) -> np.ndarray:
     return value.astype(np.float64)
 
 
-@convert(list, Sequence1D)
+@convert(list, Sequence1D, simple=False)
 @convert(np.ndarray, Sequence1D)
 def _(value: Union[np.ndarray, list], _: DTypeOptions) -> np.ndarray:
     return Sequence1D(value).encode()
 
 
-@convert(str, Image)
+@convert(str, Image, simple=False)
 def _(value: str) -> bytes:
     data = read_external_value(value, Image)
     if data is None:
@@ -240,54 +249,58 @@ def _(value: str) -> bytes:
     return data.tolist()
 
 
-@convert(bytes, Image)
-def _(value: bytes) -> bytes:
+@convert(bytes, Image, simple=False)
+@convert(np.bytes_, Image, simple=False)
+def _(value: Union[bytes, np.bytes_]) -> bytes:
     return Image.from_bytes(value).encode().tolist()
 
 
-@convert(np.ndarray, Image)
+@convert(np.ndarray, Image, simple=False)
 def _(value: np.ndarray) -> bytes:
     return Image(value).encode().tolist()
 
 
-@convert(str, Audio)
+@convert(str, Audio, simple=False)
 def _(value: str) -> bytes:
     if data := read_external_value(value, Audio):
         return data.tolist()
     raise ConversionError()
 
 
-@convert(bytes, Audio)
-def _(value: bytes) -> bytes:
+@convert(bytes, Audio, simple=False)
+@convert(np.bytes_, Audio, simple=False)
+def _(value: Union[bytes, np.bytes_]) -> bytes:
     return Audio.from_bytes(value).encode().tolist()
 
 
-@convert(str, Video)
+@convert(str, Video, simple=False)
 def _(value: str) -> bytes:
     if data := read_external_value(value, Video):
         return data.tolist()
     raise ConversionError()
 
 
-@convert(bytes, Video)
-def _(value: bytes) -> bytes:
+@convert(bytes, Video, simple=False)
+@convert(np.bytes_, Video, simple=False)
+def _(value: Union[bytes, np.bytes_]) -> bytes:
     return Video.from_bytes(value).encode().tolist()
 
 
-@convert(str, Mesh)
+@convert(str, Mesh, simple=False)
 def _(value: str) -> bytes:
     if data := read_external_value(value, Mesh):
         return data.tolist()
     raise ConversionError()
 
 
-@convert(bytes, Mesh)
-def _(value: bytes) -> bytes:
+@convert(bytes, Mesh, simple=False)
+@convert(np.bytes_, Mesh, simple=False)
+def _(value: Union[bytes, np.bytes_]) -> bytes:
     return value
 
 
 # this should not be necessary
-@convert(trimesh.Trimesh, Mesh)  # type: ignore
+@convert(trimesh.Trimesh, Mesh, simple=False)  # type: ignore
 def _(value: trimesh.Trimesh) -> bytes:
     return Mesh.from_trimesh(value).encode().tolist()
 
@@ -310,10 +323,14 @@ def _(value: str) -> str:
 
 
 @convert(bytes, Image, simple=True)
+@convert(np.bytes_, Image, simple=True)
 @convert(bytes, Audio, simple=True)
+@convert(np.bytes_, Audio, simple=True)
 @convert(bytes, Video, simple=True)
+@convert(np.bytes_, Video, simple=True)
 @convert(bytes, Mesh, simple=True)
-def _(_: bytes) -> str:
+@convert(np.bytes_, Mesh, simple=True)
+def _(_: Union[bytes, np.bytes_]) -> str:
     return "<bytes>"
 
 

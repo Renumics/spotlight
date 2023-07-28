@@ -49,6 +49,7 @@ def test_get_table_returns_http_ok(dataset_path: str) -> None:
     """
     viewer = spotlight.show(dataset_path, no_browser=True, wait=False)
     response = httpx.Client(base_url=viewer.url).get("/api/table/")
+    viewer.close()
     assert response.status_code == 200
 
 
@@ -64,4 +65,5 @@ def test_get_cell_returns_http_ok(dataset_path: str, col: str) -> None:
     response = httpx.Client(base_url=viewer.url).get(
         f"/api/table/{col}/0?generation_id={gen_id}"
     )
+    viewer.close()
     assert response.status_code == 200
