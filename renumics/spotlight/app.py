@@ -50,16 +50,10 @@ from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
-
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-
 from renumics.spotlight.app_config import AppConfig
-
 from renumics.spotlight.backend import create_datasource
-
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
-
-from renumics.spotlight_plugins.core.hdf5_data_source import Hdf5DataSource
 
 
 @dataclass

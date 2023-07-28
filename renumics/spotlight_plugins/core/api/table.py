@@ -135,12 +135,6 @@ def get_table(request: Request) -> ORJSONResponse:
     if not any(column.name == "__last_edited_by__" for column in columns):
         columns.append(last_edited_by_column(row_count, app.username))
 
-    # TODO:
-    # values = {
-    #   col: convert_to_dtype(datasource[col, :], dtype, simple=True, batch=True)
-    #   for col_name in app.dtypes
-    # }
-
     return ORJSONResponse(
         Table(
             uid=table.get_uid(),

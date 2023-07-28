@@ -131,7 +131,7 @@ class H5Dataset(Dataset):
                 value = self._resolve_ref(value, column_name)[()]
                 return value.tolist() if isinstance(value, np.void) else value
             return None
-        elif self._get_column_type(column.attrs) is Embedding and len(value) == 0:
+        if self._get_column_type(column.attrs) is Embedding and len(value) == 0:
             return None
         return value
 
@@ -157,10 +157,10 @@ class H5Dataset(Dataset):
         if self._is_ref_column(column):
             assert is_string_dtype, "Only new-style string h5 references supported."
             return [
-                    value.tolist() if isinstance(value, np.void) else value
-                    for value in self._resolve_refs(raw_values, column_name)
+                value.tolist() if isinstance(value, np.void) else value
+                for value in self._resolve_refs(raw_values, column_name)
             ]
-        elif self._get_column_type(column.attrs) is Embedding:
+        if self._get_column_type(column.attrs) is Embedding:
             return [None if len(x) == 0 else x for x in raw_values]
         return raw_values
 

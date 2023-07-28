@@ -27,7 +27,6 @@ from renumics.spotlight.cache import external_data_cache
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
 
 
-
 @dataclasses.dataclass
 class Attrs:
     """
@@ -318,6 +317,3 @@ def last_edited_by_column(row_count: int, value: str) -> Column:
         optional=False,
         values=np.array(row_count * [value]),
     )
-
-
-

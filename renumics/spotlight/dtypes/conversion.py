@@ -13,14 +13,11 @@ from filetype import filetype
 
 import numpy as np
 import trimesh
-
-from renumics.spotlight.typing import PathOrUrlType, PathType
-
-from renumics.spotlight.cache import external_data_cache
 import validators
 
+from renumics.spotlight.typing import PathOrUrlType, PathType
+from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.io import audio
-
 from renumics.spotlight.io.file import as_file
 
 from .typing import (
@@ -395,9 +392,10 @@ def prepare_path_or_url(path_or_url: PathOrUrlType, workdir: PathType) -> str:
     For an absolute path or an URL, do nothing.
     """
     path_or_url_str = str(path_or_url)
-    if validators.url(path_or_url_str): # type: ignore
+    if validators.url(path_or_url_str):  # type: ignore
         return path_or_url_str
     return os.path.join(workdir, path_or_url_str)
+
 
 def _decode_external_value(
     path_or_url: PathOrUrlType,

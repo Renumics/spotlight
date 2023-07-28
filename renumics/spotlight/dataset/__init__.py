@@ -713,10 +713,10 @@ class Dataset:
             )
 
         if index:
-            df = df.reset_index(level=df.index.names)
+            df = df.reset_index(level=df.index.names)  # type: ignore
         else:
             df = df.copy()
-        df.columns = stringify_columns(df)
+        df.columns = pd.Index(stringify_columns(df))
 
         inferred_dtype = infer_dtypes(df, dtype)
 
@@ -3126,7 +3126,7 @@ class Dataset:
                     return attrs["lookup_values"][index]
             try:
                 value = column_type.from_file(value)
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 return None
         if issubclass(column_type, (Embedding, Image, Sequence1D)):
             if not isinstance(value, column_type):
