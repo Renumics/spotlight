@@ -66,7 +66,7 @@ class PandasDataSource(DataSource):
         if is_pathtype(source):
             df = pd.read_csv(source)
         else:
-            df = source
+            df = cast(pd.DataFrame, source)
 
         if not df.columns.is_unique:
             raise DatasetColumnsNotUnique()

@@ -113,9 +113,7 @@ class H5Dataset(Dataset):
         """
         return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
 
-    def read_value(
-        self, column_name: str, index: IndexType
-    ) -> Optional[Union[np.generic, str, np.void, np.ndarray]]:
+    def read_value(self, column_name: str, index: IndexType) -> NormalizedValue:
         """
         Get a dataset value as it is stored in the H5 dataset, resolve references.
         """
@@ -293,17 +291,9 @@ class Hdf5DataSource(DataSource):
         # read raw value from h5 table
         with self._open_table() as dataset:
             try:
-                raw_value = dataset.read_value(column_name, row_index)
+                normalized_value = dataset.read_value(column_name, row_index)
             except IndexError as e:
                 raise NoRowFound(row_index) from e
-
-            # normalize raw value
-            if isinstance(raw_value, np.void):
-                normalized_value = raw_value.tolist()
-            else:
-                normalized_value = raw_value
-
-            normalized_value = cast(NormalizedValue, normalized_value)
 
             # convert normalized value to requested dtype
             if dtype is Category:

@@ -108,7 +108,7 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
         return str
 
     column_head = column.iloc[:10]
-    head_dtypes = column_head.apply(infer_value_dtype).to_list()
+    head_dtypes = column_head.apply(infer_value_dtype).to_list()  # type: ignore
     dtype_mode = statistics.mode(head_dtypes)
 
     if dtype_mode is None:
@@ -204,7 +204,7 @@ def infer_dtypes(
                 column_type = infer_dtype(df[column_index])
             except UnsupportedDType:
                 column_type = str
-            inferred_dtype[column_index] = column_type
+            inferred_dtype[str(column_index)] = column_type
     return inferred_dtype
 
 
@@ -226,7 +226,7 @@ def to_categorical(column: pd.Series, str_categories: bool = False) -> pd.Series
     Returns:
         categorical `pandas` column.
     """
-    column = column.mask(column.isna(), None).astype("category")
+    column = column.mask(column.isna(), None).astype("category")  # type: ignore
     if str_categories:
         return column.cat.rename_categories(column.cat.categories.astype(str))
     return column
@@ -272,7 +272,7 @@ def prepare_column(column: pd.Series, dtype: Type[ColumnType]) -> pd.Series:
 
     if dtype is str:
         # Allow `NA`s, convert all other elements to strings.
-        return column.astype(str).mask(column.isna(), None)
+        return column.astype(str).mask(column.isna(), None)  # type: ignore
 
     if is_scalar_column_type(dtype):
         # `dtype` is `bool`, `int` or `float`.
@@ -301,4 +301,4 @@ def prepare_column(column: pd.Series, dtype: Type[ColumnType]) -> pd.Series:
             dict_mask = column.map(type) == dict
             column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
 
-    return column.mask(na_mask, None)
+    return column.mask(na_mask, None)  # type: ignore

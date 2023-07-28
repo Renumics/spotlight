@@ -247,7 +247,7 @@ def _(value: np.ndarray) -> np.ndarray:
 
 
 @convert(list, Sequence1D, simple=False)
-@convert(np.ndarray, Sequence1D)
+@convert(np.ndarray, Sequence1D, simple=False)
 def _(value: Union[np.ndarray, list], _: DTypeOptions) -> np.ndarray:
     return Sequence1D(value).encode()
 

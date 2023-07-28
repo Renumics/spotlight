@@ -53,7 +53,7 @@ def get_aligned_data(
         elif column.type is Category:
             if column.categories:
                 classes = sorted(column.categories.values())
-                na_mask = ~np.isin(column.values, classes)
+                na_mask = ~np.isin(np.array(column.values), classes)
                 one_hot_values = preprocessing.label_binarize(
                     column.values, classes=sorted(column.categories.values())
                 ).astype(float)
@@ -62,7 +62,7 @@ def get_aligned_data(
             else:
                 values.append(np.full(len(column.values), np.nan))
         elif column.type in (int, bool, float):
-            values.append(column.values)
+            values.append(np.array(column.values))
         else:
             raise ColumnNotEmbeddable
 
