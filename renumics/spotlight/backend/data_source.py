@@ -5,7 +5,7 @@ import hashlib
 import io
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Type, Any, cast
+from typing import Optional, List, Dict, Type, Any, Union, cast
 
 import filetype
 import pandas as pd
@@ -29,6 +29,8 @@ from renumics.spotlight.dtypes.typing import (
 from renumics.spotlight.cache import Cache
 
 from renumics.spotlight.io.file import as_file
+
+from renumics.spotlight.dtypes.conversion import ConvertedValue, NormalizedValue
 from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
 
 cache = Cache("external-data")
@@ -64,7 +66,7 @@ class Column(Attrs):
     """
 
     name: str
-    values: np.ndarray
+    values: Union[np.ndarray, List[ConvertedValue]]
 
 
 @dataclass
