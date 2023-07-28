@@ -114,7 +114,7 @@ class H5Dataset(Dataset):
         return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
 
     def read_value(
-        self, column_name: str, index: IndexType, simple: bool = False
+        self, column_name: str, index: IndexType
     ) -> Optional[Union[np.generic, str, np.void, np.ndarray]]:
         """
         Get a dataset value as it is stored in the H5 dataset, resolve references.
