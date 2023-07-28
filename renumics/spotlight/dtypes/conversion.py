@@ -287,7 +287,7 @@ def _(value: bytes) -> bytes:
 
 
 # this should not be necessary
-@convert(trimesh.Trimesh, Mesh)
+@convert(trimesh.Trimesh, Mesh)  # type: ignore
 def _(value: trimesh.Trimesh) -> bytes:
     return Mesh.from_trimesh(value).encode().tolist()
 
@@ -297,7 +297,7 @@ def _(value: trimesh.Trimesh) -> bytes:
 @convert(list, Sequence1D, simple=True)
 @convert(np.ndarray, Sequence1D, simple=True)
 @convert(np.ndarray, Image, simple=True)
-def _(_value: Union[np.ndarray, list]) -> str:
+def _(_: Union[np.ndarray, list]) -> str:
     return "[...]"
 
 
@@ -313,11 +313,11 @@ def _(value: str) -> str:
 @convert(bytes, Audio, simple=True)
 @convert(bytes, Video, simple=True)
 @convert(bytes, Mesh, simple=True)
-def _(_value: bytes) -> str:
+def _(_: bytes) -> str:
     return "<bytes>"
 
 
 # this should not be necessary
-@convert(trimesh.Trimesh, Mesh, simple=True)
-def _(_value: trimesh.Trimesh) -> str:
+@convert(trimesh.Trimesh, Mesh, simple=True)  # type: ignore
+def _(_: trimesh.Trimesh) -> str:
     return "<object>"
