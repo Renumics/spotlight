@@ -173,7 +173,6 @@ def convert_to_dtype(
             if isinstance(value, np.ndarray):
                 return value
 
-        # TODO: normalize integer types in datasource?
         if dtype is Category and np.issubdtype(np.dtype(type(value)), np.integer):
             assert dtype_options.categories is not None
             value_int = int(value)  # type: ignore
