@@ -5,16 +5,28 @@ DType Conversion
 from collections import defaultdict
 from inspect import signature
 from dataclasses import dataclass
+import io
+import os
 from typing import Any, Callable, List, TypeVar, Union, Type, Optional, Dict
 import datetime
+from filetype import filetype
 
 import numpy as np
 import trimesh
 
-from renumics.spotlight.backend.data_source import read_external_value
+from renumics.spotlight.typing import PathOrUrlType, PathType
+
+from renumics.spotlight.cache import external_data_cache
+import validators
+
+from renumics.spotlight.io import audio
+
+from renumics.spotlight.io.file import as_file
+
 from .typing import (
     ColumnType,
     Category,
+    FileBasedColumnType,
     Window,
     Sequence1D,
     Embedding,
@@ -22,6 +34,7 @@ from .typing import (
     Audio,
     Video,
     Mesh,
+    get_column_type_name,
 )
 
 
@@ -55,6 +68,7 @@ class ConversionError(Exception):
     Type Conversion failed
     """
 
+
 class NoConverterAvailable(Exception):
     """
     No matching converter could be applied
@@ -63,6 +77,7 @@ class NoConverterAvailable(Exception):
     def __init__(self, value: NormalizedValue, dtype: Type[ColumnType]) -> None:
         msg = f"No Converter for {type(value)} -> {dtype}"
         super().__init__(msg)
+
 
 N = TypeVar("N", bound=NormalizedValue)
 
@@ -242,7 +257,8 @@ def _(value: Union[np.ndarray, list], _: DTypeOptions) -> np.ndarray:
 
 
 @convert(str, Image, simple=False)
-def _(value: str) -> bytes:
+@convert(np.str_, Image, simple=False)
+def _(value: Union[str, np.str_]) -> bytes:
     data = read_external_value(value, Image)
     if data is None:
         raise ConversionError()
@@ -261,7 +277,8 @@ def _(value: np.ndarray) -> bytes:
 
 
 @convert(str, Audio, simple=False)
-def _(value: str) -> bytes:
+@convert(np.str_, Audio, simple=False)
+def _(value: Union[str, np.str_]) -> bytes:
     if data := read_external_value(value, Audio):
         return data.tolist()
     raise ConversionError()
@@ -274,7 +291,8 @@ def _(value: Union[bytes, np.bytes_]) -> bytes:
 
 
 @convert(str, Video, simple=False)
-def _(value: str) -> bytes:
+@convert(np.str_, Video, simple=False)
+def _(value: Union[str, np.str_]) -> bytes:
     if data := read_external_value(value, Video):
         return data.tolist()
     raise ConversionError()
@@ -287,7 +305,8 @@ def _(value: Union[bytes, np.bytes_]) -> bytes:
 
 
 @convert(str, Mesh, simple=False)
-def _(value: str) -> bytes:
+@convert(np.str_, Mesh, simple=False)
+def _(value: Union[str, np.str_]) -> bytes:
     if data := read_external_value(value, Mesh):
         return data.tolist()
     raise ConversionError()
@@ -315,11 +334,15 @@ def _(_: Union[np.ndarray, list]) -> str:
 
 
 @convert(str, Image, simple=True)
+@convert(np.str_, Image, simple=True)
 @convert(str, Audio, simple=True)
+@convert(np.str_, Audio, simple=True)
 @convert(str, Video, simple=True)
+@convert(np.str_, Video, simple=True)
 @convert(str, Mesh, simple=True)
-def _(value: str) -> str:
-    return value
+@convert(np.str_, Mesh, simple=True)
+def _(value: Union[str, np.str_]) -> str:
+    return str(value)
 
 
 @convert(bytes, Image, simple=True)
@@ -338,3 +361,103 @@ def _(_: Union[bytes, np.bytes_]) -> str:
 @convert(trimesh.Trimesh, Mesh, simple=True)  # type: ignore
 def _(_: trimesh.Trimesh) -> str:
     return "<object>"
+
+
+def read_external_value(
+    path_or_url: Optional[str],
+    column_type: Type[FileBasedColumnType],
+    target_format: Optional[str] = None,
+    workdir: PathType = ".",
+) -> Optional[np.void]:
+    """
+    Read a new external value and cache it or get it from the cache if already
+    cached.
+    """
+    if not path_or_url:
+        return None
+    cache_key = f"external:{path_or_url},{get_column_type_name(column_type)}"
+    if target_format is not None:
+        cache_key += f"/{target_format}"
+    try:
+        value = np.void(external_data_cache[cache_key])
+        return value
+    except KeyError:
+        ...
+
+    value = _decode_external_value(path_or_url, column_type, target_format, workdir)
+    external_data_cache[cache_key] = value.tolist()
+    return value
+
+
+def prepare_path_or_url(path_or_url: PathOrUrlType, workdir: PathType) -> str:
+    """
+    For a relative path, prefix it with the `workdir`.
+    For an absolute path or an URL, do nothing.
+    """
+    path_or_url_str = str(path_or_url)
+    if validators.url(path_or_url_str): # type: ignore
+        return path_or_url_str
+    return os.path.join(workdir, path_or_url_str)
+
+def _decode_external_value(
+    path_or_url: PathOrUrlType,
+    column_type: Type[FileBasedColumnType],
+    target_format: Optional[str] = None,
+    workdir: PathType = ".",
+) -> np.void:
+    """
+    Decode an external value as expected by the rest of the backend.
+    """
+    # pylint: disable=too-many-return-statements
+    path_or_url = prepare_path_or_url(path_or_url, workdir)
+    if column_type is Audio:
+        file = audio.prepare_input_file(path_or_url, reusable=True)
+        # `file` is a filepath of type `str` or an URL downloaded as `io.BytesIO`.
+        input_format, input_codec = audio.get_format_codec(file)
+        if not isinstance(file, str):
+            file.seek(0)
+        if target_format is None:
+            # Try to send data as is.
+            if input_format in ("flac", "mp3", "wav") or input_codec in (
+                "aac",
+                "libvorbis",
+                "vorbis",
+            ):
+                # Format is directly supported by the browser.
+                if isinstance(file, str):
+                    with open(file, "rb") as f:
+                        return np.void(f.read())
+                return np.void(file.read())
+            # Convert all other formats/codecs to flac.
+            output_format, output_codec = "flac", "flac"
+        else:
+            output_format, output_codec = Audio.get_format_codec(target_format)
+        if output_format == input_format and output_codec == input_codec:
+            # Nothing to transcode
+            if isinstance(file, str):
+                with open(file, "rb") as f:
+                    return np.void(f.read())
+            return np.void(file.read())
+        buffer = io.BytesIO()
+        audio.transcode_audio(file, buffer, output_format, output_codec)
+        return np.void(buffer.getvalue())
+
+    if column_type is Image:
+        with as_file(path_or_url) as file:
+            kind = filetype.guess(file)
+            if kind is not None and kind.mime.split("/")[1] in (
+                "apng",
+                "avif",
+                "gif",
+                "jpeg",
+                "png",
+                "webp",
+                "bmp",
+                "x-icon",
+            ):
+                return np.void(file.read())
+            # `image/tiff`s become blank in frontend, so convert them too.
+            return Image.from_file(file).encode(target_format)
+
+    data_obj = column_type.from_file(path_or_url)
+    return data_obj.encode(target_format)

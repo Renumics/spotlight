@@ -326,14 +326,13 @@ class SpotlightApp(FastAPI):
 
         if config.dtypes is not None or config.dataset is not None:
             dtypes = self._guessed_dtypes.copy()
-            if not isinstance(self._data_source, Hdf5DataSource):
-                dtypes.update(
-                    {
-                        column_name: column_type
-                        for column_name, column_type in self._user_dtypes.items()
-                        if column_name in self._guessed_dtypes
-                    }
-                )
+            dtypes.update(
+                {
+                    column_name: column_type
+                    for column_name, column_type in self._user_dtypes.items()
+                    if column_name in self._guessed_dtypes
+                }
+            )
             self._dtypes = dtypes
             self._broadcast(RefreshMessage())
             self._update_issues()

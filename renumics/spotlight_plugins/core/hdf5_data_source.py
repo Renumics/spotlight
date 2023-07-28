@@ -122,7 +122,7 @@ class H5Dataset(Dataset):
         # pylint: disable=unused-argument
         self._assert_column_exists(column_name, internal=True)
         self._assert_index_exists(index)
-        column = self._h5_file[column_name]
+        column = cast(h5py.Dataset, self._h5_file[column_name])
         value = column[index]
         if isinstance(value, bytes):
             value = value.decode("utf-8")
@@ -137,13 +137,13 @@ class H5Dataset(Dataset):
 
     def read_column(
         self, column_name: str, indices: Optional[List[int]] = None
-    ) -> np.ndarray:
+    ) -> Union[list, np.ndarray]:
         """
         Get a decoded dataset column.
         """
         self._assert_column_exists(column_name, internal=True)
 
-        column = self._h5_file[column_name]
+        column = cast(h5py.Dataset, self._h5_file[column_name])
         is_string_dtype = h5py.check_string_dtype(column.dtype)
 
         raw_values: np.ndarray
@@ -156,16 +156,12 @@ class H5Dataset(Dataset):
 
         if self._is_ref_column(column):
             assert is_string_dtype, "Only new-style string h5 references supported."
-            raw_values = np.array(
-                [
+            return [
                     value.tolist() if isinstance(value, np.void) else value
                     for value in self._resolve_refs(raw_values, column_name)
-                ],
-                dtype=object
-            )
+            ]
         elif self._get_column_type(column.attrs) is Embedding:
-            none_mask = [len(x) == 0 for x in raw_values]
-            raw_values[none_mask] = np.array(None)
+            return [None if len(x) == 0 else x for x in raw_values]
         return raw_values
 
     def duplicate_row(self, from_index: IndexType, to_index: IndexType) -> None:
@@ -182,7 +178,7 @@ class H5Dataset(Dataset):
         if to_index != length:
             self._assert_index_exists(to_index)
         for column_name in self.keys() + INTERNAL_COLUMN_NAMES:
-            column = self._h5_file[column_name]
+            column = cast(h5py.Dataset, self._h5_file[column_name])
             column.resize(length + 1, axis=0)
             if to_index != length:
                 # Shift all values after the insertion position by one.
@@ -285,6 +281,7 @@ class Hdf5DataSource(DataSource):
             attrs, _, _ = _decode_attrs(
                 dataset._h5_file[column_name].attrs  # pylint: disable=protected-access
             )
+            attrs.type = dtype
         return Column(name=column_name, values=values, **asdict(attrs))
 
     def get_cell_data(

@@ -19,10 +19,13 @@ COLUMNS = {
     "str": (str, ["foobar", ""]),
     "datetime": (datetime.datetime, [datetime.datetime.min, np.datetime64("NaT")]),
     "categorical": (spotlight.Category, ["foo", "bar"]),
-    "array": (np.ndarray, [[[0]], [1,2,3]]),
+    "array": (np.ndarray, [[[0]], [1, 2, 3]]),
     "window": (spotlight.Window, [[0, 1], [-np.inf, np.nan]]),
-    "embedding": (spotlight.Embedding, [[1, 2, 3], [4,np.nan,5]]),
-    "sequence": (spotlight.Sequence1D, [[[1, 2, 3], [2, 3, 4]], [[1, 2, 3, 5], [2, 3, 4, 5]]]),
+    "embedding": (spotlight.Embedding, [[1, 2, 3], [4, np.nan, 5]]),
+    "sequence": (
+        spotlight.Sequence1D,
+        [[[1, 2, 3], [2, 3, 4]], [[1,2,3],[2,3,5]]],
+    ),
     "image": (spotlight.Image, [spotlight.Image.empty(), None]),
     "audio": (spotlight.Audio, [spotlight.Audio.empty(), None]),
     "video": (spotlight.Video, [spotlight.Video.empty(), None]),
@@ -39,7 +42,12 @@ def dataset_path() -> Iterator[str]:
     with tempfile.NamedTemporaryFile(suffix=".h5") as temp:
         with spotlight.Dataset(temp.name, "w") as ds:
             for col, (dtype, values) in COLUMNS.items():
-                ds.append_column(col, column_type=dtype, values=values, optional=dtype not in (int, bool))
+                ds.append_column(
+                    col,
+                    column_type=dtype,
+                    values=values,
+                    optional=dtype not in (int, bool),
+                )
         yield temp.name
 
 

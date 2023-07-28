@@ -66,6 +66,8 @@ from renumics.spotlight.dtypes.typing import (
     get_column_type_name,
     is_file_based_column_type,
 )
+
+from renumics.spotlight.dtypes.conversion import prepare_path_or_url
 from . import exceptions
 from .typing import (
     REF_COLUMN_TYPE_NAMES,
@@ -101,17 +103,6 @@ def get_current_datetime() -> datetime:
     Get current datetime with timezone.
     """
     return datetime.now().astimezone()
-
-
-def prepare_path_or_url(path_or_url: PathOrUrlType, workdir: PathType) -> str:
-    """
-    For a relative path, prefix it with the `workdir`.
-    For an absolute path or an URL, do nothing.
-    """
-    path_or_url_str = str(path_or_url)
-    if validators.url(path_or_url_str):
-        return path_or_url_str
-    return os.path.join(workdir, path_or_url_str)
 
 
 def escape_dataset_name(name: str) -> str:
@@ -3133,7 +3124,10 @@ class Dataset:
                 else:
                     # Return stored ref, do not process data again.
                     return attrs["lookup_values"][index]
-            value = column_type.from_file(value)
+            try:
+                value = column_type.from_file(value)
+            except Exception:
+                return None
         if issubclass(column_type, (Embedding, Image, Sequence1D)):
             if not isinstance(value, column_type):
                 value = column_type(value)  # type: ignore

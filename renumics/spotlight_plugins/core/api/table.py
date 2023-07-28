@@ -137,7 +137,7 @@ def get_table(request: Request) -> ORJSONResponse:
 
     # TODO:
     # values = {
-    #   col: convert_to_dtype(datasource[col, :], dtype, simple=True, batch=True) 
+    #   col: convert_to_dtype(datasource[col, :], dtype, simple=True, batch=True)
     #   for col_name in app.dtypes
     # }
 

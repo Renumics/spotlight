@@ -40,7 +40,6 @@ from renumics.spotlight.backend import datasource
 from renumics.spotlight.backend.data_source import (
     Column,
     DataSource,
-    read_external_value,
 )
 from renumics.spotlight.backend.exceptions import (
     ConversionFailed,
@@ -48,6 +47,8 @@ from renumics.spotlight.backend.exceptions import (
 )
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+
+from renumics.spotlight.dtypes.conversion import read_external_value
 
 
 @datasource(pd.DataFrame)
