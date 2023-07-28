@@ -160,7 +160,8 @@ class H5Dataset(Dataset):
                 [
                     value.tolist() if isinstance(value, np.void) else value
                     for value in self._resolve_refs(raw_values, column_name)
-                ]
+                ],
+                dtype=object
             )
         elif self._get_column_type(column.attrs) is Embedding:
             none_mask = [len(x) == 0 for x in raw_values]
@@ -284,7 +285,7 @@ class Hdf5DataSource(DataSource):
             attrs, _, _ = _decode_attrs(
                 dataset._h5_file[column_name].attrs  # pylint: disable=protected-access
             )
-        return Column(name=column_name, values=np.array(values), **asdict(attrs))
+        return Column(name=column_name, values=values, **asdict(attrs))
 
     def get_cell_data(
         self, column_name: str, row_index: int, dtype: Type[ColumnType]
