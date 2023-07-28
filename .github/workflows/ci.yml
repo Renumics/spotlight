@@ -428,7 +428,7 @@ jobs:
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
             - name: Execute unit-test
               if: success() || steps.setup.outcome == 'success'
-              run: poetry run pytest tests
+              run: pytest tests
     # Release stage
     release:
         name: '🚀 Release Spotlight'
