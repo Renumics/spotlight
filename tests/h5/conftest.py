@@ -2,6 +2,7 @@
 Pytest Fixtures for h5 tests
 """
 
+import os.path
 import tempfile
 from typing import Iterator
 
@@ -17,8 +18,9 @@ def dataset_path() -> Iterator[str]:
     H5 Dataset for tests
     """
 
-    with tempfile.NamedTemporaryFile(suffix=".h5") as temp:
-        with spotlight.Dataset(temp.name, "w") as dataset:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dataset = os.path.join(temp_dir, "dataset.h5")
+        with spotlight.Dataset(temp_dataset, "w") as dataset:
             for col, (dtype, values) in COLUMNS.items():
                 dataset.append_column(
                     col,
@@ -26,4 +28,4 @@ def dataset_path() -> Iterator[str]:
                     values=values,
                     optional=dtype not in (int, bool),
                 )
-        yield temp.name
+        yield temp_dataset
