@@ -201,6 +201,7 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
         Path("./data/images/nature-360p.jpg").read_bytes(),
         np.array(PIL.Image.new(mode="RGBA", size=(1, 1))),
     ],
+    ids=["path", "bytes", "array"],
 )
 def test_conversion_to_image(value: Union[str, bytes]) -> None:
     """
@@ -217,6 +218,7 @@ def test_conversion_to_image(value: Union[str, bytes]) -> None:
         "./data/audio/1.wav",
         Path("./data/audio/1.wav").read_bytes(),
     ],
+    ids=["path", "bytes"],
 )
 def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     """
@@ -280,6 +282,27 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
         (dtypes.Image, Path("./data/images/nature-360p.jpg").read_bytes(), "<bytes>"),
         (dtypes.Audio, Path("./data/audio/1.wav").read_bytes(), "<bytes>"),
         (dtypes.Video, Path("./data/videos/sea-360p.ogg").read_bytes(), "<bytes>"),
+    ],
+    ids=[
+        "bool",
+        "int",
+        "float",
+        "string",
+        "long-string",
+        "datetime",
+        "array",
+        "array-list",
+        "array-empty",
+        "embedding",
+        "sequence",
+        "image-array",
+        "image-path",
+        "audio-path",
+        "video-path",
+        "mesh-path",
+        "image-bytes",
+        "audio-bytes",
+        "video-bytes",
     ],
 )
 def test_simple_conversion(dtype: Type[ColumnType], value: Any, target_value: Any):
