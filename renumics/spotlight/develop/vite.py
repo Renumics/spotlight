@@ -59,7 +59,6 @@ class Vite:
         """
         Launch vite on random port.
         """
-        # pylint: disable=consider-using-with
 
         if self.port:
             return self.port

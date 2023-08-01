@@ -117,7 +117,7 @@ class H5Dataset(Dataset):
         """
         Get a dataset value as it is stored in the H5 dataset, resolve references.
         """
-        # pylint: disable=unused-argument
+
         self._assert_column_exists(column_name, internal=True)
         self._assert_index_exists(index)
         column = cast(h5py.Dataset, self._h5_file[column_name])
@@ -218,7 +218,6 @@ class Hdf5DataSource(DataSource):
     """
 
     def __init__(self, source: PathType):
-        # pylint: disable=unused-argument
         self._table_file = Path(source)
 
     @property
@@ -276,9 +275,7 @@ class Hdf5DataSource(DataSource):
                     convert_to_dtype(value, dtype, simple=simple)
                     for value in normalized_values
                 ]
-            attrs, _, _ = _decode_attrs(
-                dataset._h5_file[column_name].attrs  # pylint: disable=protected-access
-            )
+            attrs, _, _ = _decode_attrs(dataset._h5_file[column_name].attrs)
             attrs.type = dtype
         return Column(name=column_name, values=values, **asdict(attrs))
 

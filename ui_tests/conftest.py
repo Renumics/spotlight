@@ -14,7 +14,7 @@ from ui_tests.generate_ui_test_elements import generate_ui_test_elements_py
 
 
 def pytest_sessionstart(
-    session: pytest.Session,  # pylint: disable=(unused-argument)
+    session: pytest.Session,
 ) -> None:
     """
     Called after the Session object has been created and
@@ -70,7 +70,7 @@ def global_results_folder(pytestconfig) -> None:  # type: ignore
 
 @pytest.fixture
 def skip_tour(
-    backend_base_url: str,  # pylint: disable=redefined-outer-name
+    backend_base_url: str,
 ) -> Generator[None, None, None]:
     """skip the spotlight tour by setting didRun in localforage"""
     requests.put(
@@ -122,7 +122,7 @@ def spotlight_version() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def store_results_bag(
-    results_bag: Dict[str, Any],  # pylint: disable=redefined-outer-name
+    results_bag: Dict[str, Any],
     pytestconfig: Any,
 ) -> Generator:
     """Store test results"""

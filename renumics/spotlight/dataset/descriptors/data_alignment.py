@@ -6,7 +6,7 @@ from typing import Tuple
 
 import numpy as np
 from scipy import interpolate, signal
-from skimage.color import rgba2rgb, rgb2gray  # pylint: disable=no-name-in-module
+from skimage.color import rgba2rgb, rgb2gray
 from skimage.transform import resize_local_mean
 
 from renumics.spotlight import (
@@ -24,7 +24,7 @@ def align_audio_data(dataset: Dataset, column: str) -> Tuple[np.ndarray, np.ndar
     """
     Align data from an audio column.
     """
-    # pylint: disable=too-many-locals
+
     column_type = dataset.get_column_type(column)
     if column_type is not Audio:
         raise exceptions.InvalidDTypeError(

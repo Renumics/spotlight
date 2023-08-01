@@ -114,7 +114,6 @@ class Sequence1D(DType):
         value: Optional[Array1dLike] = None,
         dtype: Optional[Union[str, np.dtype]] = None,
     ) -> None:
-        # pylint: disable=too-many-branches
         if value is None:
             if index is None:
                 raise ValueError(
@@ -221,8 +220,6 @@ class Mesh(FileBasedDType):
          [2 3 0]]
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     _points: np.ndarray
     _triangles: np.ndarray
     _point_attributes: Dict[str, np.ndarray]
@@ -240,7 +237,6 @@ class Mesh(FileBasedDType):
         triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
         point_displacements: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
     ):
-        # pylint: disable=too-many-arguments
         self._point_attributes = {}
         self._point_displacements = []
         self._set_points_triangles(points, triangles)
@@ -930,7 +926,7 @@ class Video(FileBasedDType):
 
 
 class Window:
-    # pylint: disable=too-few-public-methods
+
     """
     A pair of two timestamps in seconds which can be later projected onto
     continuous data (only :class:`Audio <renumics.spotlight.dtypes.Audio>`

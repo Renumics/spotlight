@@ -30,7 +30,7 @@ def _get_node() -> str:
     """
     try:
         return machineid.hashed_id("spotlight")
-    except Exception:  # pylint: disable=broad-exception-caught
+    except Exception:
         logger.debug("Unable to obtain machine ID")
         return "UNKNOWN"
 
@@ -74,7 +74,7 @@ def _get_python_runtime() -> str:
                 python_runtime += "huggingface"
         except NameError:
             pass
-    # pylint: disable-next=broad-exception-caught
+
     except Exception as e:
         python_runtime = "error get_python_runtime_" + python_runtime + "_" + str(e)
         logger.warning("could not determine python runtime", python_runtime)

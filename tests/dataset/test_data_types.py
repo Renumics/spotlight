@@ -381,7 +381,7 @@ class TestAudio:
         """
         Test audio creation and lossless saving.
         """
-        # pylint: disable=too-many-arguments
+
         time = np.linspace(0.0, length, round(sampling_rate * length))
         y = 0.4 * np.sin(2.0 * np.pi * 100 * time)
         if dtype.startswith("f"):

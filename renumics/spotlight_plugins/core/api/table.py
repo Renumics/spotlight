@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
 from renumics.spotlight.backend.data_source import (
     Column as DatasetColumn,
@@ -42,8 +42,6 @@ class Column(BaseModel):
     """
     a single table column
     """
-
-    # pylint: disable=too-few-public-methods
 
     name: str
     index: Optional[int]
@@ -84,7 +82,6 @@ class Column(BaseModel):
         )
 
 
-# pylint: disable=too-few-public-methods
 class Table(BaseModel):
     """
     a table slice

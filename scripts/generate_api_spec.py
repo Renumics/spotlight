@@ -33,5 +33,4 @@ def generate_api_spec(output_path: str) -> None:
 
 
 if __name__ == "__main__":
-    # pylint: disable=no-value-for-parameter
     generate_api_spec()  # type: ignore

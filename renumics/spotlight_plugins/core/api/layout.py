@@ -6,7 +6,7 @@ from typing import Dict, Optional, Union
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Request, Cookie
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
 from renumics.spotlight.app import SpotlightApp
 
@@ -56,8 +56,6 @@ class SetLayoutRequest(BaseModel):
     """
     Set layout request model.
     """
-
-    # pylint: disable=too-few-public-methods
 
     layout: Dict
 

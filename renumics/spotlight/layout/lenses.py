@@ -7,7 +7,7 @@ For usage examples, see `renumics.spotlighth.layout.inspector`.
 import uuid
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, Field  # pylint: disable=no-name-in-module
+from pydantic import BaseModel, Field
 
 
 class Lens(BaseModel, allow_population_by_field_name=True):
@@ -34,7 +34,6 @@ class Lens(BaseModel, allow_population_by_field_name=True):
             single column of type `spotlight.Window`
     """
 
-    # pylint: disable=too-few-public-methods
     type: str = Field(..., alias="view")
     columns: List[str] = Field(..., alias="columns")
     name: Optional[str] = Field(None, alias="name")

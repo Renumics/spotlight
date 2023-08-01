@@ -115,7 +115,7 @@ def test_delitem(fancy_indexing_dataset: Dataset) -> None:
     """
     Test `spotlight.Dataset.__delitem__` with fancy indices.
     """
-    # pylint: disable=too-many-statements
+
     length = len(fancy_indexing_dataset)
     column_name = fancy_indexing_dataset.keys()[0]
     column_type = fancy_indexing_dataset.get_column_type(column_name)
@@ -238,14 +238,10 @@ def test_setitem(fancy_indexing_dataset: Dataset) -> None:
     """
     Test `spotlight.Dataset.__setitem__` with fancy indices.
     """
-    # pylint: disable=too-many-statements, too-many-locals
+
     length = len(fancy_indexing_dataset)
     column_name = fancy_indexing_dataset.keys()[0]
-    last_edited_at_column = (
-        fancy_indexing_dataset._h5_file[  # pylint: disable=protected-access
-            "__last_edited_at__"
-        ]
-    )
+    last_edited_at_column = fancy_indexing_dataset._h5_file["__last_edited_at__"]
     timestamp = _assert_unique_datetime(last_edited_at_column[:])
 
     good_indices: List[Any] = [slice(None, None, None), []]

@@ -116,7 +116,6 @@ def main(
     """
     Parse CLI arguments and launch Renumics Spotlight.
     """
-    # pylint: disable=too-many-arguments
 
     if verbose:
         logging.enable()

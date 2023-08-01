@@ -86,7 +86,6 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
     Reises:
         ValueError: If dtype cannot be inferred automatically.
     """
-    # pylint: disable=too-many-return-statements
 
     if pd.api.types.is_bool_dtype(column) and not column.hasnans:
         return bool
@@ -147,7 +146,6 @@ def infer_value_dtype(value: Any) -> Optional[Type[ColumnType]]:
     """
     Infer dtype for value
     """
-    # pylint: disable=too-many-return-statements, too-many-branches
 
     if isinstance(value, DType):
         return type(value)

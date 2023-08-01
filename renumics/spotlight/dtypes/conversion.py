@@ -139,7 +139,7 @@ def convert_to_dtype(
     """
     Convert normalized type from data source to internal Spotlight DType
     """
-    # pylint: disable=too-many-return-statements, too-many-branches, too-many-statements
+
     registered_converters = (
         _simple_converters_table[type(value)][dtype]
         if simple
@@ -405,7 +405,7 @@ def _decode_external_value(
     """
     Decode an external value as expected by the rest of the backend.
     """
-    # pylint: disable=too-many-return-statements
+
     path_or_url = prepare_path_or_url(path_or_url, workdir)
     if column_type is Audio:
         file = audio.prepare_input_file(path_or_url, reusable=True)

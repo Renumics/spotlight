@@ -124,5 +124,4 @@ def generate_test_csv(output_folder: str, num_rows: int, seed: int) -> None:
 
 
 if __name__ == "__main__":
-    # pylint: disable=no-value-for-parameter
     generate_test_csv()  # type: ignore
