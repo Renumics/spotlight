@@ -126,11 +126,11 @@ ui-test: ui-test-chrome ui-test-firefox
 
 .PHONY: .ui-test-chrome
 .ui-test-chrome:
-	poetry run pytest -s --durations=3 --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} ui_tests/
+	poetry run pytest --durations=3 -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} tests/ui
 
 .PHONY: .ui-test-firefox
 .ui-test-firefox:
-	poetry run pytest -s -m --durations=3 "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox ui_tests/
+	poetry run pytest --durations=3 -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox tests/ui
 
 .PHONY: ui-test-%
 ui-test-%:
@@ -143,7 +143,7 @@ ui-test-%:
 	poetry run spotlight --host 127.0.0.1 --port $$PORT --no-browser . &
 	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	export FRONTEND_BASE_URL="http://127.0.0.1:$${PORT}"
-	wget -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
+	wget -q -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
 	sleep 1
 	$(MAKE) .$@
 
@@ -157,7 +157,7 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 	PORT="5005"
 	spotlight --host 127.0.0.1 --port $$PORT --no-browser data/tables/tallymarks-small.h5 &
 	URL="http://127.0.0.1:$${PORT}"
-	wget -t20 -w0.5 --retry-connrefused --delete-after $$URL
+	wget -q -t20 -w0.5 --retry-connrefused --delete-after $$URL
 	sleep 0.5
 	GENERATION_ID=$$(wget -qO- "$${URL}/api/table/" | jq ".generation_id")
 	wget --delete-after "$${URL}/api/table/number/42?generation_id=$${GENERATION_ID}"
