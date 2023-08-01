@@ -52,7 +52,7 @@ def triangulate(
     Triangulate quadrangles and respective attributes and append them to the
     given triangles/attributes.
     """
-    # pylint: disable=too-many-branches
+
     attrs = {}
     if triangles is None:
         trias = np.empty((0, 3), np.uint32)

@@ -46,7 +46,7 @@ def get_append_column_fn_name(column_type: Type[ColumnType]) -> str:
     """
     Get name of the `append_column` dataset method for the given column type.
     """
-    # pylint: disable=too-many-return-statements,too-many-branches
+
     if column_type is bool:
         return "append_bool_column"
     if column_type is int:
@@ -623,7 +623,7 @@ def descriptors_dataset() -> Dataset:
     """
     builds descriptor testing dataset
     """
-    # pylint: disable=too-many-locals
+
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as data:
@@ -716,8 +716,7 @@ def approx(
     """
     Check whether expected and actual dataset values are almost equal.
     """
-    # pylint: disable=too-many-return-statements
-    # pylint: disable=too-many-branches
+
     if expected is None and actual is None:
         return True
     if issubclass(type_, (bool, int, float, str)):

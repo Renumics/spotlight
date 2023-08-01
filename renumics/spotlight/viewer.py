@@ -86,8 +86,6 @@ class Viewer:
         port: port at which Spotlight is running
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _server: Optional[Server]
@@ -132,7 +130,6 @@ class Viewer:
             analyze: Automatically analyze common dataset issues (disabled by default).
             issues: Custom dataset issues displayed in the viewer.
         """
-        # pylint: disable=too-many-branches,too-many-arguments, too-many-locals
 
         dataset: Union[pd.DataFrame, Path, None]
         if is_pathtype(dataset_or_folder):
@@ -278,7 +275,6 @@ class Viewer:
         if not self._server:
             return
 
-        # pylint: disable=undefined-variable
         if get_ipython().__class__.__name__ == "ZMQInteractiveShell":  # type: ignore # noqa: F821
             # in notebooks display a rich html widget
 
@@ -318,7 +314,6 @@ def viewers() -> List[Viewer]:
     return list(_VIEWERS)
 
 
-# pylint: disable=too-many-arguments
 def show(
     dataset_or_folder: Optional[Union[str, os.PathLike, pd.DataFrame]] = None,
     host: str = "127.0.0.1",

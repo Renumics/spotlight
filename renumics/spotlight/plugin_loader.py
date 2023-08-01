@@ -32,7 +32,6 @@ class Plugin:
     frontend_entrypoint: Optional[Path]
 
 
-# pylint: disable=global-statement
 _plugins: Optional[List[Plugin]] = None
 
 

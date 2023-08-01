@@ -17,7 +17,7 @@ def test_prune(
     """
     Test prune on a fresh created dataset.
     """
-    # pylint: disable=too-many-locals
+
     data = simple_data + complex_data
     length = len(complex_data[0].values)
     output_h5_file = tmp_path / "dataset.h5"
@@ -46,7 +46,7 @@ def test_prune(
     assert filled_size > 2500000
 
     with spotlight.Dataset(output_h5_file, "a") as dataset:
-        for column_name in dataset.keys():  # pylint: disable=consider-using-dict-items
+        for column_name in dataset.keys():
             del dataset[column_name]
     cleaned_size = os.path.getsize(output_h5_file)
     assert cleaned_size <= filled_size

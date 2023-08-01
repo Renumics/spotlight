@@ -43,8 +43,8 @@ def generate_tallymarks_dataset_ultra(
 
     digits: sklearn.utils.Bunch = datasets.load_digits()
 
-    digits_data = digits.data  # pylint:disable=no-member
-    digits_target = digits.target  # pylint:disable=no-member
+    digits_data = digits.data
+    digits_target = digits.target
     if N_ROWS > len(digits_data):
         digits_data = np.pad(
             digits_data, [(0, N_ROWS - len(digits_data)), (0, 0)], mode="wrap"
@@ -77,5 +77,4 @@ def generate_tallymarks_dataset_ultra(
 
 
 if __name__ == "__main__":
-    # pylint: disable=no-value-for-parameter
     generate_tallymarks_dataset_ultra()  # type: ignore

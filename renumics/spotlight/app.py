@@ -71,8 +71,6 @@ class SpotlightApp(FastAPI):
     Spotlight wsgi application
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     # lifecycle
     _startup_complete: bool
 
@@ -104,7 +102,6 @@ class SpotlightApp(FastAPI):
     analyze_issues: bool = True
 
     def __init__(self) -> None:
-        # pylint: disable=too-many-statements
         super().__init__()
         self._startup_complete = False
         self.task_manager = TaskManager()
@@ -223,7 +220,7 @@ class SpotlightApp(FastAPI):
             url = URL(path=request.url.path, query=request.url.query.encode("utf-8"))
 
             # URL-encoding is not accepted by vite. Use unencoded path instead.
-            # pylint: disable-next=protected-access
+
             url._uri_reference = url._uri_reference._replace(path=request.url.path)
 
             body = await request.body()
@@ -409,7 +406,6 @@ class SpotlightApp(FastAPI):
         """
         Update issues and notify client about.
         """
-        # pylint: disable=global-statement
 
         if not self.analyze_issues:
             self.issues = []

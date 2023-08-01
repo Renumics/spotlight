@@ -32,8 +32,6 @@ class Server:
     Local proxy object for the spotlight server process
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     _host: str
     _port: int
     _requested_port: int
@@ -153,7 +151,7 @@ class Server:
             command.append("--reload")
 
         # start uvicorn
-        # pylint: disable=consider-using-with
+
         self.process = subprocess.Popen(
             command,
             env=env,
@@ -183,15 +181,11 @@ class Server:
             self.process.wait(3)
         except subprocess.TimeoutExpired:
             if platform.system() == "Windows":
-                self.process.send_signal(
-                    signal.CTRL_C_EVENT  # type: ignore # pylint: disable=no-member
-                )
+                self.process.send_signal(signal.CTRL_C_EVENT)  # type: ignore
                 try:
                     self.process.wait(1)
                 except subprocess.TimeoutExpired:
-                    self.process.send_signal(
-                        signal.CTRL_BREAK_EVENT  # type: ignore # pylint: disable=no-member
-                    )
+                    self.process.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore
             else:
                 self.process.kill()
         self.process.wait(1)

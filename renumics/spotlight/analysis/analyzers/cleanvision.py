@@ -108,7 +108,6 @@ def analyze_with_cleanvision(
     """
     find image issues using cleanvision
     """
-    # pylint: disable=too-many-locals
 
     image_columns = [col for col, dtype in dtypes.items() if dtype == Image]
 

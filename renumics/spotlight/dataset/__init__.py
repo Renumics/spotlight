@@ -1,7 +1,7 @@
 """
 This module provides Spotlight dataset.
 """
-# pylint: disable=too-many-lines
+
 import os
 import shutil
 import uuid
@@ -183,7 +183,7 @@ def _check_valid_array(
 
 
 class Dataset:
-    # pylint: disable=too-many-public-methods
+
     """
     Spotlight dataset.
     """
@@ -491,7 +491,7 @@ class Dataset:
             inf
             -5.0
         """
-        # pylint: disable=too-many-branches
+
         self._assert_is_writable()
         if is_integer(item):
             self._assert_index_exists(item)
@@ -758,7 +758,7 @@ class Dataset:
                     optional=column_type not in (bool, int),
                     **attrs,
                 )
-            except Exception as e:  # pylint: disable=broad-except
+            except Exception as e:
                 if column_name in (dtype or {}):
                     raise e
                 logger.warning(
@@ -849,7 +849,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         editable: bool = True,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a boolean column.
 
@@ -903,7 +902,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         editable: bool = True,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill an integer column.
 
@@ -953,7 +951,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         editable: bool = True,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a float column.
 
@@ -1002,7 +999,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         editable: bool = True,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a float column.
 
@@ -1052,7 +1048,6 @@ class Dataset:
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a datetime column.
 
@@ -1105,7 +1100,6 @@ class Dataset:
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a numpy array column.
 
@@ -1161,7 +1155,6 @@ class Dataset:
         editable: bool = True,
         categories: Optional[Union[Iterable[str], Dict[str, int]]] = None,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a categorical column.
 
@@ -1213,7 +1206,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         dtype: Union[str, np.dtype] = "float32",
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a mesh column.
 
@@ -1268,7 +1260,6 @@ class Dataset:
         x_label: Optional[str] = None,
         y_label: Optional[str] = None,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a 1d-sequence column.
 
@@ -1327,7 +1318,6 @@ class Dataset:
         ] = None,
         external: bool = False,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill a mesh column.
 
@@ -1389,7 +1379,6 @@ class Dataset:
         ] = None,
         external: bool = False,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill an image column.
 
@@ -1454,7 +1443,6 @@ class Dataset:
         external: bool = False,
         lossy: Optional[bool] = None,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill an audio column.
 
@@ -1528,7 +1516,6 @@ class Dataset:
         ] = None,
         external: bool = False,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill an video column.
 
@@ -1584,7 +1571,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         editable: bool = True,
     ) -> None:
-        # pylint: disable=too-many-arguments
         """
         Create and optionally fill window column.
 
@@ -1671,7 +1657,7 @@ class Dataset:
             [ True  True  True  True  True]
             [1. 1. 1. 1. 1.]
         """
-        # pylint: disable=too-many-arguments, too-many-branches
+
         if column_type is bool:
             append_column_fn: Callable = self.append_bool_column
         elif column_type is int:
@@ -1842,7 +1828,7 @@ class Dataset:
         for columns of type `bool`, `int` and `string` always has only `False` values.
         A `Window` is mapped on `True` only if both start and end are `NaN`.
         """
-        # pylint: disable=too-many-return-statements
+
         self._assert_is_opened()
         self._assert_column_exists(column_name, internal=True)
         column = self._h5_file[column_name]
@@ -1896,7 +1882,7 @@ class Dataset:
         This method can be useful after column deletions, in order to decrease
         the dataset file size.
         """
-        # pylint: disable=too-many-nested-blocks, too-many-branches
+
         self._assert_is_opened()
         column_names = self._column_names
         # Internal columns could be not appended yet, then do not copy them.
@@ -2197,8 +2183,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         **attrs: Any,
     ) -> None:
-        # pylint: disable=too-many-arguments, too-many-locals
-        # pylint: disable=too-many-branches, too-many-statements
         """
         Set attributes of a column.
 
@@ -2440,7 +2424,6 @@ class Dataset:
         tags: Optional[List[str]] = None,
         **attrs: Any,
     ) -> None:
-        # pylint: disable=too-many-arguments, too-many-locals
         self._assert_is_writable()
         self.check_column_name(name)
         self._assert_column_not_exists(name)
@@ -2505,7 +2488,6 @@ class Dataset:
         indices: Union[None, slice, List[Union[int, bool]], np.ndarray] = None,
         preserve_values: bool = False,
     ) -> None:
-        # pylint: disable=too-many-branches, too-many-statements
         column_name = self._get_column_name(column)
         row_wise_filling_message = (
             f"Dataset has initialized, but unfilled columns and should be "
@@ -2810,7 +2792,6 @@ class Dataset:
     def _encode_simple_values(
         self, values: Iterable[SimpleColumnInputType], column: h5py.Dataset
     ) -> np.ndarray:
-        # pylint: disable=too-many-branches, too-many-return-statements
         column_type = cast(Type[SimpleColumnType], self._get_column_type(column))
         if column_type is Category:
             mapping = dict(
@@ -3098,7 +3079,7 @@ class Dataset:
 
         Value *cannot* be `None` already.
         """
-        # pylint: disable=too-many-branches
+
         attrs = column.attrs
         key: Optional[str] = None
         lookup_keys: List[str] = []
@@ -3126,7 +3107,7 @@ class Dataset:
                     return attrs["lookup_values"][index]
             try:
                 value = column_type.from_file(value)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception:
                 return None
         if issubclass(column_type, (Embedding, Image, Sequence1D)):
             if not isinstance(value, column_type):
@@ -3156,7 +3137,7 @@ class Dataset:
             self._write_lookup(
                 attrs,
                 lookup_keys + [key],
-                np.concatenate(  # pylint: disable=unexpected-keyword-arg
+                np.concatenate(
                     (attrs["lookup_values"], [ref]),
                     dtype=column.dtype,
                 ),
@@ -3207,7 +3188,7 @@ class Dataset:
             self._write_lookup(
                 attrs,
                 lookup_keys + [value],
-                np.concatenate(  # pylint: disable=unexpected-keyword-arg
+                np.concatenate(
                     (attrs["lookup_values"], [value]),
                     dtype=column.dtype,
                 ),
@@ -3254,7 +3235,6 @@ class Dataset:
         column: h5py.Dataset,
         column_type: Type[SimpleColumnType],
     ) -> Optional[Union[bool, int, float, str, datetime, np.ndarray]]:
-        # pylint: disable=too-many-return-statements
         if column_type is Window:
             value = cast(np.ndarray, value)
             return value
@@ -3313,7 +3293,7 @@ class Dataset:
         file = prepare_path_or_url(value, os.path.dirname(self._filepath))
         try:
             return column_type.from_file(file)
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             # No matter what happens, we should not crash, but warn instead.
             logger.warning(
                 f"File or URL {value} either does not exist or could not be "

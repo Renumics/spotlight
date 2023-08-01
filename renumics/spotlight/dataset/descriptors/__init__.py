@@ -25,7 +25,7 @@ def pca(
     Generate PCA embeddings for the given column of a dataset and
     optionally write them back into dataset.
     """
-    # pylint: disable=too-many-arguments
+
     embedding_column_name = f"{column}-{suffix}"
     if inplace and not overwrite and embedding_column_name in dataset.keys():
         raise ColumnExistsError(
@@ -74,7 +74,7 @@ def catch22(
     Generate Catch22 embeddings for the given column of a dataset and
     optionally write them back into dataset.
     """
-    # pylint: disable=too-many-arguments, too-many-branches
+
     if suffix is None:
         suffix = "catch24" if catch24 else "catch22"
     column_type = dataset.get_column_type(column)

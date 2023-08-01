@@ -41,12 +41,10 @@ def generate_tallymarks_dataset(
         - An embedding of the image (d=3)
         - Other values for primitive data_types
     """
-    # pylint: disable=too-many-locals,too-many-statements
 
     number_of_images = 50
     digits: sklearn.utils.Bunch = datasets.load_digits()
 
-    # pylint:disable=no-member
     coords = PCA(n_components=12).fit_transform(digits.data)
     encoded = [Embedding(coord) for coord in coords]
 
@@ -286,5 +284,4 @@ def _image(digits_image: np.ndarray, label: Optional[int] = None) -> Image:
 
 
 if __name__ == "__main__":
-    # pylint: disable=no-value-for-parameter
     generate_tallymarks_dataset()  # type: ignore

@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
 
-from pydantic import (  # pylint: disable=no-name-in-module
+from pydantic import (
     HttpUrl,
     ValidationError,
     parse_obj_as,
@@ -139,7 +139,7 @@ def histogram(
     """
     Add configured histogram to Spotlight layout.
     """
-    # pylint: disable=redefined-builtin
+
     return Histogram(
         name=name,
         config=HistogramConfig(
@@ -215,7 +215,7 @@ def scatterplot(
     """
     Add configured scatter plot to Spotlight layout.
     """
-    # pylint: disable=too-many-arguments,redefined-builtin
+
     return Scatterplot(
         name=name,
         config=ScatterplotConfig(
@@ -245,7 +245,6 @@ def similaritymap(
     size_by_column: Optional[str] = None,
     filter: bool = False,
 ) -> Similaritymap:
-    # pylint: disable=too-many-arguments,redefined-builtin
     ...
 
 
@@ -261,7 +260,6 @@ def similaritymap(
     umap_metric: Optional[_UmapMetric] = None,
     umap_balance: Optional[_UmapBalance] = None,
 ) -> Similaritymap:
-    # pylint: disable=too-many-arguments,redefined-builtin
     ...
 
 
@@ -276,7 +274,6 @@ def similaritymap(
     *,
     pca_normalization: Optional[_PCANormalization] = None,
 ) -> Similaritymap:
-    # pylint: disable=too-many-arguments,redefined-builtin
     ...
 
 
@@ -295,7 +292,7 @@ def similaritymap(
     """
     Add configured similarity map to Spotlight layout.
     """
-    # pylint: disable=too-many-arguments,redefined-builtin
+
     umap_balance_float = None
     if reduction_method == "umap":
         pca_normalization = None

@@ -33,8 +33,6 @@ class Attrs:
     Column attributes relevant for Spotlight.
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     type: Type[ColumnType]
     order: Optional[int]
     hidden: bool
@@ -249,7 +247,6 @@ def sanitize_values(values: Any) -> Any:
     sanitize values for serialization
     e.g. replace inf, -inf and NaN in float data
     """
-    # pylint: disable=too-many-return-statements
 
     if not is_iterable(values):
         return _sanitize_value(values)

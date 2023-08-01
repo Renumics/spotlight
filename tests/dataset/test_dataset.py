@@ -1,7 +1,7 @@
 """
 Test Dataset class.
 """
-# pylint: disable=too-many-lines
+
 import os.path
 import shutil
 import string
@@ -106,7 +106,7 @@ def test_optional_columns(optional_data: List[ColumnData]) -> None:
     """
     Test creation of and writing into optional columns with and without a default value.
     """
-    # pylint: disable=too-many-branches, too-many-locals
+
     column_names = set(sample.name for sample in optional_data)
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
@@ -172,7 +172,7 @@ def test_append_row(
     """
     Test row-wise dataset filling.
     """
-    # pylint: disable=too-many-locals,
+
     data = simple_data + complex_data
     names = {sample.name for sample in data}
     length = len(data[0].values)
@@ -218,7 +218,7 @@ def test_insert_row(
     """
     Test `Dataset.insert_row` method.
     """
-    # pylint: disable=too-many-locals
+
     data = simple_data + complex_data
     names = {sample.name for sample in data}
     length = len(data[0].values)
@@ -307,7 +307,7 @@ def test_append_delete_column(
                 )
 
         with Dataset(output_h5_file, "a") as dataset:
-            for key in dataset.keys():  # pylint: disable=consider-using-dict-items
+            for key in dataset.keys():
                 del dataset[key]
                 names.remove(key)
                 assert set(dataset.keys()) == names
@@ -325,7 +325,7 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
     """
     Test `Dataset.isnull` and `Dataset.notnull` methods.
     """
-    # pylint: disable=too-many-statements
+
     # Test non-nullable data types.
     empty_dataset.append_bool_column("bool", [True, False] * 5)
     null_mask = np.full(len(empty_dataset), False)
@@ -451,7 +451,7 @@ def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
     """
     Test `Dataset.__getitem__` method.
     """
-    # pylint: disable=too-many-locals
+
     data = simple_data + complex_data
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
@@ -512,7 +512,7 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                 )
 
         with Dataset(output_h5_file, "a") as dataset:
-            for key in dataset.keys():  # pylint: disable=consider-using-dict-items
+            for key in dataset.keys():
                 values = dataset[key]
                 if dataset.get_column_type(key) is not np.ndarray:
                     for value in values:
@@ -523,10 +523,10 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
             dataset[0] = dataset[-3]
             dataset[-3] = dataset[5]
             dataset[2] = dataset[-1]
-            dataset.append_row(**dataset[-2])  # pylint: disable=not-a-mapping
-            dataset.append_row(**dataset[1])  # pylint: disable=not-a-mapping
+            dataset.append_row(**dataset[-2])
+            dataset.append_row(**dataset[1])
             dataset[-7] = dataset[7]
-            for key in dataset.keys():  # pylint: disable=consider-using-dict-items
+            for key in dataset.keys():
                 for i in range(-len(dataset), len(dataset)):
                     dataset[key, i] = dataset[key, i]
                     dataset[key, i] = dataset[i, key]
@@ -589,7 +589,7 @@ def test_iterrows(
     """
     Test `Dataset.iterrows` method.
     """
-    # pylint: disable=too-many-locals
+
     data = simple_data + complex_data
     keys1 = (data[1].name, data[2].name, data[3].name)
     keys2 = [data[3].name, data[-5].name, data[-10].name]
@@ -608,16 +608,12 @@ def test_iterrows(
                     description=sample.description,
                     **sample.attrs,
                 )
-            for dataset_row in dataset.iterrows():  # pylint: disable=not-an-iterable
+            for dataset_row in dataset.iterrows():
                 assert dataset_row.keys() == set(dataset.keys())
             for keys in (keys1, keys2, keys3, keys4, keys5, keys6):
-                for dataset_row in dataset.iterrows(  # pylint: disable=not-an-iterable
-                    keys
-                ):
+                for dataset_row in dataset.iterrows(keys):
                     assert dataset_row.keys() == set(keys)
-            for dataset_row in dataset.iterrows(  # pylint: disable=not-an-iterable
-                sample.name for sample in data
-            ):
+            for dataset_row in dataset.iterrows(sample.name for sample in data):
                 assert dataset_row.keys() == set(sample.name for sample in data)
             for sample in data:
                 values = sample.values
@@ -689,7 +685,7 @@ def test_copy_column(
     """
     Test `append_column` method on all data.
     """
-    # pylint: disable=too-many-locals
+
     data = simple_data + complex_data
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
@@ -704,7 +700,7 @@ def test_copy_column(
                 )
 
         with Dataset(output_h5_file, "a") as dataset:
-            for name in dataset.keys():  # pylint: disable=consider-using-dict-items
+            for name in dataset.keys():
                 column_type = dataset.get_column_type(name)
                 kwargs = dataset.get_column_attributes(name)
                 values = dataset[name]
@@ -715,7 +711,7 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
     """
     Test `Dataset.pop` method.
     """
-    # pylint: disable=too-many-locals
+
     data = simple_data + complex_data
     names = {sample.name for sample in data}
     length = len(data[0].values)
@@ -761,7 +757,7 @@ def test_set_attributes_column(
     """
     Test `set_attributes` method on all data.
     """
-    # pylint: disable=too-many-locals,too-many-branches
+
     data = simple_data + complex_data
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
@@ -777,7 +773,7 @@ def test_set_attributes_column(
                 )
 
         with Dataset(output_h5_file, "a") as dataset:
-            for name in dataset.keys():  # pylint: disable=consider-using-dict-items
+            for name in dataset.keys():
                 column_type = dataset.get_column_type(name)
                 kwargs = dataset.get_column_attributes(name)
                 values = dataset[name]
@@ -881,7 +877,7 @@ def test_import_csv_with_dtype() -> None:
     """
     Test `Dataset.from_csv` method advanced.
     """
-    # pylint: disable=too-many-statements
+
     with tempfile.TemporaryDirectory() as output_folder:
         csv_file = os.path.join(output_folder, "input.csv")
         output_h5_file = os.path.join(output_folder, "dataset.h5")

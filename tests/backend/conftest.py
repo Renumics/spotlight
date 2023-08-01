@@ -84,7 +84,7 @@ def viewer_double_tally_df() -> Iterator[Tuple[spotlight.Viewer, spotlight.Viewe
         df = dataset.to_pandas()
         df["encoded"] = [
             embedding if embedding is not None else None
-            for embedding in dataset["encoded"]  # pylint: disable=(not-an-iterable)
+            for embedding in dataset["encoded"]
         ]
     viewer = spotlight.show(df, "127.0.0.1", no_browser=True, port="auto", wait=False)
 
@@ -92,7 +92,7 @@ def viewer_double_tally_df() -> Iterator[Tuple[spotlight.Viewer, spotlight.Viewe
         df2 = dataset.to_pandas()
         df2["encoded"] = [
             embedding if embedding is not None else None
-            for embedding in dataset["encoded"]  # pylint: disable=(not-an-iterable)
+            for embedding in dataset["encoded"]
         ]
     df2["number"] = df2["number"] + 2000
     viewer2 = spotlight.show(df2, "127.0.0.1", no_browser=True, port="auto", wait=False)
@@ -124,7 +124,6 @@ def non_existing_image_df_viewer() -> Iterator[spotlight.Viewer]:
 def testclient() -> TestClient:
     """setup API client with loaded spotlight h5 file in backend"""
 
-    # pylint: disable=import-outside-toplevel, protected-access
     from renumics.spotlight.app import SpotlightApp
 
     app = SpotlightApp()

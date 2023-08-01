@@ -34,7 +34,7 @@ def get_aligned_data(
     if not column_names or not indices:
         return np.empty(0, np.float64), []
 
-    from sklearn import preprocessing  # pylint: disable=import-outside-toplevel
+    from sklearn import preprocessing
 
     values = []
     for column_name in column_names:
@@ -83,7 +83,6 @@ def compute_umap(
     """
     Prepare data from table and compute U-Map on them.
     """
-    # pylint: disable=import-outside-toplevel, too-many-arguments
 
     try:
         data, indices = get_aligned_data(table, dtypes, column_names, indices)
@@ -121,7 +120,7 @@ def compute_pca(
     """
     Prepare data from table and compute PCA on them.
     """
-    # pylint: disable=import-outside-toplevel
+
     from sklearn import preprocessing, decomposition
 
     try:

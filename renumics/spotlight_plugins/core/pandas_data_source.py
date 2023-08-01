@@ -129,7 +129,6 @@ class PandasDataSource(DataSource):
         indices: Optional[List[int]] = None,
         simple: bool = False,
     ) -> Column:
-        # pylint: disable=too-many-branches, too-many-statements
         column_index = self._parse_column_index(column_name)
 
         column = self._df[column_index]
@@ -253,8 +252,7 @@ class PandasDataSource(DataSource):
         """
         Return the value of a single cell, warn if not possible.
         """
-        # pylint: disable=too-many-return-statements, too-many-branches
-        # pylint: disable=too-many-statements
+
         self._assert_index_exists(row_index)
 
         column_index = self._parse_column_index(column_name)
