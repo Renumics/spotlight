@@ -86,6 +86,7 @@ filetype = "*"
 setuptools = "*"
 numba = "^0.57.1"
 pillow = "^10.0.0"
+ruff = "^0.0.281"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "*"
@@ -106,7 +107,6 @@ selenium = "^4.1.3, <4.10"
 diffimg = "^0.3.0"
 lesscpy = "^0.15.0"
 safety = "^1.10.3"
-pylint = "^2.13.7"
 typer = "^0.4.1"
 pre-commit = "^2.19.0"
 certifi = "^2022.6.15"
@@ -139,17 +139,8 @@ files = [
     "renumics/spotlight/__version__.py"
 ]
 
-[tool.pylint.format]
-max-line-length = 100
-good-names = "df,e,f,i,j,k,x,y,z"
-
-[tool.pylint.master]
-extension-pkg-whitelist = "av"
-ignored-modules= "av"
-
-[tool.pylint.similarities]
-ignore-imports = true
-min-similarity-lines = 12
+[tool.ruff]
+line-length = 100
 
 [tool.mypy]
 ignore_missing_imports = false

@@ -5,11 +5,10 @@
 
 import os
 from pathlib import Path
-from typing import Any, Type, Union, Optional, Dict, Callable
+from typing import Any, Type, Union, Dict, Callable
 
 import pandas as pd
 
-from ..dtypes.typing import ColumnTypeMapping
 from ..typing import is_pathtype
 
 from .data_source import DataSource

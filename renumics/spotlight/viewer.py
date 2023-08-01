@@ -279,7 +279,7 @@ class Viewer:
             return
 
         # pylint: disable=undefined-variable
-        if get_ipython().__class__.__name__ == "ZMQInteractiveShell":  # type: ignore
+        if get_ipython().__class__.__name__ == "ZMQInteractiveShell":  # type: ignore # noqa: F821
             # in notebooks display a rich html widget
 
             label = widgets.Label(f"Spotlight running on {self.url}")

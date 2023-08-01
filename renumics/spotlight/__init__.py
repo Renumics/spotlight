@@ -2,18 +2,17 @@
 Renumics Spotlight
 """
 
-from loguru import logger
-from .__version__ import __version__
-from .dataset import Dataset
+from .__version__ import __version__  # noqa: F401
+from .dataset import Dataset  # noqa: F401
 from .dtypes import (
-    Audio,
-    Category,
-    Embedding,
-    Image,
-    Mesh,
-    Sequence1D,
-    Video,
-    Window,
+    Audio,  # noqa: F401
+    Category,  # noqa: F401
+    Embedding,  # noqa: F401
+    Image,  # noqa: F401
+    Mesh,  # noqa: F401
+    Sequence1D,  # noqa: F401
+    Video,  # noqa: F401
+    Window,  # noqa: F401
 )
 from .viewer import Viewer, close, viewers, show
 from .plugin_loader import load_plugins

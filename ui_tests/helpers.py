@@ -46,14 +46,14 @@ def screenshot_exception(webdriver: WebDriver) -> Iterator[None]:
 
         print(f"=== Exception logged into {new_screenshot_path} at {now} ===")
         print(e)
-        print(f"=== browser logs ===")
+        print("=== browser logs ===")
         try:
             log = list(webdriver.get_log("browser"))
             for entry in log:
                 print(entry)
-        except:
+        except:  # noqa: E722
             pass
-        print(f"=========================================")
+        print("=========================================")
 
         raise e
 

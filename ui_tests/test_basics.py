@@ -98,7 +98,7 @@ def test_tagged_elements_available(
         for tag in [
             tag for name, tag in vars(DataTestTags).items() if not name.startswith("_")
         ]:
-            if not tag in [
+            if tag not in [
                 DataTestTags.GLOBAL_LOADING_INDICATOR,
                 DataTestTags.MESHVIEW_SETTINGS_DROPDOWN,
                 DataTestTags.SEQUENCEVIEW_SETTINGS_DROPDOWN,
