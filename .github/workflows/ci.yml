@@ -461,7 +461,6 @@ jobs:
             - build-spotlight
             - check-wheel-contents
             - unit-test
-            - api-test
             - ui-test
             - test-install
         runs-on: ubuntu-latest
