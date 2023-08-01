@@ -443,9 +443,9 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Execute unit-test
+            - name: Execute tests
               if: success() || steps.setup.outcome == 'success'
-              run: pytest tests
+              run: pytest tests/unit
     # Release stage
     release:
         name: '🚀 Release Spotlight'
