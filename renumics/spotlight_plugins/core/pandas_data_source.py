@@ -158,7 +158,7 @@ class PandasDataSource(DataSource):
             if simple:
                 values = np.array(
                     [
-                        value[:47] + "..." if len(value) > 50 else value
+                        value[:97] + "..." if len(value) > 100 else value
                         for value in values
                     ]
                 )
