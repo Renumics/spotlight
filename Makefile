@@ -49,7 +49,7 @@ typecheck: ## Typecheck all source files
 
 .PHONY: lint
 lint: ## Lint all source files
-	poetry run ruff renumics tests ui_tests scripts/*.py
+	poetry run ruff renumics tests scripts/*.py
 	pnpm run lint
 
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"
