@@ -100,34 +100,37 @@ build-wheel: ## Build installable python package
 check-wheel: ## Check wheel content
 	poetry run check-wheel-contents build/dist/renumics_spotlight*
 
+.PHONY: test
+test: ## Execute all tests (unit/doc/integration/ui)
+test: unit-test doc-test integration-test ui-test
+
 .PHONY: unit-test
-unit-test: ## Execute tests
+unit-test: ## Execute unit tests
 	export SPOTLIGHT_DEV=False
-	poetry run pytest tests
-	poetry run pytest --doctest-modules --pyargs renumics
+	poetry run pytest --durations=3 tests/unit
 	pnpm run test
 
-.PHONY: api-test
-api-test: ## Execute API tests
+.PHONY: doc-test
+doc-test: ## Execute doc tests
 	export SPOTLIGHT_DEV=False
-	function teardown {
-		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
-	}
-	trap teardown EXIT
-	PORT="5005"
-	poetry run spotlight --host 127.0.0.1 --port $$PORT --no-browser data/tables/tallymarks-small.h5 &
-	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
-	wget -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
-	sleep 1
-	pnpm run api-test
+	poetry run pytest --durations=3 --doctest-modules --pyargs renumics
+
+.PHONY: integration-test
+integration-test: ## Execute integration-tests
+	export SPOTLIGHT_DEV=False
+	poetry run pytest --durations=3 tests/integration
+
+.PHONY: ui-test
+ui-test: ## Execute ui tests
+ui-test: ui-test-chrome ui-test-firefox
 
 .PHONY: .ui-test-chrome
 .ui-test-chrome:
-	poetry run pytest -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} ui_tests/
+	poetry run pytest -s --durations=3 --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} ui_tests/
 
 .PHONY: .ui-test-firefox
 .ui-test-firefox:
-	poetry run pytest -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox ui_tests/
+	poetry run pytest -s -m --durations=3 "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox ui_tests/
 
 .PHONY: ui-test-%
 ui-test-%:

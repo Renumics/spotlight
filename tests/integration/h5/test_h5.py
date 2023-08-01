@@ -5,7 +5,7 @@ import pytest
 import httpx
 from renumics import spotlight
 
-from tests.h5.data import COLUMNS
+from .data import COLUMNS
 
 
 def test_get_table_returns_http_ok(dataset_path: str) -> None:

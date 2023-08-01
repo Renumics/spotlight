@@ -228,7 +228,24 @@ jobs:
             - name: Check wheel contents
               run: make check-wheel
     unit-test:
-        name: '🧪 Unit-test'
+        name: '🧪 Unit Test'
+        needs:
+            - prepare-python
+            - prepare-node
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up Poetry environment'
+              uses: ./.github/actions/setup-poetry
+            - name: '⬢ Set up pnpm environment'
+              uses: ./.github/actions/setup-pnpm
+            - name: Execute unit tests
+              run: make unit-test
+    doc-test:
+        name: '🧪 Doc Test'
         needs:
             - prepare-python
             - prepare-node
@@ -248,14 +265,14 @@ jobs:
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
-            - name: Execute unit-test
-              run: make unit-test
-    api-test:
-        name: '🧪 Test API'
+            - name: Execute doc tests
+              run: make doc-test
+    integration-test:
+        name: '🧪 Integration Test'
         needs:
             - prepare-python
             - prepare-node
-            - build-spotlight
+            - build-datasets
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -266,15 +283,15 @@ jobs:
               uses: ./.github/actions/setup-poetry
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-pnpm
-            - name: '📤 Restore pro frontend'
+            - name: '📤 Restore datasets'
               uses: actions/download-artifact@v3
               with:
-                  name: .frontend-${{ needs.prepare-python.outputs.version }}
-                  path: build/frontend/
-            - name: Test API
-              run: make api-test
+                  name: datasets-${{ needs.prepare-python.outputs.version }}
+                  path: build/datasets/
+            - name: Execute integration tests
+              run: make integration-test
     ui-test:
-        name: '🧪 Test UI'
+        name: '🧪 UI Test'
         needs:
             - prepare-python
             - build-datasets
@@ -367,7 +384,7 @@ jobs:
                   path: build/ui_tests
                   if-no-files-found: error
     test-install:
-        name: '🧪 Test installation'
+        name: '🧪 Installation Test'
         needs:
             - prepare-python
             - build-test-matrix
