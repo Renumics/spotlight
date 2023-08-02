@@ -8,7 +8,7 @@ import httpx
 from renumics import spotlight
 from renumics.spotlight.dtypes.typing import ColumnType
 
-from tests.h5.data import COLUMNS
+from .data import COLUMNS
 
 
 def test_get_table_returns_http_ok(dataset_path: str) -> None:

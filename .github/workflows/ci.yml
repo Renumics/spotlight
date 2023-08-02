@@ -228,11 +228,10 @@ jobs:
             - name: Check wheel contents
               run: make check-wheel
     unit-test:
-        name: '🧪 Unit-test'
+        name: '🧪 Unit Test'
         needs:
             - prepare-python
             - prepare-node
-            - build-datasets
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -243,19 +242,13 @@ jobs:
               uses: ./.github/actions/setup-poetry
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-pnpm
-            - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v3
-              with:
-                  name: datasets-${{ needs.prepare-python.outputs.version }}
-                  path: build/datasets/
-            - name: Execute unit-test
+            - name: Execute unit tests
               run: make unit-test
-    api-test:
-        name: '🧪 Test API'
+    doc-test:
+        name: '🧪 Doc Test'
         needs:
             - prepare-python
             - prepare-node
-            - build-spotlight
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -266,15 +259,10 @@ jobs:
               uses: ./.github/actions/setup-poetry
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-pnpm
-            - name: '📤 Restore pro frontend'
-              uses: actions/download-artifact@v3
-              with:
-                  name: .frontend-${{ needs.prepare-python.outputs.version }}
-                  path: build/frontend/
-            - name: Test API
-              run: make api-test
+            - name: Execute doc tests
+              run: make doc-test
     ui-test:
-        name: '🧪 Test UI'
+        name: '🧪 UI Test'
         needs:
             - prepare-python
             - build-datasets
@@ -366,8 +354,8 @@ jobs:
                   name: .ui-test-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
                   if-no-files-found: error
-    test-install:
-        name: '🧪 Test installation'
+    integration-test:
+        name: '🧪 Integration Test'
         needs:
             - prepare-python
             - build-test-matrix
@@ -426,9 +414,9 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Execute unit-test
+            - name: Execute integration tests
               if: success() || steps.setup.outcome == 'success'
-              run: pytest tests
+              run: pytest tests/integration
     # Release stage
     release:
         name: '🚀 Release Spotlight'
@@ -444,9 +432,8 @@ jobs:
             - build-spotlight
             - check-wheel-contents
             - unit-test
-            - api-test
+            - integration-test
             - ui-test
-            - test-install
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code

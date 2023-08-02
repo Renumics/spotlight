@@ -10,7 +10,7 @@ from selenium import webdriver as wd
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-from ui_tests.generate_ui_test_elements import generate_ui_test_elements_py
+from .generate_ui_test_elements import generate_ui_test_elements_py
 
 
 def pytest_sessionstart(

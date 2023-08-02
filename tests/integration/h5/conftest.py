@@ -9,7 +9,7 @@ from typing import Iterator
 import pytest
 from renumics import spotlight
 
-from tests.h5.data import COLUMNS
+from .data import COLUMNS
 
 
 @pytest.fixture
