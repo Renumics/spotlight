@@ -101,8 +101,6 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
                     : value?.toString() ?? '';
         }
 
-        console.log(textToCopy);
-
         navigator.clipboard
             .writeText(textToCopy)
             .then(() => notify('Cell Value Copied to Clipboard'))
