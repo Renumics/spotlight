@@ -260,11 +260,6 @@ jobs:
               uses: ./.github/actions/setup-poetry
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-pnpm
-            - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v3
-              with:
-                  name: datasets-${{ needs.prepare-python.outputs.version }}
-                  path: build/datasets/
             - name: Execute doc tests
               run: make doc-test
     integration-test:
