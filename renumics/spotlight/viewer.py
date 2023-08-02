@@ -101,7 +101,7 @@ class Viewer:
 
     def show(
         self,
-        dataset_or_folder: Optional[Union[PathType, pd.DataFrame]] = None,
+        dataset_or_folder: Union[PathType, pd.DataFrame] = ".",
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
@@ -144,15 +144,12 @@ class Viewer:
             dataset = dataset_or_folder
             project_root = None
         else:
-            dataset = None
-            project_root = None
+            raise TypeError("Dataset has invalid type")
 
-        if allow_filebrowsing != "auto":
-            filebrowsing_allowed = allow_filebrowsing
-        elif allow_filebrowsing is None:
+        if allow_filebrowsing == "auto":
             filebrowsing_allowed = is_pathtype(dataset_or_folder)
         else:
-            filebrowsing_allowed = allow_filebrowsing is True
+            filebrowsing_allowed = allow_filebrowsing
 
         layout = layout or settings.layout
         parsed_layout = parse(layout) if layout else None
@@ -315,7 +312,7 @@ def viewers() -> List[Viewer]:
 
 
 def show(
-    dataset_or_folder: Optional[Union[str, os.PathLike, pd.DataFrame]] = None,
+    dataset_or_folder: Union[str, os.PathLike, pd.DataFrame] = ".",
     host: str = "127.0.0.1",
     port: Union[int, Literal["auto"]] = "auto",
     layout: Optional[_LayoutLike] = None,
