@@ -205,7 +205,8 @@ def _(value: np.datetime64) -> datetime.datetime:
 
 
 @convert(str, Category)
-def _(value: str, options: DTypeOptions) -> int:
+@convert(np.str_, Category)
+def _(value: Union[str, np.str_], options: DTypeOptions) -> int:
     if not options.categories:
         return -1
     return options.categories[value]

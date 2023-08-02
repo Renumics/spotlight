@@ -1,6 +1,7 @@
 """
 access h5 table data
 """
+from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast, Union, Type, Tuple
@@ -263,11 +264,11 @@ class Hdf5DataSource(DataSource):
         with self._open_table() as dataset:
             normalized_values = dataset.read_column(column_name, indices=indices)
             if dtype is Category:
-                categories = dataset.get_column_attributes(column_name)["categories"]
-                categories = cast(Dict[str, int], categories)
-                dtype_options = DTypeOptions(categories=categories)
+                categories = self._get_column_categories(column_name)
                 values = [
-                    convert_to_dtype(value, dtype, dtype_options, simple)
+                    convert_to_dtype(
+                        value, dtype, DTypeOptions(categories=categories), simple
+                    )
                     for value in normalized_values
                 ]
             else:
@@ -294,12 +295,30 @@ class Hdf5DataSource(DataSource):
 
             # convert normalized value to requested dtype
             if dtype is Category:
-                categories = dataset.get_column_attributes(column_name)["categories"]
-                categories = cast(Dict[str, int], categories)
+                categories = self._get_column_categories(column_name)
                 return convert_to_dtype(
                     normalized_value, dtype, DTypeOptions(categories=categories)
                 )
             return convert_to_dtype(normalized_value, dtype)
+
+    @lru_cache(maxsize=128)
+    def _get_column_categories(self, column_name: str) -> Dict[str, int]:
+        with self._open_table() as dataset:
+            attrs = dataset.get_column_attributes(column_name)
+            try:
+                return cast(Dict[str, int], attrs["categories"])
+            except KeyError:
+                normalized_values = cast(
+                    List[str],
+                    [
+                        convert_to_dtype(value, str, simple=True)
+                        for value in dataset.read_column(column_name)
+                    ],
+                )
+                category_names = sorted(set(normalized_values))
+                return {
+                    category_name: i for i, category_name in enumerate(category_names)
+                }
 
     def _open_table(self, mode: str = "r") -> H5Dataset:
         try:
