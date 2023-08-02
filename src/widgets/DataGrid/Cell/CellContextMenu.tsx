@@ -108,7 +108,7 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
             .then(() => notify('Cell Value Copied to Clipboard'))
             .catch((error) => console.error(error));
         hideContextMenu();
-    }, [column?.key, column?.type, value, hideContextMenu]);
+    }, [column?.key, column?.type, rowIndex, value, hideContextMenu]);
 
     if (!column) return <></>;
 
