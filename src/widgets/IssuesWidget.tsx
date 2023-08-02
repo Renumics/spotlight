@@ -44,9 +44,11 @@ interface IssueProps {
 const Issue = ({ issue }: IssueProps): JSX.Element => {
     const [collapsed, setCollapsed] = useState(true);
 
-    const toggleCollapsed = () => setCollapsed((collapsed) => !collapsed);
-    const selectRows = (event: MouseEvent<HTMLDivElement>) => {
+    const toggleCollapsed = (event: MouseEvent<HTMLDivElement>) => {
         event.stopPropagation();
+        setCollapsed((collapsed) => !collapsed);
+    };
+    const selectRows = () => {
         useDataset.getState().selectRows(issue.rows);
     };
     const highlight = () => useDataset.getState().highlightRows(issue.rows);
@@ -65,26 +67,28 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
                 // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
                 <div
                     tw="flex flex-row px-1 h-7 text-sm items-center overflow-hidden align-middle"
-                    onClick={toggleCollapsed}
+                    onClick={selectRows}
                     role="button"
                 >
-                    <div css={[iconColors[issue.severity]]}>
-                        {collapsed ? <TriangleRight /> : <TriangleDown />}
-                    </div>
-                    <Icon />
                     {
                         // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
                         <div
-                            css={[
-                                tw`rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2 align-middle items-center align-middle mx-0.5`,
-                                elementColors[issue.severity],
-                            ]}
-                            onClick={selectRows}
+                            css={[iconColors[issue.severity]]}
+                            onClick={toggleCollapsed}
                             role="button"
                         >
-                            {issue.rows.length}
+                            {collapsed ? <TriangleRight /> : <TriangleDown />}
                         </div>
                     }
+                    <Icon />
+                    <div
+                        css={[
+                            tw`rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2 align-middle items-center align-middle mx-0.5`,
+                            elementColors[issue.severity],
+                        ]}
+                    >
+                        {issue.rows.length}
+                    </div>
                     <div
                         css={[
                             tw`flex-grow flex text-start items-center align-middle mx-1`,
