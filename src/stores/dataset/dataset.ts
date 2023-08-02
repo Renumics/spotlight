@@ -88,11 +88,8 @@ export interface Dataset {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function convertValue(value: any, type: DataType) {
     if (type.kind === 'datetime') {
-        if (value?.length === 0) {
-            return null;
-        } else {
-            return new Date(Date.parse(value));
-        }
+        if (value === null) return null;
+        return new Date(Date.parse(value));
     }
 
     if (type.kind === 'float' && value === null) {

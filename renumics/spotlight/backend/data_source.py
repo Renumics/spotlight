@@ -278,7 +278,7 @@ def idx_column(row_count: int) -> Column:
     )
 
 
-def last_edited_at_column(row_count: int, value: datetime) -> Column:
+def last_edited_at_column(row_count: int, value: Optional[datetime]) -> Column:
     """create a column containing a constant datetime"""
     return Column(
         type=datetime,
@@ -293,7 +293,7 @@ def last_edited_at_column(row_count: int, value: datetime) -> Column:
         hidden=True,
         editable=False,
         optional=False,
-        values=np.array(row_count * [value]),
+        values=np.array([value] * row_count, dtype=object),
     )
 
 

@@ -33,6 +33,8 @@ from renumics.spotlight.dtypes import (
     Video,
 )
 
+from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+
 # for now specify all lazy dtypes right here
 # we should probably move closer to the actual dtype definition for easier extensibility
 LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio, str]
@@ -128,7 +130,7 @@ def get_table(request: Request) -> ORJSONResponse:
     row_count = len(table)
     columns.append(idx_column(row_count))
     if not any(column.name == "__last_edited_at__" for column in columns):
-        columns.append(last_edited_at_column(row_count, datetime.now()))
+        columns.append(last_edited_at_column(row_count, None))
     if not any(column.name == "__last_edited_by__" for column in columns):
         columns.append(last_edited_by_column(row_count, app.username))
 
@@ -159,7 +161,29 @@ async def get_table_cell(
         return None
     table.check_generation_id(generation_id)
 
-    cell_data = table.get_cell_data(column, row, app.dtypes[column])
+    try:
+        dtype = app.dtypes[column]
+    except KeyError as e:
+        if column == "__last_edited_by__":
+            dtype = str
+        elif column == "__last_edited_at__":
+            dtype = datetime
+        elif column == "__idx__":
+            dtype = int
+        else:
+            raise e
+
+    try:
+        cell_data = table.get_cell_data(column, row, dtype)
+    except ColumnNotExistsError as e:
+        if column == "__last_edited_by__":
+            cell_data = ""
+        elif column == "__last_edited_at__":
+            cell_data = None
+        elif column == "__idx__":
+            cell_data = row
+        else:
+            raise e
     value = sanitize_values(cell_data)
 
     if isinstance(value, (bytes, str)):
