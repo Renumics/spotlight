@@ -27,9 +27,8 @@ def analyze_with_cleanlab(
 
     embedding_columns = (col for col, dtype in dtypes.items() if dtype == Embedding)
     for column_name in embedding_columns:
-        embeddings = np.array(
-            data_source.get_column(column_name, dtypes[column_name]).values
-        )
+        col_values = data_source.get_column(column_name, dtypes[column_name]).values
+        embeddings = np.array(col_values, dtype=object)
         mask = _detect_outliers(embeddings)
         rows = np.where(mask)[0].tolist()
 
