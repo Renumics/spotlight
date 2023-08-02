@@ -20,6 +20,7 @@ import { useColumn, useVisibleColumns } from '../context/columnContext';
 import useCellValue from '../hooks/useCellValue';
 import NeedsUpgradeButton from '../../../components/ui/NeedsUpgradeButton';
 import { notify } from '../../../notify';
+import api from '../../../api';
 
 export interface Props {
     columnIndex: number;
@@ -85,17 +86,29 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
         hideColumn(column.key);
     }, [column?.key, hideContextMenu, hideColumn]);
 
-    const onClickCopyCellValue = useCallback(() => {
-        const valueToCopy =
-            isCategorical(column?.type) && value !== undefined
-                ? column.type.invertedCategories[value]
-                : value?.toString() ?? '';
+    const onClickCopyCellValue = useCallback(async () => {
+        let textToCopy: string;
+        if (column.type.kind === 'str') {
+            textToCopy = await api.table.getCell({
+                column: column.key,
+                row: rowIndex,
+                generationId: useDataset.getState().generationID,
+            });
+        } else {
+            textToCopy =
+                isCategorical(column?.type) && value !== undefined
+                    ? column.type.invertedCategories[value]
+                    : value?.toString() ?? '';
+        }
+
+        console.log(textToCopy);
+
         navigator.clipboard
-            .writeText(valueToCopy)
+            .writeText(textToCopy)
             .then(() => notify('Cell Value Copied to Clipboard'))
             .catch((error) => console.error(error));
         hideContextMenu();
-    }, [column?.type, value, hideContextMenu]);
+    }, [column?.key, column?.type, value, hideContextMenu]);
 
     if (!column) return <></>;
 
