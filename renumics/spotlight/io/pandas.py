@@ -113,8 +113,10 @@ def infer_dtype(column: pd.Series) -> Type[ColumnType]:
     if dtype_mode is None:
         return str
     if issubclass(dtype_mode, (Window, Embedding)):
+        column = column.astype(object)
         str_mask = is_string_mask(column)
-        column[str_mask] = column[str_mask].apply(try_literal_eval)
+        x = column[str_mask].apply(try_literal_eval)
+        column[str_mask] = x
         dict_mask = column.map(type) == dict
         column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
         try:

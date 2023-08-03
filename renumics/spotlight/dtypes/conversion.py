@@ -1,7 +1,19 @@
 """
 DType Conversion
+
+None: None
+bool: bool, np.bool_
+int: int, np.integer
+float: float, np.floating
+str: str, np.str_
+datetime: datetime, np.datetime64
+Category: int, np.integer
+Array-like: List[Union[float, int], ...], np.ndarray[dtype=fiu]
+binary: bytes, np.bytes_
+paths: str, np.str_
 """
 
+import ast
 from collections import defaultdict
 from inspect import signature
 from dataclasses import dataclass
@@ -36,15 +48,21 @@ from .typing import (
 
 
 NormalizedValue = Union[
-    int,
-    float,
-    bool,
-    str,
-    bytes,
-    datetime.datetime,
-    np.ndarray,
     None,
+    bool,
+    np.bool_,
+    int,
+    np.integer,
+    float,
+    np.floating,
+    str,
+    np.str_,
+    datetime.datetime,
+    np.datetime64,
     list,
+    np.ndarray,
+    bytes,
+    np.bytes_,
 ]
 ConvertedValue = Union[
     int, float, bool, str, bytes, datetime.datetime, np.ndarray, None
@@ -152,6 +170,8 @@ def convert_to_dtype(
             pass
 
     try:
+        if value is None:
+            return None
         if dtype is bool:
             return bool(value)  # type: ignore
         if dtype is int:
@@ -163,8 +183,6 @@ def convert_to_dtype(
             if simple and len(str_value) > 100:
                 return str_value[:97] + "..."
             return str_value
-        if value is None:
-            return None
         if dtype is np.ndarray:
             if simple:
                 return "[...]"
@@ -237,6 +255,19 @@ def _(value: np.ndarray) -> np.ndarray:
     return value.astype(np.float64)
 
 
+@convert(str, Window)
+@convert(np.str_, Window)
+def _(value: Union[str, np.str_]) -> np.ndarray:
+    try:
+        obj = ast.literal_eval(value)
+        array = np.array(obj, dtype=np.float64)
+        if array.shape != (2,):
+            raise ValueError
+        return array
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+        raise ConversionError("Cannot interpret string as a window")
+
+
 @convert(list, Embedding, simple=False)
 def _(value: list) -> np.ndarray:
     return np.array(value, dtype=np.float64)
@@ -247,10 +278,33 @@ def _(value: np.ndarray) -> np.ndarray:
     return value.astype(np.float64)
 
 
+@convert(str, Embedding, simple=False)
+@convert(np.str_, Embedding, simple=False)
+def _(value: Union[str, np.str_]) -> np.ndarray:
+    try:
+        obj = ast.literal_eval(value)
+        array = np.array(obj, dtype=np.float64)
+        if array.ndim != 1 or array.size == 0:
+            raise ValueError
+        return array
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+        raise ConversionError("Cannot interpret string as an embedding")
+
+
 @convert(list, Sequence1D, simple=False)
 @convert(np.ndarray, Sequence1D, simple=False)
 def _(value: Union[np.ndarray, list], _: DTypeOptions) -> np.ndarray:
     return Sequence1D(value).encode()
+
+
+@convert(str, Sequence1D, simple=False)
+@convert(np.str_, Sequence1D, simple=False)
+def _(value: Union[str, np.str_]) -> np.ndarray:
+    try:
+        obj = ast.literal_eval(value)
+        return Sequence1D(obj).encode()
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+        raise ConversionError("Cannot interpret string as a 1D sequence")
 
 
 @convert(str, Image, simple=False)
@@ -323,8 +377,12 @@ def _(value: trimesh.Trimesh) -> bytes:
 
 @convert(list, Embedding, simple=True)
 @convert(np.ndarray, Embedding, simple=True)
+@convert(str, Embedding, simple=True)
+@convert(np.str_, Embedding, simple=True)
 @convert(list, Sequence1D, simple=True)
 @convert(np.ndarray, Sequence1D, simple=True)
+@convert(str, Sequence1D, simple=True)
+@convert(np.str_, Sequence1D, simple=True)
 @convert(np.ndarray, Image, simple=True)
 def _(_: Union[np.ndarray, list]) -> str:
     return "[...]"

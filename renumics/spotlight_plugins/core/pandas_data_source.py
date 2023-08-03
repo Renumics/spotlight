@@ -39,6 +39,7 @@ from renumics.spotlight.io.pandas import (
 from renumics.spotlight.backend import datasource
 from renumics.spotlight.backend.data_source import (
     Column,
+    ColumnMetadata,
     DataSource,
 )
 from renumics.spotlight.backend.exceptions import (
@@ -48,7 +49,7 @@ from renumics.spotlight.backend.exceptions import (
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
-from renumics.spotlight.dtypes.conversion import read_external_value
+from renumics.spotlight.dtypes.conversion import NormalizedValue, read_external_value
 
 
 @datasource(pd.DataFrame)
@@ -72,7 +73,7 @@ class PandasDataSource(DataSource):
             raise DatasetColumnsNotUnique()
         self._generation_id = 0
         self._uid = str(id(df))
-        self._df = df.copy()
+        self._df = df.convert_dtypes()
 
     @property
     def column_names(self) -> List[str]:
@@ -122,131 +123,51 @@ class PandasDataSource(DataSource):
     def get_name(self) -> str:
         return "pd.DataFrame"
 
-    def get_column(
-        self,
-        column_name: str,
-        dtype: Type[ColumnType],
-        indices: Optional[List[int]] = None,
-        simple: bool = False,
-    ) -> Column:
+    def get_column_values(self, column_name: str) -> np.ndarray:
         column_index = self._parse_column_index(column_name)
-
         column = self._df[column_index]
-        if indices is not None:
-            column = column.iloc[indices]
-        column = prepare_column(column, dtype)
-
-        categories = None
-        embedding_length = None
-
-        if dtype is Category:
-            # `NaN` category is listed neither in `pandas`, not in our format.
-            categories = {
-                category: i for i, category in enumerate(column.cat.categories)
-            }
-            column = column.cat.codes
+        if pd.api.types.is_bool_dtype(column):
             values = column.to_numpy()
-        elif dtype is datetime:
-            # We expect datetimes as ISO strings; empty strings instead of `NaT`s.
-            column = column.dt.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
-            column = column.mask(column.isna(), "")
-            values = column.to_numpy()
-        elif dtype is str:
-            # Replace `NA`s with empty strings.
-            column = column.mask(column.isna(), "")
-            values = column.to_numpy()
-            if simple:
-                values = np.array(
-                    [
-                        value[:97] + "..." if len(value) > 100 else value
-                        for value in values
-                    ]
-                )
-        elif is_scalar_column_type(dtype):
-            values = column.to_numpy()
-        elif dtype is Window:
-            # Replace all `NA` values with `[NaN, NaN]`.
             na_mask = column.isna()
-            column.iloc[na_mask] = pd.Series(
-                [[float("nan"), float("nan")]] * na_mask.sum()
-            )
-            # This will fail, if arrays in column cells aren't aligned.
-            try:
-                values = np.asarray(column.to_list(), dtype=float)
-            except ValueError as e:
-                raise ValueError(
-                    f"For the window column '{column_name}', column cells "
-                    f"should be sequences of shape (2,) or `NA`s, but "
-                    f"unaligned sequences received."
-                ) from e
-            if values.ndim != 2 or values.shape[1] != 2:
-                raise ValueError(
-                    f"For the window column '{column_name}', column cells "
-                    f"should be sequences of shape (2,) or `NA`s, but "
-                    f"sequences of shape {values.shape[1:]} received."
-                )
-        elif dtype is Embedding:
-            na_mask = column.isna()
-            # This will fail, if arrays in column cells aren't aligned.
-            try:
-                embeddings = np.asarray(column[~na_mask].to_list(), dtype=float)
-            except ValueError as e:
-                raise ValueError(
-                    f"For the embedding column '{column_name}', column cells "
-                    f"should be sequences of the same shape (n,) or `NA`s, but "
-                    f"unaligned sequences received."
-                ) from e
-            if embeddings.ndim != 2 or embeddings.shape[1] == 0:
-                raise ValueError(
-                    f"For the embedding column '{column_name}', column cells "
-                    f"should be sequences of the same shape (n,) or `NA`s, but "
-                    f"sequences of shape {embeddings.shape[1:]} received."
-                )
-
-            values = np.empty(len(column), dtype=object)
-
-            if simple:
-                values[~na_mask] = "[...]"
-            else:
-                values[np.where(~na_mask)[0]] = list(embeddings)
-
-            embedding_length = embeddings.shape[1]
-
-        elif dtype is Sequence1D:
-            na_mask = column.isna()
-            values = np.empty(len(column), dtype=object)
-            values[~na_mask] = "[...]"
-        elif dtype is np.ndarray:
-            na_mask = column.isna()
-            values = np.empty(len(column), dtype=object)
-            values[~na_mask] = "[...]"
-        elif is_file_based_column_type(dtype):
-            # Strings are paths or URLs, let them inplace. Replace
-            # non-strings with "<in-memory>".
-            na_mask = column.isna()
-            column = column.mask(~(column.map(type) == str), "<in-memory>")
-            values = column.to_numpy(dtype=object)
             values[na_mask] = None
-        else:
-            raise NotADType()
+            return values
+        if pd.api.types.is_integer_dtype(column):
+            values = column.to_numpy()
+            na_mask = column.isna()
+            values[na_mask] = None
+            return values
+        if pd.api.types.is_float_dtype(column):
+            values = column.to_numpy()
+            na_mask = column.isna()
+            values[na_mask] = None
+            return values
+        if pd.api.types.is_datetime64_any_dtype(column):
+            return column.dt.tz_localize(None).to_numpy()
+        if pd.api.types.is_categorical_dtype(column):
+            return column.cat.codes
+        if pd.api.types.is_string_dtype(column):
+            values = column.to_numpy()
+            na_mask = column.isna()
+            values[na_mask] = None
+            return values
+        if pd.api.types.is_object_dtype(column):
+            column = column.mask(column.isna(), None)
+            str_mask = column.map(type) == str
+            column[str_mask] = column[str_mask].apply(try_literal_eval)
+            dict_mask = column.map(type) == dict
+            column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
+            return column.to_numpy()
+        try:
+            return column.astype(str).to_numpy()
+        except (TypeError, ValueError):
+            raise TypeError(
+                f"`pandas` column with dtype {column.dtype} is not supported."
+            )
 
-        return Column(
-            type=dtype,
-            order=None,
-            hidden=column_name.startswith("_"),
-            optional=True,
-            description=None,
-            tags=[],
-            editable=dtype in (bool, int, float, str, Category, Window),
-            categories=categories,
-            x_label=None,
-            y_label=None,
-            embedding_length=embedding_length,
-            name=column_name,
-            values=values,
-        )
+    def get_column_metadata(self, _: str) -> ColumnMetadata:
+        return ColumnMetadata(nullable=True, editable=True)
 
-    def get_cell_data(
+    def get_cell_value(
         self, column_name: str, row_index: int, dtype: Type[ColumnType]
     ) -> Any:
         """

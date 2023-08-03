@@ -35,6 +35,8 @@ from renumics.spotlight.dtypes import (
 
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
+from renumics.spotlight.dtypes.conversion import convert_to_dtype
+
 # for now specify all lazy dtypes right here
 # we should probably move closer to the actual dtype definition for easier extensibility
 LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio, str]
@@ -122,23 +124,33 @@ def get_table(request: Request) -> ORJSONResponse:
             ).dict()
         )
 
-    columns = [
-        table.get_column(name, app.dtypes[name], simple=True)
-        for name in table.column_names
-    ]
-    columns.extend(table.get_internal_columns())
-    row_count = len(table)
-    columns.append(idx_column(row_count))
-    if not any(column.name == "__last_edited_at__" for column in columns):
-        columns.append(last_edited_at_column(row_count, None))
-    if not any(column.name == "__last_edited_by__" for column in columns):
-        columns.append(last_edited_by_column(row_count, app.username))
+    columns = []
+    for column_name in table.column_names:
+        dtype = app.dtypes[column_name]
+        normalized_values = table.get_column_values(column_name)
+        values = [
+            convert_to_dtype(value, dtype, simple=True) for value in normalized_values
+        ]
+        meta = table.get_column_metadata(column_name)
+        column = Column(
+            name=column_name,
+            values=values,
+            index=None,
+            hidden=False,
+            lazy=dtype in LAZY_DTYPES,
+            editable=meta.editable,
+            optional=meta.nullable,
+            role=get_column_type_name(dtype),
+            categories={},
+            embedding_length=None,
+        )
+        columns.append(column)
 
     return ORJSONResponse(
         Table(
             uid=table.get_uid(),
             filename=table.get_name(),
-            columns=[Column.from_dataset_column(column) for column in columns],
+            columns=columns,
             generation_id=table.get_generation_id(),
         ).dict()
     )

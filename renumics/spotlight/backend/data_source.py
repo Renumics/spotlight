@@ -22,9 +22,21 @@ from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
 )
-from renumics.spotlight.dtypes.conversion import ConvertedValue
+from renumics.spotlight.dtypes.conversion import ConvertedValue, NormalizedValue
 from renumics.spotlight.cache import external_data_cache
-from .exceptions import DatasetNotEditable, GenerationIDMismatch, NoRowFound
+from .exceptions import GenerationIDMismatch, NoRowFound
+
+
+@dataclasses.dataclass
+class ColumnMetadata:
+    """
+    Extra column infos.
+    """
+
+    nullable: bool
+    editable: bool
+    description: Optional[str] = None
+    tags: List[str] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -136,23 +148,21 @@ class DataSource(ABC):
         return []
 
     @abstractmethod
-    def get_column(
-        self,
-        column_name: str,
-        dtype: Type[ColumnType],
-        indices: Optional[List[int]] = None,
-        simple: bool = False,
-    ) -> Column:
+    def get_column_values(self, column_name: str) -> np.ndarray:
         """
-        Get column metadata + values
+        Get normalized values of a column.
         """
 
     @abstractmethod
-    def get_cell_data(
-        self, column_name: str, row_index: int, dtype: Type[ColumnType]
-    ) -> Any:
+    def get_column_metadata(self, column_name: str) -> ColumnMetadata:
         """
-        return the value of a single cell
+        Get extra info of a column.
+        """
+
+    @abstractmethod
+    def get_cell_value(self, column_name: str, row_index: int) -> NormalizedValue:
+        """
+        Get normalized value of a single cell.
         """
 
     def get_waveform(self, column_name: str, row_index: int) -> Optional[np.ndarray]:
@@ -174,38 +184,6 @@ class DataSource(ABC):
         waveform = audio.get_waveform(io.BytesIO(blob))
         external_data_cache[cache_key] = waveform
         return waveform
-
-    def replace_cells(
-        self, column_name: str, indices: List[int], value: Any, dtype: Type[ColumnType]
-    ) -> CellsUpdate:
-        """
-        replace multiple cell's value
-        """
-        raise DatasetNotEditable()
-
-    def delete_column(self, name: str) -> None:
-        """
-        remove a column from the table
-        """
-        raise DatasetNotEditable()
-
-    def delete_row(self, index: int) -> None:
-        """
-        remove a row from the table
-        """
-        raise DatasetNotEditable()
-
-    def duplicate_row(self, index: int) -> int:
-        """
-        duplicate a row in the table
-        """
-        raise DatasetNotEditable()
-
-    def append_column(self, name: str, dtype_name: str) -> Column:
-        """
-        add a column to the table
-        """
-        raise DatasetNotEditable()
 
     def _assert_index_exists(self, index: int) -> None:
         if index < -len(self) or index >= len(self):
