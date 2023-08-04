@@ -4,15 +4,13 @@ access h5 table data
 from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast, Union, Type, Tuple
-from dataclasses import asdict
+from typing import Dict, List, Optional, cast, Union, Tuple
 
 import h5py
 import numpy as np
 
 from renumics.spotlight.dtypes import Category, Embedding
 from renumics.spotlight.dtypes.typing import (
-    ColumnType,
     ColumnTypeMapping,
     get_column_type,
 )
@@ -23,7 +21,7 @@ from renumics.spotlight.dataset import (
     unescape_dataset_name,
 )
 
-from renumics.spotlight.backend.data_source import DataSource, Attrs, Column
+from renumics.spotlight.backend.data_source import DataSource, Attrs
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
@@ -33,7 +31,6 @@ from renumics.spotlight.backend.exceptions import (
 from renumics.spotlight.backend import datasource
 
 from renumics.spotlight.dtypes.conversion import (
-    DTypeOptions,
     NormalizedValue,
     convert_to_dtype,
 )
@@ -219,111 +216,67 @@ class Hdf5DataSource(DataSource):
     """
 
     def __init__(self, source: PathType):
-        self._table_file = Path(source)
+        self._path = Path(source)
+        try:
+            self._table = H5Dataset(source, "r")
+        except FileNotFoundError as e:
+            raise NoTableFileFound(source) from e
+        except OSError as e:
+            raise CouldNotOpenTableFile(source) from e
+
+    def __del__(self) -> None:
+        self._table.close()
 
     @property
     def column_names(self) -> List[str]:
-        with self._open_table() as dataset:
-            return dataset.keys()
+        return self._table.keys()
 
     def __len__(self) -> int:
-        with self._open_table() as dataset:
-            return len(dataset)
+        return len(self._table)
 
     def guess_dtypes(self) -> ColumnTypeMapping:
-        with self._open_table() as dataset:
-            return {
-                column_name: dataset.get_column_type(column_name)
-                for column_name in self.column_names
-            }
+        return {
+            column_name: self._table.get_column_type(column_name)
+            for column_name in self.column_names
+        }
 
     def get_generation_id(self) -> int:
-        with self._open_table() as dataset:
-            return dataset.get_generation_id()
+        return self._table.get_generation_id()
 
     def get_uid(self) -> str:
-        return sha1(str(self._table_file.absolute()).encode("utf-8")).hexdigest()
+        return sha1(str(self._path.absolute()).encode("utf-8")).hexdigest()
 
     def get_name(self) -> str:
-        return str(self._table_file.name)
+        return str(self._path.name)
 
-    def get_internal_columns(self) -> List[Column]:
-        with self._open_table() as dataset:
-            return [
-                self.get_column(column_name, dataset.get_column_type(column_name))
-                for column_name in INTERNAL_COLUMN_NAMES
-            ]
-
-    def get_column(
+    def get_column_values(
         self,
         column_name: str,
-        dtype: Type[ColumnType],
-        indices: Optional[List[int]] = None,
-        simple: bool = False,
-    ) -> Column:
-        with self._open_table() as dataset:
-            normalized_values = dataset.read_column(column_name, indices=indices)
-            if dtype is Category:
-                categories = self._get_column_categories(column_name)
-                values = [
-                    convert_to_dtype(
-                        value, dtype, DTypeOptions(categories=categories), simple
-                    )
-                    for value in normalized_values
-                ]
-            else:
-                values = [
-                    convert_to_dtype(value, dtype, simple=simple)
-                    for value in normalized_values
-                ]
-            attrs, _, _ = _decode_attrs(dataset._h5_file[column_name].attrs)
-            attrs.type = dtype
-        return Column(name=column_name, values=values, **asdict(attrs))
+    ) -> np.ndarray:
+        return np.array(self._table.read_column(column_name, indices=None))
 
-    def get_cell_data(
-        self, column_name: str, row_index: int, dtype: Type[ColumnType]
-    ) -> Any:
+    def get_cell_value(self, column_name: str, row_index: int) -> NormalizedValue:
         """
         return the value of a single cell
         """
         # read raw value from h5 table
-        with self._open_table() as dataset:
-            try:
-                normalized_value = dataset.read_value(column_name, row_index)
-            except IndexError as e:
-                raise NoRowFound(row_index) from e
-
-            # convert normalized value to requested dtype
-            if dtype is Category:
-                categories = self._get_column_categories(column_name)
-                return convert_to_dtype(
-                    normalized_value, dtype, DTypeOptions(categories=categories)
-                )
-            return convert_to_dtype(normalized_value, dtype)
+        try:
+            return self._table.read_value(column_name, row_index)
+        except IndexError as e:
+            raise NoRowFound(row_index) from e
 
     @lru_cache(maxsize=128)
     def _get_column_categories(self, column_name: str) -> Dict[str, int]:
-        with self._open_table() as dataset:
-            attrs = dataset.get_column_attributes(column_name)
-            try:
-                return cast(Dict[str, int], attrs["categories"])
-            except KeyError:
-                normalized_values = cast(
-                    List[str],
-                    [
-                        convert_to_dtype(value, str, simple=True)
-                        for value in dataset.read_column(column_name)
-                    ],
-                )
-                category_names = sorted(set(normalized_values))
-                return {
-                    category_name: i for i, category_name in enumerate(category_names)
-                }
-
-    def _open_table(self, mode: str = "r") -> H5Dataset:
+        attrs = self._table.get_column_attributes(column_name)
         try:
-            return H5Dataset(self._table_file, mode)
-        except FileNotFoundError as e:
-            raise NoTableFileFound(self._table_file) from e
-        except OSError as e:
-            raise CouldNotOpenTableFile(self._table_file) from e
+            return cast(Dict[str, int], attrs["categories"])
+        except KeyError:
+            normalized_values = cast(
+                List[str],
+                [
+                    convert_to_dtype(value, str, simple=True)
+                    for value in self._table.read_column(column_name)
+                ],
+            )
+            category_names = sorted(set(normalized_values))
+            return {category_name: i for i, category_name in enumerate(category_names)}

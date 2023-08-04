@@ -3,7 +3,6 @@
 import dataclasses
 import hashlib
 import io
-from datetime import datetime
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Type, Any, Union, cast
 
@@ -17,7 +16,6 @@ from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
-from renumics.spotlight.dtypes import Audio
 from renumics.spotlight.dtypes.typing import (
     ColumnType,
     ColumnTypeMapping,
@@ -140,12 +138,6 @@ class DataSource(ABC):
         """
         Get the table's human-readable name.
         """
-
-    def get_internal_columns(self) -> List[Column]:
-        """
-        Get internal columns if there are any.
-        """
-        return []
 
     @abstractmethod
     def get_column_values(self, column_name: str) -> np.ndarray:
