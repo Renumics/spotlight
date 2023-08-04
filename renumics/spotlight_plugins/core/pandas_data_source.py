@@ -149,9 +149,7 @@ class PandasDataSource(DataSource):
     def get_column_metadata(self, _: str) -> ColumnMetadata:
         return ColumnMetadata(nullable=True, editable=True)
 
-    def get_cell_value(
-        self, column_name: str, row_index: int
-    ) -> Any:
+    def get_cell_value(self, column_name: str, row_index: int) -> Any:
         """
         Return the value of a single cell, warn if not possible.
         """
@@ -175,5 +173,3 @@ class PandasDataSource(DataSource):
                 f"Column '{column_name}' doesn't exist in the dataset."
             ) from e
         return self._df.columns[index]
-
-

@@ -143,7 +143,7 @@ def get_table(request: Request) -> ORJSONResponse:
             x_label=None,
             y_label=None,
             description=meta.description,
-            tags=meta.tags
+            tags=meta.tags,
         )
         columns.append(column)
 
