@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "renumics-spotlight"
-version = "0.0.0"
+version = "1.3.0-pre.6.post.92+58b35fc"
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
 homepage = "https://spotlight.renumics.com/"
 documentation = "https://spotlight.renumics.com/"
@@ -86,6 +86,7 @@ filetype = "*"
 setuptools = "*"
 numba = "^0.57.1"
 pillow = "^10.0.0"
+httpx = "^0.23.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "*"
@@ -115,7 +116,6 @@ pdoc3 = "^0.10.0"
 nptyping = "^2.5.0"
 datasets = {extras = ["audio"], version = "^2.12.0"}
 types-toml = "^0.10.8.6"
-httpx = "^0.23.0"
 types-pillow = "^10.0.0.1"
 pandas-stubs = "^2.0.2.230605"
 ruff = "^0.0.281"
@@ -129,7 +129,7 @@ annoy = "^1.17.2"
 cleanlab = "^2.4.0"
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
 style = "semver"
 
