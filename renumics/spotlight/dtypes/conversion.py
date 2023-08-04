@@ -32,6 +32,8 @@ from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.io import audio
 from renumics.spotlight.io.file import as_file
 
+from renumics.spotlight.dtypes.exceptions import InvalidFile
+
 from .typing import (
     ColumnType,
     Category,
@@ -310,10 +312,12 @@ def _(value: Union[str, np.str_]) -> np.ndarray:
 @convert(str, Image, simple=False)
 @convert(np.str_, Image, simple=False)
 def _(value: Union[str, np.str_]) -> bytes:
-    data = read_external_value(value, Image)
-    if data is None:
+    try:
+        if data := read_external_value(value, Image):
+            return data.tolist()
+    except InvalidFile:
         raise ConversionError()
-    return data.tolist()
+    raise ConversionError()
 
 
 @convert(bytes, Image, simple=False)
@@ -330,8 +334,11 @@ def _(value: np.ndarray) -> bytes:
 @convert(str, Audio, simple=False)
 @convert(np.str_, Audio, simple=False)
 def _(value: Union[str, np.str_]) -> bytes:
-    if data := read_external_value(value, Audio):
-        return data.tolist()
+    try:
+        if data := read_external_value(value, Audio):
+            return data.tolist()
+    except InvalidFile:
+        raise ConversionError()
     raise ConversionError()
 
 
@@ -344,8 +351,11 @@ def _(value: Union[bytes, np.bytes_]) -> bytes:
 @convert(str, Video, simple=False)
 @convert(np.str_, Video, simple=False)
 def _(value: Union[str, np.str_]) -> bytes:
-    if data := read_external_value(value, Video):
-        return data.tolist()
+    try:
+        if data := read_external_value(value, Video):
+            return data.tolist()
+    except InvalidFile:
+        raise ConversionError()
     raise ConversionError()
 
 
@@ -358,8 +368,11 @@ def _(value: Union[bytes, np.bytes_]) -> bytes:
 @convert(str, Mesh, simple=False)
 @convert(np.str_, Mesh, simple=False)
 def _(value: Union[str, np.str_]) -> bytes:
-    if data := read_external_value(value, Mesh):
-        return data.tolist()
+    try:
+        if data := read_external_value(value, Mesh):
+            return data.tolist()
+    except InvalidFile:
+        raise ConversionError()
     raise ConversionError()
 
 

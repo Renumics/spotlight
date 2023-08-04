@@ -17,7 +17,7 @@ from renumics.spotlight.backend.exceptions import ConversionFailed
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping, ColumnType
 from renumics.spotlight.dtypes import Image
 
-from renumics.spotlight.dtypes.conversion import convert_to_dtype
+from renumics.spotlight.dtypes.conversion import NoConverterAvailable, convert_to_dtype
 
 from ..decorator import data_analyzer
 from ..typing import DataIssue
@@ -100,7 +100,7 @@ def _get_cell_data_safe(
     try:
         source_value = data_source.get_cell_value(column_name, row)
         return cast(bytes, convert_to_dtype(source_value, dtype))
-    except ConversionFailed:
+    except (ConversionFailed, NoConverterAvailable):
         return None
 
 

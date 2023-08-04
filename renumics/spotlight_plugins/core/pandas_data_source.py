@@ -96,24 +96,6 @@ class PandasDataSource(DataSource):
         }
         return dtype_map
 
-    def _parse_column_index(self, column_name: str) -> Any:
-        column_names = self.column_names
-        try:
-            loc = self._df.columns.get_loc(column_name)
-        except KeyError:
-            ...
-        else:
-            if isinstance(self._df.columns, pd.MultiIndex):
-                return self._df.columns[loc][0]
-            return self._df.columns[loc]
-        try:
-            index = column_names.index(column_name)
-        except ValueError as e:
-            raise ColumnNotExistsError(
-                f"Column '{column_name}' doesn't exist in the dataset."
-            ) from e
-        return self._df.columns[index]
-
     def get_generation_id(self) -> int:
         return self._generation_id
 
@@ -175,3 +157,23 @@ class PandasDataSource(DataSource):
         """
         # TODO: do this right
         return self.get_column_values(column_name)[row_index]
+
+    def _parse_column_index(self, column_name: str) -> Any:
+        column_names = self.column_names
+        try:
+            loc = self._df.columns.get_loc(column_name)
+        except KeyError:
+            ...
+        else:
+            if isinstance(self._df.columns, pd.MultiIndex):
+                return self._df.columns[loc][0]
+            return self._df.columns[loc]
+        try:
+            index = column_names.index(column_name)
+        except ValueError as e:
+            raise ColumnNotExistsError(
+                f"Column '{column_name}' doesn't exist in the dataset."
+            ) from e
+        return self._df.columns[index]
+
+
