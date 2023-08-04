@@ -140,6 +140,10 @@ def get_table(request: Request) -> ORJSONResponse:
             role=get_column_type_name(dtype),
             categories={},
             embedding_length=None,
+            x_label=None,
+            y_label=None,
+            description=meta.description,
+            tags=meta.tags
         )
         columns.append(column)
 
