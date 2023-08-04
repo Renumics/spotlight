@@ -169,7 +169,8 @@ class DataSource(ABC):
         """
         return the waveform of an audio cell
         """
-        blob = self.get_cell_data(column_name, row_index, Audio)
+        # TODO: move out of datasource
+        blob = self.get_cell_value(column_name, row_index, Audio)
         if blob is None:
             return None
         if isinstance(blob, np.void):
@@ -235,60 +236,3 @@ def sanitize_values(values: Any) -> Any:
     if issubclass(values.dtype.type, np.inexact):
         return np.where(np.isfinite(values), values, np.array(None)).tolist()
     return values.tolist()
-
-
-def idx_column(row_count: int) -> Column:
-    """create a column containing the index"""
-    return Column(
-        type=int,
-        order=None,
-        description=None,
-        tags=[],
-        categories=None,
-        x_label=None,
-        y_label=None,
-        embedding_length=None,
-        name="__idx__",
-        hidden=True,
-        editable=False,
-        optional=False,
-        values=np.array(range(row_count)),
-    )
-
-
-def last_edited_at_column(row_count: int, value: Optional[datetime]) -> Column:
-    """create a column containing a constant datetime"""
-    return Column(
-        type=datetime,
-        order=None,
-        description=None,
-        tags=[],
-        categories=None,
-        x_label=None,
-        y_label=None,
-        embedding_length=None,
-        name="__last_edited_at__",
-        hidden=True,
-        editable=False,
-        optional=False,
-        values=np.array([value] * row_count, dtype=object),
-    )
-
-
-def last_edited_by_column(row_count: int, value: str) -> Column:
-    """create a column containing a constant username"""
-    return Column(
-        type=str,
-        order=None,
-        description=None,
-        tags=[],
-        categories=None,
-        x_label=None,
-        y_label=None,
-        embedding_length=None,
-        name="__last_edited_by__",
-        hidden=True,
-        editable=False,
-        optional=False,
-        values=np.array(row_count * [value]),
-    )
