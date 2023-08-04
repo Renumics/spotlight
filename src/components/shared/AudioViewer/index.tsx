@@ -342,14 +342,6 @@ const AudioViewer = ({
     }, [isReady, windows, editable]);
 
     useEffect(() => {
-        if (isReady) {
-            zoomToWindow();
-        }
-        // Only zoom when isReady changes, not when window changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isReady]);
-
-    useEffect(() => {
         if (!audioRef.current) return;
         if (url && peaks) {
             waveform.current?.load(audioRef.current, peaks);
