@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "renumics-spotlight"
-version = "1.3.0-pre.6.post.92+58b35fc"
+version = "0.0.0"
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
 homepage = "https://spotlight.renumics.com/"
 documentation = "https://spotlight.renumics.com/"
@@ -129,7 +129,7 @@ annoy = "^1.17.2"
 cleanlab = "^2.4.0"
 
 [tool.poetry-dynamic-versioning]
-enable = false
+enable = true
 vcs = "git"
 style = "semver"
 
