@@ -12,9 +12,6 @@ from pydantic import BaseModel
 
 from renumics.spotlight.backend.data_source import (
     Column as DatasetColumn,
-    idx_column,
-    last_edited_at_column,
-    last_edited_by_column,
     sanitize_values,
 )
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
@@ -173,32 +170,14 @@ async def get_table_cell(
         return None
     table.check_generation_id(generation_id)
 
-    try:
-        dtype = app.dtypes[column]
-    except KeyError as e:
-        if column == "__last_edited_by__":
-            dtype = str
-        elif column == "__last_edited_at__":
-            dtype = datetime
-        elif column == "__idx__":
-            dtype = int
-        else:
-            raise e
+    dtype = app.dtypes[column]
+    raw_cell_value = table.get_cell_value(column, row)
+    converted_cell_value = convert_to_dtype(raw_cell_value, dtype)
 
-    try:
-        cell_data = table.get_cell_data(column, row, dtype)
-    except ColumnNotExistsError as e:
-        if column == "__last_edited_by__":
-            cell_data = ""
-        elif column == "__last_edited_at__":
-            cell_data = None
-        elif column == "__idx__":
-            cell_data = row
-        else:
-            raise e
-    value = sanitize_values(cell_data)
+    # TODO: check if this is needed for the stricter data formats
+    value = sanitize_values(converted_cell_value)
 
-    if isinstance(value, (bytes, str)):
+    if isinstance(value, bytes):
         return Response(value, media_type="application/octet-stream")
 
     return value
