@@ -394,8 +394,6 @@ jobs:
                   path: build/datasets/
             - name: Upgrade system packages
               run: python -m pip install --upgrade pip setuptools wheel
-            - name: Install packages for testing
-              run: python -m pip install pytest "httpx>=0.22.0"
             - name: Install Spotlight
               id: setup
               run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ needs.prepare-python.outputs.version }}
@@ -416,8 +414,11 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
+            - name: Install pytest
+              id: setup-tests
+              run: python -m pip install pytest
             - name: Execute integration tests
-              if: success() || steps.setup.outcome == 'success'
+              if: success() || steps.setup-tests.outcome == 'success'
               run: pytest tests/integration
     # Release stage
     release:
