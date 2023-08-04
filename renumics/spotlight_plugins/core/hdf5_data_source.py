@@ -4,15 +4,14 @@ access h5 table data
 from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
-from typing import Dict, List, Optional, cast, Union, Tuple
+from typing import Dict, List, Optional, cast, Union
 
 import h5py
 import numpy as np
 
-from renumics.spotlight.dtypes import Category, Embedding
+from renumics.spotlight.dtypes import Embedding
 from renumics.spotlight.dtypes.typing import (
     ColumnTypeMapping,
-    get_column_type,
 )
 from renumics.spotlight.typing import PathType, IndexType
 from renumics.spotlight.dataset import (
@@ -21,7 +20,7 @@ from renumics.spotlight.dataset import (
     unescape_dataset_name,
 )
 
-from renumics.spotlight.backend.data_source import DataSource, Attrs
+from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
@@ -41,52 +40,6 @@ def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
     Unescape multiple dataset names.
     """
     return np.array([unescape_dataset_name(value) for value in refs])
-
-
-def _decode_attrs(raw_attrs: h5py.AttributeManager) -> Tuple[Attrs, bool, bool]:
-    """
-    Get relevant subset of column attributes.
-    """
-    column_type_name = raw_attrs.get("type", "unknown")
-    column_type = get_column_type(column_type_name)
-
-    categories: Optional[Dict[str, int]] = None
-    embedding_length: Optional[int] = None
-
-    if column_type is Category:
-        # If one of the attributes does not exist or is empty, an empty dict
-        # will be created.
-        categories = dict(
-            zip(
-                raw_attrs.get("category_keys", []),
-                raw_attrs.get("category_values", []),
-            )
-        )
-    elif column_type is Embedding:
-        embedding_length = raw_attrs.get("value_shape", [0])[0]
-
-    tags = raw_attrs.get("tags", np.array([])).tolist()
-
-    has_lookup = "lookup_keys" in raw_attrs
-    is_external = raw_attrs.get("external", False)
-
-    return (
-        Attrs(
-            type=column_type,
-            order=raw_attrs.get("order", None),
-            hidden=raw_attrs.get("hidden", False),
-            optional=raw_attrs.get("optional", False),
-            description=raw_attrs.get("description", None),
-            tags=tags,
-            editable=raw_attrs.get("editable", False),
-            categories=categories,
-            x_label=raw_attrs.get("x_label", None),
-            y_label=raw_attrs.get("y_label", None),
-            embedding_length=embedding_length,
-        ),
-        has_lookup,
-        is_external,
-    )
 
 
 def ref_placeholder_names(mask: np.ndarray) -> np.ndarray:
