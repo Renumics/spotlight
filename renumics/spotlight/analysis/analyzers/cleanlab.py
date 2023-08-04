@@ -31,8 +31,7 @@ def analyze_with_cleanlab(
     for column_name in embedding_columns:
         source_values = data_source.get_column_values(column_name)
         embeddings = np.array(
-            (convert_to_dtype(x, dtype=Embedding) for x in source_values),
-            dtype=object
+            (convert_to_dtype(x, dtype=Embedding) for x in source_values), dtype=object
         )
         mask = _detect_outliers(embeddings)
         rows = np.where(mask)[0].tolist()
