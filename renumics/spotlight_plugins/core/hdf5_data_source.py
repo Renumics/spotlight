@@ -19,14 +19,13 @@ from renumics.spotlight.dataset import (
     unescape_dataset_name,
 )
 
-from renumics.spotlight.backend.data_source import DataSource
+from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
     NoRowFound,
 )
 
-from renumics.spotlight.backend import datasource
 
 from renumics.spotlight.dtypes.conversion import (
     NormalizedValue,

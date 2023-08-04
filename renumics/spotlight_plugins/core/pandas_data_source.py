@@ -15,8 +15,8 @@ from renumics.spotlight.io.pandas import (
     stringify_columns,
     try_literal_eval,
 )
-from renumics.spotlight.backend import datasource
-from renumics.spotlight.backend.data_source import (
+from renumics.spotlight.data_source import (
+    datasource,
     ColumnMetadata,
     DataSource,
 )

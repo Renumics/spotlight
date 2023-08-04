@@ -4,25 +4,23 @@ import dataclasses
 import hashlib
 import io
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Type, Any, Union, cast
+from typing import Optional, List, Any
 
 import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.io import audio
-from renumics.spotlight.typing import is_iterable
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
 from renumics.spotlight.dtypes.typing import (
-    ColumnType,
     ColumnTypeMapping,
 )
-from renumics.spotlight.dtypes.conversion import ConvertedValue, NormalizedValue
+from renumics.spotlight.dtypes.conversion import NormalizedValue
 from renumics.spotlight.cache import external_data_cache
-from .exceptions import GenerationIDMismatch, NoRowFound
+from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
 
 
 @dataclasses.dataclass
@@ -35,37 +33,6 @@ class ColumnMetadata:
     editable: bool
     description: Optional[str] = None
     tags: List[str] = dataclasses.field(default_factory=list)
-
-
-@dataclasses.dataclass
-class Attrs:
-    """
-    Column attributes relevant for Spotlight.
-    """
-
-    type: Type[ColumnType]
-    order: Optional[int]
-    hidden: bool
-    optional: bool
-    description: Optional[str]
-    tags: List[str]
-    editable: bool
-
-    # data type specific fields
-    categories: Optional[Dict[str, int]]
-    x_label: Optional[str]
-    y_label: Optional[str]
-    embedding_length: Optional[int]
-
-
-@dataclasses.dataclass
-class Column(Attrs):
-    """
-    Column with raw values.
-    """
-
-    name: str
-    values: Union[np.ndarray, List[ConvertedValue]]
 
 
 @dataclass
@@ -199,33 +166,3 @@ class DataSource(ABC):
             raise ColumnExistsError(
                 f"Column '{column_name}' already exists in the dataset."
             )
-
-
-def _sanitize_value(value: Any) -> Any:
-    if pd.isna(value):
-        return None
-    if isinstance(value, (bool, int, float, str, bytes)):
-        return value
-    try:
-        # Assume `value` is a `numpy` object.
-        return value.tolist()
-    except AttributeError:
-        # Try to send `value` as is.
-        return value
-
-
-def sanitize_values(values: Any) -> Any:
-    """
-    sanitize values for serialization
-    e.g. replace inf, -inf and NaN in float data
-    """
-
-    if not is_iterable(values):
-        return _sanitize_value(values)
-    if isinstance(values, list):
-        return [sanitize_values(x) for x in values]
-    # At the moment, `values` should be a `numpy` array.
-    values = cast(np.ndarray, values)
-    if issubclass(values.dtype.type, np.inexact):
-        return np.where(np.isfinite(values), values, np.array(None)).tolist()
-    return values.tolist()

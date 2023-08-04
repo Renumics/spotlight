@@ -9,8 +9,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
 
-from renumics.spotlight.backend.data_source import (
-    Column as DatasetColumn,
+from renumics.spotlight.backend.serialization import (
     sanitize_values,
 )
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
@@ -55,29 +54,6 @@ class Column(BaseModel):
     tags: Optional[List[str]]
     categories: Optional[Dict[str, int]]
     embedding_length: Optional[int]
-
-    @classmethod
-    def from_dataset_column(cls, column: DatasetColumn) -> "Column":
-        """
-        Instantiate column from a dataset column.
-        """
-
-        return cls(
-            name=column.name,
-            index=column.order,
-            hidden=column.hidden,
-            lazy=column.type in LAZY_DTYPES,
-            editable=column.editable,
-            optional=column.optional,
-            role=get_column_type_name(column.type),
-            values=sanitize_values(column.values),
-            x_label=column.x_label,
-            y_label=column.y_label,
-            description=column.description,
-            tags=column.tags,
-            categories=column.categories,
-            embedding_length=column.embedding_length,
-        )
 
 
 class Table(BaseModel):

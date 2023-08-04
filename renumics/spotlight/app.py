@@ -24,7 +24,6 @@ import pandas as pd
 
 from httpx import AsyncClient, URL
 
-from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
     Message,
@@ -52,7 +51,7 @@ from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.app_config import AppConfig
-from renumics.spotlight.backend import create_datasource
+from renumics.spotlight.data_source import DataSource, create_datasource
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
 

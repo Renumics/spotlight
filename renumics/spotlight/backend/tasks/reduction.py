@@ -12,7 +12,7 @@ from renumics.spotlight.dtypes import Category, Embedding
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
 from renumics.spotlight.dtypes.conversion import convert_to_dtype
-from ..data_source import DataSource
+from renumics.spotlight.data_source import DataSource
 
 SEED = 42
 

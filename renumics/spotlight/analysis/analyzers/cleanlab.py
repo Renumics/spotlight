@@ -9,7 +9,7 @@ import numpy as np
 import cleanlab.outlier
 from renumics.spotlight.dtypes import Embedding
 
-from renumics.spotlight.backend.data_source import DataSource
+from renumics.spotlight.data_source import DataSource
 
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 

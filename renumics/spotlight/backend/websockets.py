@@ -14,7 +14,9 @@ from pydantic.dataclasses import dataclass
 from typing_extensions import Literal
 
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-from .data_source import DataSource, sanitize_values
+from renumics.spotlight.data_source import DataSource
+
+from .serialization import sanitize_values
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
 from .exceptions import GenerationIDMismatch

@@ -6,7 +6,7 @@ import importlib
 import pkgutil
 from typing import List
 
-from renumics.spotlight.backend import DataSource
+from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.logging import logger
 
