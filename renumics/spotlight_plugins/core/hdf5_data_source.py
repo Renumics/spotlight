@@ -54,10 +54,6 @@ class H5Dataset(Dataset):
     A `spotlight.Dataset` class extension for better usage in Spotlight backend.
     """
 
-    def __enter__(self) -> "H5Dataset":
-        self.open()
-        return self
-
     def get_generation_id(self) -> int:
         """
         Get the dataset's generation if set.
