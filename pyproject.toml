@@ -86,6 +86,7 @@ filetype = "*"
 setuptools = "*"
 numba = "^0.57.1"
 pillow = "^10.0.0"
+httpx = "^0.23.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "*"
@@ -115,7 +116,6 @@ pdoc3 = "^0.10.0"
 nptyping = "^2.5.0"
 datasets = {extras = ["audio"], version = "^2.12.0"}
 types-toml = "^0.10.8.6"
-httpx = "^0.23.0"
 types-pillow = "^10.0.0.1"
 pandas-stubs = "^2.0.2.230605"
 ruff = "^0.0.281"
