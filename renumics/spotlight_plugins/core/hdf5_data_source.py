@@ -1,10 +1,9 @@
 """
 access h5 table data
 """
-from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
-from typing import Dict, List, Optional, cast, Union
+from typing import List, Optional, cast, Union
 
 import h5py
 import numpy as np
@@ -31,7 +30,6 @@ from renumics.spotlight.backend import datasource
 
 from renumics.spotlight.dtypes.conversion import (
     NormalizedValue,
-    convert_to_dtype,
 )
 
 
@@ -213,19 +211,3 @@ class Hdf5DataSource(DataSource):
             return self._table.read_value(column_name, row_index)
         except IndexError as e:
             raise NoRowFound(row_index) from e
-
-    @lru_cache(maxsize=128)
-    def _get_column_categories(self, column_name: str) -> Dict[str, int]:
-        attrs = self._table.get_column_attributes(column_name)
-        try:
-            return cast(Dict[str, int], attrs["categories"])
-        except KeyError:
-            normalized_values = cast(
-                List[str],
-                [
-                    convert_to_dtype(value, str, simple=True)
-                    for value in self._table.read_column(column_name)
-                ],
-            )
-            category_names = sorted(set(normalized_values))
-            return {category_name: i for i, category_name in enumerate(category_names)}
