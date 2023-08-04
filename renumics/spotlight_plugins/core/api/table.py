@@ -1,7 +1,6 @@
 """
 table api endpoints
 """
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -29,8 +28,6 @@ from renumics.spotlight.dtypes import (
     Sequence1D,
     Video,
 )
-
-from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
 from renumics.spotlight.dtypes.conversion import convert_to_dtype
 

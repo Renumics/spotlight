@@ -1,55 +1,30 @@
 """
 access pandas DataFrame table data
 """
-from datetime import datetime
-from functools import lru_cache
-from typing import Any, Dict, List, Optional, Union, Type, cast
+from typing import Any, List, Union, cast
 
 import numpy as np
 import pandas as pd
-import trimesh
 
-from renumics.spotlight.dtypes import (
-    Audio,
-    Category,
-    Embedding,
-    Image,
-    Mesh,
-    Sequence1D,
-    Video,
-    Window,
-)
-from renumics.spotlight.dtypes.exceptions import InvalidFile, NotADType
 from renumics.spotlight.dtypes.typing import (
-    ColumnType,
     ColumnTypeMapping,
-    is_array_based_column_type,
-    is_file_based_column_type,
-    is_scalar_column_type,
 )
 from renumics.spotlight.io.pandas import (
     infer_dtype,
-    is_empty,
-    prepare_column,
     prepare_hugging_face_dict,
     stringify_columns,
-    to_categorical,
     try_literal_eval,
 )
 from renumics.spotlight.backend import datasource
 from renumics.spotlight.backend.data_source import (
-    Column,
     ColumnMetadata,
     DataSource,
 )
 from renumics.spotlight.backend.exceptions import (
-    ConversionFailed,
     DatasetColumnsNotUnique,
 )
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
-
-from renumics.spotlight.dtypes.conversion import NormalizedValue, read_external_value
 
 
 @datasource(pd.DataFrame)
