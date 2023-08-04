@@ -4,7 +4,7 @@ find issues in images
 
 import os
 import inspect
-from typing import Iterable, List, Optional, Type
+from typing import Iterable, List, Optional, Type, cast
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
@@ -16,6 +16,8 @@ from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.exceptions import ConversionFailed
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping, ColumnType
 from renumics.spotlight.dtypes import Image
+
+from renumics.spotlight.dtypes.conversion import convert_to_dtype
 
 from ..decorator import data_analyzer
 from ..typing import DataIssue
@@ -96,7 +98,8 @@ def _get_cell_data_safe(
     data_source: DataSource, column_name: str, row: int, dtype: Type[ColumnType]
 ) -> Optional[bytes]:
     try:
-        return data_source.get_cell_data(column_name, row, dtype)
+        source_value = data_source.get_cell_value(column_name, row)
+        return cast(bytes, convert_to_dtype(source_value, dtype))
     except ConversionFailed:
         return None
 

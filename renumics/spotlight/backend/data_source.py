@@ -170,7 +170,8 @@ class DataSource(ABC):
         return the waveform of an audio cell
         """
         # TODO: move out of datasource
-        blob = self.get_cell_value(column_name, row_index, Audio)
+        # blob = self.get_cell_value(column_name, row_index, Audio)
+        blob = None
         if blob is None:
             return None
         if isinstance(blob, np.void):

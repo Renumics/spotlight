@@ -13,6 +13,8 @@ from renumics.spotlight.backend.data_source import DataSource
 
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
+from renumics.spotlight.dtypes.conversion import convert_to_dtype
+
 from ..decorator import data_analyzer
 from ..typing import DataIssue
 
@@ -27,8 +29,11 @@ def analyze_with_cleanlab(
 
     embedding_columns = (col for col, dtype in dtypes.items() if dtype == Embedding)
     for column_name in embedding_columns:
-        col_values = data_source.get_column(column_name, dtypes[column_name]).values
-        embeddings = np.array(col_values, dtype=object)
+        source_values = data_source.get_column_values(column_name)
+        embeddings = np.array(
+            (convert_to_dtype(x, dtype=Embedding) for x in source_values),
+            dtype=object
+        )
         mask = _detect_outliers(embeddings)
         rows = np.where(mask)[0].tolist()
 
