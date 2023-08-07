@@ -22,4 +22,4 @@ class DataIssue(BaseModel):
     description: str = ""
 
 
-DataAnalyzer = Callable[[DataSource, ColumnTypeMapping], Iterable[DataIssue]]
+DataAnalyzer = Callable[[DataSource, List[str], ColumnTypeMapping], Iterable[DataIssue]]
