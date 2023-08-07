@@ -142,7 +142,7 @@ const Cloud = ({
         const layout = d3Cloud<Word>()
             .size([width, height])
             .words(words)
-            .rotate(() => (Math.floor(Math.random() * 5) - 2) * 15)
+            .rotate((_, i) => ((i % 5) - 2) * 0)
             .padding(0.5)
             .font(FONT_FAMILY)
             .fontSize((d) => scale(d.count || 1))

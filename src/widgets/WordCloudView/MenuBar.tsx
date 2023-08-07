@@ -51,7 +51,7 @@ const SettingsMenu = ({
                 selectableColumns={placeableColumns}
                 selected={wordCloudBy}
             />
-            <Menu.Title>Reduction method</Menu.Title>
+            <Menu.Title>Scaling</Menu.Title>
             <Menu.Item>
                 <Select
                     value={scaling}
