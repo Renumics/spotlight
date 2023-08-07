@@ -3,6 +3,7 @@ import d3Cloud from 'd3-cloud';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import 'twin.macro';
 import { Dataset, useDataset } from '../../stores/dataset';
+import seedrandom from 'seedrandom';
 
 import { ColorsState, useColors } from '../../stores/colors';
 
@@ -145,6 +146,7 @@ const Cloud = ({
             .padding(0.5)
             .font(FONT_FAMILY)
             .fontSize((d) => scale(d.count || 1))
+            .random(seedrandom(42))
             .on('end', draw);
         layout.start();
     }, [

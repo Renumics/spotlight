@@ -26,15 +26,20 @@ const WordCloudView: Widget = () => {
 
     const cloudContainerRef = useRef<HTMLDivElement>(null);
 
-    const placeableColumns = useMemo(
+    const ploaceableColumnsKeys = useMemo(
         () => columns.filter((c) => isStringColumn(c)).map(({ key }) => key),
         [columns]
     );
 
-    const [axisColumnKey, setAxisColumnKey] = useWidgetConfig<string>(
+    const [_axisColumnKey, setAxisColumnKey] = useWidgetConfig<string>(
         'wordCloudAxisColumnKey',
-        ''
+        columns.filter((c) => isStringColumn(c)).map(({ key }) => key)[0] ?? ''
     );
+
+    const axisColumnKey =
+        _axisColumnKey && ploaceableColumnsKeys.includes(_axisColumnKey)
+            ? _axisColumnKey
+            : columns.filter((c) => isStringColumn(c)).map(({ key }) => key)[0] ?? '';
 
     const [splitStringsBy, setSplitStringsBy] = useWidgetConfig<string>(
         'splitStringsBy',
@@ -98,7 +103,7 @@ const WordCloudView: Widget = () => {
             </CloudContainer>
             <MenuBar
                 wordCloudBy={axisColumnKey}
-                placeableColumns={placeableColumns}
+                placeableColumns={ploaceableColumnsKeys}
                 scaling={scaling}
                 onChangeScaling={setScaling}
                 filter={filter || false}
