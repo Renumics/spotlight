@@ -146,7 +146,7 @@ const Cloud = ({
             .padding(0.5)
             .font(FONT_FAMILY)
             .fontSize((d) => scale(d.count || 1))
-            .random(seedrandom(42))
+            .random(seedrandom('42'))
             .on('end', draw);
         layout.start();
     }, [
@@ -186,7 +186,7 @@ const Cloud = ({
 
         const selection = d3.select(svg);
 
-        const zoom = d3.zoom().on('zoom', (e) => {
+        const zoom = d3.zoom<SVGSVGElement, unknown>().on('zoom', (e) => {
             selection.select('g.words').attr('transform', e.transform);
         });
 

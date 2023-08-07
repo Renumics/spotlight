@@ -231,6 +231,9 @@ devDependencies:
   '@types/react-window':
     specifier: ^1.8.5
     version: 1.8.5
+  '@types/seedrandom':
+    specifier: ^3.0.5
+    version: 3.0.5
   '@types/shallowequal':
     specifier: ^1.1.1
     version: 1.1.1
@@ -2054,6 +2057,10 @@ packages:
 
   /@types/scheduler@0.16.3:
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
+
+  /@types/seedrandom@3.0.5:
+    resolution: {integrity: sha512-kopEpYpFQvQdYsZkZVwht/0THHmTFFYXDaqV/lM45eweJ8kcGVDgZHs0RVTolSq55UPZNmjhKc9r7UvLu/mQQg==}
+    dev: true
 
   /@types/semver@7.5.0:
     resolution: {integrity: sha512-G8hZ6XJiHnuhQKR7ZmysCeJWE08o8T0AXtk5darsCaTVsYZhhgUrq53jizaR2FvsoeCwJhlmwTjkXBY5Pn/ZHw==}
