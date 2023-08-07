@@ -182,10 +182,18 @@ const Cloud = ({
 
         if (svg === null) return;
 
-        d3.select(svg).on('click', () => {
-            selectRows([]);
+        const selection = d3.select(svg);
+
+        const zoom = d3.zoom().on('zoom', (e) => {
+            selection.select('g.words').attr('transform', e.transform);
         });
-    });
+
+        selection
+            .on('click', () => {
+                selectRows([]);
+            })
+            .call(zoom);
+    }, [selectRows]);
 
     return (
         <svg ref={svgRef} tw="w-full h-full">

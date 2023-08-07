@@ -2,14 +2,13 @@ import tw, { styled } from 'twin.macro';
 import WordCloudIcon from '../../icons/WordCloud';
 import { useDataset, Dataset } from '../../stores/dataset/dataset';
 import { Widget } from '../types';
-import { isCategoricalColumn, isStringColumn } from '../../types/dataset';
+import { isStringColumn } from '../../types/dataset';
 import useWidgetConfig from '../useWidgetConfig';
 import MenuBar from './MenuBar';
 import { ComponentProps, useMemo, useRef } from 'react';
 import _ from 'lodash';
 import Cloud from './Cloud';
 import useSize from '../../hooks/useSize';
-import { ColorsState, useColors } from '../../stores/colors';
 
 const WordViewContainer = styled.div`
     ${tw`bg-gray-100 border-gray-400 w-full h-full overflow-hidden relative`}
