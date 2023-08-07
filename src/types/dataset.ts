@@ -22,6 +22,13 @@ export interface NumberColumn extends DataColumn {
 export const isNumberColumn = (col: DataColumn): col is NumberColumn =>
     datatypes.isNumerical(col.type);
 
+export interface StringColumn extends DataColumn {
+    type: datatypes.StringDataType;
+}
+
+export const isStringColumn = (col: DataColumn): col is StringColumn =>
+    datatypes.isString(col.type);
+
 export interface BooleanColumn extends DataColumn {
     type: datatypes.BooleanDataType;
 }
