@@ -1,16 +1,18 @@
 import * as d3 from 'd3';
 import d3Cloud from 'd3-cloud';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import 'twin.macro';
 import { Dataset, useDataset } from '../../stores/dataset';
 import seedrandom from 'seedrandom';
 
 import { ColorsState, useColors } from '../../stores/colors';
+import { NO_DATA } from '../../palettes';
 
 const categoricalPaletteSelector = (c: ColorsState) => c.categoricalPalette;
 
 export interface Word extends d3Cloud.Word {
     count: number;
+    filteredCount: number;
     rowIds: number[];
     text: string;
 }
@@ -21,6 +23,7 @@ interface Props {
     width: number;
     height: number;
     wordCount?: number;
+    hideFiltered?: boolean;
 }
 
 const MIN_TEXT_SIZE = 10;
@@ -33,32 +36,59 @@ const datasetSelector = (d: Dataset) => ({
     isIndexHighlighted: d.isIndexHighlighted,
     highlightedIndices: d.highlightedIndices,
     selectRows: d.selectRows,
+    isIndexFiltered: d.isIndexFiltered,
+    addFilter: d.addFilter,
 });
 
-const Cloud = ({
-    words: incomingWords,
-    scaling = 'linear',
-    width,
-    height,
-    wordCount,
-}: Props) => {
+export interface Ref {
+    reset: () => void;
+}
+
+const Cloud = forwardRef<Ref, Props>(function Cloud(
+    {
+        words: incomingWords,
+        scaling = 'linear',
+        width,
+        height,
+        wordCount,
+        hideFiltered = false,
+    },
+    ref
+) {
     const svgRef = useRef<SVGSVGElement>(null);
+    const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            if (svgRef.current === null) return;
+            if (zoomRef.current === null) return;
+
+            d3.select(svgRef.current).call(zoomRef.current.transform, d3.zoomIdentity);
+        },
+    }));
 
     const words: Word[] = useMemo(
         () =>
             Object.entries(incomingWords)
                 .map(([text, value]) => ({
                     text,
-                    // size: value.count,
                     ...value,
                 }))
-                .sort((a, b) => b.count - a.count)
+                .sort((a, b) =>
+                    hideFiltered ? b.filteredCount - a.filteredCount : b.count - a.count
+                )
+                .filter((word) => (hideFiltered ? word.filteredCount : word.count) > 0)
                 .slice(0, wordCount),
-        [incomingWords, wordCount]
+        [hideFiltered, incomingWords, wordCount]
     );
 
-    const { highlightRows, isIndexHighlighted, highlightedIndices, selectRows } =
-        useDataset(datasetSelector);
+    const {
+        highlightRows,
+        isIndexHighlighted,
+        highlightedIndices,
+        selectRows,
+        isIndexFiltered,
+    } = useDataset(datasetSelector);
 
     const isAnythingHighlighted = useMemo(
         () => highlightedIndices.length > 0,
@@ -72,32 +102,34 @@ const Cloud = ({
         [categoricalPalette]
     );
 
-    const [minCount, maxCount] = useMemo(() => {
+    const [minSize, maxSize] = useMemo(() => {
         if (Object.keys(words).length === 0) return [0, 0];
 
-        const counts = Object.values(words).map(({ count }) => count || 0);
+        const counts = Object.values(words).map(({ count, filteredCount }) =>
+            hideFiltered ? filteredCount : count || 0
+        );
         return [Math.min(...counts), Math.max(...counts)];
-    }, [words]);
+    }, [hideFiltered, words]);
 
     const scale = useMemo(() => {
         switch (scaling) {
             case 'log':
                 return d3
                     .scaleLog()
-                    .domain([minCount, maxCount])
+                    .domain([minSize, maxSize])
                     .range([MIN_TEXT_SIZE, MAX_TEXT_SIZE]);
             case 'sqrt':
                 return d3
                     .scaleSqrt()
-                    .domain([minCount, maxCount])
+                    .domain([minSize, maxSize])
                     .range([MIN_TEXT_SIZE, MAX_TEXT_SIZE]);
             default:
                 return d3
                     .scaleLinear()
-                    .domain([minCount, maxCount])
+                    .domain([minSize, maxSize])
                     .range([MIN_TEXT_SIZE, MAX_TEXT_SIZE]);
         }
-    }, [maxCount, minCount, scaling]);
+    }, [maxSize, minSize, scaling]);
 
     useEffect(() => {
         const draw = (layedOutWords: Word[]) => {
@@ -127,12 +159,10 @@ const Cloud = ({
                 )
                 .text((d) => d.text || '')
                 .attr('fill', (d, i) =>
-                    categoricalScale(i % categoricalPalette.maxClasses).hex()
+                    d.rowIds.some((index) => isIndexFiltered[index])
+                        ? categoricalScale(i % categoricalPalette.maxClasses).hex()
+                        : NO_DATA.hex()
                 )
-                .on('mouseover', (_, d) => {
-                    highlightRows(d.rowIds);
-                })
-                .on('mouseout', () => highlightRows([]))
                 .on('click', (e, d) => {
                     selectRows(d.rowIds);
                     e.stopPropagation();
@@ -145,7 +175,7 @@ const Cloud = ({
             .rotate((_, i) => ((i % 5) - 2) * 0)
             .padding(0.5)
             .font(FONT_FAMILY)
-            .fontSize((d) => scale(d.count || 1))
+            .fontSize((d) => scale((hideFiltered ? d.filteredCount : d.count) || 1))
             .random(seedrandom('42'))
             .on('end', draw);
         layout.start();
@@ -154,11 +184,13 @@ const Cloud = ({
         scale,
         width,
         height,
-        minCount,
+        minSize,
         categoricalScale,
         categoricalPalette.maxClasses,
         highlightRows,
         selectRows,
+        hideFiltered,
+        isIndexFiltered,
     ]);
 
     useEffect(() => {
@@ -184,17 +216,50 @@ const Cloud = ({
 
         if (svg === null) return;
 
+        d3.select(svg)
+            .select('g.words')
+            .selectAll<d3.BaseType, Word>('text')
+            .attr('fill', (d, i) =>
+                d.rowIds.some((index) => isIndexFiltered[index])
+                    ? categoricalScale(i % categoricalPalette.maxClasses).hex()
+                    : NO_DATA.hex()
+            )
+            .on('mouseover', (_, d) => {
+                d.rowIds.some((index) => isIndexFiltered[index]) &&
+                    highlightRows(d.rowIds);
+            })
+            .on(
+                'mouseout',
+                (_, d) =>
+                    d.rowIds.some((index) => isIndexFiltered[index]) &&
+                    highlightRows([])
+            );
+    }, [
+        isIndexFiltered,
+        categoricalScale,
+        categoricalPalette.maxClasses,
+        highlightRows,
+    ]);
+
+    useEffect(() => {
+        const svg = svgRef.current;
+
+        if (svg === null) return;
+
         const selection = d3.select(svg);
 
-        const zoom = d3.zoom<SVGSVGElement, unknown>().on('zoom', (e) => {
-            selection.select('g.words').attr('transform', e.transform);
-        });
+        zoomRef.current = d3
+            .zoom<SVGSVGElement, unknown>()
+            .on('zoom', (e) => {
+                selection.select('g.words').attr('transform', e.transform);
+            })
+            .filter((event) => event.button === 1 || event.type === 'wheel');
 
         selection
             .on('click', () => {
                 selectRows([]);
             })
-            .call(zoom);
+            .call(zoomRef.current);
     }, [selectRows]);
 
     return (
@@ -202,6 +267,6 @@ const Cloud = ({
             <g className="words" />
         </svg>
     );
-};
+});
 
 export default Cloud;

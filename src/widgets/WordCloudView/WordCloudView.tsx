@@ -5,9 +5,9 @@ import { Widget } from '../types';
 import { isStringColumn } from '../../types/dataset';
 import useWidgetConfig from '../useWidgetConfig';
 import MenuBar from './MenuBar';
-import { ComponentProps, useMemo, useRef } from 'react';
+import { ComponentProps, useCallback, useMemo, useRef } from 'react';
 import _ from 'lodash';
-import Cloud from './Cloud';
+import Cloud, { Ref as CloudRef } from './Cloud';
 import useSize from '../../hooks/useSize';
 
 const WordViewContainer = styled.div`
@@ -19,12 +19,14 @@ const CloudContainer = tw.div`flex top-0 left-0 w-full h-full`;
 const datasetSelector = (d: Dataset) => ({
     columns: d.columns,
     columnData: d.columnData,
+    isIndexFiltered: d.isIndexFiltered,
 });
 
 const WordCloudView: Widget = () => {
-    const { columns, columnData } = useDataset(datasetSelector);
+    const { columns, columnData, isIndexFiltered } = useDataset(datasetSelector);
 
     const cloudContainerRef = useRef<HTMLDivElement>(null);
+    const cloudRef = useRef<CloudRef>(null);
 
     const ploaceableColumnsKeys = useMemo(
         () => columns.filter((c) => isStringColumn(c)).map(({ key }) => key),
@@ -86,7 +88,29 @@ const WordCloudView: Widget = () => {
         return [wordCounts, uniqueWordsCount];
     }, [axisColumnKey, columnData, columnToPlaceBy, splitStringsBy]);
 
-    const [filter, setFilter] = useWidgetConfig<boolean>('filter', false);
+    const wordCountsWithFiltered = useMemo(
+        () =>
+            Object.entries(wordCounts).reduce((acc, [key, word]) => {
+                acc[key] = {
+                    ...word,
+                    filteredCount: word.rowIds.filter((rowId) => isIndexFiltered[rowId])
+                        .length,
+                };
+                return acc;
+            }, {} as Record<string, { count: number; rowIds: number[]; filteredCount: number }>),
+        [wordCounts, isIndexFiltered]
+    );
+
+    const [hideFiltered, setHideFiltered] = useWidgetConfig<boolean>(
+        'hideFiltered',
+        false
+    );
+
+    const resetZoom = useCallback(() => {
+        if (cloudRef.current) {
+            cloudRef.current.reset();
+        }
+    }, []);
 
     const cloudContainerSize = useSize(cloudContainerRef);
 
@@ -94,11 +118,13 @@ const WordCloudView: Widget = () => {
         <WordViewContainer tw="bg-white">
             <CloudContainer ref={cloudContainerRef}>
                 <Cloud
-                    words={wordCounts}
+                    ref={cloudRef}
+                    words={wordCountsWithFiltered}
                     scaling={scaling}
                     width={cloudContainerSize.width}
                     height={cloudContainerSize.height}
                     wordCount={wordsToShowCount}
+                    hideFiltered={hideFiltered}
                 />
             </CloudContainer>
             <MenuBar
@@ -106,10 +132,10 @@ const WordCloudView: Widget = () => {
                 placeableColumns={ploaceableColumnsKeys}
                 scaling={scaling}
                 onChangeScaling={setScaling}
-                filter={filter || false}
+                filter={hideFiltered || false}
                 onChangeWordCloudolumn={setAxisColumnKey}
-                onChangeFilter={setFilter}
-                onReset={() => null}
+                onChangeFilter={setHideFiltered}
+                onReset={resetZoom}
                 minWordCount={1}
                 maxWordCount={uniqueWordsCount}
                 wordCount={wordsToShowCount ?? uniqueWordsCount}
