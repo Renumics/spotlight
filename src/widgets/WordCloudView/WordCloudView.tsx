@@ -2,7 +2,7 @@ import tw, { styled } from 'twin.macro';
 import WordCloudIcon from '../../icons/WordCloud';
 import { useDataset, Dataset } from '../../stores/dataset/dataset';
 import { Widget } from '../types';
-import { isStringColumn } from '../../types/dataset';
+import { DataColumn, isCategoricalColumn, isStringColumn } from '../../types/dataset';
 import useWidgetConfig from '../useWidgetConfig';
 import MenuBar from './MenuBar';
 import { ComponentProps, useCallback, useMemo, useRef } from 'react';
@@ -22,6 +22,8 @@ const datasetSelector = (d: Dataset) => ({
     isIndexFiltered: d.isIndexFiltered,
 });
 
+const isAllowedColumn = (c: DataColumn) => isStringColumn(c) || isCategoricalColumn(c);
+
 const WordCloudView: Widget = () => {
     const { columns, columnData, isIndexFiltered } = useDataset(datasetSelector);
 
@@ -29,19 +31,19 @@ const WordCloudView: Widget = () => {
     const cloudRef = useRef<CloudRef>(null);
 
     const ploaceableColumnsKeys = useMemo(
-        () => columns.filter((c) => isStringColumn(c)).map(({ key }) => key),
+        () => columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key),
         [columns]
     );
 
     const [_axisColumnKey, setAxisColumnKey] = useWidgetConfig<string>(
         'wordCloudAxisColumnKey',
-        columns.filter((c) => isStringColumn(c)).map(({ key }) => key)[0] ?? ''
+        columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key)[0] ?? ''
     );
 
     const axisColumnKey =
         _axisColumnKey && ploaceableColumnsKeys.includes(_axisColumnKey)
             ? _axisColumnKey
-            : columns.filter((c) => isStringColumn(c)).map(({ key }) => key)[0] ?? '';
+            : columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key)[0] ?? '';
 
     const [splitStringsBy, setSplitStringsBy] = useWidgetConfig<string>(
         'splitStringsBy',
@@ -62,7 +64,12 @@ const WordCloudView: Widget = () => {
     const [wordCounts, uniqueWordsCount] = useMemo(() => {
         if (columnToPlaceBy === undefined) return [{}, 0];
 
-        const rows = columnData[axisColumnKey] as string[];
+        const data = columnData[columnToPlaceBy.key];
+        const rows: string[] = isCategoricalColumn(columnToPlaceBy)
+            ? Array.from(data).map(
+                  (v) => `${columnToPlaceBy.type.invertedCategories[v]}`
+              )
+            : (columnData[columnToPlaceBy.key] as string[]);
 
         if (!rows) {
             return [{}, 0];
