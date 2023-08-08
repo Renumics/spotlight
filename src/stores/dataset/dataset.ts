@@ -18,7 +18,7 @@ import {
     TableData,
 } from '../../types';
 import api from '../../api';
-import { notifyAPIError } from '../../notify';
+import { notifyAPIError, notifyError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
@@ -490,8 +490,20 @@ useDataset.subscribe(
         };
 
         const isIndexFiltered = Array(length);
-        for (let i = 0; i < length; i++) {
-            isIndexFiltered[i] = filters.every((filter) => applyFilter(filter, i));
+        try {
+            for (let i = 0; i < length; i++) {
+                isIndexFiltered[i] = filters.every((filter) => {
+                    try {
+                        return applyFilter(filter, i);
+                    } catch (error) {
+                        useDataset.getState().removeFilter(filter);
+                        throw error;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            notifyError(`Error applying filter\n${error}`);
         }
         const filteredIndices: number[] = [];
         isIndexFiltered.forEach((isFiltered, i) => {
