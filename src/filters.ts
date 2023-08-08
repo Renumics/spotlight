@@ -59,7 +59,7 @@ function matchString(value: string, ref: string) {
     try {
         return new RegExp(ref).test(value);
     } catch (error) {
-        throw new Error(`Invalid regular expression: ${ref}`);
+        return value.includes(ref);
     }
 }
 
