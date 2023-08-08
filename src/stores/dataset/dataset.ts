@@ -503,7 +503,7 @@ useDataset.subscribe(
             }
         } catch (error) {
             console.error(error);
-            notifyError(`Error applying filter\n${error}`);
+            notifyError(`Error applying filter! '${error}'`);
         }
         const filteredIndices: number[] = [];
         isIndexFiltered.forEach((isFiltered, i) => {
