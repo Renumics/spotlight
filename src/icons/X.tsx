@@ -5,13 +5,14 @@ const StyledSvg = styled.svg`
     ${tw`w-4 h-4 font-semibold inline-block`}
 `;
 
-const XIcon: FunctionComponent = () => {
+const XIcon: FunctionComponent = ({ className }: { className?: string }) => {
     return (
         <StyledSvg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            className={className}
         >
             <path
                 strokeLinecap="round"

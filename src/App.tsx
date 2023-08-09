@@ -12,6 +12,7 @@ import { Dataset, useDataset } from './stores/dataset';
 import tw from 'twin.macro';
 import 'styled-components';
 import usePluginStore from './stores/pluginStore';
+import CTADialog from './CTADialog';
 
 const Wrapper = tw.div`bg-gray-200 text-midnight-600 w-screen h-screen relative overflow-hidden`;
 
@@ -73,6 +74,7 @@ const App = (): JSX.Element => {
                     </div>
                 )}
                 <ToastContainer position="bottom-right" />
+                <CTADialog />
             </Wrapper>
         </>
     );

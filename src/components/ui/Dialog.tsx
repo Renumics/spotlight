@@ -7,6 +7,7 @@ type Props = {
     isVisible?: boolean;
     children: ReactNode;
     title?: string;
+    className?: string;
 };
 
 const DialogWrapper = styled.div`
@@ -16,6 +17,7 @@ const DialogWrapper = styled.div`
 const DialogBackground = tw.div`w-screen h-screen bg-midnight-600/50 flex place-content-around items-center`;
 
 const Dialog = ({
+    className,
     isVisible,
     children,
     onClickOutside = () => null,
@@ -34,7 +36,7 @@ const Dialog = ({
     if (DialogRoot === null) return <></>;
 
     return ReactDOM.createPortal(
-        <DialogBackground ref={ref} onClick={onClick}>
+        <DialogBackground className={className} ref={ref} onClick={onClick}>
             <DialogWrapper>{children}</DialogWrapper>
         </DialogBackground>,
         DialogRoot
