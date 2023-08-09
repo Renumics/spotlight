@@ -1,9 +1,10 @@
 """
 access h5 table data
 """
+from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
-from typing import List, Optional, cast, Union
+from typing import Dict, List, Optional, cast
 
 import h5py
 import numpy as np
@@ -29,7 +30,10 @@ from renumics.spotlight.backend.exceptions import (
 
 from renumics.spotlight.dtypes.conversion import (
     NormalizedValue,
+    convert_to_dtype,
 )
+
+from renumics.spotlight.data_source.data_source import ColumnMetadata
 
 
 def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
@@ -79,7 +83,7 @@ class H5Dataset(Dataset):
 
     def read_column(
         self, column_name: str, indices: Optional[List[int]] = None
-    ) -> Union[list, np.ndarray]:
+    ) -> np.ndarray:
         """
         Get a decoded dataset column.
         """
@@ -98,12 +102,16 @@ class H5Dataset(Dataset):
 
         if self._is_ref_column(column):
             assert is_string_dtype, "Only new-style string h5 references supported."
-            return [
+            normalized_values = np.empty(len(raw_values), dtype=object)
+            normalized_values[:] = [
                 value.tolist() if isinstance(value, np.void) else value
                 for value in self._resolve_refs(raw_values, column_name)
             ]
+            return normalized_values
         if self._get_column_type(column.attrs) is Embedding:
-            return [None if len(x) == 0 else x for x in raw_values]
+            normalized_values = np.empty(len(raw_values), dtype=object)
+            normalized_values[:] = [None if len(x) == 0 else x for x in raw_values]
+            return normalized_values
         return raw_values
 
     def duplicate_row(self, from_index: IndexType, to_index: IndexType) -> None:
@@ -165,6 +173,7 @@ class Hdf5DataSource(DataSource):
         self._path = Path(source)
         try:
             self._table = H5Dataset(source, "r")
+            self._table.open()
         except FileNotFoundError as e:
             raise NoTableFileFound(source) from e
         except OSError as e:
@@ -195,6 +204,15 @@ class Hdf5DataSource(DataSource):
     def get_name(self) -> str:
         return str(self._path.name)
 
+    def get_column_metadata(self, column_name: str) -> ColumnMetadata:
+        attributes = cast(dict, self._table.get_column_attributes(column_name))
+        return ColumnMetadata(
+            nullable=attributes.get("optional", False),
+            editable=attributes.get("editable", True),
+            description=attributes.get("description"),
+            tags=attributes.get("tags", []),
+        )
+
     def get_column_values(
         self,
         column_name: str,
@@ -210,3 +228,19 @@ class Hdf5DataSource(DataSource):
             return self._table.read_value(column_name, row_index)
         except IndexError as e:
             raise NoRowFound(row_index) from e
+
+    @lru_cache(maxsize=128)
+    def get_column_categories(self, column_name: str) -> Dict[str, int]:
+        attrs = self._table.get_column_attributes(column_name)
+        try:
+            return cast(Dict[str, int], attrs["categories"])
+        except KeyError:
+            normalized_values = cast(
+                List[str],
+                [
+                    convert_to_dtype(value, str, simple=True)
+                    for value in self._table.read_column(column_name)
+                ],
+            )
+            category_names = sorted(set(normalized_values))
+            return {category_name: i for i, category_name in enumerate(category_names)}

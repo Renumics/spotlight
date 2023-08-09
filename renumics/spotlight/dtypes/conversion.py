@@ -17,6 +17,7 @@ from abc import ABCMeta
 import ast
 from collections import defaultdict
 from dataclasses import dataclass
+import inspect
 import io
 import os
 from inspect import signature
@@ -45,6 +46,8 @@ from renumics.spotlight.io import audio
 from renumics.spotlight.io.file import as_file
 
 from renumics.spotlight.dtypes.exceptions import InvalidFile
+
+from renumics.spotlight.backend.exceptions import Problem
 
 from .typing import (
     ColumnType,
@@ -94,18 +97,45 @@ class DTypeOptions:
 
 class ConversionError(Exception):
     """
+    Conversion Error
+    raise in Converter on errors or invalid input data
+    """
+
+    def __init__(self, reason: Optional[str] = None):
+        self.reason = reason
+
+
+class ConversionFailed(Problem):
+    """
     Type Conversion failed
     """
 
+    def __init__(
+        self,
+        value: NormalizedValue,
+        dtype: Type[ColumnType],
+        reason: Optional[str] = None,
+    ) -> None:
+        super().__init__(
+            title="Conversion failed",
+            detail=inspect.cleandoc(
+                f"""
+               Failed to convert value of type {type(value)} to dtype {dtype}.
+               {"" if reason is None else reason}
+            """
+            ),
+            status_code=422,
+        )
 
-class NoConverterAvailable(Exception):
+
+class NoConverterAvailable(Problem):
     """
     No matching converter could be applied
     """
 
     def __init__(self, value: NormalizedValue, dtype: Type[ColumnType]) -> None:
         msg = f"No Converter for {type(value)} -> {dtype}"
-        super().__init__(msg)
+        super().__init__(title="No matching converter", detail=msg, status_code=422)
 
 
 N = TypeVar("N", bound=NormalizedValue)
@@ -189,11 +219,14 @@ def convert_to_dtype(
         if simple
         else _converters_table[type(value)][dtype]
     )
+
+    last_conversion_error: Optional[ConversionError] = None
+
     for converter in registered_converters:
         try:
             return converter(value, dtype_options)
-        except ConversionError:
-            pass
+        except ConversionError as e:
+            last_conversion_error = e
 
     try:
         if value is None:
@@ -221,11 +254,14 @@ def convert_to_dtype(
             assert dtype_options.categories is not None
             value_int = int(value)  # type: ignore
             if value_int != -1 and value_int not in dtype_options.categories.values():
-                raise ConversionError()
+                raise ConversionFailed(value, dtype)
             return value_int
 
     except (TypeError, ValueError) as e:
-        raise ConversionError() from e
+        raise ConversionFailed(value, dtype) from e
+
+    if last_conversion_error:
+        raise ConversionFailed(value, dtype, last_conversion_error.reason)
 
     raise NoConverterAvailable(value, dtype)
 
@@ -352,7 +388,7 @@ def _(value: Union[str, np.str_]) -> bytes:
     try:
         if data := read_external_value(value, Audio):
             return data.tolist()
-    except InvalidFile:
+    except (InvalidFile, IndexError, ValueError):
         raise ConversionError()
     raise ConversionError()
 

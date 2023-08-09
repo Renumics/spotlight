@@ -1,7 +1,8 @@
 """
 access pandas DataFrame table data
 """
-from typing import Any, List, Union, cast
+from typing import Any, Dict, List, Union, cast
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -13,6 +14,7 @@ from renumics.spotlight.io.pandas import (
     infer_dtype,
     prepare_hugging_face_dict,
     stringify_columns,
+    to_categorical,
     try_literal_eval,
 )
 from renumics.spotlight.data_source import (
@@ -148,3 +150,18 @@ class PandasDataSource(DataSource):
                 f"Column '{column_name}' doesn't exist in the dataset."
             ) from e
         return self._df.columns[index]
+
+    @lru_cache(maxsize=128)
+    def get_column_categories(self, column_name: str) -> Dict[str, int]:
+        """
+        Get categories of a categorical column.
+
+        If `as_string` is True, convert the categories to their string
+        representation.
+
+        At the moment, there is no way to add a new category in Spotlight, so we
+        rely on the previously cached ones.
+        """
+        column_index = self._parse_column_index(column_name)
+        column = to_categorical(self._df[column_index], str_categories=True)
+        return {category: i for i, category in enumerate(column.cat.categories)}

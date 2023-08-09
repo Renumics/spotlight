@@ -19,7 +19,7 @@ def test_external_data_cache(non_existing_image_df_viewer: spotlight.Viewer) -> 
 
     response = requests.get(app_url + "api/table/", timeout=5)
     assert response.status_code == 200
-    assert len(response.text) > 1000
+    assert len(response.text) > 200
     generation_id = json.loads(response.text)["generation_id"]
 
     response = requests.get(

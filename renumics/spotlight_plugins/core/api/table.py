@@ -21,6 +21,7 @@ from renumics.spotlight.reporting import emit_timed_event
 
 from renumics.spotlight.dtypes import (
     Audio,
+    Category,
     Embedding,
     Image,
     Mesh,
@@ -28,7 +29,7 @@ from renumics.spotlight.dtypes import (
     Video,
 )
 
-from renumics.spotlight.dtypes.conversion import convert_to_dtype
+from renumics.spotlight.dtypes.conversion import DTypeOptions, convert_to_dtype
 
 # for now specify all lazy dtypes right here
 # we should probably move closer to the actual dtype definition for easier extensibility
@@ -98,8 +99,15 @@ def get_table(request: Request) -> ORJSONResponse:
     for column_name in table.column_names:
         dtype = app.dtypes[column_name]
         normalized_values = table.get_column_values(column_name)
+        if dtype is Category:
+            dtype_options = DTypeOptions(
+                categories=table.get_column_categories(column_name)
+            )
+        else:
+            dtype_options = DTypeOptions()
         values = [
-            convert_to_dtype(value, dtype, simple=True) for value in normalized_values
+            convert_to_dtype(value, dtype, dtype_options=dtype_options, simple=True)
+            for value in normalized_values
         ]
         meta = table.get_column_metadata(column_name)
         column = Column(
@@ -149,7 +157,15 @@ async def get_table_cell(
 
     dtype = app.dtypes[column]
     raw_cell_value = table.get_cell_value(column, row)
-    converted_cell_value = convert_to_dtype(raw_cell_value, dtype)
+
+    if dtype is Category:
+        dtype_options = DTypeOptions(categories=table.get_column_categories(column))
+    else:
+        dtype_options = DTypeOptions()
+
+    converted_cell_value = convert_to_dtype(
+        raw_cell_value, dtype=dtype, dtype_options=dtype_options
+    )
 
     # TODO: check if this is needed for the stricter data formats
     value = sanitize_values(converted_cell_value)

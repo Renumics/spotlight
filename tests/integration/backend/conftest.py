@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 import pandas as pd
 
 from renumics import spotlight
-from renumics.spotlight.backend import create_datasource
+from renumics.spotlight.data_source import create_datasource
 
 
 BASE_URL = "https://spotlightpublic.blob.core.windows.net/internal-test-data/"
@@ -47,8 +47,8 @@ def viewer_tally_df() -> Iterator[spotlight.Viewer]:
         df["encoded"] = dataset["encoded"]
 
     # Valid external data
-    df["audio"] = ""
-    df["image"] = ""
+    df["audio"] = None
+    df["image"] = None
     df.at[0, "audio"] = "data/audio/stereo/gs-16b-2c-44100hz.mp3"
     df.at[1, "audio"] = urljoin(BASE_URL, "gs-16b-2c-44100hz.ogg")
     df.at[2, "audio"] = None

@@ -4,7 +4,7 @@ import dataclasses
 import hashlib
 import io
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any
+from typing import Dict, Optional, List, Any
 
 import pandas as pd
 import numpy as np
@@ -116,6 +116,12 @@ class DataSource(ABC):
     def get_column_metadata(self, column_name: str) -> ColumnMetadata:
         """
         Get extra info of a column.
+        """
+
+    @abstractmethod
+    def get_column_categories(self, column_name: str) -> Dict[str, int]:
+        """
+        Get column categories (for categorical dtype)
         """
 
     @abstractmethod
