@@ -65,7 +65,7 @@ const WordCloudView: Widget = () => {
 
     const [splitStringsBy, setSplitStringsBy] = useWidgetConfig<string>(
         'splitStringsBy',
-        '[\\s,\\.;:!?\\-\\–\\—\\(\\)\\[\\]\\{\\}]'
+        '[\\s,\\.;:!?\\-\\–\\—\\(\\)\\[\\]\\{\\}"\']'
     );
 
     const [blacklist, setBlacklist] = useWidgetConfig<string[]>('blacklist', [
