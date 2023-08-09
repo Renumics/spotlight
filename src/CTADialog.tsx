@@ -5,7 +5,7 @@ import Button from './components/ui/Button';
 import styled, { keyframes } from 'styled-components';
 import { X } from './icons';
 
-const fadeInFirstHalf = keyframes`
+const fadeIn = keyframes`
     0% {
         opacity: 0;
     }
@@ -15,11 +15,11 @@ const fadeInFirstHalf = keyframes`
 `;
 
 const FadeInDiv = styled.div`
-    animation: ${fadeInFirstHalf} 0.25s ease-in-out;
+    animation: ${fadeIn} 0.35s ease-in-out;
 `;
 
 const CTACard = styled.div`
-    animation: ${fadeInFirstHalf} 0.35s ease-in-out;
+    animation: ${fadeIn} 0.7s ease-in-out;
 `;
 
 const CTA_TIMEOUT_MS = 30 * 1000;
