@@ -36,8 +36,6 @@ def align_data(
     if not column_names or not indices:
         return np.empty(0, np.float64), []
 
-    from sklearn import preprocessing
-
     aligned_values = []
     for column_name in column_names:
         column_type = dtypes[column_name]
@@ -45,7 +43,7 @@ def align_data(
         column_values = [convert_to_dtype(x, column_type) for x in source_values]
         if column_type is Embedding:
             embedding_length = max(
-                len(cast(np.ndarray, x)) if x else 0 for x in column_values
+                0 if x is None else len(cast(np.ndarray, x)) for x in column_values
             )
             if embedding_length:
                 none_replacement = np.full(embedding_length, np.nan)

@@ -171,13 +171,25 @@ class Hdf5DataSource(DataSource):
 
     def __init__(self, source: PathType):
         self._path = Path(source)
+        self._open()
+
+    def __getstate__(self) -> dict:
+        return {
+            "path": self._path,
+        }
+
+    def __setstate__(self, state: dict) -> None:
+        self._path = state["path"]
+        self._open()
+
+    def _open(self) -> None:
+        self._table = H5Dataset(self._path, "r")
         try:
-            self._table = H5Dataset(source, "r")
             self._table.open()
         except FileNotFoundError as e:
-            raise NoTableFileFound(source) from e
+            raise NoTableFileFound(self._path) from e
         except OSError as e:
-            raise CouldNotOpenTableFile(source) from e
+            raise CouldNotOpenTableFile(self._path) from e
 
     def __del__(self) -> None:
         self._table.close()
