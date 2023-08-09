@@ -8,6 +8,7 @@ import MultiColumnSelect from './MultiColumnSelect';
 import Subtitle from './Subtitle';
 import Switch from './Switch';
 import Title from './Title';
+import TextArea from './TextArea';
 
 // Helper to attach properties to a function component
 // https://stackoverflow.com/questions/54812930/how-to-add-properties-to-styled-component-with-typescript
@@ -37,6 +38,7 @@ const Properties = {
     MultiColumnSelect,
     ColumnSelect,
     HorizontalDivider,
+    TextArea,
 } as const;
 
 const MenuWithProperties: typeof Menu & typeof Properties = withProperties(

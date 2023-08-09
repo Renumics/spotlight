@@ -159,10 +159,12 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
                 )
                 .text((d) => d.text || '')
                 .attr('fill', (d, i) =>
-                    d.rowIds.some((index) => isIndexFiltered[index])
-                        ? categoricalScale(i % categoricalPalette.maxClasses).hex()
-                        : NO_DATA.hex()
+                    categoricalScale(i % categoricalPalette.maxClasses).hex()
                 )
+                .on('mouseover', (_, d) => {
+                    highlightRows(d.rowIds);
+                })
+                .on('mouseout', () => highlightRows([]))
                 .on('click', (e, d) => {
                     selectRows(d.rowIds);
                     e.stopPropagation();
@@ -184,13 +186,11 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
         scale,
         width,
         height,
-        minSize,
         categoricalScale,
         categoricalPalette.maxClasses,
         highlightRows,
         selectRows,
         hideFiltered,
-        isIndexFiltered,
     ]);
 
     useEffect(() => {
@@ -208,21 +208,11 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
                 d.rowIds.some((index) => isIndexHighlighted[index])
                     ? 1
                     : 0.3
-            );
-    }, [height, highlightedIndices, isAnythingHighlighted, isIndexHighlighted, width]);
-
-    useEffect(() => {
-        const svg = svgRef.current;
-
-        if (svg === null) return;
-
-        d3.select(svg)
-            .select('g.words')
-            .selectAll<d3.BaseType, Word>('text')
+            )
             .attr('fill', (d, i) =>
                 d.rowIds.some((index) => isIndexFiltered[index])
                     ? categoricalScale(i % categoricalPalette.maxClasses).hex()
-                    : NO_DATA.hex()
+                    : '#000000'
             )
             .on('mouseover', (_, d) => {
                 d.rowIds.some((index) => isIndexFiltered[index]) &&
@@ -235,10 +225,14 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
                     highlightRows([])
             );
     }, [
-        isIndexFiltered,
-        categoricalScale,
         categoricalPalette.maxClasses,
+        categoricalScale,
+        height,
         highlightRows,
+        isAnythingHighlighted,
+        isIndexFiltered,
+        isIndexHighlighted,
+        width,
     ]);
 
     useEffect(() => {
