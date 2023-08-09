@@ -58,18 +58,21 @@ const WordCloudView: Widget = () => {
     const [boolOperation, setBoolOperation] =
         useWidgetConfig<BoolOpeartion>('boolOperation');
 
+    const [minWordLength, setMinWordLength] = useWidgetConfig<number>(
+        'minWordLength',
+        3
+    );
+
     const [splitStringsBy, setSplitStringsBy] = useWidgetConfig<string>(
         'splitStringsBy',
         '[\\s,\\.;:!?\\-\\–\\—\\(\\)\\[\\]\\{\\}]'
     );
 
     const [blacklist, setBlacklist] = useWidgetConfig<string[]>('blacklist', [
-        'i',
         'and',
         'you',
         'not',
         'it',
-        'a',
         'the',
         'to',
         'of',
@@ -93,7 +96,7 @@ const WordCloudView: Widget = () => {
         ComponentProps<typeof Cloud>['scaling']
     >('scaling', 'log');
 
-    const [wordsToShowCount, setWordCount] = useWidgetConfig<number>('wordCount');
+    const [wordsToShowCount, setWordCount] = useWidgetConfig<number>('wordCount', 512);
 
     const columnToPlaceBy = useMemo(
         () => columns.find((c) => c.key === cloudByColumnKey),
@@ -161,7 +164,7 @@ const WordCloudView: Widget = () => {
         const wordCounts = splitRows.reduce((acc, line, index) => {
             line.forEach((word) => {
                 const lower = word.toLowerCase();
-                if (!blacklist.includes(lower)) {
+                if (!blacklist.includes(lower) && lower.length >= minWordLength) {
                     if (lower.length < 1) return acc;
                     if (lower in acc) {
                         acc[lower].count++;
@@ -175,7 +178,14 @@ const WordCloudView: Widget = () => {
             return acc;
         }, {} as Record<string, { count: number; rowIds: number[] }>);
         return [wordCounts, uniqueWordsCount];
-    }, [blacklist, columnData, columnToCompareBy, columnToPlaceBy, splitStringsBy]);
+    }, [
+        blacklist,
+        boolOperation,
+        columnData,
+        columnToCompareBy,
+        columnToPlaceBy,
+        splitStringsBy,
+    ]);
 
     const wordCountsWithFiltered = useMemo(
         () =>
@@ -235,6 +245,9 @@ const WordCloudView: Widget = () => {
                 onChangeWordCloudCompareColumn={setCompareByColumnKey}
                 boolOperation={boolOperation || 'difference'}
                 onChangeBoolOperation={setBoolOperation}
+                minWordLength={minWordLength}
+                maxWordLength={15}
+                onChangeMinWordLength={setMinWordLength}
             />
         </WordViewContainer>
     );

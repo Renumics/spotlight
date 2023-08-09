@@ -42,6 +42,9 @@ interface MenuProps {
     onReset: () => void;
     maxWordCount: number;
     minWordCount: number;
+    minWordLength: number;
+    maxWordLength: number;
+    onChangeMinWordLength: (value: number) => void;
     wordCount: number;
     onChangeWordCount: (value: number) => void;
     blacklist: string[];
@@ -68,6 +71,9 @@ const SettingsMenu = ({
     blacklist,
     boolOperation,
     onChangeBoolOperation,
+    minWordLength,
+    maxWordLength,
+    onChangeMinWordLength,
 }: Omit<Props, 'onChangeFilter' | 'filter'>): JSX.Element => {
     const [blacklistInputValue, setBlacklistInputValue] = useState(
         blacklist.join(', ')
@@ -137,6 +143,16 @@ const SettingsMenu = ({
                     value={blacklistInputValue}
                     onChange={(event) => setBlacklistInputValue(event.target.value)}
                     onBlur={onChangeBlacklistInput}
+                />
+            </Menu.Item>
+            <Menu.Item>
+                <Menu.Title>Min Word Length</Menu.Title>
+                <LabeledSlider
+                    showTooltip={true}
+                    min={1}
+                    max={maxWordLength}
+                    onRelease={onChangeMinWordLength}
+                    value={minWordLength}
                 />
             </Menu.Item>
         </Menu>
