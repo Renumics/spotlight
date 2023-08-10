@@ -6,11 +6,9 @@ from typing import Iterator, Tuple
 from urllib.parse import urljoin
 
 import pytest
-from fastapi.testclient import TestClient
 import pandas as pd
 
 from renumics import spotlight
-from renumics.spotlight.data_source import create_datasource
 
 
 BASE_URL = "https://spotlightpublic.blob.core.windows.net/internal-test-data/"
@@ -118,14 +116,3 @@ def non_existing_image_df_viewer() -> Iterator[spotlight.Viewer]:
         )
         yield viewer
         viewer.close()
-
-
-@pytest.fixture()
-def testclient() -> TestClient:
-    """setup API client with loaded spotlight h5 file in backend"""
-
-    from renumics.spotlight.app import SpotlightApp
-
-    app = SpotlightApp()
-    app._data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
-    return TestClient(app)

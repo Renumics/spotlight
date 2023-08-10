@@ -13,8 +13,7 @@ from loguru import logger
 from pydantic.dataclasses import dataclass
 from typing_extensions import Literal
 
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-from renumics.spotlight.data_source import DataSource
+from renumics.spotlight.data_store import DataStore
 
 from .serialization import sanitize_values
 from .tasks import TaskManager, TaskCancelled
@@ -309,12 +308,11 @@ class WebsocketManager:
 
 @handle_message.register
 async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
-    table: Optional[DataSource] = connection.websocket.app.data_source
-    dtypes: ColumnTypeMapping = connection.websocket.app.dtypes
-    if table is None:
+    data_store: Optional[DataStore] = connection.websocket.app.data_store
+    if data_store is None:
         return None
     try:
-        table.check_generation_id(request.generation_id)
+        data_store.check_generation_id(request.generation_id)
     except GenerationIDMismatch:
         return
 
@@ -322,8 +320,7 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
         points, valid_indices = await connection.task_manager.run_async(
             compute_umap,
             (
-                table,
-                dtypes,
+                data_store,
                 request.data.columns,
                 request.data.indices,
                 request.data.n_neighbors,
@@ -350,12 +347,11 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
 
 @handle_message.register
 async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
-    table: Optional[DataSource] = connection.websocket.app.data_source
-    dtypes: ColumnTypeMapping = connection.websocket.app.dtypes
-    if table is None:
+    data_store: Optional[DataStore] = connection.websocket.app.data_store
+    if data_store is None:
         return None
     try:
-        table.check_generation_id(request.generation_id)
+        data_store.check_generation_id(request.generation_id)
     except GenerationIDMismatch:
         return
 
@@ -363,8 +359,7 @@ async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
         points, valid_indices = await connection.task_manager.run_async(
             compute_pca,
             (
-                table,
-                dtypes,
+                data_store,
                 request.data.columns,
                 request.data.indices,
                 request.data.normalization,

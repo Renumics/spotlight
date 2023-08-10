@@ -21,7 +21,6 @@ from renumics.spotlight.reporting import emit_timed_event
 
 from renumics.spotlight.dtypes import (
     Audio,
-    Category,
     Embedding,
     Image,
     Mesh,
@@ -29,7 +28,6 @@ from renumics.spotlight.dtypes import (
     Video,
 )
 
-from renumics.spotlight.dtypes.conversion import DTypeOptions, convert_to_dtype
 
 # for now specify all lazy dtypes right here
 # we should probably move closer to the actual dtype definition for easier extensibility
@@ -84,8 +82,8 @@ def get_table(request: Request) -> ORJSONResponse:
     table slice api endpoint
     """
     app: SpotlightApp = request.app
-    table = app.data_source
-    if table is None:
+    data_store = app.data_store
+    if data_store is None:
         return ORJSONResponse(
             Table(
                 uid="",
@@ -96,20 +94,10 @@ def get_table(request: Request) -> ORJSONResponse:
         )
 
     columns = []
-    for column_name in table.column_names:
-        dtype = app.dtypes[column_name]
-        normalized_values = table.get_column_values(column_name)
-        if dtype is Category:
-            dtype_options = DTypeOptions(
-                categories=table.get_column_categories(column_name)
-            )
-        else:
-            dtype_options = DTypeOptions()
-        values = [
-            convert_to_dtype(value, dtype, dtype_options=dtype_options, simple=True)
-            for value in normalized_values
-        ]
-        meta = table.get_column_metadata(column_name)
+    for column_name in data_store.column_names:
+        dtype = data_store.dtypes[column_name]
+        values = data_store.get_converted_values(column_name, simple=True)
+        meta = data_store.get_column_metadata(column_name)
         column = Column(
             name=column_name,
             values=values,
@@ -130,10 +118,10 @@ def get_table(request: Request) -> ORJSONResponse:
 
     return ORJSONResponse(
         Table(
-            uid=table.get_uid(),
-            filename=table.get_name(),
+            uid=data_store.uid,
+            filename=data_store.name,
             columns=columns,
-            generation_id=table.get_generation_id(),
+            generation_id=data_store.generation_id,
         ).dict()
     )
 
@@ -150,22 +138,12 @@ async def get_table_cell(
     table cell api endpoint
     """
     app: SpotlightApp = request.app
-    table = app.data_source
-    if table is None:
+    data_store = app.data_store
+    if data_store is None:
         return None
-    table.check_generation_id(generation_id)
+    data_store.check_generation_id(generation_id)
 
-    dtype = app.dtypes[column]
-    raw_cell_value = table.get_cell_value(column, row)
-
-    if dtype is Category:
-        dtype_options = DTypeOptions(categories=table.get_column_categories(column))
-    else:
-        dtype_options = DTypeOptions()
-
-    converted_cell_value = convert_to_dtype(
-        raw_cell_value, dtype=dtype, dtype_options=dtype_options
-    )
+    converted_cell_value = data_store.get_converted_value(column, row, simple=False)
 
     # TODO: check if this is needed for the stricter data formats
     value = sanitize_values(converted_cell_value)
@@ -189,12 +167,12 @@ async def get_waveform(
     table cell api endpoint
     """
     app: SpotlightApp = request.app
-    table = app.data_source
-    if table is None:
+    data_store = app.data_store
+    if data_store is None:
         return None
-    table.check_generation_id(generation_id)
+    data_store.check_generation_id(generation_id)
 
-    waveform = table.get_waveform(column, row)
+    waveform = data_store.get_waveform(column, row)
 
     return sanitize_values(waveform)
 

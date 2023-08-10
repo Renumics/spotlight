@@ -41,8 +41,8 @@ async def reset_layout(
     """
     app: SpotlightApp = request.app
     layout = app.layout
-    if app.data_source:
-        dataset_uid = app.data_source.get_uid()
+    if app.data_store:
+        dataset_uid = app.data_store.uid
         await app.config.set(
             CURRENT_LAYOUT_KEY,
             layout.dict(by_alias=True),
@@ -70,8 +70,8 @@ async def set_layout(
     Get layout.
     """
     app: SpotlightApp = request.app
-    if app.data_source:
-        dataset_uid = app.data_source.get_uid()
+    if app.data_store:
+        dataset_uid = app.data_store.uid
         await app.config.set(
             CURRENT_LAYOUT_KEY,
             set_layout_request.layout,

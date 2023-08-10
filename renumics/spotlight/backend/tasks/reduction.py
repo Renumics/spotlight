@@ -6,13 +6,12 @@ from typing import List, Tuple, cast
 
 import numpy as np
 import pandas as pd
+from sklearn import preprocessing
 
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.dtypes import Category, Embedding
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 
-from renumics.spotlight.dtypes.conversion import convert_to_dtype
-from renumics.spotlight.data_source import DataSource
+from renumics.spotlight.data_store import DataStore
 
 SEED = 42
 
@@ -24,10 +23,7 @@ class ColumnNotEmbeddable(Exception):
 
 
 def align_data(
-    table: DataSource,
-    dtypes: ColumnTypeMapping,
-    column_names: List[str],
-    indices: List[int],
+    data_store: DataStore, column_names: List[str], indices: List[int]
 ) -> Tuple[np.ndarray, List[int]]:
     """
     Align data from table's columns, remove `NaN`'s.
@@ -38,10 +34,11 @@ def align_data(
 
     aligned_values = []
     for column_name in column_names:
-        column_type = dtypes[column_name]
-        source_values = table.get_column_values(column_name)[indices]
-        column_values = [convert_to_dtype(x, column_type) for x in source_values]
-        if column_type is Embedding:
+        # TODO: use indices in data sources
+        dtype = data_store.dtypes[column_name]
+        converted_values = data_store.get_converted_values(column_name)
+        column_values = [converted_values[i] for i in indices]
+        if dtype is Embedding:
             embedding_length = max(
                 0 if x is None else len(cast(np.ndarray, x)) for x in column_values
             )
@@ -55,22 +52,15 @@ def align_data(
                         ]
                     )
                 )
-        elif column_type is Category:
-            # TODO: use categories from dtype, when available
-            """
-            if column.categories:
-                classes = sorted(column.categories.values())
-                na_mask = ~np.isin(np.array(column.values), classes)
-                one_hot_values = preprocessing.label_binarize(
-                    column.values, classes=sorted(column.categories.values())
-                ).astype(float)
-                one_hot_values[na_mask] = np.nan
-                values.append(one_hot_values)
-            else:
-                values.append(np.full(len(column.values), np.nan))
-            """
-        elif column_type in (int, bool, float):
-            aligned_values.append(np.array(column_values))
+        elif dtype is Category:
+            na_mask = np.array(column_values) == -1
+            one_hot_values = preprocessing.label_binarize(
+                column_values, classes=sorted(set(column_values).difference({-1}))
+            ).astype(float)
+            one_hot_values[na_mask] = np.nan
+            aligned_values.append(one_hot_values)
+        elif dtype in (int, bool, float):
+            aligned_values.append(np.array(column_values, dtype=float))
         else:
             raise ColumnNotEmbeddable
 
@@ -80,8 +70,7 @@ def align_data(
 
 
 def compute_umap(
-    table: DataSource,
-    dtypes: ColumnTypeMapping,
+    data_store: DataStore,
     column_names: List[str],
     indices: List[int],
     n_neighbors: int,
@@ -93,7 +82,7 @@ def compute_umap(
     """
 
     try:
-        data, indices = align_data(table, dtypes, column_names, indices)
+        data, indices = align_data(data_store, column_names, indices)
     except (ColumnNotExistsError, ColumnNotEmbeddable):
         return np.empty(0, np.float64), []
     if data.size == 0:
@@ -119,8 +108,7 @@ def compute_umap(
 
 
 def compute_pca(
-    table: DataSource,
-    dtypes: ColumnTypeMapping,
+    data_store: DataStore,
     column_names: List[str],
     indices: List[int],
     normalization: str,
@@ -132,7 +120,7 @@ def compute_pca(
     from sklearn import preprocessing, decomposition
 
     try:
-        data, indices = align_data(table, dtypes, column_names, indices)
+        data, indices = align_data(data_store, column_names, indices)
     except (ColumnNotExistsError, ValueError):
         return np.empty(0, np.float64), []
     if data.size == 0:

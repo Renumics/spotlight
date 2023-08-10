@@ -4,7 +4,7 @@ find issues in images
 
 import os
 import inspect
-from typing import Iterable, List, Optional, Type, cast
+from typing import Iterable, List, Optional
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
@@ -12,15 +12,11 @@ from contextlib import redirect_stderr, redirect_stdout
 import numpy as np
 import cleanvision
 
-from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping, ColumnType
 from renumics.spotlight.dtypes import Image
 
-from renumics.spotlight.dtypes.conversion import (
-    ConversionError,
-    NoConverterAvailable,
-    convert_to_dtype,
-)
+from renumics.spotlight.dtypes.conversion import ConversionError, NoConverterAvailable
+
+from renumics.spotlight.data_store import DataStore
 
 from ..decorator import data_analyzer
 from ..typing import DataIssue
@@ -98,30 +94,27 @@ def _make_issue(cleanvision_key: str, column: str, rows: List[int]) -> DataIssue
 
 
 def _get_cell_data_safe(
-    data_source: DataSource, column_name: str, row: int, dtype: Type[ColumnType]
+    data_store: DataStore, column_name: str, row: int
 ) -> Optional[bytes]:
     try:
-        source_value = data_source.get_cell_value(column_name, row)
-        return cast(bytes, convert_to_dtype(source_value, dtype))
+        return data_store.get_converted_value(column_name, row, simple=False)
     except (ConversionError, NoConverterAvailable):
         return None
 
 
 @data_analyzer
-def analyze_with_cleanvision(
-    data_source: DataSource, dtypes: ColumnTypeMapping
-) -> Iterable[DataIssue]:
+def analyze_with_cleanvision(data_store: DataStore) -> Iterable[DataIssue]:
     """
     find image issues using cleanvision
     """
 
-    image_columns = [col for col, dtype in dtypes.items() if dtype == Image]
+    image_columns = [col for col, dtype in data_store.dtypes.items() if dtype == Image]
 
     for column_name in image_columns:
         # load image data from data source
         images = (
-            _get_cell_data_safe(data_source, column_name, row, dtypes[column_name])
-            for row in range(len(data_source))
+            _get_cell_data_safe(data_store, column_name, row)
+            for row in range(len(data_store))
         )
 
         # Write images to temporary directory for cleanvision.

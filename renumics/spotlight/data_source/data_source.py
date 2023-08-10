@@ -1,8 +1,6 @@
 """provides access to different data sources (h5, pandas, etc.)"""
 
 import dataclasses
-import hashlib
-import io
 from abc import ABC, abstractmethod
 from typing import Dict, Optional, List, Any
 
@@ -10,7 +8,6 @@ import pandas as pd
 import numpy as np
 from pydantic.dataclasses import dataclass
 
-from renumics.spotlight.io import audio
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
@@ -19,7 +16,6 @@ from renumics.spotlight.dtypes.typing import (
     ColumnTypeMapping,
 )
 from renumics.spotlight.dtypes.conversion import NormalizedValue
-from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
 
 
@@ -129,28 +125,6 @@ class DataSource(ABC):
         """
         Get normalized value of a single cell.
         """
-
-    def get_waveform(self, column_name: str, row_index: int) -> Optional[np.ndarray]:
-        """
-        return the waveform of an audio cell
-        """
-        # TODO: move out of datasource
-        # blob = self.get_cell_value(column_name, row_index, Audio)
-        blob = None
-        if blob is None:
-            return None
-        if isinstance(blob, np.void):
-            blob = blob.tolist()
-        value_hash = hashlib.blake2b(blob).hexdigest()
-        cache_key = f"waveform-v2:{value_hash}"
-        try:
-            waveform = external_data_cache[cache_key]
-            return waveform
-        except KeyError:
-            ...
-        waveform = audio.get_waveform(io.BytesIO(blob))
-        external_data_cache[cache_key] = waveform
-        return waveform
 
     def _assert_index_exists(self, index: int) -> None:
         if index < -len(self) or index >= len(self):
