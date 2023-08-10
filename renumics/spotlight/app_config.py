@@ -27,7 +27,7 @@ class AppConfig:
     project_root: Optional[Path] = None
 
     # data analysis
-    analyze: Optional[bool] = None
+    analyze: Optional[Union[bool, List[str]]] = None
     custom_issues: Optional[List[DataIssue]] = None
 
     # frontend

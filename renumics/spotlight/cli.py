@@ -6,7 +6,7 @@ import os
 import platform
 import signal
 import sys
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, List
 from pathlib import Path
 
 import click
@@ -95,10 +95,15 @@ def cli_dtype_callback(
     help="Whether to allow users to browse and open datasets.",
 )
 @click.option(
-    "--analyze",
+    "--analyze-all",
     is_flag=True,
     default=False,
-    help="Automatically analyze common dataset errors.",
+    help="Automatically analyze issues for all columns.",
+)
+@click.option(
+    "--analyze",
+    default=[],
+    help="Automatically analyze issues for all columns.",
 )
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
@@ -110,7 +115,8 @@ def main(
     dtype: Optional[ColumnTypeMapping],
     no_browser: bool,
     filebrowsing: bool,
-    analyze: bool,
+    analyze: List[str],
+    analyze_all: bool,
     verbose: bool,
 ) -> None:
     """
@@ -134,5 +140,5 @@ def main(
         no_browser=no_browser,
         allow_filebrowsing=filebrowsing,
         wait="forever",
-        analyze=analyze,
+        analyze=True if analyze_all else analyze,
     )
