@@ -11,7 +11,14 @@ import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import chroma from 'chroma-js';
-import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
+import {
+    fixWindow,
+    freqType,
+    unitType,
+    amplitudeToDb,
+    hzToMel,
+    melToHz,
+} from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -246,6 +253,28 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                     drawData[i] = col;
                 }
                 colorScale = colorPalette.scale().domain([log_spec_min, log_spec_max]);
+            } else if (ampScale === 'mel') {
+                let mel_spec_min = 0;
+                let mel_spec_max = 0;
+
+                for (let i = 0; i < frequenciesData.length; i++) {
+                    const col = [];
+
+                    for (let j = 0; j < frequenciesData[i].length; j++) {
+                        const amplitude = frequenciesData[i][j];
+                        col[j] = hzToMel(amplitude);
+
+                        if (col[j] > mel_spec_max) {
+                            mel_spec_max = col[j];
+                        }
+
+                        if (col[j] < mel_spec_min) {
+                            mel_spec_min = col[j];
+                        }
+                    }
+                    drawData[i] = col;
+                }
+                colorScale = colorPalette.scale().domain([mel_spec_min, mel_spec_max]);
             } else {
                 // ampScale === 'linear'
                 colorScale = colorPalette.scale().domain([0, 256]);
@@ -441,7 +470,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 availableFreqScales={['linear', 'logarithmic']}
                 freqScale={freqScale}
                 onChangeFreqScale={handleFreqScaleChange}
-                availableAmpScales={['decibel', 'linear']}
+                availableAmpScales={['decibel', 'linear', 'mel']}
                 ampScale={ampScale}
                 onChangeAmpScale={handleAmpScaleChange}
             />
