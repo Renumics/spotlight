@@ -50,7 +50,7 @@ const CTACard = ({
         </div>
     </StyledCTACard>
 );
-const CTA_TIMEOUT_MS = 30 * 1000;
+const CTA_TIMEOUT_MS = 1 * 1000;
 
 const CTADialog = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -86,37 +86,52 @@ const CTADialog = () => {
                 </div>
                 <div tw="absolute w-full mt-6">
                     <div tw="grid grid-cols-3 space-x-4 px-4">
-                        <CTACard background="" href="" tw="bg-gray-400">
-                            <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
-                                Read background article
-                            </h3>
-                            <p tw="pt-2 text-base text-white">
-                                Step-by-step instructions for the use case
-                            </p>
-                        </CTACard>
-                        <CTACard background="" href="" tw="bg-gray-400">
-                            <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
-                                Apply pre-defined template
-                            </h3>
-                            <p tw="pt-2 text-base text-white">
-                                Load your own data in less than{' '}
-                                <b tw="font-bold">10 minutes</b>.
-                            </p>
-                        </CTACard>
-                        <CTACard
-                            href="https://renumics.com/docs/getting-started/?source=spotlight_cta#or-jump-right-into-using-spotlight-in-one-of-our-hosted-huggingface--spaces"
-                            background="linear-gradient(15deg, rgba(126,63,251,1) 0%, rgba(252,70,107,1) 100%)"
-                            tw="bg-gray-400"
-                        >
-                            <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
-                                Don’t know yet
-                            </h3>
-                            <p tw="pt-2 text-base text-white">
-                                Explore more interactive use cases hosted on{' '}
-                                <span tw="font-bold">huggingface</span>.
-                            </p>
-                            <span tw="text-5xl float-right mt-8">🤗</span>
-                        </CTACard>
+                        {[
+                            <CTACard
+                                background="linear-gradient(15deg, #9c56b8 0%, rgb(88 167 223) 100%)"
+                                href=""
+                                tw="bg-gray-400"
+                                key="use-case"
+                            >
+                                <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
+                                    Read background article
+                                </h3>
+                                <p tw="pt-2 text-base text-white">
+                                    Step-by-step instructions for the use case.
+                                </p>
+                                <span tw="text-5xl float-right mt-8">📒</span>
+                            </CTACard>,
+                            <CTACard
+                                background="linear-gradient(15deg, #183255 0%, rgb(88 167 223) 100%)"
+                                href=""
+                                tw="bg-gray-400"
+                                key="own-data"
+                            >
+                                <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
+                                    Apply to your use case
+                                </h3>
+                                <p tw="pt-2 text-base text-white">
+                                    Load your own data in less than{' '}
+                                    <b tw="font-bold">10 minutes</b>.
+                                </p>
+                                <span tw="text-5xl float-right mt-8">🚀</span>
+                            </CTACard>,
+                            <CTACard
+                                href="https://renumics.com/docs/getting-started/?source=spotlight_cta#or-jump-right-into-using-spotlight-in-one-of-our-hosted-huggingface--spaces"
+                                background="linear-gradient(15deg, rgba(126,63,251,1) 0%, rgba(252,70,107,1) 100%)"
+                                tw="bg-gray-400"
+                                key="huggingface"
+                            >
+                                <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
+                                    Don’t know yet
+                                </h3>
+                                <p tw="pt-2 text-base text-white">
+                                    Explore more interactive use cases hosted on{' '}
+                                    <span tw="font-bold">huggingface</span>.
+                                </p>
+                                <span tw="text-5xl float-right mt-8">🤗</span>
+                            </CTACard>,
+                        ].sort((_a, _b) => 0.5 - Math.random())}
                     </div>
                 </div>
             </FadeInDiv>
