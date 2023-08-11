@@ -19,7 +19,9 @@ for module_info in pkgutil.iter_modules(analyzers_namespace.__path__):
     importlib.import_module(analyzers_namespace.__name__ + "." + module_info.name)
 
 
-def find_issues(data_source: DataSource, dtypes: ColumnTypeMapping) -> List[DataIssue]:
+def find_issues(
+    data_source: DataSource, columns: List[str], dtypes: ColumnTypeMapping
+) -> List[DataIssue]:
     """
     Find dataset issues in the data source
     """
@@ -28,7 +30,7 @@ def find_issues(data_source: DataSource, dtypes: ColumnTypeMapping) -> List[Data
 
     issues: List[DataIssue] = []
     for analyze in registered_analyzers:
-        issues.extend(analyze(data_source, dtypes))
+        issues.extend(analyze(data_source, columns, dtypes))
 
     logger.info("Analysis done.")
 
