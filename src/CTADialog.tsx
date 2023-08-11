@@ -50,7 +50,7 @@ const CTACard = ({
         </div>
     </StyledCTACard>
 );
-const CTA_TIMEOUT_MS = 1 * 1000;
+const CTA_TIMEOUT_MS = 30 * 1000;
 
 const CTADialog = () => {
     const [isVisible, setIsVisible] = useState(false);
