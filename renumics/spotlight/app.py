@@ -286,13 +286,6 @@ class SpotlightApp(FastAPI):
                 "/node_modules/.pnpm/{path:path}", _reverse_proxy, ["POST", "GET"]
             )
 
-    @property
-    def dtypes(self) -> ColumnTypeMapping:
-        """
-        Guessed dtypes merged with dtypes requested by user (preferred).
-        """
-        return self._dtypes
-
     def update(self, config: AppConfig) -> None:
         """
         Update application config.
@@ -314,7 +307,9 @@ class SpotlightApp(FastAPI):
             self.filebrowsing_allowed = config.filebrowsing_allowed
 
         if config.dtypes is not None or config.dataset is not None:
-            self._data_store = DataStore(self._data_source, self._user_dtypes)
+            data_source = self._data_source
+            assert data_source is not None
+            self._data_store = DataStore(data_source, self._user_dtypes)
             self._broadcast(RefreshMessage())
             self._update_issues()
 
@@ -407,7 +402,7 @@ class SpotlightApp(FastAPI):
         if self._data_store is None:
             return
         task = self.task_manager.create_task(
-            find_issues, (self._data_store, self._dtypes), name="update_issues"
+            find_issues, (self._data_store,), name="update_issues"
         )
 
         def _on_issues_ready(future: Future) -> None:
