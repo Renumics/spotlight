@@ -34,10 +34,8 @@ def align_data(
 
     aligned_values = []
     for column_name in column_names:
-        # TODO: use indices in data sources
         dtype = data_store.dtypes[column_name]
-        converted_values = data_store.get_converted_values(column_name)
-        column_values = [converted_values[i] for i in indices]
+        column_values = data_store.get_converted_values(column_name, indices)
         if dtype is Embedding:
             embedding_length = max(
                 0 if x is None else len(cast(np.ndarray, x)) for x in column_values
@@ -55,7 +53,7 @@ def align_data(
         elif dtype is Category:
             na_mask = np.array(column_values) == -1
             one_hot_values = preprocessing.label_binarize(
-                column_values, classes=sorted(set(column_values).difference({-1}))
+                column_values, classes=sorted(set(column_values).difference({-1}))  # type: ignore
             ).astype(float)
             one_hot_values[na_mask] = np.nan
             aligned_values.append(one_hot_values)

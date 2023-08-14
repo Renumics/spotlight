@@ -82,9 +82,13 @@ class PandasDataSource(DataSource):
     def get_name(self) -> str:
         return "pd.DataFrame"
 
-    def get_column_values(self, column_name: str) -> np.ndarray:
+    def get_column_values(
+        self,
+        column_name: str,
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
+    ) -> np.ndarray:
         column_index = self._parse_column_index(column_name)
-        column = self._df[column_index]
+        column = self._df[column_index].iloc[indices]
         if pd.api.types.is_bool_dtype(column):
             values = column.to_numpy()
             na_mask = column.isna()
@@ -130,8 +134,7 @@ class PandasDataSource(DataSource):
         """
         Return the value of a single cell, warn if not possible.
         """
-        # TODO: do this right
-        return self.get_column_values(column_name)[row_index]
+        return self.get_column_values(column_name, [row_index])[0]
 
     def _parse_column_index(self, column_name: str) -> Any:
         column_names = self.column_names

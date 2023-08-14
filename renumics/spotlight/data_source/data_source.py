@@ -2,7 +2,7 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, List, Any, Union
 
 import pandas as pd
 import numpy as np
@@ -103,7 +103,11 @@ class DataSource(ABC):
         """
 
     @abstractmethod
-    def get_column_values(self, column_name: str) -> np.ndarray:
+    def get_column_values(
+        self,
+        column_name: str,
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
+    ) -> np.ndarray:
         """
         Get normalized values of a column.
         """

@@ -4,7 +4,7 @@ access h5 table data
 from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Union, cast
 
 import h5py
 import numpy as np
@@ -17,7 +17,6 @@ from renumics.spotlight.typing import PathType, IndexType
 from renumics.spotlight.dataset import (
     Dataset,
     INTERNAL_COLUMN_NAMES,
-    unescape_dataset_name,
 )
 
 from renumics.spotlight.data_source import DataSource, datasource
@@ -34,20 +33,6 @@ from renumics.spotlight.dtypes.conversion import (
 )
 
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-
-
-def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
-    """
-    Unescape multiple dataset names.
-    """
-    return np.array([unescape_dataset_name(value) for value in refs])
-
-
-def ref_placeholder_names(mask: np.ndarray) -> np.ndarray:
-    """
-    Generate placeholder names for a ref column based of the given mask.
-    """
-    return np.array(["..." if x else None for x in mask], dtype=object)
 
 
 class H5Dataset(Dataset):
@@ -82,7 +67,9 @@ class H5Dataset(Dataset):
         return value
 
     def read_column(
-        self, column_name: str, indices: Optional[List[int]] = None
+        self,
+        column_name: str,
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
         """
         Get a decoded dataset column.
@@ -92,11 +79,8 @@ class H5Dataset(Dataset):
         column = cast(h5py.Dataset, self._h5_file[column_name])
         is_string_dtype = h5py.check_string_dtype(column.dtype)
 
-        raw_values: np.ndarray
-        if indices is None:
-            raw_values = column[:]
-        else:
-            raw_values = column[indices]
+        raw_values = column[indices]
+
         if is_string_dtype:
             raw_values = np.array([x.decode("utf-8") for x in raw_values])
 
@@ -139,21 +123,6 @@ class H5Dataset(Dataset):
             column[int(to_index)] = column[from_index]
         self._length += 1
         self._update_generation_id()
-
-    def min_order(self) -> int:
-        """
-        Get minimum order over all columns, return 0 if no column has an order.
-        One can use `dataset.min_order() - 1` as order for a new column.
-        """
-        return int(
-            min(
-                (
-                    self._h5_file[name].attrs.get("order", 0)
-                    for name in self._column_names
-                ),
-                default=0,
-            )
-        )
 
     def _resolve_refs(self, refs: np.ndarray, column_name: str) -> np.ndarray:
         raw_values = np.empty(len(refs), dtype=object)
@@ -228,8 +197,9 @@ class Hdf5DataSource(DataSource):
     def get_column_values(
         self,
         column_name: str,
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
-        return np.array(self._table.read_column(column_name, indices=None))
+        return self._table.read_column(column_name, indices=indices)
 
     def get_cell_value(self, column_name: str, row_index: int) -> NormalizedValue:
         """

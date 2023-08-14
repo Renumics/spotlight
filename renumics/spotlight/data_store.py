@@ -1,6 +1,6 @@
 import hashlib
 import io
-from typing import List, Optional
+from typing import List, Optional, Union
 import numpy as np
 
 from renumics.spotlight.cache import external_data_cache
@@ -63,10 +63,13 @@ class DataStore:
         return self._data_source.get_column_metadata(column_name)
 
     def get_converted_values(
-        self, column_name: str, simple: bool = False
+        self,
+        column_name: str,
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        simple: bool = False,
     ) -> List[ConvertedValue]:
         dtype = self._dtypes[column_name]
-        normalized_values = self._data_source.get_column_values(column_name)
+        normalized_values = self._data_source.get_column_values(column_name, indices)
         if dtype is Category:
             dtype_options = DTypeOptions(
                 categories=self._data_source.get_column_categories(column_name)

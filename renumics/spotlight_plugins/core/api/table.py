@@ -9,9 +9,6 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
 
-from renumics.spotlight.backend.serialization import (
-    sanitize_values,
-)
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
@@ -133,14 +130,14 @@ def get_table(request: Request) -> ORJSONResponse:
 )
 async def get_table_cell(
     column: str, row: int, generation_id: int, request: Request
-) -> Any:
+) -> Response:
     """
     table cell api endpoint
     """
     app: SpotlightApp = request.app
     data_store = app.data_store
     if data_store is None:
-        return None
+        return ORJSONResponse(None)
     data_store.check_generation_id(generation_id)
 
     value = data_store.get_converted_value(column, row, simple=False)
@@ -148,7 +145,7 @@ async def get_table_cell(
     if isinstance(value, bytes):
         return Response(value, media_type="application/octet-stream")
 
-    return value
+    return ORJSONResponse(value)
 
 
 @router.get(
@@ -159,19 +156,19 @@ async def get_table_cell(
 )
 async def get_waveform(
     column: str, row: int, generation_id: int, request: Request
-) -> Optional[List[float]]:
+) -> ORJSONResponse:
     """
     table cell api endpoint
     """
     app: SpotlightApp = request.app
     data_store = app.data_store
     if data_store is None:
-        return None
+        return ORJSONResponse(None)
     data_store.check_generation_id(generation_id)
 
     waveform = data_store.get_waveform(column, row)
 
-    return sanitize_values(waveform)
+    return ORJSONResponse(waveform)
 
 
 class AddColumnRequest(BaseModel):
