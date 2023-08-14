@@ -8,8 +8,8 @@ from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.dtypes import Audio, Category
 from renumics.spotlight.dtypes.conversion import (
+    ConvertedValue,
     DTypeOptions,
-    NormalizedValue,
     convert_to_dtype,
 )
 from renumics.spotlight.data_source.data_source import ColumnMetadata
@@ -64,7 +64,7 @@ class DataStore:
 
     def get_converted_values(
         self, column_name: str, simple: bool = False
-    ) -> List[NormalizedValue]:
+    ) -> List[ConvertedValue]:
         dtype = self._dtypes[column_name]
         normalized_values = self._data_source.get_column_values(column_name)
         if dtype is Category:
@@ -81,7 +81,7 @@ class DataStore:
 
     def get_converted_value(
         self, column_name: str, index: int, simple: bool = False
-    ) -> NormalizedValue:
+    ) -> ConvertedValue:
         dtype = self._dtypes[column_name]
         normalized_value = self._data_source.get_cell_value(column_name, index)
 
@@ -106,13 +106,13 @@ class DataStore:
         blob = self.get_converted_value(column_name, index, simple=False)
         if blob is None:
             return None
-        value_hash = hashlib.blake2b(blob).hexdigest()
+        value_hash = hashlib.blake2b(blob).hexdigest()  # type: ignore
         cache_key = f"waveform-v2:{value_hash}"
         try:
             waveform = external_data_cache[cache_key]
             return waveform
         except KeyError:
             ...
-        waveform = audio.get_waveform(io.BytesIO(blob))
+        waveform = audio.get_waveform(io.BytesIO(blob))  # type: ignore
         external_data_cache[cache_key] = waveform
         return waveform
