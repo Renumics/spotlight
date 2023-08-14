@@ -97,7 +97,7 @@ def _get_cell_data_safe(
     data_store: DataStore, column_name: str, row: int
 ) -> Optional[bytes]:
     try:
-        return data_store.get_converted_value(column_name, row, simple=False)
+        return data_store.get_converted_value(column_name, row, simple=False)  # type: ignore
     except (ConversionError, NoConverterAvailable):
         return None
 
