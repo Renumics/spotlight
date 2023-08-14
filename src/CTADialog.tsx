@@ -35,7 +35,7 @@ const CTACard = ({
 }) => (
     <StyledCTACard
         className={'group' + (className ? ' ' + className : '')}
-        tw="h-64 bg-white rounded shadow-md cursor-pointer relative overflow-hidden"
+        tw="md:h-64 bg-white rounded shadow-md cursor-pointer relative overflow-hidden"
     >
         <div
             tw="w-full h-full absolute group-hover:opacity-90"
@@ -50,7 +50,7 @@ const CTACard = ({
         </div>
     </StyledCTACard>
 );
-const CTA_TIMEOUT_MS = 30 * 1000;
+const CTA_TIMEOUT_MS = 1 * 1000;
 
 const CTADialog = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -70,8 +70,8 @@ const CTADialog = () => {
     }, []);
 
     return (
-        <Dialog isVisible={isVisible}>
-            <FadeInDiv tw="w-[712px] relative mb-32">
+        <Dialog isVisible={isVisible} tw="items-start pt-16 md:items-center md:pt-0">
+            <FadeInDiv tw="relative mb-16 md:mb-32">
                 <Button tw="absolute right-2 top-2 w-6 h-6" onClick={hide}>
                     <X tw="w-full h-full" />
                 </Button>
@@ -85,36 +85,40 @@ const CTADialog = () => {
                     </p>
                 </div>
                 <div tw="absolute w-full mt-6">
-                    <div tw="grid grid-cols-3 space-x-4 px-4">
+                    <div tw="grid grid-cols-1 md:grid-cols-3 space-y-4 md:space-y-0 md:space-x-4 px-4">
                         {[
                             <CTACard
                                 background="linear-gradient(15deg, #9c56b8 0%, rgb(88 167 223) 100%)"
-                                href=""
+                                href="https://renumics.com/blog/finding-data-slices-in-unstructured-data?source=spotlight_cta"
                                 tw="bg-gray-400"
                                 key="use-case"
                             >
                                 <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
                                     Read background article
                                 </h3>
-                                <p tw="pt-2 text-base text-white">
+                                <p tw="pt-2 text-base text-white pr-8 md:pr-0">
                                     Step-by-step instructions for the use case.
                                 </p>
-                                <span tw="text-5xl float-right mt-8">📒</span>
+                                <span tw="text-5xl float-right absolute right-4 bottom-4">
+                                    📒
+                                </span>
                             </CTACard>,
                             <CTACard
                                 background="linear-gradient(15deg, #183255 0%, rgb(88 167 223) 100%)"
-                                href=""
+                                href="https://renumics.com/next/docs/playbook/data-slices-sliceguard?source=spotlight_cta"
                                 tw="bg-gray-400"
                                 key="own-data"
                             >
                                 <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
                                     Apply to your use case
                                 </h3>
-                                <p tw="pt-2 text-base text-white">
+                                <p tw="pt-2 text-base text-white pr-8 md:pr-0">
                                     Load your own data in less than{' '}
                                     <b tw="font-bold">10 minutes</b>.
                                 </p>
-                                <span tw="text-5xl float-right mt-8">🚀</span>
+                                <span tw="text-5xl float-right absolute right-4 bottom-4">
+                                    🚀
+                                </span>
                             </CTACard>,
                             <CTACard
                                 href="https://renumics.com/docs/getting-started/?source=spotlight_cta#or-jump-right-into-using-spotlight-in-one-of-our-hosted-huggingface--spaces"
@@ -125,11 +129,13 @@ const CTADialog = () => {
                                 <h3 tw="pt-2 text-xl tracking-wide font-extrabold text-white">
                                     Don’t know yet
                                 </h3>
-                                <p tw="pt-2 text-base text-white">
+                                <p tw="pt-2 text-base text-white pr-8 md:pr-0">
                                     Explore more interactive use cases hosted on{' '}
                                     <span tw="font-bold">huggingface</span>.
                                 </p>
-                                <span tw="text-5xl float-right mt-8">🤗</span>
+                                <span tw="text-5xl float-right absolute right-4 bottom-4">
+                                    🤗
+                                </span>
                             </CTACard>,
                         ].sort((_a, _b) => 0.5 - Math.random())}
                     </div>
