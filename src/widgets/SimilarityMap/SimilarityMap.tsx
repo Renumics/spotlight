@@ -9,7 +9,6 @@ import Plot, {
 import Brush from '../../components/shared/Plot/Brush';
 import Legend from '../../components/shared/Plot/Legend';
 import Tooltip from '../../components/shared/Plot/Tooltip';
-import { Hint } from '../../components/ui/Menu/MultiColumnSelect';
 import { createConstantTransferFunction } from '../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -22,7 +21,6 @@ import {
     DataColumn,
     DataStatistics,
     IndexArray,
-    isEmbeddingColumn,
     isNumberColumn,
     NumberColumn,
     TableData,
@@ -175,12 +173,6 @@ const SimilarityMap: Widget = () => {
             )
             .map((c) => c.key);
     }, [fullColumns]);
-
-    const embeddableColumnsSelector = useCallback(
-        (d: Dataset) => d.columns.filter((c) => embeddableColumnKeys.includes(c.key)),
-        [embeddableColumnKeys]
-    );
-    const embeddableColumns = useDataset(embeddableColumnsSelector, shallow);
 
     const placeByColumnKeys = useMemo(() => {
         // When there is no stored selection, select the first available embedding
