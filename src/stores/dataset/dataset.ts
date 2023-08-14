@@ -111,10 +111,6 @@ export function compareColumnOrder(a: DataColumn, b: DataColumn) {
         return 1;
     } else if (b.isInternal && !a.isInternal) {
         return -1;
-    } else if (a.order < b.order) {
-        return 1;
-    } else if (a.order > b.order) {
-        return -1;
     }
     return a.name.localeCompare(b.name);
 }

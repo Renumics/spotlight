@@ -1,5 +1,5 @@
 import { Color } from 'chroma-js';
-import { DataType } from '../datatypes';
+import { DataType, unknownDataType } from '../datatypes';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { useColors } from '../stores/colors';
@@ -104,7 +104,7 @@ export const createConstantTransferFunction = (
     const tf = () => colorScale(0);
     tf.kind = 'constant';
     tf.paletteName = palette.name;
-    tf.dType = dType || { kind: 'Unknown', optional: false };
+    tf.dType = dType ?? unknownDataType;
 
     return tf as ConstantTransferFunction;
 };
@@ -116,12 +116,7 @@ const createColorTransferFunction = (
 ): TransferFunction => {
     const robustColoring = useColors.getState().useRobustColorScales;
 
-    if (dType === undefined)
-        return createConstantTransferFunction({
-            kind: 'Unknown',
-            optional: false,
-            binary: false,
-        });
+    if (dType === undefined) return createConstantTransferFunction(unknownDataType);
     if (data === undefined) return createConstantTransferFunction(dType);
 
     if (['int', 'bool', 'Category', 'str'].includes(dType.kind)) {

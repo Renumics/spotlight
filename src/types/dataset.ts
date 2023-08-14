@@ -2,18 +2,15 @@ import * as datatypes from '../datatypes';
 import { IndexArray } from './base';
 
 export interface DataColumn {
-    order: number;
     index: number;
+    key: string;
     name: string;
     type: datatypes.DataType;
-    hidden?: boolean;
-    lazy: boolean;
     editable: boolean;
     optional: boolean;
     isInternal: boolean;
-    description?: string;
-    key: string;
-    tags?: string[];
+    description: string;
+    tags: string[];
 }
 
 export interface NumberColumn extends DataColumn {

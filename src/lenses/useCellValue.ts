@@ -47,7 +47,7 @@ function useCellValues(
     const columns = useDataset(columnsSelector, shallow);
 
     const needsFetch = useMemo(
-        () => cellEntries.some((entry, i) => entry !== null && columns[i]?.lazy),
+        () => cellEntries.some((entry, i) => entry !== null && columns[i]?.type?.lazy),
         [cellEntries, columns]
     );
 
@@ -63,7 +63,7 @@ function useCellValues(
         if (hasFetchedValues) {
             setFetchedValues((previous) =>
                 cellEntries.map((entry, i) =>
-                    entry !== null && columns[i]?.lazy ? previous?.[i] : entry
+                    entry !== null && columns[i]?.type?.lazy ? previous?.[i] : entry
                 )
             );
             return;
@@ -72,7 +72,7 @@ function useCellValues(
         const fetchers = cellEntries.map((entry, i) => {
             const column = columns[i];
 
-            return entry !== null && column?.lazy
+            return entry !== null && column?.type?.lazy
                 ? delay(deferLoading ? 250 : 0).then(() => {
                       if (!cancelled) {
                           return fetchValue(

@@ -37,19 +37,13 @@ class Column(BaseModel):
     """
 
     name: str
-    index: Optional[int]
-    hidden: bool
-    lazy: bool
     editable: bool
     optional: bool
     role: str
     values: List[Any]
-    y_label: Optional[str]
-    x_label: Optional[str]
     description: Optional[str]
     tags: Optional[List[str]]
     categories: Optional[Dict[str, int]]
-    embedding_length: Optional[int]
 
 
 class Table(BaseModel):
@@ -98,16 +92,10 @@ def get_table(request: Request) -> ORJSONResponse:
         column = Column(
             name=column_name,
             values=values,
-            index=None,
-            hidden=False,
-            lazy=dtype in LAZY_DTYPES,
             editable=meta.editable,
             optional=meta.nullable,
             role=get_column_type_name(dtype),
             categories={},
-            embedding_length=None,
-            x_label=None,
-            y_label=None,
             description=meta.description,
             tags=meta.tags,
         )
