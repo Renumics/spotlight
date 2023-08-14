@@ -6,8 +6,7 @@ from typing import Callable, Iterable, List, Literal, Optional
 
 from pydantic import BaseModel
 
-from renumics.spotlight.backend.data_source import DataSource
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
+from renumics.spotlight.data_store import DataStore
 
 
 class DataIssue(BaseModel):
@@ -22,4 +21,4 @@ class DataIssue(BaseModel):
     description: str = ""
 
 
-DataAnalyzer = Callable[[DataSource, List[str], ColumnTypeMapping], Iterable[DataIssue]]
+DataAnalyzer = Callable[[DataStore, List[str]], Iterable[DataIssue]]

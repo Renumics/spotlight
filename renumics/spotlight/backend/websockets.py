@@ -3,25 +3,24 @@ This module provides interfaces for websockets.
 """
 
 import asyncio
-import dataclasses
 import functools
-import json
+import orjson
 from typing import Any, List, Optional, Set, Callable
 
+import numpy as np
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel
 from typing_extensions import Literal
 
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-from .data_source import DataSource, sanitize_values
+from renumics.spotlight.data_store import DataStore
+
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
 from .exceptions import GenerationIDMismatch
 
 
-@dataclass
-class Message:
+class Message(BaseModel):
     """
     Common websocket message model.
     """
@@ -30,7 +29,6 @@ class Message:
     data: Any
 
 
-@dataclass
 class RefreshMessage(Message):
     """
     Refresh message model
@@ -40,7 +38,6 @@ class RefreshMessage(Message):
     data: Any = None
 
 
-@dataclass
 class ResetLayoutMessage(Message):
     """
     Reset layout message model
@@ -50,7 +47,6 @@ class ResetLayoutMessage(Message):
     data: Any = None
 
 
-@dataclass
 class ReductionMessage(Message):
     """
     Common data reduction message model.
@@ -61,8 +57,7 @@ class ReductionMessage(Message):
     generation_id: int
 
 
-@dataclass
-class ReductionRequestData:
+class ReductionRequestData(BaseModel):
     """
     Base data reduction request payload.
     """
@@ -71,7 +66,6 @@ class ReductionRequestData:
     columns: List[str]
 
 
-@dataclass
 class UMapRequestData(ReductionRequestData):
     """
     U-Map request payload.
@@ -82,7 +76,6 @@ class UMapRequestData(ReductionRequestData):
     min_dist: float
 
 
-@dataclass
 class PCARequestData(ReductionRequestData):
     """
     PCA request payload.
@@ -91,7 +84,6 @@ class PCARequestData(ReductionRequestData):
     normalization: str
 
 
-@dataclass
 class UMapRequest(ReductionMessage):
     """
     U-Map request model.
@@ -100,7 +92,6 @@ class UMapRequest(ReductionMessage):
     data: UMapRequestData
 
 
-@dataclass
 class PCARequest(ReductionMessage):
     """
     PCA request model.
@@ -109,17 +100,18 @@ class PCARequest(ReductionMessage):
     data: PCARequestData
 
 
-@dataclass
-class ReductionResponseData:
+class ReductionResponseData(BaseModel):
     """
     Data reduction response payload.
     """
 
     indices: List[int]
-    points: List[List[float]]
+    points: np.ndarray
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
-@dataclass
 class ReductionResponse(ReductionMessage):
     """
     Data reduction response model.
@@ -147,7 +139,7 @@ def parse_message(raw_message: str) -> Message:
     """
     Parse a websocket message from a raw text.
     """
-    json_message = json.loads(raw_message)
+    json_message = orjson.loads(raw_message)
     message_type = json_message["type"]
     message_class = MESSAGE_BY_TYPE.get(message_type)
     if message_class is None:
@@ -183,7 +175,10 @@ class WebsocketConnection:
         Send a message async.
         """
         try:
-            await self.websocket.send_json(dataclasses.asdict(message))
+            message_data = message.dict()
+            await self.websocket.send_text(
+                orjson.dumps(message_data, option=orjson.OPT_SERIALIZE_NUMPY).decode()
+            )
         except WebSocketDisconnect:
             self._on_disconnect()
         except RuntimeError:
@@ -307,12 +302,11 @@ class WebsocketManager:
 
 @handle_message.register
 async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
-    table: Optional[DataSource] = connection.websocket.app.data_source
-    dtypes: ColumnTypeMapping = connection.websocket.app.dtypes
-    if table is None:
+    data_store: Optional[DataStore] = connection.websocket.app.data_store
+    if data_store is None:
         return None
     try:
-        table.check_generation_id(request.generation_id)
+        data_store.check_generation_id(request.generation_id)
     except GenerationIDMismatch:
         return
 
@@ -320,8 +314,7 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
         points, valid_indices = await connection.task_manager.run_async(
             compute_umap,
             (
-                table,
-                dtypes,
+                data_store,
                 request.data.columns,
                 request.data.indices,
                 request.data.n_neighbors,
@@ -339,21 +332,18 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
             widget_id=request.widget_id,
             uid=request.uid,
             generation_id=request.generation_id,
-            data=ReductionResponseData(
-                indices=valid_indices, points=sanitize_values(points)
-            ),
+            data=ReductionResponseData(indices=valid_indices, points=points),
         )
         await connection.send_async(response)
 
 
 @handle_message.register
 async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
-    table: Optional[DataSource] = connection.websocket.app.data_source
-    dtypes: ColumnTypeMapping = connection.websocket.app.dtypes
-    if table is None:
+    data_store: Optional[DataStore] = connection.websocket.app.data_store
+    if data_store is None:
         return None
     try:
-        table.check_generation_id(request.generation_id)
+        data_store.check_generation_id(request.generation_id)
     except GenerationIDMismatch:
         return
 
@@ -361,8 +351,7 @@ async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
         points, valid_indices = await connection.task_manager.run_async(
             compute_pca,
             (
-                table,
-                dtypes,
+                data_store,
                 request.data.columns,
                 request.data.indices,
                 request.data.normalization,
@@ -378,8 +367,6 @@ async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
             widget_id=request.widget_id,
             uid=request.uid,
             generation_id=request.generation_id,
-            data=ReductionResponseData(
-                indices=valid_indices, points=sanitize_values(points)
-            ),
+            data=ReductionResponseData(indices=valid_indices, points=points),
         )
         await connection.send_async(response)

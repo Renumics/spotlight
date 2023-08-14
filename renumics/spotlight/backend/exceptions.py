@@ -137,17 +137,6 @@ class ConversionFailed(Problem):
         )
 
 
-class DatasetNotEditable(Problem):
-    """The dataset is not editable"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Dataset not editable",
-            "The dataset is not editable.",
-            status.HTTP_403_FORBIDDEN,
-        )
-
-
 class DatasetColumnsNotUnique(Problem):
     """Dataset's columns are not unique"""
 

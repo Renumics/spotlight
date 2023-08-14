@@ -8,10 +8,7 @@ from typing import Iterable, List
 import numpy as np
 import cleanlab.outlier
 from renumics.spotlight.dtypes import Embedding
-
-from renumics.spotlight.backend.data_source import DataSource
-
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
+from renumics.spotlight.data_store import DataStore
 
 from ..decorator import data_analyzer
 from ..typing import DataIssue
@@ -19,16 +16,19 @@ from ..typing import DataIssue
 
 @data_analyzer
 def analyze_with_cleanlab(
-    data_source: DataSource, columns: List[str], dtypes: ColumnTypeMapping
+    data_store: DataStore, columns: List[str]
 ) -> Iterable[DataIssue]:
     """
     Find (embedding) outliers with cleanlab
     """
 
-    embedding_columns = (col for col in columns if dtypes.get(col) == Embedding)
+    embedding_columns = (
+        col for col in columns if data_store.dtypes.get(col) == Embedding
+    )
+
     for column_name in embedding_columns:
-        col_values = data_source.get_column(column_name, dtypes[column_name]).values
-        embeddings = np.array(col_values, dtype=object)
+        converted_values = data_store.get_converted_values(column_name)
+        embeddings = np.array(converted_values, dtype=object)
         mask = _detect_outliers(embeddings)
         rows = np.where(mask)[0].tolist()
 
