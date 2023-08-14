@@ -107,7 +107,7 @@ class Viewer:
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
         wait: Union[bool, Literal["auto", "forever"]] = "auto",
         dtype: Optional[ColumnTypeMapping] = None,
-        analyze: Optional[bool] = None,
+        analyze: Optional[Union[bool, List[str]]] = None,
         issues: Optional[Collection[DataIssue]] = None,
     ) -> None:
         """
@@ -320,7 +320,7 @@ def show(
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
     wait: Union[bool, Literal["auto", "forever"]] = "auto",
     dtype: Optional[ColumnTypeMapping] = None,
-    analyze: Optional[bool] = None,
+    analyze: Optional[Union[bool, List[str]]] = None,
     issues: Optional[Collection[DataIssue]] = None,
 ) -> Viewer:
     """

@@ -103,12 +103,14 @@ def _get_cell_data_safe(
 
 
 @data_analyzer
-def analyze_with_cleanvision(data_store: DataStore) -> Iterable[DataIssue]:
+def analyze_with_cleanvision(
+    data_store: DataStore, columns: List[str]
+) -> Iterable[DataIssue]:
     """
     find image issues using cleanvision
     """
 
-    image_columns = [col for col, dtype in data_store.dtypes.items() if dtype == Image]
+    image_columns = [col for col in columns if data_store.dtypes.get(col) == Image]
 
     for column_name in image_columns:
         # load image data from data source

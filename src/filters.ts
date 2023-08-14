@@ -56,7 +56,11 @@ function matchString(value: string, ref: string) {
     if (!ref?.length) {
         return !value;
     }
-    return new RegExp(ref).test(value);
+    try {
+        return new RegExp(ref).test(value);
+    } catch (error) {
+        return value.includes(ref);
+    }
 }
 
 const predicatesByType: PredicateRegistry = {

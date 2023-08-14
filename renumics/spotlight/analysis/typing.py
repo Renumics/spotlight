@@ -21,4 +21,4 @@ class DataIssue(BaseModel):
     description: str = ""
 
 
-DataAnalyzer = Callable[[DataStore], Iterable[DataIssue]]
+DataAnalyzer = Callable[[DataStore, List[str]], Iterable[DataIssue]]

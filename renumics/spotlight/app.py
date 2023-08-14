@@ -97,7 +97,7 @@ class SpotlightApp(FastAPI):
     # data issues
     issues: Optional[List[DataIssue]] = []
     _custom_issues: List[DataIssue] = []
-    analyze_issues: bool = True
+    analyze_columns: Union[List[str], bool] = False
 
     def __init__(self) -> None:
         super().__init__()
@@ -110,7 +110,7 @@ class SpotlightApp(FastAPI):
         self.vite_url = None
         self.username = ""
         self.filebrowsing_allowed = False
-        self.analyze_issues = False
+        self.analyze_columns = False
         self.issues = None
         self._custom_issues = []
 
@@ -293,7 +293,7 @@ class SpotlightApp(FastAPI):
         if config.dtypes is not None:
             self._user_dtypes = config.dtypes
         if config.analyze is not None:
-            self.analyze_issues = config.analyze
+            self.analyze_columns = config.analyze
         if config.custom_issues is not None:
             self.custom_issues = config.custom_issues
         if config.dataset is not None:
@@ -390,7 +390,8 @@ class SpotlightApp(FastAPI):
         Update issues and notify client about.
         """
 
-        if not self.analyze_issues:
+        # early out for [] and False
+        if not self.analyze_columns:
             self.issues = []
             self._broadcast(IssuesUpdatedMessage())
             return
@@ -399,8 +400,14 @@ class SpotlightApp(FastAPI):
         self._broadcast(IssuesUpdatedMessage())
         if self._data_store is None:
             return
+
+        if self.analyze_columns is True:
+            columns = self._data_store.column_names
+        else:
+            columns = self.analyze_columns
+
         task = self.task_manager.create_task(
-            find_issues, (self._data_store,), name="update_issues"
+            find_issues, (self._data_store, columns), name="update_issues"
         )
 
         def _on_issues_ready(future: Future) -> None:

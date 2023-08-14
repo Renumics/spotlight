@@ -3,7 +3,7 @@ Outlier detection
 """
 
 import inspect
-from typing import Iterable
+from typing import Iterable, List
 
 import numpy as np
 import cleanlab.outlier
@@ -15,14 +15,17 @@ from ..typing import DataIssue
 
 
 @data_analyzer
-def analyze_with_cleanlab(data_store: DataStore) -> Iterable[DataIssue]:
+def analyze_with_cleanlab(
+    data_store: DataStore, columns: List[str]
+) -> Iterable[DataIssue]:
     """
     Find (embedding) outliers with cleanlab
     """
 
     embedding_columns = (
-        col for col, dtype in data_store.dtypes.items() if dtype == Embedding
+        col for col in columns if data_store.dtypes.get(col) == Embedding
     )
+
     for column_name in embedding_columns:
         converted_values = data_store.get_converted_values(column_name)
         embeddings = np.array(converted_values, dtype=object)
