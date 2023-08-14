@@ -1,6 +1,6 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import Dialog from './components/ui/Dialog';
-import tw from 'twin.macro';
+import 'twin.macro';
 import Button from './components/ui/Button';
 import styled, { keyframes } from 'styled-components';
 import { X } from './icons';
@@ -137,7 +137,7 @@ const CTADialog = () => {
                                     🤗
                                 </span>
                             </CTACard>,
-                        ].sort((_a, _b) => 0.5 - Math.random())}
+                        ].sort(() => 0.5 - Math.random())}
                     </div>
                 </div>
             </FadeInDiv>
