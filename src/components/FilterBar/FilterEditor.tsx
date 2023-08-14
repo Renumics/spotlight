@@ -245,7 +245,7 @@ const NamedFilterEditor: FunctionComponent<NamedFilterEditorProps> = ({
         <div tw="flex flex-row items-stretch">
             <ValueInput
                 value={name}
-                type={{ kind: 'str', optional: true, binary: false }}
+                type={{ kind: 'str', optional: true, binary: false, lazy: false }}
                 placeholder="name"
                 onChange={setName}
                 onEnter={onEnter}

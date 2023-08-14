@@ -28,11 +28,9 @@ const AutoSizerWrapper = tw.div`flex-auto`;
 const columnsSelector = (d: Dataset) => d.columns;
 
 const columnVisibleByDefault = (column: DataColumn) =>
-    !column.hidden &&
     ['float', 'int', 'bool', 'str', 'datetime', 'Category', 'Window'].includes(
         column.type.kind
-    ) &&
-    !column.name.startsWith('__');
+    ) && !column.name.startsWith('__');
 
 const DataGrid: Widget = () => {
     const headerGrid = useRef<Grid>(null);

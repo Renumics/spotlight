@@ -22,7 +22,6 @@ const selectedIndicesSelector = (d: Dataset) => d.selectedIndices;
 
 // column types that should be visible by default
 const columnVisibleByDefault = (column: DataColumn) =>
-    !column.hidden &&
     ['Mesh', 'Sequence1D', 'Image'].includes(column.type.kind) &&
     !column.name.startsWith('__');
 
