@@ -143,10 +143,7 @@ async def get_table_cell(
         return None
     data_store.check_generation_id(generation_id)
 
-    converted_cell_value = data_store.get_converted_value(column, row, simple=False)
-
-    # TODO: check if this is needed for the stricter data formats
-    value = sanitize_values(converted_cell_value)
+    value = data_store.get_converted_value(column, row, simple=False)
 
     if isinstance(value, bytes):
         return Response(value, media_type="application/octet-stream")
