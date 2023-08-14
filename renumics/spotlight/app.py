@@ -19,7 +19,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic.dataclasses import dataclass
 import pandas as pd
 
 from httpx import AsyncClient, URL
@@ -57,7 +56,6 @@ from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 from renumics.spotlight.data_store import DataStore
 
 
-@dataclass
 class IssuesUpdatedMessage(Message):
     """
     Notify about updated issues.
