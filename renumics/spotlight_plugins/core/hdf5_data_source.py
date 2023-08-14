@@ -23,7 +23,6 @@ from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
-    NoRowFound,
 )
 
 
@@ -200,16 +199,6 @@ class Hdf5DataSource(DataSource):
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
         return self._table.read_column(column_name, indices=indices)
-
-    def get_cell_value(self, column_name: str, row_index: int) -> NormalizedValue:
-        """
-        return the value of a single cell
-        """
-        # read raw value from h5 table
-        try:
-            return self._table.read_value(column_name, row_index)
-        except IndexError as e:
-            raise NoRowFound(row_index) from e
 
     @lru_cache(maxsize=128)
     def get_column_categories(self, column_name: str) -> Dict[str, int]:

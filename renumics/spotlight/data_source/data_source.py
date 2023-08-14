@@ -15,7 +15,6 @@ from renumics.spotlight.dataset.exceptions import (
 from renumics.spotlight.dtypes.typing import (
     ColumnTypeMapping,
 )
-from renumics.spotlight.dtypes.conversion import NormalizedValue
 from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
 
 
@@ -122,12 +121,6 @@ class DataSource(ABC):
     def get_column_categories(self, column_name: str) -> Dict[str, int]:
         """
         Get column categories (for categorical dtype)
-        """
-
-    @abstractmethod
-    def get_cell_value(self, column_name: str, row_index: int) -> NormalizedValue:
-        """
-        Get normalized value of a single cell.
         """
 
     def _assert_index_exists(self, index: int) -> None:

@@ -85,20 +85,7 @@ class DataStore:
     def get_converted_value(
         self, column_name: str, index: int, simple: bool = False
     ) -> ConvertedValue:
-        dtype = self._dtypes[column_name]
-        normalized_value = self._data_source.get_cell_value(column_name, index)
-
-        if dtype is Category:
-            dtype_options = DTypeOptions(
-                categories=self._data_source.get_column_categories(column_name)
-            )
-        else:
-            dtype_options = DTypeOptions()
-
-        converted_value = convert_to_dtype(
-            normalized_value, dtype=dtype, dtype_options=dtype_options, simple=simple
-        )
-        return converted_value
+        return self.get_converted_values(column_name, indices=[index], simple=simple)[0]
 
     def get_waveform(self, column_name: str, index: int) -> Optional[np.ndarray]:
         """

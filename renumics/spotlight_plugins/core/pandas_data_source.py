@@ -130,12 +130,6 @@ class PandasDataSource(DataSource):
     def get_column_metadata(self, _: str) -> ColumnMetadata:
         return ColumnMetadata(nullable=True, editable=True)
 
-    def get_cell_value(self, column_name: str, row_index: int) -> Any:
-        """
-        Return the value of a single cell, warn if not possible.
-        """
-        return self.get_column_values(column_name, [row_index])[0]
-
     def _parse_column_index(self, column_name: str) -> Any:
         column_names = self.column_names
         try:
