@@ -139,7 +139,7 @@ def test_conversion_to_array(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to array
     """
-    assert np.array_equal(convert_to_dtype(value, np.ndarray), target_value)
+    assert np.array_equal(convert_to_dtype(value, np.ndarray), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -154,7 +154,7 @@ def test_conversion_to_window(value: Any, target_value: np.ndarray) -> None:
     Convert values to window
     """
     assert np.array_equal(
-        convert_to_dtype(value, dtypes.Window), target_value, equal_nan=True
+        convert_to_dtype(value, dtypes.Window), target_value, equal_nan=True  # type: ignore
     )
 
 
@@ -170,7 +170,7 @@ def test_conversion_to_embedding(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to embedding
     """
-    assert np.array_equal(convert_to_dtype(value, dtypes.Embedding), target_value)
+    assert np.array_equal(convert_to_dtype(value, dtypes.Embedding), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(

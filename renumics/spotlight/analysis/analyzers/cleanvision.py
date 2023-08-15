@@ -4,7 +4,7 @@ find issues in images
 
 import os
 import inspect
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
@@ -13,8 +13,6 @@ import numpy as np
 import cleanvision
 
 from renumics.spotlight.dtypes import Image
-
-from renumics.spotlight.dtypes.conversion import ConversionError, NoConverterAvailable
 
 from renumics.spotlight.data_store import DataStore
 
@@ -93,15 +91,6 @@ def _make_issue(cleanvision_key: str, column: str, rows: List[int]) -> DataIssue
     )
 
 
-def _get_cell_data_safe(
-    data_store: DataStore, column_name: str, row: int
-) -> Optional[bytes]:
-    try:
-        return data_store.get_converted_value(column_name, row, simple=False)  # type: ignore
-    except (ConversionError, NoConverterAvailable):
-        return None
-
-
 @data_analyzer
 def analyze_with_cleanvision(
     data_store: DataStore, columns: List[str]
@@ -114,10 +103,7 @@ def analyze_with_cleanvision(
 
     for column_name in image_columns:
         # load image data from data source
-        images = (
-            _get_cell_data_safe(data_store, column_name, row)
-            for row in range(len(data_store))
-        )
+        images = data_store.get_converted_values(column_name, check=False)
 
         # Write images to temporary directory for cleanvision.
         # They alsow support huggingface's image format.
@@ -129,7 +115,7 @@ def analyze_with_cleanvision(
                 if not image_data:
                     continue
                 path = Path(tmp) / f"{i}.png"
-                path.write_bytes(image_data)
+                path.write_bytes(image_data)  # type: ignore
                 image_paths.append(str(path))
                 indices_list.append(i)
 
