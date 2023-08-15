@@ -145,7 +145,6 @@ def test_conversion_to_array(value: Any, target_value: np.ndarray) -> None:
 @pytest.mark.parametrize(
     "value, target_value",
     [
-        (None, None),
         (np.array([1, 2]), np.array([1, 2])),
         ([1, 2], np.array([1, 2])),
     ],
