@@ -191,7 +191,7 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to sequence
     """
-    assert np.array_equal(convert_to_dtype(value, dtypes.Sequence1D), target_value)
+    assert np.array_equal(convert_to_dtype(value, dtypes.Sequence1D), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
