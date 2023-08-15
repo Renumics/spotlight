@@ -209,6 +209,7 @@ def convert_to_dtype(
     dtype: Type[ColumnType],
     dtype_options: DTypeOptions = DTypeOptions(),
     simple: bool = False,
+    check: bool = True,
 ) -> ConvertedValue:
     """
     Convert normalized type from data source to internal Spotlight DType
@@ -258,12 +259,18 @@ def convert_to_dtype(
             return value_int
 
     except (TypeError, ValueError) as e:
-        raise ConversionFailed(value, dtype) from e
+        if check:
+            raise ConversionFailed(value, dtype) from e
+        else:
+            return None
 
-    if last_conversion_error:
-        raise ConversionFailed(value, dtype, last_conversion_error.reason)
+    if check:
+        if last_conversion_error:
+            raise ConversionFailed(value, dtype, last_conversion_error.reason)
+        else:
+            raise NoConverterAvailable(value, dtype)
 
-    raise NoConverterAvailable(value, dtype)
+    return None
 
 
 @convert(datetime.datetime)
