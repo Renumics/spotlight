@@ -301,11 +301,6 @@ def _(value: int) -> int:
 
 
 @convert(Window)
-def _(_: None) -> np.ndarray:
-    return np.full((2,), np.nan, dtype=np.float64)
-
-
-@convert(Window)
 def _(value: list) -> np.ndarray:
     return np.array(value, dtype=np.float64)
 
