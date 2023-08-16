@@ -6,11 +6,9 @@ from typing import Iterator, Tuple
 from urllib.parse import urljoin
 
 import pytest
-from fastapi.testclient import TestClient
 import pandas as pd
 
 from renumics import spotlight
-from renumics.spotlight.backend import create_datasource
 
 
 BASE_URL = "https://spotlightpublic.blob.core.windows.net/internal-test-data/"
@@ -47,8 +45,8 @@ def viewer_tally_df() -> Iterator[spotlight.Viewer]:
         df["encoded"] = dataset["encoded"]
 
     # Valid external data
-    df["audio"] = ""
-    df["image"] = ""
+    df["audio"] = None
+    df["image"] = None
     df.at[0, "audio"] = "data/audio/stereo/gs-16b-2c-44100hz.mp3"
     df.at[1, "audio"] = urljoin(BASE_URL, "gs-16b-2c-44100hz.ogg")
     df.at[2, "audio"] = None
@@ -118,14 +116,3 @@ def non_existing_image_df_viewer() -> Iterator[spotlight.Viewer]:
         )
         yield viewer
         viewer.close()
-
-
-@pytest.fixture()
-def testclient() -> TestClient:
-    """setup API client with loaded spotlight h5 file in backend"""
-
-    from renumics.spotlight.app import SpotlightApp
-
-    app = SpotlightApp()
-    app._data_source = create_datasource("build/datasets/tallymarks_dataset.h5")
-    return TestClient(app)

@@ -87,17 +87,17 @@ export interface Dataset {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function convertValue(value: any, type: DataType) {
-    if (type.kind === 'datetime') {
-        if (value === null) return null;
-        return new Date(Date.parse(value));
-    }
-
     if (type.kind === 'float' && value === null) {
         return NaN;
     }
 
+    if (value === null) return null;
+
+    if (type.kind === 'datetime') {
+        return new Date(Date.parse(value));
+    }
+
     if (type.kind === 'Window') {
-        if (value[0] === null && value[1] === null) return null;
         value[0] = value[0] === null ? NaN : value[0];
         value[1] = value[1] === null ? NaN : value[1];
         return value;
@@ -110,10 +110,6 @@ export function compareColumnOrder(a: DataColumn, b: DataColumn) {
     if (a.isInternal && !b.isInternal) {
         return 1;
     } else if (b.isInternal && !a.isInternal) {
-        return -1;
-    } else if (a.order < b.order) {
-        return 1;
-    } else if (a.order > b.order) {
         return -1;
     }
     return a.name.localeCompare(b.name);

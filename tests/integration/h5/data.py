@@ -20,7 +20,11 @@ COLUMNS = {
     "embedding": (spotlight.Embedding, [[1, 2, 3], [4, np.nan, 5]]),
     "sequence": (
         spotlight.Sequence1D,
-        [[[1, 2, 3], [2, 3, 4]], [[1, 2, 3], [2, 3, 5]]],
+        [[[1, 2, 3], [2, 3, 4]], [[2, 3], [5, 5]]],
+    ),
+    "optional_sequence": (
+        spotlight.Sequence1D,
+        [[[1, 2, 3], [2, 3, 4]], None],
     ),
     "image": (spotlight.Image, [spotlight.Image.empty(), None]),
     "audio": (spotlight.Audio, [spotlight.Audio.empty(), None]),

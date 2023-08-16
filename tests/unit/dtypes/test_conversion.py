@@ -139,13 +139,12 @@ def test_conversion_to_array(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to array
     """
-    assert np.array_equal(convert_to_dtype(value, np.ndarray), target_value)
+    assert np.array_equal(convert_to_dtype(value, np.ndarray), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
     "value, target_value",
     [
-        (None, np.array([np.nan, np.nan])),
         (np.array([1, 2]), np.array([1, 2])),
         ([1, 2], np.array([1, 2])),
     ],
@@ -155,7 +154,7 @@ def test_conversion_to_window(value: Any, target_value: np.ndarray) -> None:
     Convert values to window
     """
     assert np.array_equal(
-        convert_to_dtype(value, dtypes.Window), target_value, equal_nan=True
+        convert_to_dtype(value, dtypes.Window), target_value, equal_nan=True  # type: ignore
     )
 
 
@@ -171,7 +170,7 @@ def test_conversion_to_embedding(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to embedding
     """
-    assert np.array_equal(convert_to_dtype(value, dtypes.Embedding), target_value)
+    assert np.array_equal(convert_to_dtype(value, dtypes.Embedding), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -191,7 +190,7 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to sequence
     """
-    assert np.array_equal(convert_to_dtype(value, dtypes.Sequence1D), target_value)
+    assert np.array_equal(convert_to_dtype(value, dtypes.Sequence1D), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -208,7 +207,7 @@ def test_conversion_to_image(value: Union[str, bytes]) -> None:
     Convert values to image
     """
     image_bytes = convert_to_dtype(value, dtypes.Image)
-    image = PIL.Image.open(io.BytesIO(image_bytes))
+    image = PIL.Image.open(io.BytesIO(image_bytes))  # type: ignore
     assert image.width > 0
 
 
@@ -225,7 +224,7 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     Convert values to audio
     """
     audio_bytes = convert_to_dtype(value, dtypes.Audio)
-    assert len(audio_bytes) > 0
+    assert len(audio_bytes) > 0  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -239,7 +238,7 @@ def test_conversion_to_video(value: Union[str, bytes]) -> None:
     Convert values to video
     """
     video_bytes = convert_to_dtype(value, dtypes.Video)
-    assert len(video_bytes) > 0
+    assert len(video_bytes) > 0  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -253,7 +252,7 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
     Convert values to mesh
     """
     mesh_bytes = convert_to_dtype(value, dtypes.Mesh)
-    assert len(mesh_bytes) > 0
+    assert len(mesh_bytes) > 0  # type: ignore
 
 
 @pytest.mark.parametrize(

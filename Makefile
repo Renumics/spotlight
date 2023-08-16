@@ -55,7 +55,7 @@ lint: ## Lint all source files
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
-	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} poetry run spotlight --analyze
+	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} poetry run spotlight --analyze-all
 
 .PHONY: datasets
 datasets: ## Build datasets (only needed for UI tests)

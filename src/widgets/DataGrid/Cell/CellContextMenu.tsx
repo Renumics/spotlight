@@ -74,7 +74,9 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
         const operation = getApplicablePredicates(column.type.kind).equal;
 
         const filterValue =
-            column.type.kind == 'str' || column.lazy ? _.escapeRegExp(value) : value;
+            column.type.kind == 'str' || column.type.lazy
+                ? _.escapeRegExp(value)
+                : value;
         const newFilter = new PredicateFilter(column, operation, filterValue);
 
         addFilter(newFilter);

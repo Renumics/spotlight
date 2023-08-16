@@ -9,7 +9,6 @@ import Plot, {
 import Brush from '../../components/shared/Plot/Brush';
 import Legend from '../../components/shared/Plot/Legend';
 import Tooltip from '../../components/shared/Plot/Tooltip';
-import { Hint } from '../../components/ui/Menu/MultiColumnSelect';
 import { createConstantTransferFunction } from '../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -22,7 +21,6 @@ import {
     DataColumn,
     DataStatistics,
     IndexArray,
-    isEmbeddingColumn,
     isNumberColumn,
     NumberColumn,
     TableData,
@@ -36,6 +34,7 @@ import MenuBar from './MenuBar';
 import TooltipContent from './TooltipContent';
 import { ReductionMethod } from './types';
 import Info from '../../components/ui/Info';
+import { unknownDataType } from '../../datatypes';
 
 const MapContainer = styled.div`
     ${tw`bg-gray-100 border-gray-400 w-full h-full overflow-hidden`}
@@ -129,7 +128,6 @@ const SimilarityMap: Widget = () => {
             .filter((col) =>
                 ['int', 'float', 'str', 'bool', 'Category'].includes(col.type.kind)
             )
-            .sort((c1, c2) => c1.order - c2.order)
             .map((c) => c.key);
 
         if (storedColorByKey && availableColumns.includes(storedColorByKey)) {
@@ -175,33 +173,6 @@ const SimilarityMap: Widget = () => {
             )
             .map((c) => c.key);
     }, [fullColumns]);
-
-    const embeddableColumnsSelector = useCallback(
-        (d: Dataset) => d.columns.filter((c) => embeddableColumnKeys.includes(c.key)),
-        [embeddableColumnKeys]
-    );
-    const embeddableColumns = useDataset(embeddableColumnsSelector, shallow);
-    const embeddableColumnsHints = useMemo(() => {
-        const hints: Record<string, Hint> = {};
-        embeddableColumns.forEach((column) => {
-            if (isEmbeddingColumn(column) && column.type.embeddingLength > 512) {
-                hints[column.key] = {
-                    type: 'warning',
-                    message: (
-                        <>
-                            Embedding length is {'>'} 512 ({column.type.embeddingLength}
-                            ) which might
-                            <br />
-                            <b>negatively influence performance</b>.
-                            <br />
-                            Consider reducing it.
-                        </>
-                    ),
-                };
-            }
-        });
-        return hints;
-    }, [embeddableColumns]);
 
     const placeByColumnKeys = useMemo(() => {
         // When there is no stored selection, select the first available embedding
@@ -273,13 +244,7 @@ const SimilarityMap: Widget = () => {
                 ? d.colorTransferFunctions[colorByKey]?.[
                       filter ? 'filtered' : 'full'
                   ][0]
-                : createConstantTransferFunction(
-                      colorBy?.type || {
-                          kind: 'Unknown',
-                          optional: false,
-                          binary: false,
-                      }
-                  ),
+                : createConstantTransferFunction(colorBy?.type ?? unknownDataType),
         [colorByKey, filter, colorBy?.type]
     );
 
@@ -536,7 +501,7 @@ const SimilarityMap: Widget = () => {
                 placeBy={placeByColumnKeys}
                 filter={filter}
                 embeddableColumns={embeddableColumnKeys}
-                embeddableColumnsHints={embeddableColumnsHints}
+                embeddableColumnsHints={{}}
                 reductionMethod={reductionMethod ?? 'umap'}
                 umapNNeighbors={umapNNeighbors}
                 umapMetric={umapMetric ?? 'euclidean'}

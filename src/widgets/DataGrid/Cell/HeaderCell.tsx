@@ -54,6 +54,7 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const tagColorTransferFunction = useColorTransferFunction(tags, {
         kind: 'str',
         optional: true,
+        lazy: false,
         binary: false,
     });
 
@@ -114,6 +115,7 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
                             tag={`mean: ${dataformat.format(stats.mean, {
                                 kind: 'float',
                                 optional: false,
+                                lazy: false,
                                 binary: false,
                             })}`}
                         />

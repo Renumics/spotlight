@@ -19,12 +19,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic.dataclasses import dataclass
 import pandas as pd
 
 from httpx import AsyncClient, URL
 
-from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
     Message,
@@ -52,11 +50,12 @@ from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.app_config import AppConfig
-from renumics.spotlight.backend import create_datasource
+from renumics.spotlight.data_source import DataSource, create_datasource
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
+from renumics.spotlight.data_store import DataStore
 
-@dataclass
+
 class IssuesUpdatedMessage(Message):
     """
     Notify about updated issues.
@@ -81,9 +80,8 @@ class SpotlightApp(FastAPI):
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
     _user_dtypes: ColumnTypeMapping
-    _guessed_dtypes: ColumnTypeMapping
-    _dtypes: ColumnTypeMapping
     _data_source: Optional[DataSource]
+    _data_store: Optional[DataStore]
 
     task_manager: TaskManager
     websocket_manager: Optional[WebsocketManager]
@@ -117,10 +115,9 @@ class SpotlightApp(FastAPI):
         self._custom_issues = []
 
         self._dataset = None
-        self._guessed_dtypes = {}
         self._user_dtypes = {}
-        self._dtypes = {}
         self._data_source = None
+        self._data_store = None
 
         @self.on_event("startup")
         def _() -> None:
@@ -287,13 +284,6 @@ class SpotlightApp(FastAPI):
                 "/node_modules/.pnpm/{path:path}", _reverse_proxy, ["POST", "GET"]
             )
 
-    @property
-    def dtypes(self) -> ColumnTypeMapping:
-        """
-        Guessed dtypes merged with dtypes requested by user (preferred).
-        """
-        return self._dtypes
-
     def update(self, config: AppConfig) -> None:
         """
         Update application config.
@@ -309,22 +299,15 @@ class SpotlightApp(FastAPI):
         if config.dataset is not None:
             self._dataset = config.dataset
             self._data_source = create_datasource(self._dataset)
-            self._guessed_dtypes = self._data_source.guess_dtypes()
         if config.layout is not None:
             self.layout = config.layout
         if config.filebrowsing_allowed is not None:
             self.filebrowsing_allowed = config.filebrowsing_allowed
 
         if config.dtypes is not None or config.dataset is not None:
-            dtypes = self._guessed_dtypes.copy()
-            dtypes.update(
-                {
-                    column_name: column_type
-                    for column_name, column_type in self._user_dtypes.items()
-                    if column_name in self._guessed_dtypes
-                }
-            )
-            self._dtypes = dtypes
+            data_source = self._data_source
+            assert data_source is not None
+            self._data_store = DataStore(data_source, self._user_dtypes)
             self._broadcast(RefreshMessage())
             self._update_issues()
 
@@ -341,7 +324,7 @@ class SpotlightApp(FastAPI):
         elif kind == "update":
             self.update(data)
         elif kind == "get_df":
-            df = self.data_source.df if self.data_source else None
+            df = self._data_source.df if self._data_source else None
             self._connection.send({"kind": "df", "data": df})
         elif kind == "refresh_frontends":
             self._broadcast(RefreshMessage())
@@ -358,11 +341,11 @@ class SpotlightApp(FastAPI):
                 return
 
     @property
-    def data_source(self) -> Optional[DataSource]:
+    def data_store(self) -> Optional[DataStore]:
         """
-        Current data source.
+        Current data store.
         """
-        return self._data_source
+        return self._data_store
 
     @property
     def custom_issues(self) -> List[DataIssue]:
@@ -393,10 +376,10 @@ class SpotlightApp(FastAPI):
         Get the user's current layout (as dict)
         """
 
-        if not self.data_source:
+        if not self._data_store:
             return None
 
-        dataset_uid = self.data_source.get_uid()
+        dataset_uid = self._data_store.uid
         layout = await self.config.get(
             "layout.current", dataset=dataset_uid, user=user_id
         ) or self.layout.dict(by_alias=True)
@@ -413,19 +396,18 @@ class SpotlightApp(FastAPI):
             self._broadcast(IssuesUpdatedMessage())
             return
 
-        table: Optional[DataSource] = self.data_source
         self.issues = None
         self._broadcast(IssuesUpdatedMessage())
-        if table is None:
+        if self._data_store is None:
             return
 
         if self.analyze_columns is True:
-            columns = table.column_names
+            columns = self._data_store.column_names
         else:
             columns = self.analyze_columns
 
         task = self.task_manager.create_task(
-            find_issues, (table, columns, self._dtypes), name="update_issues"
+            find_issues, (self._data_store, columns), name="update_issues"
         )
 
         def _on_issues_ready(future: Future) -> None:

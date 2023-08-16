@@ -4,7 +4,7 @@ find issues in images
 
 import os
 import inspect
-from typing import Iterable, List, Optional, Type
+from typing import Iterable, List
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
@@ -12,10 +12,9 @@ from contextlib import redirect_stderr, redirect_stdout
 import numpy as np
 import cleanvision
 
-from renumics.spotlight.backend.data_source import DataSource
-from renumics.spotlight.backend.exceptions import ConversionFailed
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping, ColumnType
 from renumics.spotlight.dtypes import Image
+
+from renumics.spotlight.data_store import DataStore
 
 from ..decorator import data_analyzer
 from ..typing import DataIssue
@@ -92,31 +91,19 @@ def _make_issue(cleanvision_key: str, column: str, rows: List[int]) -> DataIssue
     )
 
 
-def _get_cell_data_safe(
-    data_source: DataSource, column_name: str, row: int, dtype: Type[ColumnType]
-) -> Optional[bytes]:
-    try:
-        return data_source.get_cell_data(column_name, row, dtype)
-    except ConversionFailed:
-        return None
-
-
 @data_analyzer
 def analyze_with_cleanvision(
-    data_source: DataSource, columns: List[str], dtypes: ColumnTypeMapping
+    data_store: DataStore, columns: List[str]
 ) -> Iterable[DataIssue]:
     """
     find image issues using cleanvision
     """
 
-    image_columns = [col for col in columns if dtypes.get(col) == Image]
+    image_columns = [col for col in columns if data_store.dtypes.get(col) == Image]
 
     for column_name in image_columns:
         # load image data from data source
-        images = (
-            _get_cell_data_safe(data_source, column_name, row, dtypes[column_name])
-            for row in range(len(data_source))
-        )
+        images = data_store.get_converted_values(column_name, check=False)
 
         # Write images to temporary directory for cleanvision.
         # They alsow support huggingface's image format.
@@ -128,7 +115,7 @@ def analyze_with_cleanvision(
                 if not image_data:
                     continue
                 path = Path(tmp) / f"{i}.png"
-                path.write_bytes(image_data)
+                path.write_bytes(image_data)  # type: ignore
                 image_paths.append(str(path))
                 indices_list.append(i)
 
