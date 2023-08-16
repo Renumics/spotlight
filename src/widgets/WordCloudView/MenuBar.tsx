@@ -10,14 +10,12 @@ import {
     memo,
     useCallback,
     useEffect,
-    useRef,
     useState,
+    ComponentProps,
 } from 'react';
 import tw from 'twin.macro';
-import Slider from '../../components/ui/Slider';
 import LabeledSlider from '../../components/ui/LabeledSlider';
 import Cloud from './Cloud';
-import { ComponentProps } from 'react';
 import Select from '../../components/ui/Select';
 import _ from 'lodash';
 

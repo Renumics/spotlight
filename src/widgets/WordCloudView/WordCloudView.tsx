@@ -63,10 +63,7 @@ const WordCloudView: Widget = () => {
         3
     );
 
-    const [splitStringsBy, setSplitStringsBy] = useWidgetConfig<string>(
-        'splitStringsBy',
-        '[\\s,\\.;:!?\\-\\–\\—\\(\\)\\[\\]\\{\\}"\']'
-    );
+    const splitStringsBy = '[\\s,\\.;:!?\\-\\–\\—\\(\\)\\[\\]\\{\\}"\']';
 
     const [blacklist, setBlacklist] = useWidgetConfig<string[]>('blacklist', [
         'and',
@@ -184,6 +181,7 @@ const WordCloudView: Widget = () => {
         columnData,
         columnToCompareBy,
         columnToPlaceBy,
+        minWordLength,
         splitStringsBy,
     ]);
 

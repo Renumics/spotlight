@@ -6,7 +6,6 @@ import { Dataset, useDataset } from '../../stores/dataset';
 import seedrandom from 'seedrandom';
 
 import { ColorsState, useColors } from '../../stores/colors';
-import { NO_DATA } from '../../palettes';
 
 const categoricalPaletteSelector = (c: ColorsState) => c.categoricalPalette;
 
