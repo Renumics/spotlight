@@ -7,15 +7,22 @@ interface Size {
 }
 
 const useSize = (ref: RefObject<HTMLElement>): Size => {
-    const [size, setSize] = useState<ClientRect>();
+    const [size, setSize] = useState<Size>({ width: 0, height: 0 });
 
     useLayoutEffect(() => {
-        const rect = ref.current?.getBoundingClientRect();
-        setSize(rect);
+        setSize({
+            width: ref.current?.offsetWidth ?? 0,
+            height: ref.current?.offsetHeight ?? 0,
+        });
     }, [ref]);
 
-    useResizeObserver(ref, (element) => setSize(element.contentRect));
-    return size || { width: 0, height: 0 };
+    useResizeObserver(ref, (element) =>
+        setSize({
+            width: element.contentRect.width,
+            height: element.contentRect.height,
+        })
+    );
+    return size;
 };
 
 export default useSize;
