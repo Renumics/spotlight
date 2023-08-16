@@ -1,8 +1,6 @@
 type Value = string | number;
 
 interface Bucket {
-    x: number;
-    y: number;
     rows: number[];
 }
 
@@ -10,4 +8,10 @@ interface MatrixData {
     xNames: string[];
     yNames: string[];
     buckets: Bucket[];
+}
+
+interface Cell {
+    x: number;
+    y: number;
+    bucket: Bucket;
 }

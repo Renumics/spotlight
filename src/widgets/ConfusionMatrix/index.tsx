@@ -8,7 +8,7 @@ import { DataColumn, useDataset, useWidgetConfig } from '../../lib';
 import TableIcon from '../../icons/Table';
 import Matrix from './Matrix';
 import ColumnSelect from '../../components/ui/Menu/ColumnSelect';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ColumnData } from '../../types';
 
 const COMPATIBLE_DATA_KINDS = ['int', 'Category', 'str', 'bool'];
@@ -18,7 +18,11 @@ const useColumns = () => {
 };
 
 const useColumnValues = (key?: string) => {
-    return useDataset((d) => (key ? d.columnData[key] : [])) ?? [];
+    return (
+        useDataset((d) =>
+            key ? d.filteredIndices.map((i) => d.columnData[key][i]) : []
+        ) ?? []
+    );
 };
 
 const useNames = (column: DataColumn | undefined, data: ColumnData) => {
@@ -52,8 +56,6 @@ function useData(xColumn: DataColumn, yColumn: DataColumn): MatrixData {
         const buckets: Bucket[] = new Array(xNames.length * yNames.length)
             .fill(null)
             .map(() => ({
-                x: 0,
-                y: 0,
                 rows: [],
             }));
         for (let i = 0; i < xValues.length; ++i) {
@@ -86,6 +88,16 @@ const ConfusionMatrix: Widget = () => {
 
     const data = useData(xColumn, yColumn);
 
+    const handleHoverCell = useCallback((cell?: Cell) => {
+        if (!cell) return;
+        useDataset.getState().highlightRows(cell.bucket.rows);
+    }, []);
+
+    const handleClickCell = useCallback((cell?: Cell) => {
+        if (!cell) return;
+        useDataset.getState().selectRows(cell.bucket.rows);
+    }, []);
+
     return (
         <WidgetContainer>
             <WidgetMenu>
@@ -109,7 +121,11 @@ const ConfusionMatrix: Widget = () => {
                 </div>
             </WidgetMenu>
             <WidgetContent tw="bg-white overflow-hidden">
-                <Matrix data={data} />
+                <Matrix
+                    data={data}
+                    onHoverCell={handleHoverCell}
+                    onClickCell={handleClickCell}
+                />
             </WidgetContent>
         </WidgetContainer>
     );

@@ -6,6 +6,8 @@ import { useColors } from '../../lib';
 
 interface Props {
     data: MatrixData;
+    onHoverCell?: (cell?: Cell) => void;
+    onClickCell?: (cell?: Cell) => void;
 }
 
 const MARGIN = {
@@ -15,7 +17,7 @@ const MARGIN = {
     bottom: 18,
 };
 
-const Matrix = ({ data }: Props): JSX.Element => {
+const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const { width, height } = useSize(wrapperRef);
 
@@ -40,30 +42,42 @@ const Matrix = ({ data }: Props): JSX.Element => {
         .scale()
         .domain([min ?? 0, max ?? 1]);
 
-    const rows = data.xNames.length;
-    const rects = data.buckets.map((bucket, i) => (
-        <g key={i}>
-            <rect
-                x={xScale(data.xNames[i % rows])}
-                y={yScale(data.yNames[(i / rows) >> 0])}
-                width={xScale.bandwidth()}
-                height={yScale.bandwidth()}
-                fill={colorScale(bucket.rows.length).css()}
-                rx={8}
-                stroke={'white'}
-            />
-            <text
-                x={(xScale(data.xNames[i % rows]) ?? 0) + xScale.bandwidth() / 2}
-                y={(yScale(data.yNames[(i / rows) >> 0]) ?? 0) + yScale.bandwidth() / 2}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={10}
-                fontWeight="bold"
+    const rects = data.buckets.map((bucket, i) => {
+        const rows = data.xNames.length;
+        const col = i % rows;
+        const row = (i / rows) >> 0;
+        const left = xScale(data.xNames[col]) ?? 0;
+        const top = yScale(data.yNames[row]) ?? 0;
+
+        return (
+            <g
+                key={i}
+                onMouseEnter={() => onHoverCell?.({ x: col, y: row, bucket })}
+                onMouseLeave={() => onHoverCell?.(undefined)}
+                onClick={() => onClickCell?.({ x: col, y: row, bucket })}
             >
-                {data.buckets[i].rows.length > 0 ? data.buckets[i].rows.length : ''}
-            </text>
-        </g>
-    ));
+                <rect
+                    x={left}
+                    y={top}
+                    width={xScale.bandwidth()}
+                    height={yScale.bandwidth()}
+                    fill={colorScale(bucket.rows.length).css()}
+                    rx={8}
+                    stroke={'white'}
+                />
+                <text
+                    x={left + xScale.bandwidth() / 2}
+                    y={top + yScale.bandwidth() / 2}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={10}
+                    fontWeight="bold"
+                >
+                    {data.buckets[i].rows.length > 0 ? data.buckets[i].rows.length : ''}
+                </text>
+            </g>
+        );
+    });
 
     const xLabels = data.xNames.map((name, i) => (
         <text
