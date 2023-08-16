@@ -25,19 +25,19 @@ const Matrix = ({ xNames, yNames, data }: Props): JSX.Element => {
 
     const xScale = useMemo(
         () => d3.scaleBand().range([0, boundsWidth]).domain(xNames).padding(0.01),
-        [xNames, width]
+        [xNames, boundsWidth]
     );
 
     const yScale = useMemo(
         () => d3.scaleBand().range([0, boundsHeight]).domain(yNames).padding(0.01),
-        [yNames, height]
+        [yNames, boundsHeight]
     );
 
-    const [min, max] = [0, 1];
+    const [min, max] = d3.extent(data);
     const colorScale = d3
         .scaleSequential()
         .interpolator(d3.interpolateInferno)
-        .domain([min, max]);
+        .domain([min ?? 0, max ?? 1]);
 
     const rows = xNames.length;
     const rects = data.map((value, i) => (
@@ -58,7 +58,7 @@ const Matrix = ({ xNames, yNames, data }: Props): JSX.Element => {
         <text
             key={i}
             x={(xScale(name) ?? 0) + xScale.bandwidth() / 2}
-            y={boundsHeight + 5}
+            y={boundsHeight + 8}
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={10}
@@ -70,7 +70,7 @@ const Matrix = ({ xNames, yNames, data }: Props): JSX.Element => {
     const yLabels = yNames.map((name, i) => (
         <text
             key={i}
-            x={-5}
+            x={-4}
             y={(yScale(name) ?? 0) + yScale.bandwidth() / 2}
             textAnchor="end"
             dominantBaseline="middle"
