@@ -42,6 +42,36 @@ const useNames = (column: DataColumn | undefined, data: ColumnData) => {
     return names;
 };
 
+function useData(xColumn: DataColumn, yColumn: DataColumn): MatrixData {
+    const xValues = useColumnValues(xColumn.key);
+    const yValues = useColumnValues(yColumn.key);
+    const xNames = useNames(xColumn, xValues);
+    const yNames = useNames(yColumn, yValues);
+
+    const buckets = useMemo(() => {
+        const buckets: Bucket[] = new Array(xNames.length * yNames.length)
+            .fill(null)
+            .map(() => ({
+                x: 0,
+                y: 0,
+                rows: [],
+            }));
+        for (let i = 0; i < xValues.length; ++i) {
+            const x = xNames.indexOf(xValues[i]);
+            const y = yNames.indexOf(yValues[i]);
+            if (x == -1 || y == -1) continue;
+            buckets[y * xNames.length + x].rows.push(i);
+        }
+        return buckets;
+    }, [xNames, xValues, yNames, yValues]);
+
+    return {
+        xNames,
+        yNames,
+        buckets,
+    };
+}
+
 const ConfusionMatrix: Widget = () => {
     const [xKey, setXKey] = useWidgetConfig<string>('xColumn');
     const [yKey, setYKey] = useWidgetConfig<string>('yColumn');
@@ -51,44 +81,35 @@ const ConfusionMatrix: Widget = () => {
         COMPATIBLE_DATA_KINDS.includes(c.type.kind)
     );
     const compatibleColumnKeys = compatibleColumns.map((c) => c.key);
-
     const xColumn = compatibleColumns.filter((c) => c.key === xKey)[0];
     const yColumn = compatibleColumns.filter((c) => c.key === yKey)[0];
-    const xValues = useColumnValues(xKey);
-    const yValues = useColumnValues(yKey);
 
-    const xNames = useNames(xColumn, xValues);
-    const yNames = useNames(yColumn, yValues);
-
-    const data = useMemo(() => {
-        const matrix = new Array(xNames.length * yNames.length).fill(0);
-        for (let i = 0; i < xValues.length; ++i) {
-            const x = xNames.indexOf(xValues[i]);
-            const y = yNames.indexOf(yValues[i]);
-            if (x == -1 || y == -1) continue;
-            matrix[y * xNames.length + x]++;
-        }
-        return matrix;
-    }, [xNames, xValues, yNames, yValues]);
+    const data = useData(xColumn, yColumn);
 
     return (
         <WidgetContainer>
             <WidgetMenu>
-                <ColumnSelect
-                    selectableColumns={compatibleColumnKeys}
-                    onChangeColumn={setXKey}
-                    selected={xKey}
-                    title="x"
-                />
-                <ColumnSelect
-                    selectableColumns={compatibleColumnKeys}
-                    onChangeColumn={setYKey}
-                    selected={yKey}
-                    title="y"
-                />
+                <div tw="w-32 h-full flex">
+                    <ColumnSelect
+                        selectableColumns={compatibleColumnKeys}
+                        onChangeColumn={setXKey}
+                        selected={xKey}
+                        title="x"
+                        variant="inset"
+                    />
+                </div>
+                <div tw="w-32 h-full flex">
+                    <ColumnSelect
+                        selectableColumns={compatibleColumnKeys}
+                        onChangeColumn={setYKey}
+                        selected={yKey}
+                        title="y"
+                        variant="inset"
+                    />
+                </div>
             </WidgetMenu>
             <WidgetContent tw="bg-white overflow-hidden">
-                <Matrix xNames={xNames} yNames={yNames} data={data} />
+                <Matrix data={data} />
             </WidgetContent>
         </WidgetContainer>
     );
