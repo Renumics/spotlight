@@ -67,6 +67,7 @@ class DataStore:
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
         simple: bool = False,
+        check: bool = True,
     ) -> List[ConvertedValue]:
         dtype = self._dtypes[column_name]
         normalized_values = self._data_source.get_column_values(column_name, indices)
@@ -77,7 +78,9 @@ class DataStore:
         else:
             dtype_options = DTypeOptions()
         converted_values = [
-            convert_to_dtype(value, dtype, dtype_options=dtype_options, simple=simple)
+            convert_to_dtype(
+                value, dtype, dtype_options=dtype_options, simple=simple, check=check
+            )
             for value in normalized_values
         ]
         return converted_values
