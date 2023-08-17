@@ -6,7 +6,6 @@ import type { Widget } from '../types';
 import { useDataset, useWidgetConfig } from '../../lib';
 import GridIcon from '../../icons/Grid';
 import Matrix from './Matrix';
-import ColumnSelect from '../../components/ui/Menu/ColumnSelect';
 import { useCallback } from 'react';
 import type { Cell } from './types';
 import { useColumns, useData } from './hooks';
