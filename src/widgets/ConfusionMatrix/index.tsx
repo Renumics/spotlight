@@ -48,8 +48,8 @@ const useNames = (column: DataColumn | undefined, data: ColumnData) => {
 };
 
 function useData(xColumn: DataColumn, yColumn: DataColumn): MatrixData {
-    const xValues = useColumnValues(xColumn.key);
-    const yValues = useColumnValues(yColumn.key);
+    const xValues = useColumnValues(xColumn?.key);
+    const yValues = useColumnValues(yColumn?.key);
     const xNames = useNames(xColumn, xValues);
     const yNames = useNames(yColumn, yValues);
 

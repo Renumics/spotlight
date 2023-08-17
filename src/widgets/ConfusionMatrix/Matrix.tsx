@@ -4,6 +4,7 @@ import useSize from '../../hooks/useSize';
 import { useMemo, useRef } from 'react';
 import { useColors } from '../../lib';
 import type { Cell, MatrixData } from './types';
+import { theme } from 'twin.macro';
 
 interface Props {
     data: MatrixData;
@@ -50,6 +51,10 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
         const left = xScale(data.xNames[col]) ?? 0;
         const top = yScale(data.yNames[row]) ?? 0;
 
+        const bgColor = colorScale(bucket.rows.length);
+        const isBgDark = bgColor.get('oklab.l') < 0.5;
+        const fgColorCss = isBgDark ? theme`colors.white` : theme`colors.black`;
+
         return (
             <g
                 key={i}
@@ -62,7 +67,7 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
                     y={top}
                     width={xScale.bandwidth()}
                     height={yScale.bandwidth()}
-                    fill={colorScale(bucket.rows.length).css()}
+                    fill={bgColor.css()}
                     rx={8}
                     stroke={'white'}
                 />
@@ -71,7 +76,8 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
                     y={top + yScale.bandwidth() / 2}
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    fontSize={10}
+                    fontSize={12}
+                    fill={fgColorCss}
                     fontWeight="bold"
                 >
                     {data.buckets[i].rows.length > 0 ? data.buckets[i].rows.length : ''}
