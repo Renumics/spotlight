@@ -1,15 +1,13 @@
+import 'twin.macro';
 import DetailsIcon from '../../icons/ClipboardList';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import tw from 'twin.macro';
 import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
 import { DataContext, DataProvider } from './dataContext';
 import DetailsGrid, { COLUMN_COUNT_OPTIONS } from './DetailsGrid';
 import MenuBar from './MenuBar';
 import { StoreProvider } from './store';
-
-const Wrapper = tw.div`w-full h-full flex flex-col overflow-hidden`;
-const GridContainer = tw.div`flex-auto`;
+import { WidgetContainer, WidgetContent } from '../../lib';
 
 const Inspector: Widget = () => {
     const [visibleColumnsCount, setVisibleColumnsCount] = useWidgetConfig(
@@ -21,14 +19,14 @@ const Inspector: Widget = () => {
             <DataProvider>
                 <DataContext.Consumer>
                     {() => (
-                        <Wrapper>
+                        <WidgetContainer>
                             <MenuBar
                                 visibleColumnsCount={visibleColumnsCount}
                                 setVisibleColumnsCount={setVisibleColumnsCount}
                                 visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
                             />
 
-                            <GridContainer>
+                            <WidgetContent>
                                 <AutoSizer>
                                     {({ width, height }) => (
                                         <DetailsGrid
@@ -38,8 +36,8 @@ const Inspector: Widget = () => {
                                         />
                                     )}
                                 </AutoSizer>
-                            </GridContainer>
-                        </Wrapper>
+                            </WidgetContent>
+                        </WidgetContainer>
                     )}
                 </DataContext.Consumer>
             </DataProvider>

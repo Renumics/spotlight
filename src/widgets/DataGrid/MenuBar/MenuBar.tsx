@@ -10,8 +10,8 @@ import { ColumnContext } from '../context/columnContext';
 import Settings from './SettingsMenu';
 import TableViewSelection from './TableViewSelection';
 import AddColumnButton from './AddColumnButton';
+import { WidgetMenu } from '../../../lib';
 
-const Styles = tw.div`pl-1 py-0.5 flex flex-row border-b border-gray-400 text-sm`;
 const Spacer = tw.div`flex-grow`;
 
 const MenuBar: FunctionComponent = () => {
@@ -67,7 +67,7 @@ const MenuBar: FunctionComponent = () => {
     );
 
     return (
-        <Styles>
+        <WidgetMenu>
             <TableViewSelection />
             <Spacer />
             <AddColumnButton />
@@ -77,7 +77,7 @@ const MenuBar: FunctionComponent = () => {
                 </div>
             </Dropdown>
             <Settings />
-        </Styles>
+        </WidgetMenu>
     );
 };
 
