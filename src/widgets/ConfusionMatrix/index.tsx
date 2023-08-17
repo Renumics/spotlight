@@ -10,6 +10,7 @@ import ColumnSelect from '../../components/ui/Menu/ColumnSelect';
 import { useCallback } from 'react';
 import type { Cell } from './types';
 import { useColumns, useData } from './hooks';
+import Select from '../../components/ui/Select';
 
 const COMPATIBLE_DATA_KINDS = ['int', 'Category', 'str', 'bool'];
 
@@ -40,21 +41,21 @@ const ConfusionMatrix: Widget = () => {
     return (
         <WidgetContainer>
             <WidgetMenu>
-                <div tw="w-32 h-full flex">
-                    <ColumnSelect
-                        selectableColumns={compatibleColumnKeys}
-                        onChangeColumn={setXKey}
-                        selected={xKey}
-                        title="x"
+                <div tw="font-bold text-gray-700 px-1">X</div>
+                <div tw="w-32 h-full flex border-x border-gray-400">
+                    <Select
+                        options={compatibleColumnKeys}
+                        onChange={setXKey}
+                        value={xKey}
                         variant="inset"
                     />
                 </div>
-                <div tw="w-32 h-full flex">
-                    <ColumnSelect
-                        selectableColumns={compatibleColumnKeys}
-                        onChangeColumn={setYKey}
-                        selected={yKey}
-                        title="y"
+                <div tw="font-bold text-gray-700 px-1">Y</div>
+                <div tw="w-32 h-full flex border-x border-gray-400">
+                    <Select
+                        options={compatibleColumnKeys}
+                        onChange={setYKey}
+                        value={yKey}
                         variant="inset"
                     />
                 </div>
