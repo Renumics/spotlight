@@ -58,10 +58,16 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
         return (
             <g
                 key={i}
-                onMouseEnter={() => onHoverCell?.({ x: col, y: row, bucket })}
-                onMouseLeave={() => onHoverCell?.(undefined)}
+                onMouseEnter={(e) => {
+                    d3.select(e.currentTarget).select('rect').style('stroke-width', 5);
+                    onHoverCell?.({ x: col, y: row, bucket });
+                }}
+                onMouseLeave={(e) => {
+                    d3.select(e.currentTarget).select('rect').style('stroke-width', 0);
+                    onHoverCell?.(undefined);
+                }}
                 onClick={() => onClickCell?.({ x: col, y: row, bucket })}
-                cursor={'pointer'}
+                cursor="pointer"
             >
                 <rect
                     x={left}
@@ -69,8 +75,8 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
                     width={xScale.bandwidth()}
                     height={yScale.bandwidth()}
                     fill={bgColor.css()}
-                    rx={8}
-                    stroke={'white'}
+                    rx={5}
+                    stroke={theme`colors.white`}
                 />
                 <text
                     x={left + xScale.bandwidth() / 2}
