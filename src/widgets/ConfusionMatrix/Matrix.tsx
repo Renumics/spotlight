@@ -61,6 +61,7 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
                 onMouseEnter={() => onHoverCell?.({ x: col, y: row, bucket })}
                 onMouseLeave={() => onHoverCell?.(undefined)}
                 onClick={() => onClickCell?.({ x: col, y: row, bucket })}
+                cursor={'pointer'}
             >
                 <rect
                     x={left}

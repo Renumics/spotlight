@@ -4,7 +4,7 @@ import WidgetContainer from '../../components/ui/WidgetContainer';
 import WidgetContent from '../../components/ui/WidgetContent';
 import WidgetMenu from '../../components/ui/WidgetMenu';
 import type { Widget } from '../types';
-import { DataColumn, useDataset, useWidgetConfig } from '../../lib';
+import { DataColumn, dataformat, useDataset, useWidgetConfig } from '../../lib';
 import TableIcon from '../../icons/Table';
 import Matrix from './Matrix';
 import ColumnSelect from '../../components/ui/Menu/ColumnSelect';
@@ -19,14 +19,19 @@ const useColumns = () => {
 };
 
 const useColumnValues = (key?: string) => {
-    return (
-        useDataset((d) =>
-            key ? d.filteredIndices.map((i) => d.columnData[key][i]) : []
-        ) ?? []
+    const filteredIndices = useDataset((d) => d.filteredIndices);
+    const columnData = useDataset((d) => d.columnData);
+
+    return useMemo(
+        () =>
+            key === undefined
+                ? []
+                : Array.from(filteredIndices).map((i) => columnData[key][i]),
+        [filteredIndices, columnData, key]
     );
 };
 
-const useNames = (column: DataColumn | undefined, data: ColumnData) => {
+const useUniqueValues = (column?: DataColumn, data?: ColumnData) => {
     const names = useMemo(() => {
         if (!column) {
             return [];
@@ -47,26 +52,35 @@ const useNames = (column: DataColumn | undefined, data: ColumnData) => {
     return names;
 };
 
-function useData(xColumn: DataColumn, yColumn: DataColumn): MatrixData {
+function useData(xColumn?: DataColumn, yColumn?: DataColumn): MatrixData {
     const xValues = useColumnValues(xColumn?.key);
     const yValues = useColumnValues(yColumn?.key);
-    const xNames = useNames(xColumn, xValues);
-    const yNames = useNames(yColumn, yValues);
+    const uniqueXValues = useUniqueValues(xColumn, xValues);
+    const uniqueYValues = useUniqueValues(yColumn, yValues);
 
     const buckets = useMemo(() => {
-        const buckets: Bucket[] = new Array(xNames.length * yNames.length)
+        const buckets: Bucket[] = new Array(uniqueXValues.length * uniqueYValues.length)
             .fill(null)
             .map(() => ({
                 rows: [],
             }));
         for (let i = 0; i < xValues.length; ++i) {
-            const x = xNames.indexOf(xValues[i]);
-            const y = yNames.indexOf(yValues[i]);
+            const x = uniqueXValues.indexOf(xValues[i]);
+            const y = uniqueYValues.indexOf(yValues[i]);
             if (x == -1 || y == -1) continue;
-            buckets[y * xNames.length + x].rows.push(i);
+            buckets[y * uniqueXValues.length + x].rows.push(i);
         }
         return buckets;
-    }, [xNames, xValues, yNames, yValues]);
+    }, [uniqueXValues, uniqueYValues, xValues, yValues]);
+
+    const xNames = useMemo(
+        () => uniqueXValues.map((value) => dataformat.format(value, xColumn!.type)),
+        [uniqueXValues, xColumn]
+    );
+    const yNames = useMemo(
+        () => uniqueYValues.map((value) => dataformat.format(value, yColumn!.type)),
+        [uniqueYValues, yColumn]
+    );
 
     return {
         xNames,
