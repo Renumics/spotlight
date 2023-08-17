@@ -64,11 +64,17 @@ export function useData(xColumn?: DataColumn, yColumn?: DataColumn): MatrixData 
     }, [uniqueXValues, uniqueYValues, xValues, yValues]);
 
     const xNames = useMemo(
-        () => uniqueXValues.map((value) => dataformat.format(value, xColumn!.type)),
+        () =>
+            xColumn
+                ? uniqueXValues.map((value) => dataformat.format(value, xColumn.type))
+                : [],
         [uniqueXValues, xColumn]
     );
     const yNames = useMemo(
-        () => uniqueYValues.map((value) => dataformat.format(value, yColumn!.type)),
+        () =>
+            yColumn
+                ? uniqueYValues.map((value) => dataformat.format(value, yColumn.type))
+                : [],
         [uniqueYValues, yColumn]
     );
 

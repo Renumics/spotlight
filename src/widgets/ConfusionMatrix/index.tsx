@@ -1,5 +1,4 @@
 import 'twin.macro';
-import _ from 'lodash';
 import WidgetContainer from '../../components/ui/WidgetContainer';
 import WidgetContent from '../../components/ui/WidgetContent';
 import WidgetMenu from '../../components/ui/WidgetMenu';

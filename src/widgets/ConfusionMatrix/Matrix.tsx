@@ -1,4 +1,3 @@
-import 'twin.macro';
 import * as d3 from 'd3';
 import useSize from '../../hooks/useSize';
 import { useMemo, useRef } from 'react';
