@@ -1,16 +1,14 @@
-type Value = string | number;
-
-interface Bucket {
+export interface Bucket {
     rows: number[];
 }
 
-interface MatrixData {
+export interface MatrixData {
     xNames: string[];
     yNames: string[];
     buckets: Bucket[];
 }
 
-interface Cell {
+export interface Cell {
     x: number;
     y: number;
     bucket: Bucket;

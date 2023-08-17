@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import useSize from '../../hooks/useSize';
 import { useMemo, useRef } from 'react';
 import { useColors } from '../../lib';
+import type { Cell, MatrixData } from './types';
 
 interface Props {
     data: MatrixData;
@@ -37,7 +38,7 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
     const [min, max] = useMemo(() => {
         const counts = data.buckets.map((b) => b.rows.length);
         return d3.extent(counts);
-    }, []);
+    }, [data.buckets]);
     const colorScale = useColors((state) => state.continuousPalette)
         .scale()
         .domain([min ?? 0, max ?? 1]);

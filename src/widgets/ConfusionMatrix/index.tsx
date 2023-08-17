@@ -10,6 +10,7 @@ import Matrix from './Matrix';
 import ColumnSelect from '../../components/ui/Menu/ColumnSelect';
 import { useCallback, useMemo } from 'react';
 import { ColumnData } from '../../types';
+import type { Cell, MatrixData, Bucket } from './types';
 
 const COMPATIBLE_DATA_KINDS = ['int', 'Category', 'str', 'bool'];
 
