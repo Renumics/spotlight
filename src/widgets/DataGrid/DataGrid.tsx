@@ -1,10 +1,10 @@
+import 'twin.macro';
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
-import tw from 'twin.macro';
 import { DataColumn, TableView } from '../../types';
 import getScrollbarSize from '../../browser';
 import { shallow } from 'zustand/shallow';
