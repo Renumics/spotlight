@@ -108,11 +108,12 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
     const yLabels = data.yNames.map((name, i) => (
         <text
             key={i}
-            x={-4}
-            y={(yScale(name) ?? 0) + yScale.bandwidth() / 2}
-            textAnchor="end"
+            textAnchor="middle"
             dominantBaseline="middle"
             fontSize={10}
+            transform={`translate(${-4}, ${
+                (yScale(name) ?? 0) + yScale.bandwidth() / 2
+            }) rotate(-90)`}
         >
             {name}
         </text>
