@@ -1,6 +1,7 @@
 """
 access pandas DataFrame table data
 """
+from pathlib import Path
 from typing import Any, Dict, List, Union, cast
 from functools import lru_cache
 
@@ -31,6 +32,9 @@ from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
 @datasource(pd.DataFrame)
 @datasource(".csv")
+@datasource(".parquet")
+@datasource(".feather")
+@datasource(".orc")
 class PandasDataSource(DataSource):
     """
     access pandas DataFrame table data
@@ -42,7 +46,17 @@ class PandasDataSource(DataSource):
 
     def __init__(self, source: Union[PathType, pd.DataFrame]):
         if is_pathtype(source):
-            df = pd.read_csv(source)
+            extension = Path(source).suffix.lower()
+            if extension == ".csv":
+                df = pd.read_csv(source)
+            elif extension == ".parquet":
+                df = pd.read_parquet(source)
+            elif extension == ".feather":
+                df = pd.read_feather(source)
+            elif extension == ".orc":
+                df = pd.read_orc(source)
+            else:
+                assert False, f"Unsupported file extension: {extension}"
         else:
             df = cast(pd.DataFrame, source)
 
