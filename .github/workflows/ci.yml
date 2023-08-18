@@ -419,7 +419,7 @@ jobs:
               run: python -m pip install pytest
             - name: Execute integration tests
               if: success() || steps.setup-tests.outcome == 'success'
-              run: pytest tests/integration
+              run: pytest --durations=5 tests/integration
     # Release stage
     release:
         name: '🚀 Release Spotlight'
