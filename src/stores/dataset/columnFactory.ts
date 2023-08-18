@@ -9,7 +9,6 @@ function makeDatatype(column: Column): DataType {
     switch (kind) {
         case 'int':
         case 'float':
-        case 'str':
         case 'bool':
         case 'Window':
         case 'array':
@@ -20,6 +19,7 @@ function makeDatatype(column: Column): DataType {
                 lazy: false,
                 optional: column.optional,
             };
+        case 'str':
         case 'Embedding':
             return {
                 kind,

@@ -54,7 +54,7 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const tagColorTransferFunction = useColorTransferFunction(tags, {
         kind: 'str',
         optional: true,
-        lazy: false,
+        lazy: true,
         binary: false,
     });
 
