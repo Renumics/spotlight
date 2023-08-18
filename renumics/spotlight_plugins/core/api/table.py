@@ -18,6 +18,7 @@ from renumics.spotlight.reporting import emit_timed_event
 
 from renumics.spotlight.dtypes import (
     Audio,
+    Category,
     Embedding,
     Image,
     Mesh,
@@ -89,13 +90,17 @@ def get_table(request: Request) -> ORJSONResponse:
         dtype = data_store.dtypes[column_name]
         values = data_store.get_converted_values(column_name, simple=True)
         meta = data_store.get_column_metadata(column_name)
+        if dtype == Category:
+            categories = data_store._data_source.get_column_categories(column_name)
+        else:
+            categories = {}
         column = Column(
             name=column_name,
             values=values,
             editable=meta.editable,
             optional=meta.nullable,
             role=get_column_type_name(dtype),
-            categories={},
+            categories=categories,
             description=meta.description,
             tags=meta.tags,
         )

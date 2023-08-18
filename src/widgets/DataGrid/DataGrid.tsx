@@ -1,10 +1,10 @@
+import 'twin.macro';
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
-import tw from 'twin.macro';
 import { DataColumn, TableView } from '../../types';
 import getScrollbarSize from '../../browser';
 import { shallow } from 'zustand/shallow';
@@ -17,13 +17,11 @@ import MenuBar from './MenuBar';
 import TableGrid, { Ref as TableGridRef } from './TableGrid';
 import GridContextMenu from './GridContextMenu';
 import columnWidthByType from './columnWidthByType';
+import { WidgetContainer, WidgetContent } from '../../lib';
 
 const MIN_COLUMN_WIDTH = 50;
 
 const headerHeight = 24;
-
-const GridWrapper = tw.div`flex flex-col h-full w-full overflow-hidden`;
-const AutoSizerWrapper = tw.div`flex-auto`;
 
 const columnsSelector = (d: Dataset) => d.columns;
 
@@ -138,7 +136,7 @@ const DataGrid: Widget = () => {
     );
 
     return (
-        <GridWrapper data-test-tag="datagrid">
+        <WidgetContainer data-test-tag="datagrid">
             <TableViewProvider tableView={tableView} setTableView={setTableView}>
                 <ColumnProvider
                     columnKeys={visibleColumns || []}
@@ -149,7 +147,7 @@ const DataGrid: Widget = () => {
                 >
                     <SortingProvider sorting={sorting} setSorting={setSorting}>
                         <MenuBar />
-                        <AutoSizerWrapper>
+                        <WidgetContent>
                             <AutoSizer>
                                 {({ width, height }) => (
                                     <div tw="bg-white" style={{ width, height }}>
@@ -175,11 +173,11 @@ const DataGrid: Widget = () => {
                                     </div>
                                 )}
                             </AutoSizer>
-                        </AutoSizerWrapper>
+                        </WidgetContent>
                     </SortingProvider>
                 </ColumnProvider>
             </TableViewProvider>
-        </GridWrapper>
+        </WidgetContainer>
     );
 };
 
