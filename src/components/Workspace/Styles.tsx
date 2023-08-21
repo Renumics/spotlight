@@ -79,7 +79,7 @@ const Styles = styled.div`
     }
     .flexlayout__tab_button {
         ${tw`
-            inline-flex
+            flex
             items-center
             text-sm
             cursor-pointer
@@ -89,10 +89,10 @@ const Styles = styled.div`
     }
     .flexlayout__tab_button--selected {
         ${tw`
-            -mb-1 pb-1
             bg-gray-100
             text-midnight-600 font-semibold
             border-gray-300
+            border-b border-b-gray-200 [margin-bottom:-1px]
         `}
     }
     .flexlayout__tab_button--unselected {

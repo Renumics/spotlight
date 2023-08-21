@@ -27,7 +27,7 @@ const ColumnListItem = ({
     const tagColorTransferFunction = useColorTransferFunction(tags, {
         kind: 'str',
         optional: true,
-        lazy: false,
+        lazy: true,
         binary: false,
     });
 

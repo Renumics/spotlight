@@ -29,8 +29,7 @@ __pycache__/
 *.h5
 !data/tables/tallymarks-small.h5
 *.csv
-!data/csv/australian-weather-small.csv
-!data/csv/australian-weather-small-edited.csv
+!data/csv/multimodal-random-small.csv
 
 #venv
 .venv/
