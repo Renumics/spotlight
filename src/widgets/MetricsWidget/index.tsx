@@ -5,81 +5,12 @@ import {
     WidgetContent,
     WidgetMenu,
     dataformat,
-    useDataset,
     useWidgetConfig,
 } from '../../lib';
 import { Widget } from '../types';
-import { useMemo } from 'react';
-import { isNumberColumn } from '../../types';
-import _ from 'lodash';
 import GaugeIcon from '../../icons/Gauge';
-
-type ValueArray = number[] | Int32Array;
-
-interface Metric {
-    compute: (values: ValueArray) => number;
-}
-
-const METRICS: Record<string, Metric> = {
-    sum: {
-        compute: _.sum,
-    },
-    mean: {
-        compute: _.mean,
-    },
-    min: {
-        compute: (values) => _.min(values) ?? NaN,
-    },
-    max: {
-        compute: (values) => _.max(values) ?? NaN,
-    },
-    count: {
-        compute: (values) => values.length,
-    },
-};
-
-const useNumberColumnKeys = () => {
-    const allColumns = useDataset((d) => d.columns);
-    return useMemo(
-        () => allColumns.filter(isNumberColumn).map((col) => col.key),
-        [allColumns]
-    );
-};
-
-const useMetric = (metric?: string, columnKey?: string) => {
-    if (metric === undefined || columnKey === undefined)
-        return { filtered: undefined, selected: undefined };
-
-    const columnValues = useDataset((d) => d.columnData[columnKey]);
-
-    const filteredIndices = useDataset((d) => d.filteredIndices);
-    const filteredValues = useMemo(
-        () => filteredIndices.map((idx) => columnValues[idx]),
-        [filteredIndices, columnValues]
-    );
-    const filteredMetric = useMemo(
-        () => METRICS[metric].compute(filteredValues as ValueArray),
-        [metric, filteredValues]
-    );
-
-    const selectedIndices = useDataset((d) => d.selectedIndices);
-    const selectedValues = useMemo(
-        () => selectedIndices.map((idx) => columnValues[idx]),
-        [selectedIndices, columnValues]
-    );
-    const selectedMetric = useMemo(
-        () =>
-            selectedValues.length > 0
-                ? METRICS[metric].compute(selectedValues as ValueArray)
-                : undefined,
-        [metric, selectedValues]
-    );
-
-    return {
-        filtered: filteredMetric,
-        selected: selectedMetric,
-    };
-};
+import { METRICS } from './metrics';
+import { useMetric, useNumberColumnKeys } from './hooks';
 
 const MetricsWidget: Widget = () => {
     const numberColumnKeys = useNumberColumnKeys();
