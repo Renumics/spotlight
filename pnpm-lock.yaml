@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@floating-ui/react':
     specifier: ^0.19.2
@@ -117,8 +113,8 @@ dependencies:
     specifier: ^3.1.4
     version: 3.1.4(react@18.2.0)
   react-icons:
-    specifier: ^4.7.1
-    version: 4.7.1(react@18.2.0)
+    specifier: ^4.10.1
+    version: 4.10.1(react@18.2.0)
   react-is:
     specifier: ^18.2.0
     version: 18.2.0
@@ -5525,8 +5521,8 @@ packages:
       tree-changes: 0.9.3
     dev: false
 
-  /react-icons@4.7.1(react@18.2.0):
-    resolution: {integrity: sha512-yHd3oKGMgm7zxo3EA7H2n7vxSoiGmHk5t6Ou4bXsfcgWyhfDKMpyKfhHR6Bjnn63c+YXBLBPUql9H4wPJM6sXw==}
+  /react-icons@4.10.1(react@18.2.0):
+    resolution: {integrity: sha512-/ngzDP/77tlCfqthiiGNZeYFACw85fUjZtLbedmJ5DTlNDIwETxhwBzdOJ21zj4iJdvc0J3y7yOsX3PpxAJzrw==}
     peerDependencies:
       react: '*'
     dependencies:
@@ -6870,3 +6866,7 @@ packages:
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false

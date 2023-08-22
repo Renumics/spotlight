@@ -12,6 +12,7 @@ import { Widget } from '../types';
 import { useMemo } from 'react';
 import { isNumberColumn } from '../../types';
 import _ from 'lodash';
+import GaugeIcon from '../../icons/Gauge';
 
 type ValueArray = number[] | Int32Array;
 
@@ -119,22 +120,16 @@ const MetricsWidget: Widget = () => {
             </WidgetMenu>
             <WidgetContent tw="flex items-center justify-center">
                 <div tw="flex flex-col items-center">
-                    {metricValues.selected !== undefined ? (
-                        <>
-                            <div tw="text-xl font-bold text-black">
-                                {dataformat.formatNumber(metricValues.selected)}
-                            </div>
-                            <div tw="text-lg text-gray-800">
-                                {metricValues.filtered &&
-                                    dataformat.formatNumber(metricValues.filtered)}
-                            </div>
-                        </>
-                    ) : (
-                        <div tw="text-xl font-bold text-black">
-                            {metricValues.filtered &&
-                                dataformat.formatNumber(metricValues.filtered)}
-                        </div>
-                    )}
+                    <div tw="text-xl font-bold text-black">
+                        {metricValues.filtered !== undefined
+                            ? dataformat.formatNumber(metricValues.filtered)
+                            : '-'}
+                    </div>
+                    <div tw="text-lg text-gray-800">
+                        {metricValues.selected !== undefined
+                            ? dataformat.formatNumber(metricValues.selected)
+                            : '-'}
+                    </div>
                 </div>
             </WidgetContent>
         </WidgetContainer>
@@ -142,6 +137,6 @@ const MetricsWidget: Widget = () => {
 };
 MetricsWidget.key = 'Metric';
 MetricsWidget.defaultName = 'Metric';
-MetricsWidget.icon = () => <></>;
+MetricsWidget.icon = GaugeIcon;
 
 export default MetricsWidget;
