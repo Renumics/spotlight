@@ -9,6 +9,7 @@ import { ComponentProps, useCallback, useMemo, useRef } from 'react';
 import _ from 'lodash';
 import Cloud, { Ref as CloudRef } from './Cloud';
 import useSize from '../../hooks/useSize';
+import defaultStopwords from './stopwords.json';
 
 const WordViewContainer = styled.div`
     ${tw`bg-gray-100 border-gray-400 w-full h-full overflow-hidden relative`}
@@ -65,35 +66,16 @@ const WordCloudView: Widget = () => {
 
     const splitStringsBy = '[\\s,\\.;:!?\\-\\–\\—\\(\\)\\[\\]\\{\\}"\']';
 
-    const [blacklist, setBlacklist] = useWidgetConfig<string[]>('blacklist', [
-        'and',
-        'you',
-        'not',
-        'it',
-        'the',
-        'to',
-        'of',
-        'in',
-        'is',
-        'that',
-        'for',
-        'are',
-        'with',
-        'on',
-        'be',
-        'this',
-        'as',
-        'or',
-        'if',
-        'your',
-        'have',
-    ]);
+    const [stopwords, setStopwords] = useWidgetConfig<string[]>(
+        'stopwords',
+        defaultStopwords
+    );
 
     const [scaling, setScaling] = useWidgetConfig<
         ComponentProps<typeof Cloud>['scaling']
     >('scaling', 'log');
 
-    const [wordsToShowCount, setWordCount] = useWidgetConfig<number>('wordCount', 512);
+    const [wordsToShowCount, setWordCount] = useWidgetConfig<number>('wordCount', 100);
 
     const columnToPlaceBy = useMemo(
         () => columns.find((c) => c.key === cloudByColumnKey),
@@ -161,7 +143,7 @@ const WordCloudView: Widget = () => {
         const wordCounts = splitRows.reduce((acc, line, index) => {
             line.forEach((word) => {
                 const lower = word.toLowerCase();
-                if (!blacklist.includes(lower) && lower.length >= minWordLength) {
+                if (!stopwords.includes(lower) && lower.length >= minWordLength) {
                     if (lower.length < 1) return acc;
                     if (lower in acc) {
                         acc[lower].count++;
@@ -176,7 +158,7 @@ const WordCloudView: Widget = () => {
         }, {} as Record<string, { count: number; rowIds: number[] }>);
         return [wordCounts, uniqueWordsCount];
     }, [
-        blacklist,
+        stopwords,
         boolOperation,
         columnData,
         columnToCompareBy,
@@ -237,8 +219,8 @@ const WordCloudView: Widget = () => {
                 maxWordCount={uniqueWordsCount}
                 wordCount={wordsToShowCount ?? uniqueWordsCount}
                 onChangeWordCount={setWordCount}
-                blacklist={blacklist}
-                onChangeBlacklist={setBlacklist}
+                stopwords={stopwords}
+                onChangeStopwords={setStopwords}
                 wordCloudCompareBy={compareByColumnKey}
                 onChangeWordCloudCompareColumn={setCompareByColumnKey}
                 boolOperation={boolOperation || 'difference'}

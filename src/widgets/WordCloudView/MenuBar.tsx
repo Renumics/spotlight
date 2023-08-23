@@ -45,8 +45,8 @@ interface MenuProps {
     onChangeMinWordLength: (value: number) => void;
     wordCount: number;
     onChangeWordCount: (value: number) => void;
-    blacklist: string[];
-    onChangeBlacklist: (values: string[]) => void;
+    stopwords: string[];
+    onChangeStopwords: (values: string[]) => void;
     boolOperation: BoolOpeartion;
     onChangeBoolOperation: (operation?: BoolOpeartion) => void;
 }
@@ -65,27 +65,27 @@ const SettingsMenu = ({
     onChangeWordCount,
     scaling,
     onChangeScaling,
-    onChangeBlacklist,
-    blacklist,
+    onChangeStopwords,
+    stopwords,
     boolOperation,
     onChangeBoolOperation,
     minWordLength,
     maxWordLength,
     onChangeMinWordLength,
 }: Omit<Props, 'onChangeFilter' | 'filter'>): JSX.Element => {
-    const [blacklistInputValue, setBlacklistInputValue] = useState(
-        blacklist.join(', ')
+    const [stopwordsInputValue, setStopwordsInputValue] = useState(
+        stopwords.join(', ')
     );
     const onChangeBlacklistInput = useCallback(() => {
-        const newList = blacklistInputValue.split(/[\s,;]+/);
-        if (!_.isEqual(newList, blacklist)) {
-            onChangeBlacklist(newList);
+        const newList = stopwordsInputValue.split(/[\s,;]+/);
+        if (!_.isEqual(newList, stopwords)) {
+            onChangeStopwords(newList);
         }
-    }, [blacklist, blacklistInputValue, onChangeBlacklist]);
+    }, [stopwords, stopwordsInputValue, onChangeStopwords]);
 
     useEffect(() => {
-        setBlacklistInputValue(blacklist.join(', '));
-    }, [blacklist]);
+        setStopwordsInputValue(stopwords.join(', '));
+    }, [stopwords]);
 
     return (
         <Menu tw="w-[360px]">
@@ -115,7 +115,9 @@ const SettingsMenu = ({
                     ]}
                 />
             </Menu.Item>
-            <Menu.Title>Scaling</Menu.Title>
+            <Menu.Title title="Scaling of the words relative to their count.">
+                Scaling
+            </Menu.Title>
             <Menu.Item>
                 <Select
                     value={scaling}
@@ -123,7 +125,7 @@ const SettingsMenu = ({
                     options={['linear', 'log', 'sqrt']}
                 />
             </Menu.Item>
-            <Menu.Item>
+            <Menu.Item title="How many of the most common words to take into account.">
                 <Menu.Title>Word Count</Menu.Title>
                 <LabeledSlider
                     showTooltip={true}
@@ -133,17 +135,19 @@ const SettingsMenu = ({
                     value={wordCount}
                 />
             </Menu.Item>
-            <Menu.Title>Blacklist</Menu.Title>
+            <Menu.Title title="Words to ignore when computing word cloud.">
+                Stopwords
+            </Menu.Title>
             <Menu.Item tw="flex">
                 <Menu.TextArea
                     placeholder="Blacklist"
                     tw="flex-grow"
-                    value={blacklistInputValue}
-                    onChange={(event) => setBlacklistInputValue(event.target.value)}
+                    value={stopwordsInputValue}
+                    onChange={(event) => setStopwordsInputValue(event.target.value)}
                     onBlur={onChangeBlacklistInput}
                 />
             </Menu.Item>
-            <Menu.Item>
+            <Menu.Item title="Minimum length of a word to be considered for the word cloud.">
                 <Menu.Title>Min Word Length</Menu.Title>
                 <LabeledSlider
                     showTooltip={true}

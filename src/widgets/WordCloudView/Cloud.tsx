@@ -143,11 +143,28 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
                 .selectAll<d3.BaseType, Word>('text')
                 .data(layedOutWords, (d) => d.text)
                 .join(
-                    (enter) => enter.append('text').style('font-family', FONT_FAMILY),
+                    (enter) =>
+                        enter
+                            .append('text')
+                            .style('font-family', FONT_FAMILY)
+                            .on('mouseover', (_, d) => {
+                                highlightRows(d.rowIds);
+                            })
+                            .on('mouseout', () => highlightRows([]))
+                            .on('click', (e, d) => {
+                                selectRows(d.rowIds);
+                                e.stopPropagation();
+                            })
+                            .attr('text-anchor', 'middle')
+                            .text((d) => d.text || '')
+                            .attr('fill', (d, i) =>
+                                categoricalScale(
+                                    i % categoricalPalette.maxClasses
+                                ).hex()
+                            ),
                     (update) => update,
                     (exit) => exit.remove()
                 )
-                .attr('text-anchor', 'middle')
                 .attr('font-size', (d) => `${d.size || 1}px`)
                 .attr(
                     'transform',
@@ -155,19 +172,7 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
                         `translate(${width / 2 + (d.x || 0)},${
                             height / 2 + (d.y || 0)
                         }) rotate(${d.rotate})`
-                )
-                .text((d) => d.text || '')
-                .attr('fill', (d, i) =>
-                    categoricalScale(i % categoricalPalette.maxClasses).hex()
-                )
-                .on('mouseover', (_, d) => {
-                    highlightRows(d.rowIds);
-                })
-                .on('mouseout', () => highlightRows([]))
-                .on('click', (e, d) => {
-                    selectRows(d.rowIds);
-                    e.stopPropagation();
-                });
+                );
         };
 
         const layout = d3Cloud<Word>()
