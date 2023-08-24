@@ -4,12 +4,13 @@ import { useDataset, Dataset } from '../../stores/dataset/dataset';
 import { Widget } from '../types';
 import { DataColumn, isCategoricalColumn, isStringColumn } from '../../types/dataset';
 import useWidgetConfig from '../useWidgetConfig';
-import MenuBar, { BoolOpeartion } from './MenuBar';
+import MenuBar from './MenuBar';
 import { ComponentProps, useCallback, useMemo, useRef } from 'react';
 import _ from 'lodash';
 import Cloud, { Ref as CloudRef } from './Cloud';
 import useSize from '../../hooks/useSize';
 import defaultStopwords from './stopwords.json';
+import Info from '../../components/ui/Info';
 
 const WordViewContainer = styled.div`
     ${tw`bg-gray-100 border-gray-400 w-full h-full overflow-hidden relative`}
@@ -36,28 +37,13 @@ const WordCloudView: Widget = () => {
         [columns]
     );
 
-    const [_cloudByColumnKey, setCloudByColumnKey] = useWidgetConfig<string>(
-        'cloudByColumnKey',
-        columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key)[0] ?? ''
-    );
+    const [_cloudByColumnKey, setCloudByColumnKey] =
+        useWidgetConfig<string>('cloudByColumnKey');
 
     const cloudByColumnKey =
         _cloudByColumnKey && ploaceableColumnsKeys.includes(_cloudByColumnKey)
             ? _cloudByColumnKey
             : columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key)[0] ?? '';
-
-    const [_compareByColumnKey, setCompareByColumnKey] =
-        useWidgetConfig<string>('compareByColumnKey');
-
-    const compareByColumnKey =
-        _compareByColumnKey &&
-        ploaceableColumnsKeys.includes(_compareByColumnKey) &&
-        cloudByColumnKey !== _compareByColumnKey
-            ? _compareByColumnKey
-            : undefined;
-
-    const [boolOperation, setBoolOperation] =
-        useWidgetConfig<BoolOpeartion>('boolOperation');
 
     const [minWordLength, setMinWordLength] = useWidgetConfig<number>(
         'minWordLength',
@@ -82,11 +68,6 @@ const WordCloudView: Widget = () => {
         [columns, cloudByColumnKey]
     );
 
-    const columnToCompareBy = useMemo(
-        () => columns.find((c) => c.key === compareByColumnKey),
-        [columns, compareByColumnKey]
-    );
-
     const [wordCounts, uniqueWordsCount] = useMemo(() => {
         if (columnToPlaceBy === undefined) return [{}, 0];
 
@@ -104,40 +85,7 @@ const WordCloudView: Widget = () => {
         const splitter =
             splitStringsBy.length > 1 ? new RegExp(splitStringsBy) : splitStringsBy;
 
-        let splitRows = rows.map((row) => row.toLowerCase().split(splitter));
-
-        if (columnToCompareBy !== undefined) {
-            let op: (a: string[], b: string[]) => string[];
-
-            switch (boolOperation) {
-                case 'difference':
-                    op = _.difference;
-                    break;
-                case 'intersection':
-                    op = _.intersection;
-                    break;
-                case 'union':
-                    op = _.union;
-                    break;
-                case 'symmetric difference':
-                    op = _.xor;
-                    break;
-                default:
-                    op = _.difference;
-            }
-
-            const compareData = columnData[columnToCompareBy.key];
-            const compareRows: string[] = isCategoricalColumn(columnToCompareBy)
-                ? Array.from(compareData).map(
-                      (v) => `${columnToCompareBy.type.invertedCategories[v]}`
-                  )
-                : (columnData[columnToCompareBy.key] as string[]);
-
-            splitRows = splitRows.map((row, index) => {
-                const compareRow = compareRows[index].toLowerCase().split(splitter);
-                return op(row, compareRow);
-            });
-        }
+        const splitRows = rows.map((row) => (row ?? '').toLowerCase().split(splitter));
 
         let uniqueWordsCount = 0;
         const wordCounts = splitRows.reduce((acc, line, index) => {
@@ -157,15 +105,7 @@ const WordCloudView: Widget = () => {
             return acc;
         }, {} as Record<string, { count: number; rowIds: number[] }>);
         return [wordCounts, uniqueWordsCount];
-    }, [
-        stopwords,
-        boolOperation,
-        columnData,
-        columnToCompareBy,
-        columnToPlaceBy,
-        minWordLength,
-        splitStringsBy,
-    ]);
+    }, [stopwords, columnData, columnToPlaceBy, minWordLength, splitStringsBy]);
 
     const wordCountsWithFiltered = useMemo(
         () =>
@@ -196,15 +136,23 @@ const WordCloudView: Widget = () => {
     return (
         <WordViewContainer tw="bg-white">
             <CloudContainer ref={cloudContainerRef}>
-                <Cloud
-                    ref={cloudRef}
-                    words={wordCountsWithFiltered}
-                    scaling={scaling}
-                    width={cloudContainerSize.width}
-                    height={cloudContainerSize.height}
-                    wordCount={wordsToShowCount}
-                    hideFiltered={hideFiltered}
-                />
+                {Object.keys(wordCountsWithFiltered).length > 0 ? (
+                    <Cloud
+                        ref={cloudRef}
+                        words={wordCountsWithFiltered}
+                        scaling={scaling}
+                        width={cloudContainerSize.width}
+                        height={cloudContainerSize.height}
+                        wordCount={wordsToShowCount}
+                        hideFiltered={hideFiltered}
+                    />
+                ) : (
+                    <Info>
+                        No Words to Cloud by
+                        <br />
+                        Select a Column to Cloud by or alter Stopwords.
+                    </Info>
+                )}
             </CloudContainer>
             <MenuBar
                 wordCloudBy={cloudByColumnKey}
@@ -221,10 +169,6 @@ const WordCloudView: Widget = () => {
                 onChangeWordCount={setWordCount}
                 stopwords={stopwords}
                 onChangeStopwords={setStopwords}
-                wordCloudCompareBy={compareByColumnKey}
-                onChangeWordCloudCompareColumn={setCompareByColumnKey}
-                boolOperation={boolOperation || 'difference'}
-                onChangeBoolOperation={setBoolOperation}
                 minWordLength={minWordLength}
                 maxWordLength={15}
                 onChangeMinWordLength={setMinWordLength}

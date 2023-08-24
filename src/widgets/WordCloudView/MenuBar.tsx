@@ -30,12 +30,10 @@ export type BoolOpeartion =
 interface MenuProps {
     placeableColumns: string[];
     wordCloudBy?: string;
-    wordCloudCompareBy?: string;
     filter: boolean;
     scaling: ComponentProps<typeof Cloud>['scaling'];
     onChangeScaling: (scaling: ComponentProps<typeof Cloud>['scaling']) => void;
-    onChangeWordCloudColumn: (column: string) => void;
-    onChangeWordCloudCompareColumn: (column: string) => void;
+    onChangeWordCloudColumn: (column?: string) => void;
     onChangeFilter: (filter: boolean) => void;
     onReset: () => void;
     maxWordCount: number;
@@ -47,8 +45,6 @@ interface MenuProps {
     onChangeWordCount: (value: number) => void;
     stopwords: string[];
     onChangeStopwords: (values: string[]) => void;
-    boolOperation: BoolOpeartion;
-    onChangeBoolOperation: (operation?: BoolOpeartion) => void;
 }
 
 type Props = MenuProps;
@@ -56,9 +52,7 @@ type Props = MenuProps;
 const SettingsMenu = ({
     placeableColumns,
     wordCloudBy,
-    wordCloudCompareBy,
     onChangeWordCloudColumn,
-    onChangeWordCloudCompareColumn,
     maxWordCount,
     minWordCount,
     wordCount,
@@ -67,8 +61,6 @@ const SettingsMenu = ({
     onChangeScaling,
     onChangeStopwords,
     stopwords,
-    boolOperation,
-    onChangeBoolOperation,
     minWordLength,
     maxWordLength,
     onChangeMinWordLength,
@@ -89,30 +81,12 @@ const SettingsMenu = ({
 
     return (
         <Menu tw="w-[360px]">
-            <Menu.ColumnSelect
-                title="Cloud By"
-                onChangeColumn={onChangeWordCloudColumn}
-                selectableColumns={placeableColumns}
-                selected={wordCloudBy}
-            />
-            <Menu.Subtitle>Compare By</Menu.Subtitle>
-            <Menu.ColumnSelect
-                onChangeColumn={onChangeWordCloudCompareColumn}
-                selectableColumns={placeableColumns}
-                selected={wordCloudCompareBy}
-            />
-            <Menu.Subtitle>Operation</Menu.Subtitle>
-            <Menu.Item tw="mb-3">
-                <Select<BoolOpeartion>
-                    defaultValue="difference"
-                    value={boolOperation}
-                    onChange={onChangeBoolOperation}
-                    options={[
-                        'difference',
-                        'intersection',
-                        'union',
-                        'symmetric difference',
-                    ]}
+            <Menu.Item>
+                <Menu.Title>Cloud By</Menu.Title>
+                <Select<string>
+                    onChange={onChangeWordCloudColumn}
+                    options={placeableColumns}
+                    value={wordCloudBy}
                 />
             </Menu.Item>
             <Menu.Title title="Scaling of the words relative to their count.">

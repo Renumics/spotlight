@@ -1,11 +1,19 @@
 import * as d3 from 'd3';
 import d3Cloud from 'd3-cloud';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import 'twin.macro';
 import { Dataset, useDataset } from '../../stores/dataset';
-import seedrandom from 'seedrandom';
 
 import { ColorsState, useColors } from '../../stores/colors';
+import _ from 'lodash';
+import seedrandom from 'seedrandom';
 
 const categoricalPaletteSelector = (c: ColorsState) => c.categoricalPalette;
 
@@ -26,7 +34,7 @@ interface Props {
 }
 
 const MIN_TEXT_SIZE = 10;
-const MAX_TEXT_SIZE = 40;
+const MAX_TEXT_SIZE = 90;
 
 const FONT_FAMILY = 'Impact';
 
@@ -81,6 +89,8 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
         [hideFiltered, incomingWords, wordCount]
     );
 
+    const [layedOutWords, setLayedOutWords] = useState<Word[]>();
+
     const {
         highlightRows,
         isIndexHighlighted,
@@ -113,76 +123,56 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
     const scale = useMemo(() => {
         switch (scaling) {
             case 'log':
-                return d3
-                    .scaleLog()
-                    .domain([minSize, maxSize])
-                    .range([MIN_TEXT_SIZE, MAX_TEXT_SIZE]);
+                return d3.scaleLog().domain([minSize, maxSize]).range([0, 1]);
             case 'sqrt':
-                return d3
-                    .scaleSqrt()
-                    .domain([minSize, maxSize])
-                    .range([MIN_TEXT_SIZE, MAX_TEXT_SIZE]);
+                return d3.scaleSqrt().domain([minSize, maxSize]).range([0, 1]);
             default:
-                return d3
-                    .scaleLinear()
-                    .domain([minSize, maxSize])
-                    .range([MIN_TEXT_SIZE, MAX_TEXT_SIZE]);
+                return d3.scaleLinear().domain([minSize, maxSize]).range([0, 1]);
         }
     }, [maxSize, minSize, scaling]);
 
     useEffect(() => {
-        const draw = (layedOutWords: Word[]) => {
-            const svg = svgRef.current;
+        let max_font_size = MAX_TEXT_SIZE;
 
-            if (svg === null) return;
+        const draw = (low: Word[]) => {
+            if (low.length !== words.length && max_font_size > MIN_TEXT_SIZE * 2) {
+                // in order to allow all words to show recalculate layout until all words fit
+                // or until the minimum font size is reached
+                max_font_size -= 10;
 
-            d3.select(svg)
-                .attr('width', width)
-                .attr('height', height)
-                .select('g.words')
-                .selectAll<d3.BaseType, Word>('text')
-                .data(layedOutWords, (d) => d.text)
-                .join(
-                    (enter) =>
-                        enter
-                            .append('text')
-                            .style('font-family', FONT_FAMILY)
-                            .on('mouseover', (_, d) => {
-                                highlightRows(d.rowIds);
-                            })
-                            .on('mouseout', () => highlightRows([]))
-                            .on('click', (e, d) => {
-                                selectRows(d.rowIds);
-                                e.stopPropagation();
-                            })
-                            .attr('text-anchor', 'middle')
-                            .text((d) => d.text || '')
-                            .attr('fill', (d, i) =>
-                                categoricalScale(
-                                    i % categoricalPalette.maxClasses
-                                ).hex()
-                            ),
-                    (update) => update,
-                    (exit) => exit.remove()
-                )
-                .attr('font-size', (d) => `${d.size || 1}px`)
-                .attr(
-                    'transform',
-                    (d) =>
-                        `translate(${width / 2 + (d.x || 0)},${
-                            height / 2 + (d.y || 0)
-                        }) rotate(${d.rotate})`
-                );
+                const layout = d3Cloud<Word>()
+                    .size([width, height])
+                    .words(_.cloneDeep(words))
+                    .rotate(() => 0)
+                    .font(FONT_FAMILY)
+                    .random(seedrandom('42'))
+                    .fontSize(
+                        (d) =>
+                            scale((hideFiltered ? d.filteredCount : d.count) || 1) *
+                                (max_font_size - MIN_TEXT_SIZE) +
+                            MIN_TEXT_SIZE
+                    )
+                    .on('end', draw);
+                layout.start();
+            } else {
+                setLayedOutWords(low);
+            }
         };
 
+        // a cloneDeep is needed as d3Cloud stores parameters in the words array and reuses them
+        // eg on a resize. This leads to a broken layout most of the time
         const layout = d3Cloud<Word>()
             .size([width, height])
-            .words(words)
-            .rotate((_, i) => ((i % 5) - 2) * 0)
-            .padding(0.5)
+            .words(_.cloneDeep(words))
+            .rotate(() => 0)
             .font(FONT_FAMILY)
-            .fontSize((d) => scale((hideFiltered ? d.filteredCount : d.count) || 1))
             .random(seedrandom('42'))
+            .fontSize(
+                (d) =>
+                    scale((hideFiltered ? d.filteredCount : d.count) || 1) *
+                        (max_font_size - MIN_TEXT_SIZE) +
+                    MIN_TEXT_SIZE
+            )
             .on('end', draw);
         layout.start();
     }, [
@@ -198,13 +188,66 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
     ]);
 
     useEffect(() => {
+        if (layedOutWords === undefined) return;
+
+        const svg = svgRef.current;
+
+        if (svg === null) return;
+
+        d3.select(svg).select('g.words').selectAll('text').remove();
+
+        d3.select(svg)
+            .select('g.words')
+            .selectAll<d3.BaseType, Word>('text')
+            .data(layedOutWords, (d) => d.text)
+            .join(
+                (enter) =>
+                    enter
+                        .append('text')
+                        .style('font-family', FONT_FAMILY)
+                        .on('mouseover', (_, d) => {
+                            highlightRows(d.rowIds);
+                        })
+                        .on('mouseout', () => highlightRows([]))
+                        .on('click', (e, d) => {
+                            selectRows(d.rowIds);
+                            e.stopPropagation();
+                        })
+                        .attr('text-anchor', 'middle')
+                        .text((d) => d.text || ''),
+                (update) => update,
+                (exit) => exit.remove()
+            )
+            .attr('font-size', (d) => `${d.size || 1}`)
+            .attr(
+                'transform',
+                (d) =>
+                    `translate(${width / 2 + (d.x || 0)},${
+                        height / 2 + (d.y || 0)
+                    }) rotate(${d.rotate})`
+            )
+            .attr('fill', (d, i) =>
+                d.rowIds.some((index) => isIndexFiltered[index])
+                    ? categoricalScale(i % categoricalPalette.maxClasses).hex()
+                    : '#000000'
+            );
+    }, [
+        categoricalPalette.maxClasses,
+        categoricalScale,
+        height,
+        highlightRows,
+        isIndexFiltered,
+        layedOutWords,
+        selectRows,
+        width,
+    ]);
+
+    useEffect(() => {
         const svg = svgRef.current;
 
         if (svg === null) return;
 
         d3.select(svg)
-            .attr('width', width)
-            .attr('height', height)
             .select('g.words')
             .selectAll<d3.BaseType, Word>('text')
             .style('opacity', (d) =>
@@ -219,24 +262,16 @@ const Cloud = forwardRef<Ref, Props>(function Cloud(
                     : '#000000'
             )
             .on('mouseover', (_, d) => {
-                d.rowIds.some((index) => isIndexFiltered[index]) &&
-                    highlightRows(d.rowIds);
+                highlightRows(d.rowIds);
             })
-            .on(
-                'mouseout',
-                (_, d) =>
-                    d.rowIds.some((index) => isIndexFiltered[index]) &&
-                    highlightRows([])
-            );
+            .on('mouseout', () => highlightRows([]));
     }, [
         categoricalPalette.maxClasses,
         categoricalScale,
-        height,
         highlightRows,
         isAnythingHighlighted,
         isIndexFiltered,
         isIndexHighlighted,
-        width,
     ]);
 
     useEffect(() => {
