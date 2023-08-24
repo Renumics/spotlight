@@ -6,7 +6,6 @@ import { DataColumn, isCategoricalColumn, isStringColumn } from '../../types/dat
 import useWidgetConfig from '../useWidgetConfig';
 import MenuBar from './MenuBar';
 import { ComponentProps, useCallback, useMemo, useRef } from 'react';
-import _ from 'lodash';
 import Cloud, { Ref as CloudRef } from './Cloud';
 import useSize from '../../hooks/useSize';
 import defaultStopwords from './stopwords.json';
