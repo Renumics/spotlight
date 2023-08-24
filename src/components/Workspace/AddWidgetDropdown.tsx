@@ -15,7 +15,7 @@ const Content = ({ addWidget }: Props) => {
     const dropdown = useContext(DropdownContext);
 
     return (
-        <div tw="flex flex-col space-y-2 p-1">
+        <div tw="w-96 grid grid-cols-2 gap-1 p-1">
             {widgets.map((widget) => (
                 <AddWidgetButton
                     name={widget.defaultName}
