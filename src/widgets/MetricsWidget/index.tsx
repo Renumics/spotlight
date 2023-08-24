@@ -5,60 +5,165 @@ import {
     WidgetContent,
     WidgetMenu,
     dataformat,
+    useDataset,
     useWidgetConfig,
 } from '../../lib';
 import { Widget } from '../types';
 import GaugeIcon from '../../icons/Gauge';
 import { METRICS } from './metrics';
-import { useMetric, useNumberColumnKeys } from './hooks';
+import { useMemo } from 'react';
+import { ValueArray } from './types';
+
+interface MetricConfig {
+    metric: string | undefined;
+    columns: Record<string, string | undefined>;
+}
+
+const useConfiguredMetric = () => {
+    const [config, setConfig] = useWidgetConfig<MetricConfig>('config', {
+        metric: undefined,
+        columns: {},
+    });
+
+    // Select metric by key from config.
+    // Use default metric, if no metric is configured
+    // or the configured metric doesn't exist.
+    const metricKeys = Object.keys(METRICS);
+    const metricKey =
+        config.metric && metricKeys.includes(config?.metric)
+            ? config?.metric
+            : metricKeys[0];
+    const metric = METRICS[metricKey];
+
+    // Fetch valid columns for each param.
+    const allColumns = useDataset((d) => d.columns);
+    const validColumns = useMemo(() => {
+        const validCols: Record<string, string[]> = {};
+        Object.entries(metric.signature).forEach(([param, types]) => {
+            validCols[param] = allColumns
+                .filter((c) => types.includes(c.type.kind))
+                .map((c) => c.key);
+        });
+        return validCols;
+    }, [metric.signature, allColumns]);
+
+    // Select columns by keys from config
+    // Use first valid column, if no column is configured
+    // or the configured column is invalid/missing.
+    const columns = useMemo(() => {
+        const cols: Record<string, string | undefined> = {};
+        Object.entries(metric.signature).forEach(([param]) => {
+            const configColumn = config.columns[param] ?? '';
+            cols[param] = validColumns[param].includes(configColumn)
+                ? configColumn
+                : validColumns[param][0];
+        });
+        return cols;
+    }, [metric.signature, config.columns, validColumns]);
+
+    // Finally calculate the selected metric over the
+    // filtered and the selected rows.
+    const columnData = useDataset((d) => d.columnData);
+    const filteredRows = useDataset((d) => d.filteredIndices);
+    const selectedRows = useDataset((d) => d.selectedIndices);
+
+    const values = useMemo(() => {
+        const filteredParamValues = Object.keys(metric.signature).map((param) => {
+            const col = columns[param] ?? '';
+            const data = new Array(filteredRows.length);
+            for (let i = 0; i < filteredRows.length; i++) {
+                data[i] = columnData[col][filteredRows[i]];
+            }
+            return data;
+        });
+        const selectedParamValues = Object.keys(metric.signature).map((param) => {
+            const col = columns[param] ?? '';
+            const data = new Array(selectedRows.length);
+            for (let i = 0; i < selectedRows.length; i++) {
+                data[i] = columnData[col][selectedRows[i]];
+            }
+            return data;
+        });
+
+        return {
+            filtered: filteredRows.length
+                ? metric.compute(filteredParamValues as ValueArray[])
+                : undefined,
+            selected: selectedRows.length
+                ? metric.compute(selectedParamValues as ValueArray[])
+                : undefined,
+        };
+    }, [metric, columns, columnData, filteredRows, selectedRows]);
+
+    const setMetricKey = (value?: string) => {
+        setConfig((prevConfig) => ({ ...prevConfig, metric: value }));
+    };
+    const setColumn = (param: string, column?: string) => {
+        setConfig((prevConfig) => ({
+            ...prevConfig,
+            columns: { ...prevConfig.columns, [param]: column },
+        }));
+    };
+
+    return {
+        metricKey,
+        signature: metric.signature,
+        columns,
+        validColumns,
+        values,
+        setMetricKey,
+        setColumn,
+    };
+};
 
 const MetricsWidget: Widget = () => {
-    const numberColumnKeys = useNumberColumnKeys();
-
-    const [storedMetric, setStoredMetric] = useWidgetConfig<string>('metric');
-    const [storedColumn, setStoredColumn] = useWidgetConfig<string>('column');
-
-    const metric_keys = Object.keys(METRICS);
-    const metric = storedMetric ?? metric_keys[0];
-    const column =
-        storedColumn && numberColumnKeys.includes(storedColumn)
-            ? storedColumn
-            : numberColumnKeys[0];
-
-    const metricValues = useMetric(metric, column);
+    const {
+        metricKey,
+        signature,
+        columns,
+        validColumns,
+        values,
+        setMetricKey,
+        setColumn,
+    } = useConfiguredMetric();
 
     return (
         <WidgetContainer>
             <WidgetMenu>
-                <div tw="font-bold text-gray-700 px-1">f()</div>
+                <GaugeIcon tw="font-bold text-gray-700 mx-1" />
                 <div tw="w-32 h-full flex border-x border-gray-400">
                     <Select
-                        options={metric_keys}
-                        onChange={setStoredMetric}
-                        value={metric}
+                        options={Object.keys(METRICS)}
+                        onChange={setMetricKey}
+                        value={metricKey}
                         variant="inset"
                     />
                 </div>
-                <div tw="font-bold text-gray-700 px-1">X</div>
-                <div tw="w-32 h-full flex border-x border-gray-400">
-                    <Select
-                        options={numberColumnKeys}
-                        onChange={setStoredColumn}
-                        value={column}
-                        variant="inset"
-                    />
-                </div>
+
+                {Object.keys(signature).map((param: string) => (
+                    <div tw="flex overflow-hidden" key={param}>
+                        <div tw="font-bold text-gray-700 px-1">{param}</div>
+                        <div tw="w-32 h-full flex border-x border-gray-400">
+                            <Select
+                                options={validColumns[param]}
+                                onChange={(value) => setColumn(param, value)}
+                                value={columns[param]}
+                                variant="inset"
+                            />
+                        </div>
+                    </div>
+                ))}
             </WidgetMenu>
             <WidgetContent tw="flex items-center justify-center">
                 <div tw="flex flex-col items-center">
                     <div tw="text-xl font-bold text-black">
-                        {metricValues.filtered !== undefined
-                            ? dataformat.formatNumber(metricValues.filtered)
+                        {values.filtered !== undefined
+                            ? dataformat.formatNumber(values.filtered)
                             : '-'}
                     </div>
                     <div tw="text-lg text-gray-800">
-                        {metricValues.selected !== undefined
-                            ? dataformat.formatNumber(metricValues.selected)
+                        {values.selected !== undefined
+                            ? dataformat.formatNumber(values.selected)
                             : '-'}
                     </div>
                 </div>
