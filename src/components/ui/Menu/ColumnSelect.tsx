@@ -6,7 +6,7 @@ import Select from '../Select';
 import { SelectVariant } from '../Select/types';
 
 export interface Props {
-    title: string;
+    title?: string;
     selected?: string;
     selectableColumns: string[];
     onChangeColumn: (keys: string) => void;
@@ -42,7 +42,7 @@ const ColumnSelect: FunctionComponent<Props> = (props) => {
 
     return (
         <>
-            <Menu.Title>{title}</Menu.Title>
+            {title && <Menu.Title>{title}</Menu.Title>}
             <Menu.Item>
                 <Select
                     value={selected}
