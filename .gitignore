@@ -7,9 +7,8 @@ dist/
 build/
 
 # Dev
-data/tables/*
 dev/
-scratch/
+/scratch/
 test_install/
 .tool-versions
 .envrc.local
@@ -27,9 +26,11 @@ __pycache__/
 
 # Datasets
 *.h5
-!data/tables/tallymarks-small.h5
 *.csv
-!data/csv/multimodal-random-small.csv
+/data/tables/
+/data/coco/
+!/data/tables/tallymarks-small.h5
+!/data/csv/multimodal-random-small.csv
 
 #venv
 .venv/
