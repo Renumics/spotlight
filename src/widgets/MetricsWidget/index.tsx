@@ -1,6 +1,7 @@
 import 'twin.macro';
 import {
     Select,
+    Tooltip,
     WidgetContainer,
     WidgetContent,
     WidgetMenu,
@@ -140,7 +141,9 @@ const MetricsWidget: Widget = () => {
     return (
         <WidgetContainer>
             <WidgetMenu>
-                <GaugeIcon tw="font-bold text-gray-700 mx-1" />
+                <div tw="w-6 flex items-center justify-center font-bold text-gray-700 px-1">
+                    <GaugeIcon />
+                </div>
                 <div tw="w-32 h-full flex border-x border-gray-400">
                     <Select
                         options={Object.keys(METRICS)}
@@ -166,16 +169,20 @@ const MetricsWidget: Widget = () => {
             </WidgetMenu>
             <WidgetContent tw="flex items-center justify-center">
                 <div tw="flex flex-col items-center">
-                    <div tw="text-xl font-bold text-black">
-                        {values.filtered !== undefined
-                            ? dataformat.formatNumber(values.filtered)
-                            : '-'}
-                    </div>
-                    <div tw="text-lg text-gray-800">
-                        {values.selected !== undefined
-                            ? dataformat.formatNumber(values.selected)
-                            : '-'}
-                    </div>
+                    <Tooltip content="all (filtered) rows">
+                        <div tw="text-xl font-bold text-black">
+                            {values.filtered !== undefined
+                                ? dataformat.formatNumber(values.filtered)
+                                : '-'}
+                        </div>
+                    </Tooltip>
+                    <Tooltip content="selected rows">
+                        <div tw="text-lg text-gray-800">
+                            {values.selected !== undefined
+                                ? dataformat.formatNumber(values.selected)
+                                : '-'}
+                        </div>
+                    </Tooltip>
                 </div>
             </WidgetContent>
         </WidgetContainer>
