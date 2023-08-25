@@ -1,6 +1,7 @@
 import 'twin.macro';
 import {
     Select,
+    Tooltip,
     WidgetContainer,
     WidgetContent,
     WidgetMenu,
@@ -68,6 +69,16 @@ const useConfiguredMetric = () => {
     const selectedRows = useDataset((d) => d.selectedIndices);
 
     const values = useMemo(() => {
+        // skip calculation if metric is not fully configured
+        if (
+            Object.keys(metric.signature).some((param) => columns[param] === undefined)
+        ) {
+            return {
+                filtered: undefined,
+                selected: undefined,
+            };
+        }
+
         const filteredParamValues = Object.keys(metric.signature).map((param) => {
             const col = columns[param] ?? '';
             const data = new Array(filteredRows.length);
@@ -130,7 +141,9 @@ const MetricsWidget: Widget = () => {
     return (
         <WidgetContainer>
             <WidgetMenu>
-                <GaugeIcon tw="font-bold text-gray-700 mx-1" />
+                <div tw="w-6 flex items-center justify-center font-bold text-gray-700 px-1">
+                    <GaugeIcon />
+                </div>
                 <div tw="w-32 h-full flex border-x border-gray-400">
                     <Select
                         options={Object.keys(METRICS)}
@@ -156,16 +169,20 @@ const MetricsWidget: Widget = () => {
             </WidgetMenu>
             <WidgetContent tw="flex items-center justify-center">
                 <div tw="flex flex-col items-center">
-                    <div tw="text-xl font-bold text-black">
-                        {values.filtered !== undefined
-                            ? dataformat.formatNumber(values.filtered)
-                            : '-'}
-                    </div>
-                    <div tw="text-lg text-gray-800">
-                        {values.selected !== undefined
-                            ? dataformat.formatNumber(values.selected)
-                            : '-'}
-                    </div>
+                    <Tooltip content="all (filtered) rows">
+                        <div tw="text-xl font-bold text-black">
+                            {values.filtered !== undefined
+                                ? dataformat.formatNumber(values.filtered)
+                                : '-'}
+                        </div>
+                    </Tooltip>
+                    <Tooltip content="selected rows">
+                        <div tw="text-lg text-gray-800">
+                            {values.selected !== undefined
+                                ? dataformat.formatNumber(values.selected)
+                                : '-'}
+                        </div>
+                    </Tooltip>
                 </div>
             </WidgetContent>
         </WidgetContainer>
