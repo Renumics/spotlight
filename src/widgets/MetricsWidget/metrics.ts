@@ -1,16 +1,17 @@
 import _ from 'lodash';
 import { Metric } from './types';
+import { computeConfusion } from './confusion';
 
 export const METRICS: Record<string, Metric> = {
     sum: {
         signature: {
-            X: ['int', 'float'],
+            X: ['int', 'float', 'bool'],
         },
         compute: ([values]) => _(values).reject(_.isNaN).sum(),
     },
     mean: {
         signature: {
-            X: ['int', 'float'],
+            X: ['int', 'float', 'bool'],
         },
         compute: ([values]) => _(values).reject(_.isNaN).mean(),
     },
@@ -32,29 +33,40 @@ export const METRICS: Record<string, Metric> = {
         },
         compute: ([values]) => values.length,
     },
-    'F-Score': {
+    accuracy: {
+        signature: {
+            X: ['bool'],
+            y: ['bool'],
+        },
+        compute: ([actualValues, assignedValues]) => {
+            const {
+                truePositives: tp,
+                trueNegatives: tn,
+                falsePositives: fp,
+                falseNegatives: fn,
+            } = computeConfusion(
+                actualValues as boolean[],
+                assignedValues as boolean[]
+            );
+
+            return (tp + tn) / (tp + tn + fp + fn);
+        },
+    },
+    F1: {
         signature: {
             X: ['bool'],
             Y: ['bool'],
         },
         compute: ([actualValues, assignedValues]) => {
-            let tp = 0;
-            let fp = 0;
-            let fn = 0;
+            const {
+                truePositives: tp,
+                falsePositives: fp,
+                falseNegatives: fn,
+            } = computeConfusion(
+                actualValues as boolean[],
+                assignedValues as boolean[]
+            );
 
-            for (let i = 0; i < actualValues.length; i++) {
-                const actualValue = actualValues[i];
-                const assignedValue = assignedValues[i];
-                if (assignedValue) {
-                    if (actualValue) {
-                        tp++;
-                    } else {
-                        fp++;
-                    }
-                } else if (actualValue) {
-                    fn++;
-                }
-            }
             return (2 * tp) / (2 * tp + 2 * fp + fn);
         },
     },
@@ -64,26 +76,15 @@ export const METRICS: Record<string, Metric> = {
             Y: ['bool'],
         },
         compute: ([actualValues, assignedValues]) => {
-            let tp = 0;
-            let fp = 0;
-            let tn = 0;
-            let fn = 0;
-
-            for (let i = 0; i < actualValues.length; i++) {
-                const actualValue = actualValues[i];
-                const assignedValue = assignedValues[i];
-                if (assignedValue) {
-                    if (actualValue) {
-                        tp++;
-                    } else {
-                        fp++;
-                    }
-                } else if (actualValue) {
-                    fn++;
-                } else {
-                    tn++;
-                }
-            }
+            const {
+                truePositives: tp,
+                trueNegatives: tn,
+                falsePositives: fp,
+                falseNegatives: fn,
+            } = computeConfusion(
+                actualValues as boolean[],
+                assignedValues as boolean[]
+            );
 
             if (tp + tn === actualValues.length) return 1;
             if (fp + fn === actualValues.length) return 0;

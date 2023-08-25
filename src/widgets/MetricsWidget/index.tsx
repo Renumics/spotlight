@@ -68,6 +68,16 @@ const useConfiguredMetric = () => {
     const selectedRows = useDataset((d) => d.selectedIndices);
 
     const values = useMemo(() => {
+        // skip calculation if metric is not fully configured
+        if (
+            Object.keys(metric.signature).some((param) => columns[param] === undefined)
+        ) {
+            return {
+                filtered: undefined,
+                selected: undefined,
+            };
+        }
+
         const filteredParamValues = Object.keys(metric.signature).map((param) => {
             const col = columns[param] ?? '';
             const data = new Array(filteredRows.length);
