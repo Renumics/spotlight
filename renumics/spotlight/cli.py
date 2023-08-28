@@ -48,10 +48,16 @@ def cli_dtype_callback(
 
 @click.command()  # type: ignore
 @click.argument(
-    "table-or-folder",
+    "dataset",
     type=str,
     required=False,
     default=os.environ.get("SPOTLIGHT_TABLE_FILE", str(Path.cwd())),
+)
+@click.option(
+    "--folder",
+    type=str,
+    help="Root folder for filebrowser and file lookup.",
+    required=False,
 )
 @click.option(
     "--host",
@@ -108,7 +114,8 @@ def cli_dtype_callback(
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
-    table_or_folder: str,
+    dataset: str,
+    folder: Optional[str],
     host: str,
     port: Union[int, str],
     layout: Optional[str],
@@ -132,7 +139,8 @@ def main(
         signal.signal(signal.SIGHUP, lambda *_: sys.exit())
 
     spotlight.show(
-        table_or_folder,
+        dataset,
+        folder=folder,
         dtype=dtype,
         host=host,
         port="auto" if port == "auto" else int(port),
