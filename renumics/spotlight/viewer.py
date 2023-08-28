@@ -48,7 +48,6 @@ Example:
 
 """
 
-import os
 from pathlib import Path
 import time
 from typing import Collection, List, Union, Optional
@@ -101,7 +100,8 @@ class Viewer:
 
     def show(
         self,
-        dataset_or_folder: Union[PathType, pd.DataFrame] = ".",
+        dataset: Union[PathType, pd.DataFrame, None],
+        folder: Optional[PathType] = None,
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
@@ -114,9 +114,10 @@ class Viewer:
         Show a dataset or folder in this spotlight viewer.
 
         Args:
-            dataset_or_folder: root folder, dataset file or pandas.DataFrame (df) to open.
-            layout: optional Spotlight :mod:`layout <renumics.spotlight.layout>`.
-            no_browser: do not show Spotlight in browser.
+            dataset: Dataset file or pandas.DataFrame (df) to open.
+            folder: Root folder for filebrowser and lookup of dataset files.
+            layout: Optional Spotlight :mod:`layout <renumics.spotlight.layout>`.
+            no_browser: Do not show Spotlight in browser.
             allow_filebrowsing: Whether to allow users to browse and open datasets.
                 If "auto" (default), allow to browse if `dataset_or_folder` is a path.
             wait: If `True`, block code execution until all Spotlight browser tabs are closed.
@@ -131,23 +132,25 @@ class Viewer:
             issues: Custom dataset issues displayed in the viewer.
         """
 
-        dataset: Union[pd.DataFrame, Path, None]
-        if is_pathtype(dataset_or_folder):
-            path = Path(dataset_or_folder).absolute()
+        if is_pathtype(dataset):
+            path = Path(dataset).absolute()
             if path.is_dir():
                 project_root = path
                 dataset = None
             else:
                 project_root = path.parent
                 dataset = path
-        elif isinstance(dataset_or_folder, pd.DataFrame):
-            dataset = dataset_or_folder
+        elif isinstance(dataset, pd.DataFrame):
+            dataset = dataset
             project_root = None
         else:
             raise TypeError("Dataset has invalid type")
 
+        if folder:
+            project_root = Path(folder)
+
         if allow_filebrowsing == "auto":
-            filebrowsing_allowed = is_pathtype(dataset_or_folder)
+            filebrowsing_allowed = project_root is not None
         else:
             filebrowsing_allowed = allow_filebrowsing
 
@@ -312,7 +315,8 @@ def viewers() -> List[Viewer]:
 
 
 def show(
-    dataset_or_folder: Union[str, os.PathLike, pd.DataFrame] = ".",
+    dataset: Union[PathType, pd.DataFrame, None] = None,
+    folder: Optional[PathType] = None,
     host: str = "127.0.0.1",
     port: Union[int, Literal["auto"]] = "auto",
     layout: Optional[_LayoutLike] = None,
@@ -327,7 +331,8 @@ def show(
     Start a new Spotlight viewer.
 
     Args:
-        dataset_or_folder: root folder, dataset file or pandas.DataFrame (df) to open.
+        dataset: Dataset file or pandas.DataFrame (df) to open.
+        folder: Root folder for filebrowser and lookup of dataset files.
         host: optional host to run Spotlight at.
         port: optional port to run Spotlight at.
             If "auto" (default), automatically choose a random free port.
@@ -358,7 +363,8 @@ def show(
         viewer = Viewer(host, port)
 
     viewer.show(
-        dataset_or_folder,
+        dataset,
+        folder=folder,
         layout=layout,
         no_browser=no_browser,
         allow_filebrowsing=allow_filebrowsing,
