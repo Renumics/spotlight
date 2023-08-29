@@ -1,6 +1,6 @@
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
 <h1 align="center">Renumics Spotlight</h1>
-<p align="center">Identify critical data slices to build better training datasets.</p>
+<p align="center">Interactively explore unstructured datasets from your dataframe.</p>
 
 <p align="center">
 	<a href="https://github.com/Renumics/spotlight/blob/main/LICENSE"><img src="https://img.shields.io/github/license/renumics/spotlight" height="20"/></a>
@@ -17,13 +17,32 @@
 
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_features.gif" width="100%"/></a><a href="https://spotlight.renumics.com"><img src="https://renumics.com/img/dropShadow.png" width="100%"/></a></p>
 
-Spotlight helps you to **identify critical data segments and model failure modes**. It enables you to build and maintain reliable machine learning models by **curating high-quality datasets**.
+Spotlight helps you to **understand unstructured datasets** fast. It enables you to quickly create **interactive visualizations** that helps your team to discuss and solve data issues. A core idea of Spotlight is to leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical data segments**. Spotlight supports most unstructured data types including **images, audio, text, videos, time-series and geometric data** and can be started with a few lines of code:
 
-## 🚀 Introduction
+```python
+from renumics import spotlight
 
-Spotlight is built on the idea that you can only **truly understand unstructured datasets** if you can **interactively explore** them. Its core principle is to identify and fix critical data segments by leveraging **data enrichments** (e.g. features, embeddings, uncertainties). Pre-defined templates for typical data curation workflows get you started quickly and connect your stack to the data-centric AI ecosystem.
+spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
+```
 
-We at [Renumics](https://renumics.com) are building Spotlight for cross-functional teams who want to be in **control of their data and data curation processes**. Currently, Spotlight supports many use cases based on image, audio, video and time series data.
+## 🚀 Use cases and examples
+
+Machine learning and engineering teams use Spotlight to understand and communicate on complex unstructured data problems. Here are some examples on publicly available datasets:
+
+Image:
+- Find data issues in the CIFAR-100 image dataset: [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/navigate-data-issues)
+- Explore data slices in the CIFAR-100 image dataset [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/sliceguard-unstructured-data)
+
+Audio:
+- Find data issues in the Common Voice audio dataset: [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues)
+- Compare sentiment analysis models on the emodb dataset:
+- Explore vibration data from bearing experiments:  
+
+Multimodal
+- Analyze model results from GPT-4 on the UR-Funny dataset:
+- Explore results from the Formula1 Montreal 2023 GP: 
+- Explore a crash simulation dataset: 
+
 
 ## ⏱️ Quickstart
 
@@ -82,24 +101,6 @@ spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-aud
 
 > The `datasets[audio]` package can be installed via pip.
 
-## 🧭 Start with example workflows
-
-You can adapt Spotlight to your data curation tasks. To get you started quickly, we are continuously developing pre-defined plays for common workflows.
-
-#### Rookie plays
-
--   [Create embeddings with Huggingface](https://renumics.com/docs/playbook/huggingface-embedding)
--   [Create embeddings with towhee](https://renumics.com/docs/playbook/towhee-embedding)
--   [Extract decision boundary based on probability ratios](https://renumics.com/docs/playbook/decision-boundary)
-
-#### Veteran plays
-
--   [Detect duplicates with Annoy](https://renumics.com/docs/playbook/duplicates-annoy)
--   [Detect leakage with Annoy](https://renumics.com/docs/playbook/leakage-annoy)
--   [Detect data drift](https://renumics.com/docs/playbook/drift-kcore)
--   [Detect label errors](https://renumics.com/docs/playbook/label-errors-cleanlab)
--   [Detect outliers](https://renumics.com/docs/playbook/outliers-cleanlab)
--   [Detect image error patterns](https://renumics.com/docs/playbook/cv-issues)
 
 #### Tell us which data curation task is important for your work:
 
