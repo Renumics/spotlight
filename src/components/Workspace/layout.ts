@@ -20,12 +20,12 @@ function flipOrientation(orientation: 'horizontal' | 'vertical') {
 }
 
 function convertSplitNode(node: SplitNode, state: ParserState): IJsonRowNode {
-    const parentOrientation = state.parentOrientation;
+    const orientation = node.orientation ?? flipOrientation(state.parentOrientation);
+    const children = node.children.map((child) =>
+        convertContainerNode(child, { ...state, parentOrientation: orientation })
+    );
 
-    state.parentOrientation = node.orientation ?? flipOrientation(parentOrientation);
-    const children = node.children.map((child) => convertContainerNode(child, state));
-
-    if (parentOrientation === state.parentOrientation) {
+    if (orientation === state.parentOrientation) {
         return {
             type: 'row',
             weight: node.weight,
@@ -82,9 +82,7 @@ export function convertAppLayoutToFlexLayout(
     appLayout: AppLayout
 ): IJsonModel['layout'] {
     const orientation = appLayout.orientation ?? 'vertical';
-
     const tabNames = new Set<string>();
-
     const children = appLayout.children.map((child) =>
         convertContainerNode(child, { parentOrientation: orientation, tabNames })
     );
