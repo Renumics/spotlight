@@ -15,9 +15,11 @@
    <a href="https://renumics.com/api/spotlight/"><b>API Reference</b></a>
  </h3>
 
-<p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_features.gif" width="100%"/></a><a href="https://spotlight.renumics.com"><img src="https://renumics.com/img/dropShadow.png" width="100%"/></a></p>
+<p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_video.gif" width="100%"/></a></p>
 
-Spotlight helps you to **understand unstructured datasets** fast. It enables you to quickly create **interactive visualizations** that helps your team to discuss and solve data issues. A core idea of Spotlight is to leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical data segments**. Spotlight supports most unstructured data types including **images, audio, text, videos, time-series and geometric data** and can be started with a few lines of code:
+Spotlight helps you to **understand unstructured datasets** fast. You can quickly create **interactive visualizations** and leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical data segments**. 
+
+Spotlight supports most unstructured data types including **images, audio, text, videos, time-series and geometric data** and can be started with a few lines of code:
 
 ```python
 from renumics import spotlight
@@ -25,7 +27,7 @@ from renumics import spotlight
 spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
 ```
 
-## 🚀 Use cases and examples
+## 🚀 Start with a use case
 
 Machine learning and engineering teams use Spotlight to understand and communicate on complex unstructured data problems. Here are some examples on publicly available datasets:
 
@@ -35,13 +37,13 @@ Image:
 
 Audio:
 - Find data issues in the Common Voice audio dataset: [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues)
-- Compare sentiment analysis models on the emodb dataset:
-- Explore vibration data from bearing experiments:  
+- Compare sentiment analysis models on the emodb dataset: [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/emdb-model-debugging)
+- Explore vibration data from bearing experiments: 
 
 Multimodal
-- Analyze model results from GPT-4 on the UR-Funny dataset:
-- Explore results from the Formula1 Montreal 2023 GP: 
-- Explore a crash simulation dataset: 
+- Analyze model results from GPT-4 on the UR-Funny dataset: 
+- Explore results from the Formula1 Montreal 2023 GP: [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/f1_montreal_gp)
+- Explore a crash simulation dataset: [🕹️ Interactive Demo](https://huggingface.co/spaces/renumics/crash-simulation-demo)
 
 
 ## ⏱️ Quickstart
