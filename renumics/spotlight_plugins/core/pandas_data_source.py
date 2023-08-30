@@ -25,7 +25,6 @@ from renumics.spotlight.data_source import (
     DataSource,
 )
 from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
-from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
@@ -46,11 +45,9 @@ class PandasDataSource(DataSource):
     _uid: str
     _df: pd.DataFrame
 
-    def __init__(self, source: Union[PathType, pd.DataFrame]):
-        if is_pathtype(source):
-            path = Path(source)
-
-            if path.is_dir():
+    def __init__(self, source: Union[Path, pd.DataFrame]):
+        if isinstance(source, Path):
+            if source.is_dir():
                 try:
                     hf_dataset = datasets.load_dataset(
                         "imagefolder", data_dir=source
@@ -79,7 +76,7 @@ class PandasDataSource(DataSource):
                 except Exception as e:
                     raise InvalidDataSource() from e
             else:
-                extension = path.suffix.lower()
+                extension = source.suffix.lower()
                 if extension == ".csv":
                     df = pd.read_csv(source)
                 elif extension == ".parquet":
