@@ -1,4 +1,4 @@
-from typing import Dict, Union, Type, Any
+from typing import Dict, List, Union, Type, Any
 from pathlib import Path
 
 from renumics.spotlight.typing import is_pathtype
@@ -20,15 +20,23 @@ def create_datasource(source: Any) -> DataSource:
     open the specified data source
     """
 
-    key: Any = None
+    keys: List[Any] = []
     if is_pathtype(source):
-        key = Path(source).suffix
+        path = Path(source)
+        if path.exists():
+            keys.append(path.suffix)
+            keys.append(Path)
+
+    keys.append(type(source))
+
+    for key in keys:
+        try:
+            data_source = data_sources[key]
+        except KeyError:
+            continue
+        try:
+            return data_source(source)
+        except InvalidDataSource:
+            continue
     else:
-        key = type(source)
-
-    try:
-        data_source = data_sources[key]
-    except KeyError as e:
-        raise InvalidDataSource() from e
-
-    return data_source(source)
+        raise InvalidDataSource()

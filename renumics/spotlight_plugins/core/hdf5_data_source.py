@@ -13,7 +13,7 @@ from renumics.spotlight.dtypes import Embedding
 from renumics.spotlight.dtypes.typing import (
     ColumnTypeMapping,
 )
-from renumics.spotlight.typing import PathType, IndexType
+from renumics.spotlight.typing import IndexType
 from renumics.spotlight.dataset import (
     Dataset,
     INTERNAL_COLUMN_NAMES,
@@ -137,8 +137,8 @@ class Hdf5DataSource(DataSource):
     access h5 table data
     """
 
-    def __init__(self, source: PathType):
-        self._path = Path(source)
+    def __init__(self, source: Path):
+        self._path = source
         self._open()
 
     def __getstate__(self) -> dict:

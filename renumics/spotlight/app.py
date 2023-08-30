@@ -288,6 +288,8 @@ class SpotlightApp(FastAPI):
         """
         Update application config.
         """
+        print(config.dataset)
+
         if config.project_root is not None:
             self.project_root = config.project_root
         if config.dtypes is not None:

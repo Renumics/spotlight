@@ -731,7 +731,7 @@ class Dataset:
                     # For file-based data types, relative paths should be resolved.
                     str_mask = is_string_mask(column)
                     column[str_mask] = column[str_mask].apply(
-                        lambda x: prepare_path_or_url(x, workdir)
+                        lambda x: prepare_path_or_url(x, workdir)  # type: ignore
                     )
 
                 attrs = {}
@@ -747,8 +747,8 @@ class Dataset:
                     values = column.to_numpy()
 
                 if is_file_based_column_type(column_type):
-                    attrs["external"] = False
-                    attrs["lookup"] = False
+                    attrs["external"] = False  # type: ignore
+                    attrs["lookup"] = False  # type: ignore
 
                 self.append_column(
                     column_name,
@@ -756,7 +756,7 @@ class Dataset:
                     values,
                     hidden=column_name.startswith("_"),
                     optional=column_type not in (bool, int),
-                    **attrs,
+                    **attrs,  # type: ignore
                 )
             except Exception as e:
                 if column_name in (dtype or {}):
