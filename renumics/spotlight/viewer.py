@@ -133,15 +133,12 @@ class Viewer:
         """
 
         if is_pathtype(dataset):
-            path = Path(dataset).absolute()
-            if path.is_dir():
-                project_root = path
-                dataset = None
+            dataset = Path(dataset).absolute()
+            if dataset.is_dir():
+                project_root = dataset
             else:
-                project_root = path.parent
-                dataset = path
+                project_root = dataset.parent
         elif isinstance(dataset, pd.DataFrame):
-            dataset = dataset
             project_root = None
         else:
             raise TypeError("Dataset has invalid type")

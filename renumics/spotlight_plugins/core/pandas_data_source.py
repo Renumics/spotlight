@@ -7,6 +7,7 @@ from functools import lru_cache
 
 import numpy as np
 import pandas as pd
+import datasets
 
 from renumics.spotlight.dtypes.typing import (
     ColumnTypeMapping,
@@ -23,11 +24,11 @@ from renumics.spotlight.data_source import (
     ColumnMetadata,
     DataSource,
 )
-from renumics.spotlight.backend.exceptions import (
-    DatasetColumnsNotUnique,
-)
+from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+
+from renumics.spotlight.data_source.exceptions import InvalidDataSource
 
 
 @datasource(pd.DataFrame)
@@ -35,6 +36,7 @@ from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 @datasource(".parquet")
 @datasource(".feather")
 @datasource(".orc")
+@datasource(Path)
 class PandasDataSource(DataSource):
     """
     access pandas DataFrame table data
@@ -46,17 +48,48 @@ class PandasDataSource(DataSource):
 
     def __init__(self, source: Union[PathType, pd.DataFrame]):
         if is_pathtype(source):
-            extension = Path(source).suffix.lower()
-            if extension == ".csv":
-                df = pd.read_csv(source)
-            elif extension == ".parquet":
-                df = pd.read_parquet(source)
-            elif extension == ".feather":
-                df = pd.read_feather(source)
-            elif extension == ".orc":
-                df = pd.read_orc(source)
+            path = Path(source)
+
+            if path.is_dir():
+                try:
+                    hf_dataset = datasets.load_dataset(
+                        "imagefolder", data_dir=source
+                    ).cast_column("image", datasets.Image(decode=False))
+                    splits = list(hf_dataset.keys())
+
+                    if len(splits) == 1:
+                        df = hf_dataset[splits[0]].to_pandas()
+                    else:
+                        split_dfs = []
+                        for split in splits:
+                            split_df = hf_dataset[split].to_pandas()
+                            split_df["split"] = split
+                            split_dfs.append(split_df)
+                        df = pd.concat(split_dfs)
+
+                    # convert ClassLabel columns to Categorical
+                    for feature_name, feature_type in hf_dataset[
+                        splits[0]
+                    ].features.items():
+                        if isinstance(feature_type, datasets.ClassLabel):
+                            df[feature_name] = pd.Categorical.from_codes(
+                                df[feature_name], categories=feature_type.names
+                            )
+
+                except Exception as e:
+                    raise InvalidDataSource() from e
             else:
-                assert False, f"Unsupported file extension: {extension}"
+                extension = path.suffix.lower()
+                if extension == ".csv":
+                    df = pd.read_csv(source)
+                elif extension == ".parquet":
+                    df = pd.read_parquet(source)
+                elif extension == ".feather":
+                    df = pd.read_feather(source)
+                elif extension == ".orc":
+                    df = pd.read_orc(source)
+                else:
+                    raise InvalidDataSource()
         else:
             df = cast(pd.DataFrame, source)
 
