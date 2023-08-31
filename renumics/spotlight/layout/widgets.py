@@ -154,3 +154,39 @@ class Issues(Widget):
     """
 
     type: Literal["IssuesWidget"] = "IssuesWidget"
+
+
+class ConfusionMatrixConfig(WidgetConfig):
+    """
+    Config for the Confusion Matrix Widget.
+    """
+
+    x_column: Optional[str] = Field(default_factory=None, alias="xColumn")
+    y_column: Optional[str] = Field(default_factory=None, alias="yColumn")
+
+
+class ConfusionMatrix(Widget):
+    """
+    Confusion Matrix Widget.
+    """
+
+    type: Literal["ConfusionMatrix"] = "ConfusionMatrix"
+    config: Optional[ConfusionMatrixConfig] = None
+
+
+class MetricWidgetConfig(WidgetConfig):
+    """
+    Config for the Metric Widget.
+    """
+
+    metric: Optional[str] = None
+    columns: List[Optional[str]] = Field(default_factory=list, alias="columns")
+
+
+class MetricWidget(Widget):
+    """
+    Metric Widget.
+    """
+
+    type: Literal["Metric"] = "Metric"
+    config: Optional[MetricWidgetConfig] = None
