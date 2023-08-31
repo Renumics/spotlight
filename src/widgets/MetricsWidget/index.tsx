@@ -15,24 +15,19 @@ import { METRICS } from './metrics';
 import { useMemo } from 'react';
 import { ValueArray } from './types';
 
-interface MetricConfig {
-    metric: string | undefined;
-    columns: Record<string, string | undefined>;
-}
-
 const useConfiguredMetric = () => {
-    const [config, setConfig] = useWidgetConfig<MetricConfig>('config', {
-        metric: undefined,
-        columns: {},
-    });
+    const [configuredMetric, setConfiguredMetric] = useWidgetConfig<string>('metric');
+    const [configuredColumns, setConfiguredColumns] = useWidgetConfig<
+        (string | undefined)[]
+    >('columns', []);
 
     // Select metric by key from config.
     // Use default metric, if no metric is configured
     // or the configured metric doesn't exist.
     const metricKeys = Object.keys(METRICS);
     const metricKey =
-        config.metric && metricKeys.includes(config?.metric)
-            ? config?.metric
+        configuredMetric && metricKeys.includes(configuredMetric)
+            ? configuredMetric
             : metricKeys[0];
     const metric = METRICS[metricKey];
 
@@ -53,14 +48,14 @@ const useConfiguredMetric = () => {
     // or the configured column is invalid/missing.
     const columns = useMemo(() => {
         const cols: Record<string, string | undefined> = {};
-        Object.entries(metric.signature).forEach(([param]) => {
-            const configColumn = config.columns[param] ?? '';
+        Object.entries(metric.signature).forEach(([param], i) => {
+            const configColumn = configuredColumns[i] ?? '';
             cols[param] = validColumns[param].includes(configColumn)
                 ? configColumn
                 : validColumns[param][0];
         });
         return cols;
-    }, [metric.signature, config.columns, validColumns]);
+    }, [metric.signature, configuredColumns, validColumns]);
 
     // Finally calculate the selected metric over the
     // filtered and the selected rows.
@@ -106,14 +101,14 @@ const useConfiguredMetric = () => {
         };
     }, [metric, columns, columnData, filteredRows, selectedRows]);
 
-    const setMetricKey = (value?: string) => {
-        setConfig((prevConfig) => ({ ...prevConfig, metric: value }));
-    };
     const setColumn = (param: string, column?: string) => {
-        setConfig((prevConfig) => ({
-            ...prevConfig,
-            columns: { ...prevConfig.columns, [param]: column },
-        }));
+        const paramIndex = Object.keys(metric.signature).indexOf(param);
+        if (paramIndex === -1) return;
+        setConfiguredColumns((prevColumns) => {
+            const newColumns = prevColumns.slice();
+            newColumns[paramIndex] = column;
+            return newColumns;
+        });
     };
 
     return {
@@ -122,7 +117,7 @@ const useConfiguredMetric = () => {
         columns,
         validColumns,
         values,
-        setMetricKey,
+        setMetricKey: setConfiguredMetric,
         setColumn,
     };
 };
