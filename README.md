@@ -20,7 +20,7 @@
 Spotlight helps you to **understand unstructured datasets** fast. You can quickly create **interactive visualizations** and leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical clusters** in your data. 
 
 Spotlight supports most unstructured data types including **images, audio, text, videos, time-series and geometric data**. You can start from your existing dataframe:
-<p align="left"><img src="static/dataframe_head_sample.png" width="100%"/></a></p>
+<p align="left"><img src="static/img/dataframe_head_sample.png" width="100%"/></a></p>
 
 And start Spotlight with just a few lines of code:
 
@@ -36,7 +36,8 @@ Machine learning and engineering teams use Spotlight to understand and communica
 
 Here are some interactive examples on publicly available datasets:
 
-| Modality | Descriptions | Links | 
+| Modality | Description | Links | 
+| -------- | -------- | -------- | 
 | 🖼️ Image | Find data issues in the CIFAR-100 image dataset | [🕹️](https://huggingface.co/spaces/renumics/navigate-data-issues) | 
 | 🖼️ Image | Explore data slices in the CIFAR-100 image dataset | [🕹️](https://huggingface.co/spaces/renumics/sliceguard-unstructured-data) | 
 | 🔊 Audio | Find data issues in the Common Voice audio dataset | [🕹️](https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues)| 
@@ -91,7 +92,7 @@ spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-aud
 
 
 
-## Usage Tracking
+#### Usage Tracking
 
 We have added crash report and perfomance collection. We do NOT collect user data other than an anonymized Machine Id obtained by py-machineid, and only log our own actions. We do NOT collect folder names, dataset names, or row data of any kind only aggregate performance statistics like total time of a table_load, crash data, etc. Collecting Spotlight crashes will help us improve stability. To opt out of the crash report collection define an environment variable called `SPOTLIGHT_OPT_OUT` and set it to true. e.G.`export SPOTLIGHT_OPT_OUT=true`
 
