@@ -2,17 +2,15 @@
 Tests for conversions from source to internal types
 """
 
-from typing import Any, Dict, Type, Union
+from typing import Any, Dict, Union
 from pathlib import Path
 import io
 import datetime
 import pytest
 import numpy as np
 import PIL.Image
-from renumics.spotlight import dtypes
-from renumics.spotlight.dtypes.conversion import convert_to_dtype, DTypeOptions
-
-from renumics.spotlight.dtypes.typing import ColumnType
+from renumics.spotlight.dtypes.conversion import convert_to_dtype
+from renumics.spotlight.dtypes import v2
 
 
 @pytest.mark.parametrize(
@@ -33,7 +31,7 @@ def test_conversion_to_int(value: Any, target_value: int) -> None:
     """
     Convert values to int
     """
-    assert convert_to_dtype(value, int) == target_value
+    assert convert_to_dtype(value, v2.int_dtype) == target_value
 
 
 @pytest.mark.parametrize(
@@ -58,7 +56,7 @@ def test_conversion_to_float(value: Any, target_value: int) -> None:
     """
     Convert values to float
     """
-    assert convert_to_dtype(value, float) == target_value
+    assert convert_to_dtype(value, v2.float_dtype) == target_value
 
 
 @pytest.mark.parametrize(
@@ -79,7 +77,7 @@ def test_conversion_to_bool(value: Any, target_value: int) -> None:
     """
     Convert values to bool
     """
-    assert convert_to_dtype(value, bool) == target_value
+    assert convert_to_dtype(value, v2.bool_dtype) == target_value
 
 
 @pytest.mark.parametrize(
@@ -100,7 +98,7 @@ def test_conversion_to_datetime(value: Any, target_value: datetime.datetime) -> 
     """
     Convert values to datetime
     """
-    assert convert_to_dtype(value, datetime.datetime) == target_value
+    assert convert_to_dtype(value, v2.datetime_dtype) == target_value
 
 
 @pytest.mark.parametrize(
@@ -121,7 +119,7 @@ def test_conversion_to_category(
     Convert values to category
     """
     assert (
-        convert_to_dtype(value, dtypes.Category, DTypeOptions(categories=categories))
+        convert_to_dtype(value, v2.CategoryDType(categories=categories))
         == target_value
     )
 
@@ -139,7 +137,7 @@ def test_conversion_to_array(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to array
     """
-    assert np.array_equal(convert_to_dtype(value, np.ndarray), target_value)  # type: ignore
+    assert np.array_equal(convert_to_dtype(value, v2.array_dtype), target_value) # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -154,7 +152,7 @@ def test_conversion_to_window(value: Any, target_value: np.ndarray) -> None:
     Convert values to window
     """
     assert np.array_equal(
-        convert_to_dtype(value, dtypes.Window), target_value, equal_nan=True  # type: ignore
+        convert_to_dtype(value, v2.window_dtype), target_value, equal_nan=True  # type: ignore
     )
 
 
@@ -170,7 +168,7 @@ def test_conversion_to_embedding(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to embedding
     """
-    assert np.array_equal(convert_to_dtype(value, dtypes.Embedding), target_value)  # type: ignore
+    assert np.array_equal(convert_to_dtype(value, v2.embedding_dtype), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -190,7 +188,7 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to sequence
     """
-    assert np.array_equal(convert_to_dtype(value, dtypes.Sequence1D), target_value)  # type: ignore
+    assert np.array_equal(convert_to_dtype(value, v2.sequence_1d_dtype), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -206,7 +204,7 @@ def test_conversion_to_image(value: Union[str, bytes]) -> None:
     """
     Convert values to image
     """
-    image_bytes = convert_to_dtype(value, dtypes.Image)
+    image_bytes = convert_to_dtype(value, v2.image_dtype)
     image = PIL.Image.open(io.BytesIO(image_bytes))  # type: ignore
     assert image.width > 0
 
@@ -223,7 +221,7 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     """
     Convert values to audio
     """
-    audio_bytes = convert_to_dtype(value, dtypes.Audio)
+    audio_bytes = convert_to_dtype(value, v2.audio_dtype)
     assert len(audio_bytes) > 0  # type: ignore
 
 
@@ -237,7 +235,7 @@ def test_conversion_to_video(value: Union[str, bytes]) -> None:
     """
     Convert values to video
     """
-    video_bytes = convert_to_dtype(value, dtypes.Video)
+    video_bytes = convert_to_dtype(value, v2.video_dtype)
     assert len(video_bytes) > 0  # type: ignore
 
 
@@ -251,36 +249,36 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
     """
     Convert values to mesh
     """
-    mesh_bytes = convert_to_dtype(value, dtypes.Mesh)
+    mesh_bytes = convert_to_dtype(value, v2.mesh_dtype)
     assert len(mesh_bytes) > 0  # type: ignore
 
 
 @pytest.mark.parametrize(
     "dtype,value,target_value",
     [
-        (bool, True, True),
-        (int, 42, 42),
-        (float, 1.0, 1.0),
-        (str, "foobar", "foobar"),
-        (str, "foobar" * 20, ("foobar" * 20)[:97] + "..."),
-        (datetime.datetime, datetime.datetime.min, datetime.datetime.min),
-        (np.ndarray, np.array([1, 2, 3]), "[...]"),
-        (np.ndarray, [], "[...]"),
-        (np.ndarray, None, None),
-        (dtypes.Embedding, np.array([1, 2, 3]), "[...]"),
-        (dtypes.Sequence1D, np.array([1, 2, 3]), "[...]"),
-        (dtypes.Image, np.array([[0.5, 0.7], [0.5, 0.7]]), "[...]"),
+        (v2.bool_dtype, True, True),
+        (v2.int_dtype, 42, 42),
+        (v2.float_dtype, 1.0, 1.0),
+        (v2.str_dtype, "foobar", "foobar"),
+        (v2.str_dtype, "foobar" * 20, ("foobar" * 20)[:97] + "..."),
+        (v2.datetime_dtype, datetime.datetime.min, datetime.datetime.min),
+        (v2.array_dtype, np.array([1, 2, 3]), "[...]"),
+        (v2.array_dtype, [], "[...]"),
+        (v2.array_dtype, None, None),
+        (v2.embedding_dtype, np.array([1, 2, 3]), "[...]"),
+        (v2.sequence_1d_dtype, np.array([1, 2, 3]), "[...]"),
+        (v2.image_dtype, np.array([[0.5, 0.7], [0.5, 0.7]]), "[...]"),
         (
-            dtypes.Image,
+            v2.image_dtype, 
             "./data/images/nature-360p.jpg",
             "./data/images/nature-360p.jpg",
         ),
-        (dtypes.Audio, "./data/audio/1.wav", "./data/audio/1.wav"),
-        (dtypes.Video, "./data/videos/sea-360p.ogg", "./data/videos/sea-360p.ogg"),
-        (dtypes.Mesh, "./data/meshes/tree.glb", "./data/meshes/tree.glb"),
-        (dtypes.Image, Path("./data/images/nature-360p.jpg").read_bytes(), "<bytes>"),
-        (dtypes.Audio, Path("./data/audio/1.wav").read_bytes(), "<bytes>"),
-        (dtypes.Video, Path("./data/videos/sea-360p.ogg").read_bytes(), "<bytes>"),
+        (v2.audio_dtype, "./data/audio/1.wav", "./data/audio/1.wav"),
+        (v2.audio_dtype, "./data/videos/sea-360p.ogg", "./data/videos/sea-360p.ogg"),
+        (v2.mesh_dtype, "./data/meshes/tree.glb", "./data/meshes/tree.glb"),
+        (v2.image_dtype, Path("./data/images/nature-360p.jpg").read_bytes(), "<bytes>"),
+        (v2.audio_dtype, Path("./data/audio/1.wav").read_bytes(), "<bytes>"),
+        (v2.video_dtype, Path("./data/videos/sea-360p.ogg").read_bytes(), "<bytes>"),
     ],
     ids=[
         "bool",
@@ -304,7 +302,7 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
         "video-bytes",
     ],
 )
-def test_simple_conversion(dtype: Type[ColumnType], value: Any, target_value: Any):
+def test_simple_conversion(dtype: v2.DType, value: Any, target_value: Any):
     """
     Convert values for simple view.
     """

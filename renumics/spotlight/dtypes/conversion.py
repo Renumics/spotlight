@@ -82,15 +82,6 @@ ConvertedValue = Union[
 ]
 
 
-@dataclass(frozen=True)
-class DTypeOptions:
-    """
-    All possible dtype options
-    """
-
-    categories: Optional[Dict[str, int]] = None
-
-
 class ConversionError(Exception):
     """
     Conversion Error

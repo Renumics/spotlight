@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Type
 
 import PIL.Image
 import filetype
+from renumics.spotlight.dtypes import v2
 import trimesh
 import numpy as np
 import pandas as pd
@@ -41,6 +42,7 @@ from renumics.spotlight.dtypes.v2 import (
     bool_dtype,
     int_dtype,
     float_dtype,
+    is_scalar_dtype,
     str_dtype,
     datetime_dtype,
     array_dtype,
@@ -220,12 +222,6 @@ def infer_dtypes(df: pd.DataFrame, dtype: Optional[DTypeMap]) -> DTypeMap:
     column types for the given `pandas.DataFrame`.
     """
     inferred_dtype = dtype or {}
-    for column_name, column_type in inferred_dtype.items():
-        if not is_column_type(column_type):
-            raise NotADType(
-                f"Given column type {column_type} for column '{column_name}' "
-                f"is not a valid Spotlight column type."
-            )
     for column_index in df:
         if column_index not in inferred_dtype:
             try:
@@ -272,7 +268,7 @@ def prepare_hugging_face_dict(x: Dict) -> Any:
     return x["path"]
 
 
-def prepare_column(column: pd.Series, dtype: Type[ColumnType]) -> pd.Series:
+def prepare_column(column: pd.Series, dtype: DType) -> pd.Series:
     """
     Convert a `pandas` column to the desired `dtype` and prepare some values,
     but still as `pandas` column.
@@ -289,29 +285,27 @@ def prepare_column(column: pd.Series, dtype: Type[ColumnType]) -> pd.Series:
     """
     column = column.copy()
 
-    if dtype is Category:
+    if dtype.name == "Category":
         # We only support string/`NA` categories, but `pandas` can more, so
         # force categories to be strings (does not affect `NA`s).
         return to_categorical(column, str_categories=True)
 
-    if dtype is datetime:
+    if dtype.name == "datetime":
         # `errors="coerce"` will produce `NaT`s instead of fail.
         return pd.to_datetime(column, errors="coerce")
 
-    if dtype is str:
+    if dtype.name == "str":
         # Allow `NA`s, convert all other elements to strings.
         return column.astype(str).mask(column.isna(), None)  # type: ignore
 
-    if is_scalar_column_type(dtype):
-        # `dtype` is `bool`, `int` or `float`.
-        return column.astype(dtype)
+    if dtype.name == "bool":
+        return column.astype(bool)
 
-    if not is_column_type(dtype):
-        raise NotADType(
-            "`dtype` should be one of Spotlight data types ("
-            + ", ".join(COLUMN_TYPES_BY_NAME.keys())
-            + f"), but {dtype} received."
-        )
+    if dtype.name == "int":
+        return column.astype(int)
+
+    if dtype.name == "float":
+        return column.astype(float)
 
     # We explicitely don't want to change the original `DataFrame`.
     with pd.option_context("mode.chained_assignment", None):

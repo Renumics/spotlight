@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, TypeGuard, Union
 import numpy as np
 
 
@@ -31,6 +31,7 @@ class DType:
 
 class CategoryDType(DType):
     _categories: Optional[Dict[str, int]]
+    _inverted_categories: Optional[Dict[int, str]]
 
     def __init__(self, categories: Optional[Union[List[str], Dict[str, int]]] = None):
         super().__init__("Category")
@@ -41,10 +42,24 @@ class CategoryDType(DType):
         else:
             self._categories = categories
 
+        if self._categories is None:
+            self._inverted_categories = None
+        else:
+            self._inverted_categories = {
+                code: category for category, code in self._categories.items()
+            }
+            # invert again to remove duplicate codes
+            self._categories = {
+                category: code for code, category in self._inverted_categories.items()
+            }
+
     @property
     def categories(self) -> Optional[Dict[str, int]]:
         return self._categories
 
+    @property
+    def inverted_categories(self) -> Optional[Dict[int, str]]:
+        return self._inverted_categories
 
 class Sequence1DDType(DType):
     x_label: str
@@ -109,3 +124,9 @@ def create_dtype(x: Any) -> DType:
     if isinstance(x, str):
         return ALIASES[x.lower()]
     return ALIASES[x]
+
+def is_scalar_dtype(dtype: DType) -> bool:
+    return dtype.name in ("bool", "int", "float")
+
+def is_file_dtype(dtype: DType) -> bool:
+    return dtype.name in ("Audio", "Image", "Video", "Mesh")

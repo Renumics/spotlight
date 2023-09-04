@@ -839,7 +839,7 @@ def test_import_pandas_with_dtype() -> None:
     Test `Dataset.import_pandas` with defined `dtype` argument.
     """
     df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
-    dtype = {
+    dtypes = {
         "audio": str,
         "image": str,
         "mesh": str,
@@ -856,8 +856,8 @@ def test_import_pandas_with_dtype() -> None:
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as dataset:
-            dataset.from_pandas(df, dtype=dtype)
-            assert dtype == {key: dataset.get_column_type(key) for key in dtype}
+            dataset.from_pandas(df, dtypes=dtypes)
+            assert dtypes == {key: dataset.get_column_type(key) for key in dtypes}
 
 
 def test_import_csv() -> None:

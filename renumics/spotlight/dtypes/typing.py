@@ -9,7 +9,6 @@ import numpy as np
 from typing_extensions import TypeGuard, get_args
 
 from . import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window, DType
-from .exceptions import NotADType
 
 ColumnType = Union[bool, int, float, str, datetime, Category, Window, np.ndarray, DType]
 ScalarColumnType = Union[bool, int, float, str, datetime, Category]
@@ -37,26 +36,6 @@ COLUMN_TYPES_BY_NAME: Dict[str, Type[ColumnType]] = {
 NAME_BY_COLUMN_TYPE: Dict[Type[ColumnType], str] = {
     v: k for k, v in COLUMN_TYPES_BY_NAME.items()
 }
-
-
-def get_column_type_name(column_type: Type[ColumnType]) -> str:
-    """
-    Get name of a column type as string.
-    """
-    try:
-        return NAME_BY_COLUMN_TYPE[column_type]
-    except KeyError as e:
-        raise NotADType(f"Unknown column type: {column_type}.") from e
-
-
-def get_column_type(x: str) -> Type[ColumnType]:
-    """
-    Get column type by its name.
-    """
-    try:
-        return COLUMN_TYPES_BY_NAME[x]
-    except KeyError as e:
-        raise NotADType(f"Unknown column type: {x}.") from e
 
 
 def is_column_type(x: Any) -> TypeGuard[Type[ColumnType]]:
