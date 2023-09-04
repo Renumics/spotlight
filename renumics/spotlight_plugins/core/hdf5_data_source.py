@@ -1,37 +1,25 @@
 """
 access h5 table data
 """
-from functools import lru_cache
 from hashlib import sha1
 from pathlib import Path
-from typing import Dict, List, Union, cast
+from typing import List, Union, cast
 
 import h5py
 import numpy as np
 
 from renumics.spotlight.dtypes import Embedding
-from renumics.spotlight.dtypes.typing import (
-    ColumnTypeMapping,
-)
 from renumics.spotlight.typing import IndexType
-from renumics.spotlight.dataset import (
-    Dataset,
-    INTERNAL_COLUMN_NAMES,
-)
+from renumics.spotlight.dataset import Dataset, INTERNAL_COLUMN_NAMES
 
 from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
 )
-
-
-from renumics.spotlight.dtypes.conversion import (
-    NormalizedValue,
-    convert_to_dtype,
-)
-
+from renumics.spotlight.dtypes.conversion import NormalizedValue
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.dtypes.v2 import DTypeMap, create_dtype
 
 
 class H5Dataset(Dataset):
@@ -169,9 +157,9 @@ class Hdf5DataSource(DataSource):
     def __len__(self) -> int:
         return len(self._table)
 
-    def guess_dtypes(self) -> ColumnTypeMapping:
+    def guess_dtypes(self) -> DTypeMap:
         return {
-            column_name: self._table.get_column_type(column_name)
+            column_name: create_dtype(self._table.get_column_type(column_name))
             for column_name in self.column_names
         }
 
@@ -199,19 +187,3 @@ class Hdf5DataSource(DataSource):
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
         return self._table.read_column(column_name, indices=indices)
-
-    @lru_cache(maxsize=128)
-    def get_column_categories(self, column_name: str) -> Dict[str, int]:
-        attrs = self._table.get_column_attributes(column_name)
-        try:
-            return cast(Dict[str, int], attrs["categories"])
-        except KeyError:
-            normalized_values = cast(
-                List[str],
-                [
-                    convert_to_dtype(value, str, simple=True)
-                    for value in self._table.read_column(column_name)
-                ],
-            )
-            category_names = sorted(set(normalized_values))
-            return {category_name: i for i, category_name in enumerate(category_names)}

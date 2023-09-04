@@ -6,44 +6,36 @@ import os
 import platform
 import signal
 import sys
-from typing import Optional, Tuple, Union, List
+from typing import Dict, Optional, Tuple, Union, List
 from pathlib import Path
 
 import click
 
 from renumics import spotlight
-from renumics.spotlight.dtypes.typing import COLUMN_TYPES_BY_NAME, ColumnTypeMapping
 
 from renumics.spotlight import logging
 
 
 def cli_dtype_callback(
     _ctx: click.Context, _param: click.Option, value: Tuple[str, ...]
-) -> Optional[ColumnTypeMapping]:
+) -> Optional[Dict[str, str]]:
     """
     Parse column types from multiple strings in format
     `COLUMN_NAME=DTYPE` to a dict.
     """
     if not value:
         return None
-    dtype = {}
+    dtypes: Dict[str, str] = {}
     for mapping in value:
         try:
-            column_name, dtype_name = mapping.split("=")
+            column_name, dtype = mapping.split("=")
         except ValueError as e:
             raise click.BadParameter(
                 "Column type setting separator '=' not specified or specified "
                 "more than once."
             ) from e
-        try:
-            column_type = COLUMN_TYPES_BY_NAME[dtype_name]
-        except KeyError as e:
-            raise click.BadParameter(
-                f"Column types from {list(COLUMN_TYPES_BY_NAME.keys())} "
-                f"expected, but value '{dtype_name}' recived."
-            ) from e
-        dtype[column_name] = column_type
-    return dtype
+        dtypes[column_name] = dtype
+    return dtypes
 
 
 @click.command()  # type: ignore
@@ -84,9 +76,7 @@ def cli_dtype_callback(
     type=click.UNPROCESSED,
     callback=cli_dtype_callback,
     multiple=True,
-    help="Custom column types setting (use COLUMN_NAME={"
-    + "|".join(sorted(COLUMN_TYPES_BY_NAME.keys()))
-    + "} notation). Multiple settings allowed.",
+    help="Custom column types setting (use COLUMN_NAME=DTYPE notation). Multiple settings allowed.",
 )
 @click.option(
     "--no-browser",
@@ -119,7 +109,7 @@ def main(
     host: str,
     port: Union[int, str],
     layout: Optional[str],
-    dtype: Optional[ColumnTypeMapping],
+    dtype: Optional[Dict[str, str]],
     no_browser: bool,
     filebrowsing: bool,
     analyze: List[str],

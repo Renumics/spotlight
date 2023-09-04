@@ -10,8 +10,7 @@ import pandas as pd
 
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.analysis.typing import DataIssue
-
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
+from renumics.spotlight.dtypes.v2 import DTypeMap
 
 
 @dataclass(frozen=True)
@@ -22,7 +21,7 @@ class AppConfig:
 
     # dataset
     dataset: Optional[Union[Path, pd.DataFrame]] = None
-    dtypes: Optional[ColumnTypeMapping] = None
+    dtypes: Optional[DTypeMap] = None
     project_root: Optional[Path] = None
 
     # data analysis

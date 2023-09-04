@@ -2,21 +2,16 @@
 access pandas DataFrame table data
 """
 from pathlib import Path
-from typing import Any, Dict, List, Union, cast
-from functools import lru_cache
+from typing import Any, List, Union, cast
 
 import numpy as np
 import pandas as pd
 import datasets
 
-from renumics.spotlight.dtypes.typing import (
-    ColumnTypeMapping,
-)
 from renumics.spotlight.io.pandas import (
     infer_dtype,
     prepare_hugging_face_dict,
     stringify_columns,
-    to_categorical,
     try_literal_eval,
 )
 from renumics.spotlight.data_source import (
@@ -26,8 +21,8 @@ from renumics.spotlight.data_source import (
 )
 from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
-
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
+from renumics.spotlight.dtypes.v2 import DTypeMap
 
 
 @datasource(pd.DataFrame)
@@ -110,12 +105,11 @@ class PandasDataSource(DataSource):
     def __len__(self) -> int:
         return len(self._df)
 
-    def guess_dtypes(self) -> ColumnTypeMapping:
-        dtype_map = {
+    def guess_dtypes(self) -> DTypeMap:
+        return {
             str(column_name): infer_dtype(self.df[column_name])
             for column_name in self.df
         }
-        return dtype_map
 
     def get_generation_id(self) -> int:
         return self._generation_id
@@ -191,18 +185,3 @@ class PandasDataSource(DataSource):
                 f"Column '{column_name}' doesn't exist in the dataset."
             ) from e
         return self._df.columns[index]
-
-    @lru_cache(maxsize=128)
-    def get_column_categories(self, column_name: str) -> Dict[str, int]:
-        """
-        Get categories of a categorical column.
-
-        If `as_string` is True, convert the categories to their string
-        representation.
-
-        At the moment, there is no way to add a new category in Spotlight, so we
-        rely on the previously cached ones.
-        """
-        column_index = self._parse_column_index(column_name)
-        column = to_categorical(self._df[column_index], str_categories=True)
-        return {category: i for i, category in enumerate(column.cat.categories)}

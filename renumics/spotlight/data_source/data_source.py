@@ -2,7 +2,7 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Dict, Optional, List, Any, Union
+from typing import Optional, List, Any, Union
 
 import pandas as pd
 import numpy as np
@@ -12,10 +12,9 @@ from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
-from renumics.spotlight.dtypes.typing import (
-    ColumnTypeMapping,
-)
 from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
+
+from renumics.spotlight.dtypes.v2 import DTypeMap
 
 
 @dataclasses.dataclass
@@ -84,7 +83,7 @@ class DataSource(ABC):
             raise GenerationIDMismatch()
 
     @abstractmethod
-    def guess_dtypes(self) -> ColumnTypeMapping:
+    def guess_dtypes(self) -> DTypeMap:
         """
         Guess data source's dtypes.
         """
@@ -115,12 +114,6 @@ class DataSource(ABC):
     def get_column_metadata(self, column_name: str) -> ColumnMetadata:
         """
         Get extra info of a column.
-        """
-
-    @abstractmethod
-    def get_column_categories(self, column_name: str) -> Dict[str, int]:
-        """
-        Get column categories (for categorical dtype)
         """
 
     def _assert_index_exists(self, index: int) -> None:

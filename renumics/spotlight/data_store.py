@@ -1,36 +1,45 @@
 import hashlib
 import io
-from typing import List, Optional, Union
+from typing import List, Optional, Set, Union, cast
 import numpy as np
 
 from renumics.spotlight.cache import external_data_cache
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.dtypes import Audio, Category
-from renumics.spotlight.dtypes.conversion import (
-    ConvertedValue,
-    DTypeOptions,
-    convert_to_dtype,
-)
+from renumics.spotlight.dtypes import Audio
+from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-
 from renumics.spotlight.io import audio
+from renumics.spotlight.dtypes.v2 import CategoryDType, DTypeMap, str_dtype
 
 
 class DataStore:
-    _dtypes: ColumnTypeMapping
+    _dtypes: DTypeMap
     _data_source: DataSource
 
-    def __init__(self, data_source: DataSource, user_dtypes: ColumnTypeMapping) -> None:
+    def __init__(self, data_source: DataSource, user_dtypes: DTypeMap) -> None:
         self._data_source = data_source
-        dtypes = self._data_source.guess_dtypes()
-        dtypes.update(
-            {
-                column_name: column_type
-                for column_name, column_type in user_dtypes.items()
-                if column_name in dtypes
-            }
-        )
+        guessed_dtypes = self._data_source.guess_dtypes()
+        dtypes = {
+            **guessed_dtypes,
+            **{
+                column_name: dtype
+                for column_name, dtype in user_dtypes.items()
+                if column_name in guessed_dtypes
+            },
+        }
+        for column_name, dtype in dtypes.items():
+            if (
+                isinstance(dtype, CategoryDType)
+                and dtype.categories is None
+                and guessed_dtypes[column_name].name == "str"
+            ):
+                normalized_values = self._data_source.get_column_values(column_name)
+                converted_values = [
+                    convert_to_dtype(value, str_dtype, simple=True, check=True)
+                    for value in normalized_values
+                ]
+                category_names = sorted(cast(Set[str], set(converted_values)))
+                dtypes[column_name] = CategoryDType(category_names)
         self._dtypes = dtypes
 
     def __len__(self) -> int:
@@ -53,7 +62,7 @@ class DataStore:
         return self._data_source.column_names
 
     @property
-    def dtypes(self) -> ColumnTypeMapping:
+    def dtypes(self) -> DTypeMap:
         return self._dtypes
 
     def check_generation_id(self, generation_id: int) -> None:
@@ -71,16 +80,8 @@ class DataStore:
     ) -> List[ConvertedValue]:
         dtype = self._dtypes[column_name]
         normalized_values = self._data_source.get_column_values(column_name, indices)
-        if dtype is Category:
-            dtype_options = DTypeOptions(
-                categories=self._data_source.get_column_categories(column_name)
-            )
-        else:
-            dtype_options = DTypeOptions()
         converted_values = [
-            convert_to_dtype(
-                value, dtype, dtype_options=dtype_options, simple=simple, check=check
-            )
+            convert_to_dtype(value, dtype, simple=simple, check=check)
             for value in normalized_values
         ]
         return converted_values
