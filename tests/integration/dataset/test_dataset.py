@@ -16,14 +16,12 @@ import pytest
 
 from renumics.spotlight import (
     Audio,
-    Category,
     Dataset,
     Embedding,
     Image,
     Mesh,
     Sequence1D,
     Video,
-    Window,
 )
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
 from .conftest import approx, get_append_column_fn_name, ColumnData
@@ -84,21 +82,21 @@ def test_initialized_dataset(optional_data: List[ColumnData]) -> None:
         with Dataset(output_h5_file, "w") as dataset:
             for sample in optional_data:
                 append_fn = getattr(
-                    dataset, get_append_column_fn_name(sample.column_type)
+                    dataset, get_append_column_fn_name(sample.dtype_name)
                 )
                 append_fn(sample.name, **sample.attrs)
             assert len(list(dataset.iterrows())) == 0
             assert len(dataset) == 0
             assert set(dataset.keys()) == column_names
             for sample in optional_data:
-                assert dataset.get_column_type(sample.name) is sample.column_type
+                assert dataset.get_dtype(sample.name).name is sample.dtype_name
             print(dataset)
         with Dataset(output_h5_file, "r") as dataset:
             assert len(list(dataset.iterrows())) == 0
             assert len(dataset) == 0
             assert set(dataset.keys()) == column_names
             for sample in optional_data:
-                assert dataset.get_column_type(sample.name) is sample.column_type
+                assert dataset.get_dtype(sample.name).name is sample.dtype_name
             print(dataset)
 
 
@@ -113,14 +111,14 @@ def test_optional_columns(optional_data: List[ColumnData]) -> None:
         with Dataset(output_h5_file, "w") as dataset:
             sample = optional_data[0]
             values = [None] * 10
-            append_fn = getattr(dataset, get_append_column_fn_name(sample.column_type))
+            append_fn = getattr(dataset, get_append_column_fn_name(sample.dtype_name))
             if sample.optional:
                 append_fn(sample.name, values, optional=sample.optional, **sample.attrs)
             else:
                 append_fn(sample.name, values, default=sample.default, **sample.attrs)
             for sample in optional_data[1:]:
                 append_fn = getattr(
-                    dataset, get_append_column_fn_name(sample.column_type)
+                    dataset, get_append_column_fn_name(sample.dtype_name)
                 )
                 if sample.optional:
                     append_fn(sample.name, optional=sample.optional, **sample.attrs)
@@ -129,39 +127,39 @@ def test_optional_columns(optional_data: List[ColumnData]) -> None:
             assert len(dataset) == 10
             assert set(dataset.keys()) == column_names
             for sample in optional_data:
-                column_type = sample.column_type
+                dtype_name = sample.dtype_name
                 default = sample.default
                 if default is None:
-                    if column_type is str:
+                    if dtype_name == "str":
                         default = ""
-                    elif column_type is float:
+                    elif dtype_name == "float":
                         default = float("nan")
-                    elif column_type is Window:
+                    elif dtype_name == "Window":
                         default = [float("nan"), float("nan")]
-                assert dataset.get_column_type(sample.name) is column_type
+                assert dataset.get_dtype(sample.name).name == dtype_name
                 assert approx(
                     default,
                     dataset.get_column_attributes(sample.name)["default"],
-                    dataset.get_column_type(sample.name),
+                    dataset.get_dtype(sample.name).name,
                 )
             for _ in range(10):
                 dataset.append_row()
             assert len(dataset) == 20
             assert set(dataset.keys()) == column_names
             for sample in optional_data:
-                column_type = sample.column_type
+                dtype_name = sample.dtype_name
                 default = sample.default
                 if default is None:
-                    if column_type is str:
+                    if dtype_name == "str":
                         default = ""
-                    elif column_type is float:
+                    elif dtype_name == "float":
                         default = float("nan")
-                    elif column_type is Window:
+                    elif dtype_name == "Window":
                         default = [float("nan"), float("nan")]
-                assert dataset.get_column_type(sample.name) is sample.column_type
+                assert dataset.get_dtype(sample.name).name == sample.dtype_name
                 for dataset_value in dataset[sample.name]:
                     assert approx(
-                        default, dataset_value, dataset.get_column_type(sample.name)
+                        default, dataset_value, dataset.get_dtype(sample.name).name
                     )
             print(dataset)
 
@@ -181,7 +179,7 @@ def test_append_row(
         with Dataset(output_h5_file, "w") as dataset:
             for sample in data:
                 append_fn = getattr(
-                    dataset, get_append_column_fn_name(sample.column_type)
+                    dataset, get_append_column_fn_name(sample.dtype_name)
                 )
                 append_fn(sample.name, **sample.attrs)
             for i in range(length):
@@ -202,7 +200,7 @@ def test_append_row(
                 for name in names:
                     value = data_dict[name]
                     dataset_value = dataset_row[name]
-                    assert approx(value, dataset_value, dataset.get_column_type(name))
+                    assert approx(value, dataset_value, dataset.get_dtype(name).name)
         with Dataset(output_h5_file, "a") as dataset:
             dataset_length = len(dataset)
             for i in range(length):
@@ -227,7 +225,7 @@ def test_insert_row(
         with Dataset(output_h5_file, "w") as dataset:
             for sample in data:
                 append_fn = getattr(
-                    dataset, get_append_column_fn_name(sample.column_type)
+                    dataset, get_append_column_fn_name(sample.dtype_name)
                 )
                 append_fn(sample.name, **sample.attrs)
             for i in range(length):
@@ -250,7 +248,7 @@ def test_insert_row(
                 for name in names:
                     value = data_dict[name]
                     dataset_value = dataset_row[name]
-                    assert approx(value, dataset_value, dataset.get_column_type(name))
+                    assert approx(value, dataset_value, dataset.get_dtype(name).name)
 
 
 def test_append_common_column(
@@ -268,7 +266,7 @@ def test_append_common_column(
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -283,11 +281,11 @@ def test_append_common_column(
             assert set(dataset.keys()) == names
             print(dataset)
             for sample in data:
-                column_type = sample.column_type
-                assert dataset.get_column_type(sample.name) is column_type
+                dtype_name = sample.dtype_name
+                assert dataset.get_dtype(sample.name).name == dtype_name
                 dataset_values = dataset[sample.name]
                 for value, dataset_value in zip(sample.values, dataset_values):
-                    assert approx(value, dataset_value, column_type)
+                    assert approx(value, dataset_value, dtype_name)
 
 
 def test_append_delete_column(
@@ -303,7 +301,7 @@ def test_append_delete_column(
         with Dataset(output_h5_file, "w") as dataset:
             for sample in data:
                 dataset.append_column(
-                    sample.name, sample.column_type, sample.values, **sample.attrs
+                    sample.name, sample.dtype_name, sample.values, **sample.attrs
                 )
 
         with Dataset(output_h5_file, "a") as dataset:
@@ -329,14 +327,14 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
     # Test non-nullable data types.
     empty_dataset.append_bool_column("bool", [True, False] * 5)
     null_mask = np.full(len(empty_dataset), False)
-    assert approx(null_mask, empty_dataset.isnull("bool"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("bool"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("bool"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("bool"), "array")
     empty_dataset.append_int_column("int", range(len(empty_dataset)))
-    assert approx(null_mask, empty_dataset.isnull("int"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("int"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("int"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("int"), "array")
     empty_dataset.append_string_column("string", ["", "foo", "barbaz", "", ""] * 2)
-    assert approx(null_mask, empty_dataset.isnull("string"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("string"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("string"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("string"), "array")
     # Test simple nullable data types.
     empty_dataset.append_float_column(
         "float", [0, 1, np.nan, np.nan, np.nan, -1000, np.inf, -np.inf, 8, np.nan]
@@ -344,8 +342,8 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
     null_mask = np.array(
         [False, False, True, True, True, False, False, False, False, True]
     )
-    assert approx(null_mask, empty_dataset.isnull("float"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("float"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("float"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("float"), "array")
     now = datetime.now()
     empty_dataset.append_datetime_column(
         "datetime",
@@ -363,41 +361,42 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
         ],
         optional=True,
     )
-    assert approx(null_mask, empty_dataset.isnull("datetime"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("datetime"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("datetime"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("datetime"), "array")
     empty_dataset.append_categorical_column(
         "category",
         ["foo", "foo", "", "", "", "barbaz", "barbaz", "barbaz", "foo", ""],
         optional=True,
+        categories=["barbaz", "foo"],
     )
-    assert approx(null_mask, empty_dataset.isnull("category"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("category"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("category"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("category"), "array")
     # Test complex nullable data types.
     values = np.full(len(empty_dataset), None)
     values[~null_mask] = Embedding([0, 1, 2, 3])
     empty_dataset.append_embedding_column("embedding", values, optional=True)
-    assert approx(null_mask, empty_dataset.isnull("embedding"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("embedding"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("embedding"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("embedding"), "array")
     values[~null_mask] = Sequence1D([0, 1, 2, 3])
     empty_dataset.append_sequence_1d_column("sequence_1d", values, optional=True)
-    assert approx(null_mask, empty_dataset.isnull("sequence_1d"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("sequence_1d"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("sequence_1d"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("sequence_1d"), "array")
     values[~null_mask] = Mesh.empty()
     empty_dataset.append_mesh_column("mesh", values, optional=True)
-    assert approx(null_mask, empty_dataset.isnull("mesh"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("mesh"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("mesh"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("mesh"), "array")
     values[~null_mask] = Image.empty()
     empty_dataset.append_image_column("image", values, optional=True)
-    assert approx(null_mask, empty_dataset.isnull("image"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("image"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("image"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("image"), "array")
     values[~null_mask] = Audio.empty()
     empty_dataset.append_audio_column("audio", values, optional=True)
-    assert approx(null_mask, empty_dataset.isnull("audio"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("audio"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("audio"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("audio"), "array")
     values[~null_mask] = Video.empty()
     empty_dataset.append_video_column("video", values, optional=True)
-    assert approx(null_mask, empty_dataset.isnull("video"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("video"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("video"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("video"), "array")
     # Test window data type.
     windows = np.random.random((len(empty_dataset), 2))
     null_mask = np.full(len(windows), False)
@@ -409,8 +408,8 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
     null_mask[0] = True
     null_mask[-1] = True
     empty_dataset.append_window_column("window", windows)
-    assert approx(null_mask, empty_dataset.isnull("window"), np.ndarray)
-    assert approx(~null_mask, empty_dataset.notnull("window"), np.ndarray)
+    assert approx(null_mask, empty_dataset.isnull("window"), "array")
+    assert approx(~null_mask, empty_dataset.notnull("window"), "array")
 
 
 def test_rename_column(
@@ -426,7 +425,7 @@ def test_rename_column(
         with Dataset(output_h5_file, "w") as dataset:
             for sample in data:
                 dataset.append_column(
-                    sample.name, sample.column_type, sample.values, **sample.attrs
+                    sample.name, sample.dtype_name, sample.values, **sample.attrs
                 )
 
         with Dataset(output_h5_file, "a") as dataset:
@@ -442,7 +441,7 @@ def test_rename_column(
                 name = f"{sample.name}_"
                 assert name in dataset.keys()
                 dataset_values = dataset[name]
-                column_type = sample.column_type
+                column_type = sample.dtype_name
                 for value, dataset_value in zip(sample.values, dataset_values):
                     assert approx(value, dataset_value, column_type)
 
@@ -459,7 +458,7 @@ def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -468,12 +467,12 @@ def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
         with Dataset(output_h5_file, "r") as dataset:
             for sample in data:
                 column_name, values = sample.name, sample.values
-                column_type = dataset.get_column_type(column_name)
+                dtype = dataset.get_dtype(column_name)
                 # Test `dataset[column_name]` getter.
                 dataset_values = list(dataset[column_name])
                 assert len(dataset_values) == len(values)
                 for dataset_value, value in zip(dataset_values, values):
-                    approx(value, dataset_value, column_type)
+                    approx(value, dataset_value, dtype.name)
 
             for i in range(-len(dataset), len(dataset)):
                 data_dict = {sample.name: sample.values[i] for sample in data}
@@ -483,15 +482,15 @@ def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                 assert dataset_row.keys() == data_dict.keys()
                 for key, value in data_dict.items():
                     dataset_value = dataset_row[key]
-                    assert approx(value, dataset_value, dataset.get_column_type(key))
+                    assert approx(value, dataset_value, dataset.get_dtype(key).name)
                 for key, value in data_dict.items():
-                    column_type = dataset.get_column_type(key)
+                    dtype = dataset.get_dtype(key)
                     # Test `dataset[column_name, row_index]` getter.
                     dataset_value = dataset[key, i]
-                    assert approx(value, dataset_value, column_type)
+                    assert approx(value, dataset_value, dtype.name)
                     # Test `dataset[row_index, column_name]` getter.
                     dataset_value = dataset[i, key]
-                    assert approx(value, dataset_value, column_type)
+                    assert approx(value, dataset_value, dtype.name)
 
 
 def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> None:
@@ -505,7 +504,7 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -514,7 +513,7 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
         with Dataset(output_h5_file, "a") as dataset:
             for key in dataset.keys():
                 values = dataset[key]
-                if dataset.get_column_type(key) is not np.ndarray:
+                if dataset.get_dtype(key).name != "array":
                     for value in values:
                         dataset[key] = value
                 dataset[key] = values
@@ -550,7 +549,7 @@ def test_delitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -603,7 +602,7 @@ def test_iterrows(
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -617,10 +616,10 @@ def test_iterrows(
                 assert dataset_row.keys() == set(sample.name for sample in data)
             for sample in data:
                 values = sample.values
-                column_type = dataset.get_column_type(sample.name)
+                dtype_name = dataset.get_dtype(sample.name).name
                 dataset_values = dataset.iterrows(sample.name)
                 for value, dataset_value in zip(values, dataset_values):
-                    assert approx(value, dataset_value, column_type)
+                    assert approx(value, dataset_value, dtype_name)
 
 
 def test_append_dataset(
@@ -636,7 +635,7 @@ def test_append_dataset(
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -655,7 +654,7 @@ def test_append_dataset(
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -693,7 +692,7 @@ def test_copy_column(
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -701,10 +700,10 @@ def test_copy_column(
 
         with Dataset(output_h5_file, "a") as dataset:
             for name in dataset.keys():
-                column_type = dataset.get_column_type(name)
+                dtype = dataset.get_dtype(name)
                 kwargs = dataset.get_column_attributes(name)
                 values = dataset[name]
-                dataset.append_column(f"new {name}", column_type, values, **kwargs)
+                dataset.append_column(f"new {name}", dtype, values, **kwargs)
 
 
 def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> None:
@@ -721,7 +720,7 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     description=sample.description,
                     **sample.attrs,
@@ -730,12 +729,12 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
 
         with Dataset(output_h5_file, "a") as dataset:
             for name in np.random.choice(list(names), 5, replace=False):
-                type_ = dataset.get_column_type(name)
+                dtype = dataset.get_dtype(name)
                 actual_values = dataset.pop(name)
                 for target, actual in zip(
                     next((x.values for x in data if x.name == name)), actual_values
                 ):
-                    assert approx(target, actual, type_)
+                    assert approx(target, actual, dtype.name)
                 assert set(dataset.keys()) == names.difference({name})
                 names.discard(name)
 
@@ -745,7 +744,7 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
                 actual = dataset.pop(index)
                 assert target.keys() == actual.keys()
                 for key, value in target.items():
-                    assert approx(value, actual[key], dataset.get_column_type(key))
+                    assert approx(value, actual[key], dataset.get_dtype(key).name)
                 assert len(dataset) == length - 1
                 length -= 1
             assert len(dataset) == 0
@@ -765,7 +764,7 @@ def test_set_attributes_column(
             for sample in data:
                 dataset.append_column(
                     sample.name,
-                    sample.column_type,
+                    sample.dtype_name,
                     sample.values,
                     default=sample.values[0],
                     description=sample.description,
@@ -774,13 +773,13 @@ def test_set_attributes_column(
 
         with Dataset(output_h5_file, "a") as dataset:
             for name in dataset.keys():
-                column_type = dataset.get_column_type(name)
+                dtype = dataset.get_dtype(name)
                 kwargs = dataset.get_column_attributes(name)
                 values = dataset[name]
                 name = f"new_{name}"
                 dataset.append_column(
                     name,
-                    column_type,
+                    dtype,
                     values,
                     **(
                         {"categories": kwargs["categories"]}
@@ -803,7 +802,7 @@ def test_set_attributes_column(
                             approx(
                                 column_attribute,
                                 column_attributes_new[attribute_key],
-                                dataset.get_column_type(column_name),
+                                dataset.get_dtype(column_name).name,
                             )
                         else:
                             assert (
@@ -840,24 +839,24 @@ def test_import_pandas_with_dtype() -> None:
     """
     df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
     dtypes = {
-        "audio": str,
-        "image": str,
-        "mesh": str,
-        "video": str,
-        "embedding": Embedding,
-        "window": Window,
-        "bool": bool,
-        "int": int,
-        "float": float,
-        "str": str,
-        "datetime": datetime,
-        "category": Category,
+        "audio": "str",
+        "image": "str",
+        "mesh": "str",
+        "video": "str",
+        "embedding": "Embedding",
+        "window": "Window",
+        "bool": "bool",
+        "int": "int",
+        "float": "float",
+        "str": "str",
+        "datetime": "datetime",
+        "category": "Category",
     }
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as dataset:
             dataset.from_pandas(df, dtypes=dtypes)
-            assert dtypes == {key: dataset.get_column_type(key) for key in dtypes}
+            assert dtypes == {key: dataset.get_dtype(key).name for key in dtypes}
 
 
 def test_import_csv() -> None:
@@ -975,30 +974,30 @@ def test_import_csv_with_dtype() -> None:
         df.to_csv(csv_file, index=False)
 
         dtypes = {
-            "string1": Category,
-            "datetime1": datetime,
+            "string1": "Category",
+            "datetime1": "datetime",
         }
         with Dataset(output_h5_file, "w") as dataset:
             dataset.from_csv(csv_file, dtypes)
             assert set(dataset.keys()) == set(df.keys())
-            assert {key: dataset.get_column_type(key) for key in dtypes} == dtypes
+            assert {key: dataset.get_dtype(key).name for key in dtypes} == dtypes
 
         columns += optional_or_nan_columns
         dtypes.update(
             {
-                "string2": Category,
-                "datetime2": datetime,
-                "array5": np.ndarray,
-                "array6": Embedding,
-                "array7": Sequence1D,
-                "array8": np.ndarray,
-                "audio3": Audio,
-                "image3": Image,
-                "mesh3": Mesh,
-                "video3": Video,
+                "string2": "Category",
+                "datetime2": "datetime",
+                "array5": "array",
+                "array6": "Embedding",
+                "array7": "Sequence1D",
+                "array8": "array",
+                "audio3": "Audio",
+                "image3": "Image",
+                "mesh3": "Mesh",
+                "video3": "Video",
             }
         )
         with Dataset(output_h5_file, "w") as dataset:
             dataset.from_csv(csv_file, dtypes)
             assert set(dataset.keys()) == set(columns)
-            assert {key: dataset.get_column_type(key) for key in dtypes} == dtypes
+            assert {key: dataset.get_dtype(key).name for key in dtypes} == dtypes

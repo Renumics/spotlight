@@ -6,7 +6,7 @@ import os.path
 import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Sequence, Type, Union, Dict
+from typing import List, Optional, Sequence, Union, Dict
 
 import numpy as np
 import pytest
@@ -18,13 +18,14 @@ from renumics.spotlight import (
     Sequence1D,
     Image,
     Audio,
-    Category,
     Video,
     Dataset,
     Window,
 )
 from renumics.spotlight.dataset.typing import ColumnInputType
 from renumics.spotlight.dtypes.typing import ColumnType
+
+from renumics.spotlight.dataset import VALUE_TYPE_BY_DTYPE_NAME
 
 
 @dataclass
@@ -34,7 +35,7 @@ class ColumnData:
     """
 
     name: str
-    column_type: Type[ColumnInputType]
+    dtype_name: str
     values: Union[Sequence[ColumnInputType], np.ndarray]
     optional: bool = False
     default: ColumnInputType = None
@@ -42,40 +43,40 @@ class ColumnData:
     attrs: Dict = field(default_factory=dict)
 
 
-def get_append_column_fn_name(column_type: Type[ColumnType]) -> str:
+def get_append_column_fn_name(dtype_name: str) -> str:
     """
     Get name of the `append_column` dataset method for the given column type.
     """
 
-    if column_type is bool:
+    if dtype_name == "bool":
         return "append_bool_column"
-    if column_type is int:
+    if dtype_name == "int":
         return "append_int_column"
-    if column_type is float:
+    if dtype_name == "float":
         return "append_float_column"
-    if column_type is str:
+    if dtype_name == "str":
         return "append_string_column"
-    if column_type is datetime:
+    if dtype_name == "datetime":
         return "append_datetime_column"
-    if column_type is np.ndarray:
+    if dtype_name == "array":
         return "append_array_column"
-    if column_type is Embedding:
+    if dtype_name == "Embedding":
         return "append_embedding_column"
-    if column_type is Image:
+    if dtype_name == "Image":
         return "append_image_column"
-    if column_type is Sequence1D:
+    if dtype_name == "Sequence1D":
         return "append_sequence_1d_column"
-    if column_type is Mesh:
+    if dtype_name == "Mesh":
         return "append_mesh_column"
-    if column_type is Audio:
+    if dtype_name == "Audio":
         return "append_audio_column"
-    if column_type is Category:
+    if dtype_name == "Category":
         return "append_categorical_column"
-    if column_type is Video:
+    if dtype_name == "Video":
         return "append_video_column"
-    if column_type is Window:
+    if dtype_name == "Window":
         return "append_window_column"
-    raise TypeError
+    raise TypeError(dtype_name)
 
 
 @pytest.fixture
@@ -84,44 +85,44 @@ def optional_data() -> List[ColumnData]:
     Get a list of optional column data.
     """
     return [
-        ColumnData("bool", bool, [], default=True),
-        ColumnData("bool1", bool, [], default=False),
-        ColumnData("bool2", bool, [], default=np.bool_(True)),
-        ColumnData("int", int, [], default=-5),
-        ColumnData("int1", int, [], default=5),
-        ColumnData("int2", int, [], default=np.int16(1000)),
-        ColumnData("float", float, [], optional=True),
-        ColumnData("float1", float, [], default=5.0),
-        ColumnData("float2", float, [], default=np.float16(1000.0)),
-        ColumnData("string", str, [], optional=True),
-        ColumnData("string1", str, [], default="a"),
-        ColumnData("string2", str, [], default=np.str_("b")),
-        ColumnData("datetime", datetime, [], optional=True),
-        ColumnData("datetime1", datetime, [], default=datetime.now().astimezone()),
-        ColumnData("datetime2", datetime, [], default=np.datetime64("NaT")),
-        ColumnData("array", np.ndarray, [], optional=True),
-        ColumnData("array1", np.ndarray, [], default=np.empty(0)),
-        ColumnData("embedding", Embedding, [], optional=True),
+        ColumnData("bool", "bool", [], default=True),
+        ColumnData("bool1", "bool", [], default=False),
+        ColumnData("bool2", "bool", [], default=np.bool_(True)),
+        ColumnData("int", "int", [], default=-5),
+        ColumnData("int1", "int", [], default=5),
+        ColumnData("int2", "int", [], default=np.int16(1000)),
+        ColumnData("float", "float", [], optional=True),
+        ColumnData("float1", "float", [], default=5.0),
+        ColumnData("float2", "float", [], default=np.float16(1000.0)),
+        ColumnData("string", "str", [], optional=True),
+        ColumnData("string1", "str", [], default="a"),
+        ColumnData("string2", "str", [], default=np.str_("b")),
+        ColumnData("datetime", "datetime", [], optional=True),
+        ColumnData("datetime1", "datetime", [], default=datetime.now().astimezone()),
+        ColumnData("datetime2", "datetime", [], default=np.datetime64("NaT")),
+        ColumnData("array", "array", [], optional=True),
+        ColumnData("array1", "array", [], default=np.empty(0)),
+        ColumnData("embedding", "Embedding", [], optional=True),
         ColumnData(
-            "embedding1", Embedding, [], default=Embedding(np.array([np.nan, np.nan]))
+            "embedding1", "Embedding", [], default=Embedding(np.array([np.nan, np.nan]))
         ),
-        ColumnData("image", Image, [], optional=True),
-        ColumnData("image1", Image, [], default=Image.empty()),
-        ColumnData("sequence_1d", Sequence1D, [], optional=True),
-        ColumnData("sequence_1d1", Sequence1D, [], default=Sequence1D.empty()),
-        ColumnData("mesh", Mesh, [], optional=True),
-        ColumnData("mesh1", Mesh, [], default=Mesh.empty()),
-        ColumnData("audio", Audio, [], optional=True),
-        ColumnData("audio1", Audio, [], default=Audio.empty()),
+        ColumnData("image", "Image", [], optional=True),
+        ColumnData("image1", "Image", [], default=Image.empty()),
+        ColumnData("sequence_1d", "Sequence1D", [], optional=True),
+        ColumnData("sequence_1d1", "Sequence1D", [], default=Sequence1D.empty()),
+        ColumnData("mesh", "Mesh", [], optional=True),
+        ColumnData("mesh1", "Mesh", [], default=Mesh.empty()),
+        ColumnData("audio", "Audio", [], optional=True),
+        ColumnData("audio1", "Audio", [], default=Audio.empty()),
         ColumnData(
             "category1",
-            Category,
+            "Category",
             [],
             default="red",
             attrs={"categories": ["red", "green"]},
         ),
-        ColumnData("window", Window, [], optional=True),
-        ColumnData("window1", Window, [], default=[-1, np.nan]),
+        ColumnData("window", "Window", [], optional=True),
+        ColumnData("window1", "Window", [], default=[-1, np.nan]),
     ]
 
 
@@ -131,62 +132,62 @@ def simple_data() -> List[ColumnData]:
     Get a list of scalar column data.
     """
     return [
-        ColumnData("bool", bool, [True, False, True, True, False, True]),
+        ColumnData("bool", "bool", [True, False, True, True, False, True]),
         ColumnData(
             "bool1",
-            bool,
+            "bool",
             np.array([True, False, True, True, False, True]),
             description="np.bool_ column",
         ),
-        ColumnData("int", int, [-1000, -1, 0, 4, 5, 6]),
+        ColumnData("int", "int", [-1000, -1, 0, 4, 5, 6]),
         ColumnData(
             "int1",
-            int,
+            "int",
             np.array([-1000, -1, 0, 4, 5, 6]),
             description="numpy.int64 column",
         ),
         ColumnData(
             "int2",
-            int,
+            "int",
             np.array([-1000, -1, 0, 4, 5, 6], np.int16),
             description="np.int16 column",
         ),
         ColumnData(
             "int3",
-            int,
+            "int",
             np.array([1, 10, 0, 4, 5, 6], np.int16),
             description="np.uint16 column",
         ),
         ColumnData(
             "float",
-            float,
+            "float",
             [-float("inf"), -0.1, float("nan"), float("inf"), 0.1, 1000.0],
         ),
         ColumnData(
             "float1",
-            float,
+            "float",
             np.array([-float("inf"), -0.1, float("nan"), float("inf"), 0.1, 1000.0]),
             description="np.float64 column",
         ),
         ColumnData(
             "float2",
-            float,
+            "float",
             np.array(
                 [-float("inf"), -0.1, float("nan"), float("inf"), 0.1, 1000.0],
                 np.float16,
             ),
             description="np.float16 column",
         ),
-        ColumnData("string", str, ["", "a", "bc", "def", "ghijш", "klmnoü"]),
+        ColumnData("string", "str", ["", "a", "bc", "def", "ghijш", "klmnoü"]),
         ColumnData(
             "string1",
-            str,
+            "str",
             np.array(["", "a", "bc", "def", "ghij", "klmno"]),
             description="",
         ),
         ColumnData(
             "datetime",
-            datetime,
+            "datetime",
             [
                 datetime.now(),
                 datetime.now().astimezone(),
@@ -198,7 +199,7 @@ def simple_data() -> List[ColumnData]:
         ),
         ColumnData(
             "datetime1",
-            datetime,
+            "datetime",
             np.arange("2002-10-27T04:30", 6 * 60, 60, np.datetime64),
             description="np.datetime64 column",
         ),
@@ -230,7 +231,7 @@ def array_data() -> List[ColumnData]:
     return [
         ColumnData(
             "array",
-            np.ndarray,
+            "array",
             [
                 np.array([1, 2]),
                 np.array([3, 4]),
@@ -243,7 +244,7 @@ def array_data() -> List[ColumnData]:
         ),
         ColumnData(
             "array1",
-            np.ndarray,
+            "array",
             [
                 np.zeros(0, np.int64),
                 np.array([1], np.int64),
@@ -256,7 +257,7 @@ def array_data() -> List[ColumnData]:
         ),
         ColumnData(
             "array2",
-            np.ndarray,
+            "array",
             [
                 1.0,
                 [],
@@ -268,7 +269,7 @@ def array_data() -> List[ColumnData]:
             description="mixed types",
         ),
         ColumnData(
-            "array3", np.ndarray, np.random.rand(6, 2, 2), description="batch array"
+            "array3", "array", np.random.rand(6, 2, 2), description="batch array"
         ),
     ]
 
@@ -280,7 +281,7 @@ def embedding_data() -> List[ColumnData]:
     return [
         ColumnData(
             "embedding",
-            Embedding,
+            "Embedding",
             [
                 Embedding(np.array([1.0, 2.0])),
                 Embedding(np.array([3.0, 4.0])),
@@ -292,7 +293,7 @@ def embedding_data() -> List[ColumnData]:
         ),
         ColumnData(
             "embedding1",
-            Embedding,
+            "Embedding",
             [
                 [1.0, 2.0],
                 (3.0, 4.0),
@@ -304,7 +305,7 @@ def embedding_data() -> List[ColumnData]:
             description="mixed types",
         ),
         ColumnData(
-            "embedding2", Embedding, np.random.rand(6, 2), description="batch array"
+            "embedding2", "Embedding", np.random.rand(6, 2), description="batch array"
         ),
     ]
 
@@ -316,7 +317,7 @@ def image_data() -> List[ColumnData]:
     return [
         ColumnData(
             "image",
-            Image,
+            "Image",
             [
                 Image.empty(),
                 Image.empty(),
@@ -328,7 +329,7 @@ def image_data() -> List[ColumnData]:
         ),
         ColumnData(
             "image1",
-            Image,
+            "Image",
             [
                 [[0]],
                 [[[1.0]]],
@@ -341,7 +342,7 @@ def image_data() -> List[ColumnData]:
         ),
         ColumnData(
             "image2",
-            Image,
+            "Image",
             np.random.randint(0, 256, (6, 10, 20, 3), "uint8"),
             description="batch array",
         ),
@@ -355,7 +356,7 @@ def sequence_1d_data() -> List[ColumnData]:
     return [
         ColumnData(
             "sequence_1d",
-            Sequence1D,
+            "Sequence1D",
             [
                 Sequence1D(np.array([0.0, 1.0]), np.array([1.0, 2.0])),
                 Sequence1D(np.array([0.0, 1.0]), np.array([3.0, 4.0])),
@@ -368,7 +369,7 @@ def sequence_1d_data() -> List[ColumnData]:
         ),
         ColumnData(
             "sequence_1d1",
-            Sequence1D,
+            "Sequence1D",
             [
                 Sequence1D.empty(),
                 Sequence1D(np.array([0.0]), np.array([1.0])),
@@ -383,7 +384,7 @@ def sequence_1d_data() -> List[ColumnData]:
         ),
         ColumnData(
             "sequence_1d2",
-            Sequence1D,
+            "Sequence1D",
             [
                 [],
                 [1.0],
@@ -404,7 +405,7 @@ def mesh_data() -> List[ColumnData]:
     return [
         ColumnData(
             "mesh",
-            Mesh,
+            "Mesh",
             [
                 Mesh.empty(),
                 Mesh.empty(),
@@ -450,7 +451,7 @@ def audio_data() -> List[ColumnData]:
     return [
         ColumnData(
             "audio",
-            Audio,
+            "Audio",
             6
             * [
                 Audio(
@@ -462,7 +463,7 @@ def audio_data() -> List[ColumnData]:
         ),
         ColumnData(
             "audio1",
-            Audio,
+            "Audio",
             6
             * [
                 Audio(
@@ -482,14 +483,14 @@ def categorical_data() -> List[ColumnData]:
     return [
         ColumnData(
             "category",
-            Category,
+            "Category",
             2 * ["red", "blue", "red"],
             description="strings of three categories",
             attrs={"categories": ["red", "green", "blue"]},
         ),
         ColumnData(
             "category1",
-            Category,
+            "Category",
             2 * ["red", "blue", "red"],
             description="strings of three categories",
             attrs={"categories": ["red", "green", "blue"]},
@@ -504,7 +505,7 @@ def video_data() -> List[ColumnData]:
     return [
         ColumnData(
             "video",
-            Video,
+            "Video",
             [
                 Video.empty(),
                 Video.empty(),
@@ -525,17 +526,17 @@ def window_data() -> List[ColumnData]:
     return [
         ColumnData(
             "window",
-            Window,
+            "Window",
             np.random.uniform(-1, 1, (6, 2)),
         ),
         ColumnData(
             "window1",
-            Window,
+            "Window",
             np.random.randint(-1000, 1000, (6, 2)),
         ),
         ColumnData(
             "window2",
-            Window,
+            "Window",
             [
                 (1, 2),
                 (1.0, np.nan),
@@ -711,28 +712,26 @@ def descriptors_dataset() -> Dataset:
 
 
 def approx(
-    expected: Optional[ColumnType], actual: ColumnInputType, type_: Type[ColumnType]
+    expected: Optional[ColumnType], actual: ColumnInputType, dtype_name: str
 ) -> bool:
     """
     Check whether expected and actual dataset values are almost equal.
     """
-
+    type_ = VALUE_TYPE_BY_DTYPE_NAME[dtype_name]
     if expected is None and actual is None:
         return True
     if issubclass(type_, (bool, int, float, str)):
         # Cast and compare scalars.
         expected = np.array(expected, dtype=type_)
         actual = np.array(actual, dtype=type_)
-        return approx(expected, actual, np.ndarray)
+        return approx(expected, actual, "array")
     if issubclass(type_, datetime):
         # Cast and compare datetimes.
         expected = np.array(expected, dtype="datetime64")
         actual = np.array(actual, dtype="datetime64")
-        return approx(expected, actual, np.ndarray)
+        return approx(expected, actual, "array")
     if issubclass(type_, Window):
-        return approx(
-            np.array(expected, dtype=float), np.array(actual), type_=np.ndarray
-        )
+        return approx(np.array(expected, dtype=float), np.array(actual), "array")
     if issubclass(type_, np.ndarray):
         # Cast and compare arrays.
         expected = np.asarray(expected)
@@ -749,19 +748,19 @@ def approx(
         if not isinstance(actual, type_):
             actual = type_(actual)
         if issubclass(type_, (Embedding, Image, Video)):
-            return approx(actual.data, expected.data, np.ndarray)
+            return approx(actual.data, expected.data, "array")
         if issubclass(type_, Audio):
             return (
-                approx(actual.data, expected.data, np.ndarray)
+                approx(actual.data, expected.data, "array")
                 and actual.sampling_rate == expected.sampling_rate
             )
         if issubclass(type_, Mesh):
             return (
-                approx(actual.points, expected.points, np.ndarray)
-                and approx(actual.triangles, expected.triangles, np.ndarray)
+                approx(actual.points, expected.points, "array")
+                and approx(actual.triangles, expected.triangles, "array")
                 and len(actual.point_displacements) == len(expected.point_displacements)
                 and all(
-                    approx(actual_displacement, expected_displacement, np.ndarray)
+                    approx(actual_displacement, expected_displacement, "array")
                     for actual_displacement, expected_displacement in zip(
                         actual.point_displacements, expected.point_displacements
                     )
@@ -771,13 +770,13 @@ def approx(
                     approx(
                         actual.point_attributes[attribute_name],
                         point_attribute,
-                        np.ndarray,
+                        "array",
                     )
                     for attribute_name, point_attribute in expected.point_attributes.items()
                 )
             )
         if issubclass(type_, Sequence1D):
-            return approx(actual.index, expected.index, np.ndarray) and approx(
-                actual.value, expected.value, np.ndarray
+            return approx(actual.index, expected.index, "array") and approx(
+                actual.value, expected.value, "array"
             )
     raise TypeError(f"Invalid `type_` received: value {type_} of type {type(type_)}.")

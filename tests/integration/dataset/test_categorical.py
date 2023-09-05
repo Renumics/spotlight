@@ -10,16 +10,16 @@ from renumics.spotlight import Dataset
 @pytest.mark.parametrize(
     "categorical_color_dataset", ["red", "green", None], indirect=True
 )
-def test_categorical_disallows(categorical_color_dataset: Dataset) -> None:
-    """adding not existing category value should raise"""
-    with pytest.raises(exceptions.InvalidValueError):
-        categorical_color_dataset.append_row(my_new_cat="invalid_color")
+def test_categorical_unknown_category(categorical_color_dataset: Dataset) -> None:
+    """adding not existing category value should add `None`"""
+    categorical_color_dataset.append_row(my_new_cat="invalid_color")
+    assert categorical_color_dataset["my_new_cat", -1] is None
 
 
 @pytest.mark.parametrize(
     "categorical_color_dataset", ["red", "green", None], indirect=True
 )
-def test_categorical_new_catagory(categorical_color_dataset: Dataset) -> None:
+def test_categorical_new_category(categorical_color_dataset: Dataset) -> None:
     """adding new category with existing int value should raise"""
     old_categories = categorical_color_dataset.get_column_attributes("my_new_cat")[
         "categories"

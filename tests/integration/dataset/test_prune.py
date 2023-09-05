@@ -31,7 +31,7 @@ def test_prune(
         for sample in data:
             dataset.append_column(
                 sample.name,
-                sample.column_type,
+                sample.dtype_name,
                 description=sample.description,
                 **sample.attrs,
             )

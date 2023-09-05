@@ -24,7 +24,7 @@ def dataset_path() -> Iterator[str]:
             for col, (dtype, values) in COLUMNS.items():
                 dataset.append_column(
                     col,
-                    column_type=dtype,
+                    dtype=dtype,
                     values=values,
                     optional=dtype not in (int, bool),
                 )

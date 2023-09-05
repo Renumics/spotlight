@@ -44,10 +44,10 @@ class TestEmbedding:
             array = tuple(array.tolist())  # type: ignore
         embedding = Embedding(array)
 
-        assert approx(array, embedding.data, Embedding)
+        assert approx(array, embedding.data, "Embedding")
         encoded_image = embedding.encode()
         decoded_image = Embedding.decode(encoded_image)
-        assert approx(embedding, decoded_image, Embedding)
+        assert approx(embedding, decoded_image, "Embedding")
 
     @pytest.mark.parametrize("input_type", ["array", "list", "tuple"])
     def test_zero_length_embedding(self, input_type: str) -> None:
@@ -91,18 +91,18 @@ def test_sequence_1d(length: int, input_type: str) -> None:
         value = tuple(value.tolist())  # type: ignore
     # Initialization with index and value.
     sequence_1d = Sequence1D(index, value)
-    assert approx(index, sequence_1d.index, np.ndarray)
-    assert approx(value, sequence_1d.value, np.ndarray)
+    assert approx(index, sequence_1d.index, "array")
+    assert approx(value, sequence_1d.value, "array")
     encoded_sequence_1d = sequence_1d.encode()
     decoded_sequence_1d = Sequence1D.decode(encoded_sequence_1d)
-    assert approx(sequence_1d, decoded_sequence_1d, Sequence1D)
+    assert approx(sequence_1d, decoded_sequence_1d, "Sequence1D")
     # Initialization with value only.
     sequence_1d = Sequence1D(value)
-    assert approx(np.arange(len(value)), sequence_1d.index, np.ndarray)
-    assert approx(value, sequence_1d.value, np.ndarray)
+    assert approx(np.arange(len(value)), sequence_1d.index, "array")
+    assert approx(value, sequence_1d.value, "array")
     encoded_sequence_1d = sequence_1d.encode()
     decoded_sequence_1d = Sequence1D.decode(encoded_sequence_1d)
-    assert approx(sequence_1d, decoded_sequence_1d, Sequence1D)
+    assert approx(sequence_1d, decoded_sequence_1d, "Sequence1D")
 
 
 class TestImage:
@@ -140,10 +140,10 @@ class TestImage:
             array = tuple(array.tolist())  # type: ignore
         image = Image(array)
 
-        assert approx(target, image.data, Image)
+        assert approx(target, image.data, "Image")
         encoded_image = image.encode()
         decoded_image = Image.decode(encoded_image)
-        assert approx(image, decoded_image, Image)
+        assert approx(image, decoded_image, "Image")
 
     @pytest.mark.parametrize(
         "filename",
@@ -315,7 +315,7 @@ class TestMesh:
         assert len(mesh.triangles) <= len(triangles)
         encoded_mesh = mesh.encode()
         decoded_mesh = Mesh.decode(encoded_mesh)
-        assert approx(mesh, decoded_mesh, Mesh)
+        assert approx(mesh, decoded_mesh, "Mesh")
 
     @pytest.mark.parametrize(
         "filename",

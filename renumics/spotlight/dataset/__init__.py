@@ -80,7 +80,7 @@ from renumics.spotlight.dtypes.v2 import (
     video_dtype,
 )
 
-from renumics.spotlight.dtypes.typing import ColumnType, is_file_based_column_type
+from renumics.spotlight.dtypes.typing import ColumnType
 from . import exceptions
 from .typing import (
     REF_COLUMN_TYPE_NAMES,
@@ -167,22 +167,30 @@ def unescape_dataset_name(escaped_name: str) -> str:
 
 
 _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
-    "bool": (
+    "bool": (bool, np.bool_),
+    "int": (int, np.integer),
+    "float": (float, np.floating),
+    "str": (str,),
+    "datetime": (datetime, np.datetime64),
+    "Category": (str,),
+    "array": (
+        np.ndarray,
+        list,
+        tuple,
         bool,
-        np.bool_,
-    ),
-    "int": (
         int,
-        np.integer,
-    ),
-    "float": (
         float,
+        np.bool_,
+        np.integer,
         np.floating,
     ),
-    "datetime": (
-        datetime,
-        np.datetime64,
-    ),
+    "Window": (np.ndarray, list, tuple),
+    "Embedding": (Embedding, np.ndarray, list, tuple),
+    "Sequence1D": (Sequence1D, np.ndarray, list, tuple),
+    "Audio": (Audio, bytes, str, os.PathLike),
+    "Image": (Image, bytes, str, os.PathLike, np.ndarray, list, tuple),
+    "Mesh": (Mesh, trimesh.Trimesh, str, os.PathLike),
+    "Video": (Video, bytes, str, os.PathLike),
 }
 _ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
     "bool": (np.bool_,),
@@ -2249,11 +2257,6 @@ class Dataset:
                     f'Attribute "categories" for column "{name}" contains '
                     "invalid dict - keys must be of type str."
                 )
-            if any(v == "" for v in attrs["categories"].keys()):
-                raise exceptions.InvalidAttributeError(
-                    f'Attribute "categories" for column "{name}" contains '
-                    'invalid dict - "" (empty string) is no allowed as category key.'
-                )
             if len(attrs["categories"].values()) > len(
                 set(attrs["categories"].values())
             ):
@@ -2440,9 +2443,7 @@ class Dataset:
                 else:
                     categories = cast(List[str], [values])
                 dtype = CategoryDType(categories)
-                attrs["categories"] = dtype.categories
-            # Otherwise, exception about type will be raised later in the
-            # `set_column_attributes` method.
+            attrs["categories"] = dtype.categories
         elif dtype.name == "Window":
             shape = (0, 2)
             maxshape = (None, 2)
@@ -3005,9 +3006,36 @@ class Dataset:
         dtype = self._get_dtype(attrs)
         if self._is_ref_column(column):
             value = cast(RefColumnInputType, value)
-            return self._encode_ref_value(value, column, dtype, column_name)
+            self._assert_valid_value_type(value, dtype, column_name)
+            if is_file_dtype(dtype):
+                if isinstance(value, str):
+                    try:
+                        return self._find_lookup_ref(value, column)
+                    except KeyError:
+                        pass  # Don't need to search/update, so encode value as usual.
+                if isinstance(value, (str, os.PathLike)):
+                    try:
+                        value = VALUE_TYPE_BY_DTYPE_NAME[dtype.name].from_file(  # type: ignore
+                            value
+                        )
+                    except Exception:
+                        return None
+            encoded_value = self._encode_ref_value(value, column, dtype)
+            ref = self._write_ref_value(encoded_value, column, column_name)
+            return ref
         value = cast(SimpleColumnInputType, value)
         return self._encode_simple_value(value, column, dtype, column_name)
+
+    @staticmethod
+    def _find_lookup_ref(key: str, column: h5py.Dataset) -> str:
+        lookup_keys = column.attrs["lookup_keys"].tolist()
+        try:
+            index = lookup_keys.index(key)
+        except ValueError as e:
+            raise KeyError from e
+        else:
+            # Return stored ref, do not process data again.
+            return column.attrs["lookup_values"][index]
 
     def _encode_simple_value(
         self,
@@ -3018,10 +3046,11 @@ class Dataset:
     ) -> _EncodedColumnType:
         """
         Encode a non-ref value, e.g. bool, int, float, str, datetime, Category,
-        Window and Embedding (in last versions).
+        Window and Embedding.
 
         Value *cannot* be `None` already.
         """
+        self._assert_valid_value_type(value, dtype, column_name)
         attrs = column.attrs
         if isinstance(dtype, CategoryDType):
             if dtype.categories is None:
@@ -3043,7 +3072,6 @@ class Dataset:
             value = np.asarray(value, dtype=column.dtype.metadata["vlen"])
             self._assert_valid_or_set_embedding_shape(value.shape, column)
             return value
-        self._assert_valid_value_type(value, dtype, column_name)
         if isinstance(value, np.str_):
             return value.tolist()
         if isinstance(value, np.datetime64):
@@ -3052,65 +3080,14 @@ class Dataset:
             return value.isoformat()
         return value
 
-    def _encode_ref_value(
+    def _write_ref_value(
         self,
-        value: RefColumnInputType,
+        value: Union[np.ndarray, np.void],
         column: h5py.Dataset,
-        dtype: DType,
         column_name: str,
-    ) -> _EncodedColumnType:
-        """
-        Encode a ref value, e.g. np.ndarray, Sequence1D, Image, Mesh, Audio,
-        Video, and Embedding (in old versions).
-
-        Value *cannot* be `None` already.
-        """
-        column_type = VALUE_TYPE_BY_DTYPE_NAME[dtype.name]
-
-        attrs = column.attrs
-        key: Optional[str] = None
-        lookup_keys: List[str] = []
-        if column_type is Mesh and isinstance(value, trimesh.Trimesh):
-            value = Mesh.from_trimesh(value)
-        elif issubclass(column_type, (Audio, Image, Video)) and isinstance(
-            value, bytes
-        ):
-            value = column_type.from_bytes(value)
-        elif is_file_based_column_type(column_type) and isinstance(
-            value, (str, os.PathLike)
-        ):
-            try:
-                lookup_keys = attrs["lookup_keys"].tolist()
-            except KeyError:
-                pass  # Don't need to search/update, so encode value as usual.
-            else:
-                key = str(value)
-                try:
-                    index = lookup_keys.index(key)
-                except ValueError:
-                    pass  # Index not found, so encode value as usual.
-                else:
-                    # Return stored ref, do not process data again.
-                    return attrs["lookup_values"][index]
-            try:
-                value = column_type.from_file(value)
-            except Exception:
-                return None
-        if issubclass(column_type, (Embedding, Image, Sequence1D)):
-            if not isinstance(value, column_type):
-                value = column_type(value)  # type: ignore
-            value = value.encode(attrs.get("format", None))  # type: ignore
-        elif issubclass(column_type, (Mesh, Audio, Video)):
-            self._assert_valid_value_type(value, dtype, column_name)
-            value = value.encode(attrs.get("format", None))  # type: ignore
-        else:
-            value = np.asarray(value)
-        # `value` can be a `np.ndarray` or a `np.void`.
-        if isinstance(value, np.ndarray):
-            # Check dtype.
-            self._assert_valid_or_set_value_dtype(value.dtype, column)
-            if column_type is Embedding:
-                self._assert_valid_or_set_embedding_shape(value.shape, column)
+        key: Optional[str] = None,
+    ) -> Union[str, h5py.Reference]:
+        # Write value into H5 and return its reference.
         dataset_name = str(uuid.uuid4()) if key is None else escape_dataset_name(key)
         h5_dataset = self._h5_file.create_dataset(
             f"__group__/{column_name}/{dataset_name}", data=value
@@ -3119,19 +3096,56 @@ class Dataset:
             ref = h5_dataset.ref  # Legacy handling.
         else:
             ref = dataset_name
-        if key is not None:
-            # `lookup_keys` is not `None`, so `lookup_values` too.
-            self._write_lookup(
-                attrs,
-                lookup_keys + [key],
-                np.concatenate(
-                    (attrs["lookup_values"], [ref]),
-                    dtype=column.dtype,
-                ),
-                column_name,
-            )
-            h5_dataset.attrs["key"] = key
         return ref
+
+    def _encode_ref_value(
+        self, value: RefColumnInputType, column: h5py.Dataset, dtype: DType
+    ) -> Union[np.ndarray, np.void]:
+        """
+        Encode a ref value, e.g. np.ndarray, Sequence1D, Image, Mesh, Audio,
+        Video, and Embedding (in old versions).
+
+        Value *cannot* be `None` already.
+        """
+        if dtype.name == "array":
+            value = np.asarray(value)
+            self._assert_valid_or_set_value_dtype(value.dtype, column)
+            return value
+        if dtype.name == "Embedding":
+            if not isinstance(value, Embedding):
+                value = Embedding(value)  # type: ignore
+            value = value.encode()
+            self._assert_valid_or_set_value_dtype(value.dtype, column)
+            self._assert_valid_or_set_embedding_shape(value.shape, column)
+            return value
+        if dtype.name == "Sequence1D":
+            if not isinstance(value, Sequence1D):
+                value = Sequence1D(value)  # type: ignore
+            value = value.encode()
+            self._assert_valid_or_set_value_dtype(value.dtype, column)
+            return value
+        if dtype.name == "Audio":
+            if isinstance(value, bytes):
+                value = Audio.from_bytes(value)
+            assert isinstance(value, Audio)
+            return value.encode(column.attrs.get("format", None))
+        if dtype.name == "Image":
+            if isinstance(value, bytes):
+                value = Image.from_bytes(value)
+            if not isinstance(value, Image):
+                value = Image(value)  # type: ignore
+            return value.encode()
+        if dtype.name == "Mesh":
+            if isinstance(value, trimesh.Trimesh):
+                value = Mesh.from_trimesh(value)
+            assert isinstance(value, Mesh)
+            return value.encode()
+        if dtype.name == "Video":
+            if isinstance(value, bytes):
+                value = Video.from_bytes(value)
+            assert isinstance(value, Video)
+            return value.encode(column.attrs.get("format", None))
+        assert False
 
     def _encode_external_value(self, value: PathOrUrlType, column: h5py.Dataset) -> str:
         """
@@ -3381,7 +3395,7 @@ class Dataset:
         type_name = x["type"]
         if type_name == "Category":
             return CategoryDType(
-                dict(zip(x.get("category_keys"), x.get("category_values")))
+                dict(zip(x.get("category_keys", []), x.get("category_values", [])))
             )
         if type_name == "Sequence1D":
             return Sequence1DDType(x.get("x_label", "x"), x.get("y_label", "y"))
