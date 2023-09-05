@@ -5,83 +5,83 @@ import { ColumnData } from '../../types';
 import type { MatrixData, Bucket } from './types';
 
 export const useColumns = () => {
-  return useDataset((d) => d.columns);
+    return useDataset((d) => d.columns);
 };
 
 const useColumnValues = (key?: string) => {
-  const filteredIndices = useDataset((d) => d.filteredIndices);
-  const columnData = useDataset((d) => d.columnData);
+    const filteredIndices = useDataset((d) => d.filteredIndices);
+    const columnData = useDataset((d) => d.columnData);
 
-  return useMemo(
-    () =>
-      key === undefined
-        ? []
-        : Array.from(filteredIndices).map((i) => columnData[key][i]),
-    [filteredIndices, columnData, key]
-  );
+    return useMemo(
+        () =>
+            key === undefined
+                ? []
+                : Array.from(filteredIndices).map((i) => columnData[key][i]),
+        [filteredIndices, columnData, key]
+    );
 };
 
 const useUniqueValues = (column?: DataColumn, data?: ColumnData) => {
-  const names = useMemo(() => {
-    if (!column) {
-      return [];
-    } else {
-      switch (column.type.kind) {
-        case 'bool':
-          return [true, false];
-        case 'int':
-        case 'str':
-          return _.sortedUniq(_.sortBy(data, _.identity));
-        case 'Category':
-          return Object.values(column.type.categories);
-        default:
-          return _.sortedUniq(_.sortBy(data, _.identity));
-      }
-    }
-  }, [column, data]);
-  return names;
+    const names = useMemo(() => {
+        if (!column) {
+            return [];
+        } else {
+            switch (column.type.kind) {
+                case 'bool':
+                    return [true, false];
+                case 'int':
+                case 'str':
+                    return _.sortedUniq(_.sortBy(data, _.identity));
+                case 'Category':
+                    return Object.values(column.type.categories);
+                default:
+                    return _.sortedUniq(_.sortBy(data, _.identity));
+            }
+        }
+    }, [column, data]);
+    return names;
 };
 
 export function useData(xColumn?: DataColumn, yColumn?: DataColumn): MatrixData {
-  const xValues = useColumnValues(xColumn?.key);
-  const yValues = useColumnValues(yColumn?.key);
-  const uniqueXValues = useUniqueValues(xColumn, xValues);
-  const uniqueYValues = useUniqueValues(yColumn, yValues);
-  const filteredIndices = useDataset((d) => d.filteredIndices);
+    const xValues = useColumnValues(xColumn?.key);
+    const yValues = useColumnValues(yColumn?.key);
+    const uniqueXValues = useUniqueValues(xColumn, xValues);
+    const uniqueYValues = useUniqueValues(yColumn, yValues);
+    const filteredIndices = useDataset((d) => d.filteredIndices);
 
-  const buckets = useMemo(() => {
-    const buckets: Bucket[] = new Array(uniqueXValues.length * uniqueYValues.length)
-      .fill(null)
-      .map(() => ({
-        rows: [],
-      }));
-    for (let i = 0; i < xValues.length; ++i) {
-      const x = uniqueXValues.indexOf(xValues[i]);
-      const y = uniqueYValues.indexOf(yValues[i]);
-      if (x == -1 || y == -1) continue;
-      buckets[y * uniqueXValues.length + x].rows.push(filteredIndices[i]);
-    }
-    return buckets;
-  }, [uniqueXValues, uniqueYValues, xValues, yValues]);
+    const buckets = useMemo(() => {
+        const buckets: Bucket[] = new Array(uniqueXValues.length * uniqueYValues.length)
+            .fill(null)
+            .map(() => ({
+                rows: [],
+            }));
+        for (let i = 0; i < xValues.length; ++i) {
+            const x = uniqueXValues.indexOf(xValues[i]);
+            const y = uniqueYValues.indexOf(yValues[i]);
+            if (x == -1 || y == -1) continue;
+            buckets[y * uniqueXValues.length + x].rows.push(filteredIndices[i]);
+        }
+        return buckets;
+    }, [uniqueXValues, uniqueYValues, xValues, yValues]);
 
-  const xNames = useMemo(
-    () =>
-      xColumn
-        ? uniqueXValues.map((value) => dataformat.format(value, xColumn.type))
-        : [],
-    [uniqueXValues, xColumn]
-  );
-  const yNames = useMemo(
-    () =>
-      yColumn
-        ? uniqueYValues.map((value) => dataformat.format(value, yColumn.type))
-        : [],
-    [uniqueYValues, yColumn]
-  );
+    const xNames = useMemo(
+        () =>
+            xColumn
+                ? uniqueXValues.map((value) => dataformat.format(value, xColumn.type))
+                : [],
+        [uniqueXValues, xColumn]
+    );
+    const yNames = useMemo(
+        () =>
+            yColumn
+                ? uniqueYValues.map((value) => dataformat.format(value, yColumn.type))
+                : [],
+        [uniqueYValues, yColumn]
+    );
 
-  return {
-    xNames,
-    yNames,
-    buckets,
-  };
+    return {
+        xNames,
+        yNames,
+        buckets,
+    };
 }
