@@ -73,6 +73,12 @@ RefColumnInputType = Union[
     VideoColumnInputType,
 ]
 ColumnInputType = Union[SimpleColumnInputType, RefColumnInputType]
+FileColumnInputType = Union[
+    AudioColumnInputType,
+    ImageColumnInputType,
+    MeshColumnInputType,
+    VideoColumnInputType,
+]
 ExternalColumnInputType = Optional[PathOrUrlType]
 
 REF_COLUMN_TYPE_NAMES = [

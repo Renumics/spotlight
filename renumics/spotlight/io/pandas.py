@@ -6,32 +6,25 @@ import ast
 import os.path
 import statistics
 from contextlib import suppress
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional
 
 import PIL.Image
 import filetype
-from renumics.spotlight.dtypes import v2
 import trimesh
 import numpy as np
 import pandas as pd
 
 from renumics.spotlight.dtypes import (
     Audio,
-    Category,
     Embedding,
     Image,
     Mesh,
     Sequence1D,
     Video,
 )
-from renumics.spotlight.dtypes.exceptions import NotADType, UnsupportedDType
+from renumics.spotlight.dtypes.exceptions import UnsupportedDType
 from renumics.spotlight.dtypes.typing import (
-    COLUMN_TYPES_BY_NAME,
-    ColumnType,
-    is_column_type,
     is_file_based_column_type,
-    is_scalar_column_type,
 )
 from renumics.spotlight.typing import is_iterable, is_pathtype
 
@@ -42,7 +35,6 @@ from renumics.spotlight.dtypes.v2 import (
     bool_dtype,
     int_dtype,
     float_dtype,
-    is_scalar_dtype,
     str_dtype,
     datetime_dtype,
     array_dtype,

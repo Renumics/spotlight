@@ -29,7 +29,7 @@ import prettytable
 import trimesh
 import validators
 from loguru import logger
-from typing_extensions import Literal, TypeGuard
+from typing_extensions import TypeGuard
 
 from renumics.spotlight.__version__ import __version__
 from renumics.spotlight.io.pandas import (
@@ -60,14 +60,31 @@ from renumics.spotlight.dtypes import (
 
 from renumics.spotlight.dtypes.conversion import prepare_path_or_url
 
-from renumics.spotlight.dtypes.v2 import CategoryDType, create_dtype, is_file_dtype, DType, str_dtype, datetime_dtype
+from renumics.spotlight.dtypes.v2 import (
+    CategoryDType,
+    Sequence1DDType,
+    create_dtype,
+    is_file_dtype,
+    DType,
+    bool_dtype,
+    int_dtype,
+    float_dtype,
+    str_dtype,
+    datetime_dtype,
+    array_dtype,
+    window_dtype,
+    embedding_dtype,
+    audio_dtype,
+    image_dtype,
+    mesh_dtype,
+    video_dtype,
+)
 
 from renumics.spotlight.dtypes.typing import ColumnType, is_file_based_column_type
 from . import exceptions
 from .typing import (
     REF_COLUMN_TYPE_NAMES,
     SimpleColumnType,
-    RefColumnType,
     ExternalColumnType,
     BoolColumnInputType,
     IntColumnInputType,
@@ -95,21 +112,22 @@ _EncodedColumnType = Optional[Union[bool, int, float, str, np.ndarray, h5py.Refe
 
 
 VALUE_TYPE_BY_DTYPE_NAME = {
-    'bool': bool,
-    'int': int,
-    'float': float,
-    'str': str,
-    'datetime': datetime,
-    'Category': Category,
-    'array': np.ndarray,
-    'Window': Window,
-    'Embedding': Embedding,
-    'Sequence1D': Sequence1D,
-    'Audio': Audio,
-    'Image': Image,
-    'Video': Video,
-    'Mesh': Mesh
+    "bool": bool,
+    "int": int,
+    "float": float,
+    "str": str,
+    "datetime": datetime,
+    "Category": Category,
+    "array": np.ndarray,
+    "Window": Window,
+    "Embedding": Embedding,
+    "Sequence1D": Sequence1D,
+    "Audio": Audio,
+    "Image": Image,
+    "Video": Video,
+    "Mesh": Mesh,
 }
+
 
 def get_current_datetime() -> datetime:
     """
@@ -149,10 +167,22 @@ def unescape_dataset_name(escaped_name: str) -> str:
 
 
 _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
-    "bool": (bool, np.bool_,),
-    "int": (int, np.integer,),
-    "float": (float, np.floating,),
-    "datetime": (datetime, np.datetime64,),
+    "bool": (
+        bool,
+        np.bool_,
+    ),
+    "int": (
+        int,
+        np.integer,
+    ),
+    "float": (
+        float,
+        np.floating,
+    ),
+    "datetime": (
+        datetime,
+        np.datetime64,
+    ),
 }
 _ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
     "bool": (np.bool_,),
@@ -181,12 +211,12 @@ def _check_valid_value_dtype(value_dtype: np.dtype, dtype: DType) -> bool:
     are assumed to have no dtype equivalent.
     """
     allowed_dtypes = _ALLOWED_COLUMN_DTYPES.get(dtype.name, ())
-    return any(np.issubdtype(value_dtype, allowed_dtype) for allowed_dtype in allowed_dtypes)
+    return any(
+        np.issubdtype(value_dtype, allowed_dtype) for allowed_dtype in allowed_dtypes
+    )
 
 
-def _check_valid_array(
-    value: Any, dtype: DType
-) -> TypeGuard[np.ndarray]:
+def _check_valid_array(value: Any, dtype: DType) -> TypeGuard[np.ndarray]:
     """
     Check if a value is an array and its type is suitable for the given column type.
     """
@@ -209,7 +239,7 @@ class Dataset:
     _length: int
 
     @staticmethod
-    def _user_column_attributes(column_type: Type[ColumnType]) -> Dict[str, Type]:
+    def _user_column_attributes(dtype: DType) -> Dict[str, Type]:
         attribute_names = {
             "order": int,
             "hidden": bool,
@@ -218,24 +248,17 @@ class Dataset:
             "description": str,
             "tags": list,
         }
-        if column_type in {
-            bool,
-            int,
-            float,
-            str,
-            Category,
-            Window,
-        }:
+        if dtype.name in ("bool", "int", "float", "str", "Category", "Window"):
             attribute_names["editable"] = bool
-        if column_type is Category:
+        if dtype.name == "Category":
             attribute_names["categories"] = dict
-        if column_type is Sequence1D:
+        if dtype.name == "Sequence1D":
             attribute_names["x_label"] = str
             attribute_names["y_label"] = str
-        if issubclass(column_type, FileBasedDType):
+        if is_file_dtype(dtype):
             attribute_names["lookup"] = dict
             attribute_names["external"] = bool
-        if column_type is Audio:
+        if dtype.name == "Audio":
             attribute_names["lossy"] = bool
         return attribute_names
 
@@ -361,7 +384,7 @@ class Dataset:
             for column_name in self.keys() + INTERNAL_COLUMN_NAMES:
                 column = self._h5_file[column_name]
                 raw_values = column[item + 1 :]
-                if self._get_column_type(column) is Embedding:
+                if self._get_dtype(column).name == "Embedding":
                     raw_values = list(raw_values)
                 column[item:-1] = raw_values
                 column.resize(self._length - 1, axis=0)
@@ -730,7 +753,9 @@ class Dataset:
         if dtypes is None:
             dtypes = {}
 
-        inferred_dtypes = infer_dtypes(df, {col: create_dtype(dtype) for col, dtype in dtypes.items()})
+        inferred_dtypes = infer_dtypes(
+            df, {col: create_dtype(dtype) for col, dtype in dtypes.items()}
+        )
 
         for column_name in df.columns:
             try:
@@ -831,14 +856,20 @@ class Dataset:
         self._assert_is_opened()
         df = pd.DataFrame()
         for column_name in self._column_names:
-            column_type = self.get_column_type(column_name)
-            if column_type in (bool, int, float, str, datetime):
+            dtype = self.get_dtype(column_name)
+            if dtype.name in ("bool", "int", "float", "str", "datetime"):
                 df[column_name] = self[column_name]
-            elif column_type is Category:
-                df[column_name] = pd.Categorical.from_codes(
-                    self._h5_file[column_name],
-                    self._h5_file[column_name].attrs["category_keys"],  # type: ignore
-                )
+            elif isinstance(dtype, CategoryDType):
+                if dtype.inverted_categories is None:
+                    values: List[Optional[str]] = [None] * len(
+                        self._h5_file[column_name]
+                    )
+                else:
+                    values = [
+                        dtype.inverted_categories.get(code)
+                        for code in self._h5_file[column_name]
+                    ]
+                df[column_name] = pd.Categorical(values)
 
         not_exported_columns = self._column_names.difference(df.columns)
         if len(not_exported_columns) > 0:
@@ -856,7 +887,7 @@ class Dataset:
         order: Optional[int] = None,
         hidden: bool = False,
         optional: bool = False,
-        default: BoolColumnInputType = None,
+        default: BoolColumnInputType = False,
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
         editable: bool = True,
@@ -873,8 +904,7 @@ class Dataset:
             hidden: Whether column is hidden in Spotlight.
             optional: Whether column is optional.
             default: Value to use by default if column is optional and no value
-                or `None` is given. If `optional` is `True`, should be
-                explicitly set to `True` or `False`.
+                or `None` is given.
             description: Optional column description.
             tags: Optional tags for the column.
             editable: Whether column is editable in Spotlight.
@@ -890,7 +920,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            bool,
+            bool_dtype,
             values,
             np.dtype(bool),
             order,
@@ -909,7 +939,7 @@ class Dataset:
         order: Optional[int] = None,
         hidden: bool = False,
         optional: bool = False,
-        default: IntColumnInputType = None,
+        default: IntColumnInputType = -1,
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
         editable: bool = True,
@@ -924,11 +954,9 @@ class Dataset:
             order: Optional Spotlight priority order value. `None` means the
                 lowest priority.
             hidden: Whether column is hidden in Spotlight.
-            optional: Whether column is optional. If `default` other than `None`
-                is specified, `optional` is automatically set to `True`.
+            optional: Whether column is optional.
             default: Value to use by default if column is optional and no value
-                or `None` is given. If `optional` is `True`, should be
-                explicitly set.
+                or `None` is given.
             description: Optional column description.
             tags: Optional tags for the column.
             editable: Whether column is editable in Spotlight.
@@ -939,7 +967,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            int,
+            int_dtype,
             values,
             np.dtype(int),
             order,
@@ -987,7 +1015,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            float,
+            float_dtype,
             values,
             np.dtype(float),
             order,
@@ -1035,7 +1063,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            str,
+            str_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1090,7 +1118,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            datetime,
+            datetime_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1141,7 +1169,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            np.ndarray,
+            array_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1191,7 +1219,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            Category,
+            CategoryDType(categories),
             values,
             np.dtype("int32"),
             order,
@@ -1201,7 +1229,6 @@ class Dataset:
             description,
             tags,
             editable=editable,
-            categories=categories,
         )
 
     def append_embedding_column(
@@ -1246,7 +1273,7 @@ class Dataset:
             )
         self._append_column(
             name,
-            Embedding,
+            embedding_dtype,
             values,
             h5py.vlen_dtype(np_dtype),
             order,
@@ -1294,11 +1321,13 @@ class Dataset:
         Example:
             Find an example usage in  :class:`renumics.spotlight.dtypes'.Sequence1D`.
         """
+        if x_label is None:
+            x_label = "x"
         if y_label is None:
             y_label = name
         self._append_column(
             name,
-            Sequence1D,
+            Sequence1DDType(x_label, y_label),
             values,
             h5py.string_dtype(),
             order,
@@ -1307,8 +1336,6 @@ class Dataset:
             default,
             description,
             tags,
-            x_label=x_label,
-            y_label=y_label,
         )
 
     def append_mesh_column(
@@ -1361,7 +1388,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            Mesh,
+            mesh_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1422,7 +1449,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            Image,
+            image_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1495,7 +1522,7 @@ class Dataset:
             attrs["lossy"] = lossy
         self._append_column(
             name,
-            Audio,
+            audio_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1556,7 +1583,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            Video,
+            video_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1606,7 +1633,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            Window,
+            window_dtype,
             values,
             np.dtype("float32"),
             order,
@@ -1621,7 +1648,7 @@ class Dataset:
     def append_column(
         self,
         name: str,
-        dtype: DType,
+        dtype: Any,
         values: Union[ColumnInputType, Iterable[ColumnInputType]] = None,
         order: Optional[int] = None,
         hidden: bool = False,
@@ -1636,7 +1663,7 @@ class Dataset:
 
         Args:
             name: Column name.
-            column_type: Column type.
+            dtype: Column type.
             values: Optional column values. If a single value, the whole column
                 filled with this value.
             order: Optional Spotlight priority order value. `None` means the
@@ -1669,6 +1696,7 @@ class Dataset:
             [ True  True  True  True  True]
             [1. 1. 1. 1. 1.]
         """
+        dtype = create_dtype(dtype)
 
         if dtype.name == "bool":
             append_column_fn: Callable = self.append_bool_column
@@ -1702,14 +1730,14 @@ class Dataset:
             raise exceptions.InvalidDTypeError(f"Unknown column type: {dtype.name}.")
         append_column_fn(
             name=name,
-            values=values, # type: ignore
+            values=values,  # type: ignore
             order=order,
             hidden=hidden,
             optional=optional,
-            default=default, # type: ignore
+            default=default,  # type: ignore
             description=description,
             tags=tags,
-            **attrs, # type: ignore
+            **attrs,  # type: ignore
         )
 
     def append_row(self, **values: ColumnInputType) -> None:
@@ -1803,7 +1831,7 @@ class Dataset:
             column = self._h5_file[column_name]
             column.resize(length + 1, axis=0)
             raw_values = column[index:-1]
-            if self._get_column_type(column) is Embedding:
+            if self._get_dtype(column).name == "Embedding":
                 raw_values = list(raw_values)
             column[index + 1 :] = raw_values
         self._length += 1
@@ -1846,18 +1874,18 @@ class Dataset:
         column = self._h5_file[column_name]
         raw_values = column[()]
 
-        column_type = self._get_column_type(column)
+        dtype = self._get_dtype(column)
         if self._is_ref_column(column):
             return ~raw_values.astype(bool)
-        if column_type is datetime:
+        if dtype.name == "datetime":
             return np.array([raw_value in ["", b""] for raw_value in raw_values])
-        if column_type is float:
+        if dtype.name == "float":
             return np.isnan(raw_values)
-        if column_type is Category:
+        if dtype.name == "Category":
             return raw_values == -1
-        if column_type is Window:
+        if dtype.name == "Window":
             return np.isnan(raw_values).all(axis=1)
-        if column_type is Embedding:
+        if dtype.name == "Embedding":
             return np.array([len(x) == 0 for x in raw_values])
         return np.full(len(self), False)
 
@@ -1946,32 +1974,19 @@ class Dataset:
                                 else:
                                     refs.append(None)
                             raw_values = refs
-                    if self._get_column_type(column) is Embedding:
+                    if self._get_dtype(column).name == "Embedding":
                         raw_values = list(raw_values)
                     new_column[:] = raw_values
             self.close()
             shutil.move(new_dataset, os.path.realpath(self._filepath))
             self.open()
 
-    @overload
-    def get_column_type(
-        self, name: str, as_string: Literal[False] = False
-    ) -> Type[ColumnType]:
-        ...
-
-    @overload
-    def get_column_type(self, name: str, as_string: Literal[True]) -> str:
-        ...
-
-    def get_column_type(
-        self, name: str, as_string: bool = False
-    ) -> Union[Type[ColumnType], str]:
+    def get_dtype(self, column_name: str) -> DType:
         """
         Get type of dataset column.
 
         Args:
-            name: Column name.
-            as_string: Get internal name of the column type.
+            column_name: Column name.
 
         Example:
             >>> from renumics.spotlight import Dataset
@@ -1996,32 +2011,15 @@ class Dataset:
             mesh Mesh
         """
         self._assert_is_opened()
-        if not isinstance(name, str):
+        if not isinstance(column_name, str):
             raise TypeError(
-                f"`item` argument should be a string, but value {name} of type "
-                f"`{type(name)}` received.`"
+                f"`item` argument should be a string, but value {column_name} of type "
+                f"`{type(column_name)}` received.`"
             )
-        self._assert_column_exists(name, internal=True)
-        type_name = self._h5_file[name].attrs["type"]
-        if as_string:
-            return type_name
-        return get_column_type(type_name)
+        self._assert_column_exists(column_name, internal=True)
+        return self._get_dtype(self._h5_file[column_name])
 
-    def get_column_attributes(
-        self, name: str
-    ) -> Dict[
-        str,
-        Optional[
-            Union[
-                bool,
-                int,
-                str,
-                ColumnType,
-                Dict[str, int],
-                Dict[str, FileBasedColumnType],
-            ]
-        ],
-    ]:
+    def get_column_attributes(self, name: str) -> Dict[str, Any]:
         """
         Get attributes of a column. Available but unset attributes contain None.
 
@@ -2073,27 +2071,17 @@ class Dataset:
 
         column = self._h5_file[name]
         column_attrs = column.attrs
-        column_type = self._get_column_type(column_attrs)
-        allowed_attributes = self._user_column_attributes(column_type)
+        dtype = self._get_dtype(column_attrs)
+        allowed_attributes = self._user_column_attributes(dtype)
 
-        attrs: Dict[
-            str,
-            Optional[
-                Union[
-                    bool,
-                    int,
-                    str,
-                    ColumnType,
-                    Dict[str, int],
-                    Dict[str, FileBasedColumnType],
-                ]
-            ],
-        ] = {attribute_name: None for attribute_name in allowed_attributes}
+        attrs: Dict[str, Any] = {
+            attribute_name: None for attribute_name in allowed_attributes
+        }
 
         attrs.update(
             {
                 attribute_name: attribute_type(column_attrs[attribute_name])
-                if not attribute_type == object
+                if attribute_type is not object
                 else column_attrs[attribute_name]
                 for attribute_name, attribute_type in allowed_attributes.items()
                 if attribute_name in column_attrs
@@ -2130,14 +2118,14 @@ class Dataset:
         self, attribute_name: str, attribute_value: ColumnInputType, column_name: str
     ) -> None:
         column = self._h5_file.get(column_name)
-        column_type = self._get_column_type(column)
+        dtype = self._get_dtype(column)
 
-        allowed_attributes = self._user_column_attributes(column_type)
+        allowed_attributes = self._user_column_attributes(dtype)
         if attribute_name not in allowed_attributes:
             raise exceptions.InvalidAttributeError(
                 f'Setting an attribute with the name "{attribute_name}" for column '
                 f'"{column_name}" is not allowed. '
-                f'Allowed attribute names for "{column_type}" '
+                f'Allowed attribute names for "{dtype}" '
                 f'are: "{list(allowed_attributes.keys())}"'
             )
         if not isinstance(attribute_value, allowed_attributes[attribute_name]):
@@ -2153,7 +2141,7 @@ class Dataset:
         ):
             raise exceptions.InvalidAttributeError(
                 f'Invalid `optional` argument for column "{column_name}" of '
-                f"type {column_type}. Columns can not be changed from "
+                f"type {dtype}. Columns can not be changed from "
                 f"`optional=False` to `optional=True`."
             )
         if attribute_name == "tags" and not all(
@@ -2161,7 +2149,7 @@ class Dataset:
         ):
             raise exceptions.InvalidAttributeError(
                 f'Invalid `tags` argument for column "{column_name}" of type '
-                f"{column_type}. Tags should be a `list of str`."
+                f"{dtype}. Tags should be a `list of str`."
             )
 
     @staticmethod
@@ -2336,15 +2324,15 @@ class Dataset:
             # Set new default value.
             try:
                 if default is None and old_default is None:
-                    default = self._default_default(column_type)
+                    default = self._default_default(dtype)
                     if (
                         default is None
-                        and column_type is Embedding
+                        and dtype.name == "Embedding"
                         and not self._is_ref_column(column)
                     ):
                         # For a non-ref `Embedding` column, replace `None` with an empty array.
                         default = np.empty(0, column.dtype.metadata["vlen"])
-                if column_type is Category and default != "":
+                if dtype.name == "Category" and default != "":
                     if default not in column.attrs["category_keys"]:
                         column.attrs["category_values"] = np.append(
                             column.attrs["category_values"],
@@ -2355,7 +2343,7 @@ class Dataset:
                         )
                 if default is not None:
                     encoded_value = self._encode_value(default, column)
-                    if column_type is datetime and encoded_value is None:
+                    if dtype.name == "datetime" and encoded_value is None:
                         encoded_value = ""
                     column.attrs["default"] = encoded_value
 
@@ -2401,10 +2389,10 @@ class Dataset:
         for column in columns:
             attrs = column.attrs
             type_name = attrs["type"]
-            column_type = get_column_type(type_name)
-            optional_keys = set(
-                self._user_column_attributes(column_type).keys()
-            ).difference(required_keys)
+            dtype = create_dtype(type_name)
+            optional_keys = set(self._user_column_attributes(dtype).keys()).difference(
+                required_keys
+            )
             column_reprs.append(
                 [
                     key + ": " + _format(attrs.get(key), type_name)
@@ -2425,9 +2413,9 @@ class Dataset:
     def _append_column(
         self,
         name: str,
-        column_type: Type[ColumnType],
+        dtype: DType,
         values: Union[ColumnInputType, Iterable[ColumnInputType]],
-        dtype: np.dtype,
+        np_dtype: np.dtype,
         order: Optional[int] = None,
         hidden: bool = True,
         optional: bool = False,
@@ -2443,34 +2431,35 @@ class Dataset:
         # `set_column_attributes` method.
         shape: Tuple[int, ...] = (0,)
         maxshape: Tuple[Optional[int], ...] = (None,)
-        if column_type is Category:
-            categories = attrs.get("categories", None)
-            if categories is None:
-                # Values are given, but no categories.
+        if isinstance(dtype, CategoryDType):
+            if dtype.categories is None:
                 if is_iterable(values):
-                    values = list(values)
-                    categories = set(values)
+                    categories: List[str] = sorted(set(values))
+                elif values is None:
+                    categories = []
                 else:
-                    categories = {values}
-                categories.difference_update({"", None})
-            if is_iterable(categories) and not isinstance(categories, dict):
-                # dict is forced to preserve the order.
-                categories = list(dict.fromkeys(categories, None).keys())
-                attrs["categories"] = dict(zip(categories, range(len(categories))))
+                    categories = cast(List[str], [values])
+                dtype = CategoryDType(categories)
+                attrs["categories"] = dtype.categories
             # Otherwise, exception about type will be raised later in the
             # `set_column_attributes` method.
-        elif column_type is Window:
+        elif dtype.name == "Window":
             shape = (0, 2)
             maxshape = (None, 2)
-        elif issubclass(column_type, FileBasedDType):
+        elif isinstance(dtype, Sequence1DDType):
+            attrs["x_label"] = dtype.x_label
+            attrs["y_label"] = dtype.y_label
+        elif is_file_dtype(dtype):
             lookup = attrs.get("lookup", None)
             if is_iterable(lookup) and not isinstance(lookup, dict):
                 # Assume that we can keep all the lookup values in memory.
                 attrs["lookup"] = {str(i): v for i, v in enumerate(lookup)}
         try:
-            column = self._h5_file.create_dataset(name, shape, dtype, maxshape=maxshape)
+            column = self._h5_file.create_dataset(
+                name, shape, np_dtype, maxshape=maxshape
+            )
             self._column_names.add(name)
-            column.attrs["type"] = get_column_type_name(column_type)
+            column.attrs["type"] = dtype.name
             self.set_column_attributes(
                 name,
                 order,
@@ -2570,7 +2559,7 @@ class Dataset:
             else:
                 # Reorder values according to the given indices.
                 encoded_values = encoded_values[values_indices]
-            if self._get_column_type(column) is Embedding:
+            if self._get_dtype(column).name == "Embedding":
                 encoded_values = list(encoded_values)
         elif values is not None:
             # A single value is given. `Window` and `Embedding` values should
@@ -2673,64 +2662,57 @@ class Dataset:
         return self._decode_values(values, column)
 
     def _decode_values(self, values: np.ndarray, column: h5py.Dataset) -> np.ndarray:
-        column_type = self._get_column_type(column)
+        dtype = self._get_dtype(column)
         if column.attrs.get("external", False):
-            column_type = cast(Type[ExternalColumnType], column_type)
-            return self._decode_external_values(values, column_type)
+            return self._decode_external_values(values, dtype)
         if self._is_ref_column(column):
-            column_type = cast(Type[RefColumnType], column_type)
-            return self._decode_ref_values(values, column, column_type)
-        column_type = cast(Type[SimpleColumnType], column_type)
-        return self._decode_simple_values(values, column, column_type)
+            return self._decode_ref_values(values, column, dtype)
+        return self._decode_simple_values(values, column, dtype)
 
     @staticmethod
     def _decode_simple_values(
-        values: np.ndarray, column: h5py.Dataset, column_type: Type[SimpleColumnType]
+        values: np.ndarray, column: h5py.Dataset, dtype: DType
     ) -> np.ndarray:
-        if column_type is Category:
-            mapping = dict(
-                zip(column.attrs["category_values"], column.attrs["category_keys"])
-            )
-            mapping[-1] = ""
-            return np.array([mapping[x] for x in values], dtype=str)
+        if isinstance(dtype, CategoryDType):
+            if dtype.inverted_categories is None:
+                return np.full(len(values), None)
+            return np.array([dtype.inverted_categories.get(x) for x in values])
         if h5py.check_string_dtype(column.dtype):
-            # `column_type` is `str` or `datetime`.
+            # `dtype` is `str` or `datetime`.
             values = np.array([x.decode("utf-8") for x in values])
-            if column_type is str:
+            if dtype.name == "str":
                 return values
             # Decode datetimes.
             return np.array(
                 [None if x == "" else datetime.fromisoformat(x) for x in values],
                 dtype=object,
             )
-        if column_type is Embedding:
+        if dtype.name == "Embedding":
             null_mask = [len(x) == 0 for x in values]
             values[null_mask] = None
         # For column types `bool`, `int`, `float` or `Window`, return the array as-is.
         return values
 
     def _decode_ref_values(
-        self, values: np.ndarray, column: h5py.Dataset, column_type: Type[RefColumnType]
+        self, values: np.ndarray, column: h5py.Dataset, dtype: DType
     ) -> np.ndarray:
         column_name = self._get_column_name(column)
-        if column_type in (np.ndarray, Embedding):
+        if dtype.name in ("array", "Embedding"):
             # `np.array([<...>], dtype=object)` creation does not work for
             # some cases and erases dtypes of sub-arrays, so we use assignment.
             decoded_values = np.empty(len(values), dtype=object)
             decoded_values[:] = [
-                self._decode_ref_value(ref, column_type, column_name) for ref in values
+                self._decode_ref_value(ref, dtype, column_name) for ref in values
             ]
             return decoded_values
         return np.array(
-            [self._decode_ref_value(ref, column_type, column_name) for ref in values],
+            [self._decode_ref_value(ref, dtype, column_name) for ref in values],
             dtype=object,
         )
 
-    def _decode_external_values(
-        self, values: np.ndarray, column_type: Type[ExternalColumnType]
-    ) -> np.ndarray:
+    def _decode_external_values(self, values: np.ndarray, dtype: DType) -> np.ndarray:
         return np.array(
-            [self._decode_external_value(value, column_type) for value in values],
+            [self._decode_external_value(value, dtype) for value in values],
             dtype=object,
         )
 
@@ -2762,7 +2744,7 @@ class Dataset:
             h5_dataset = self._h5_file[name]
             if isinstance(h5_dataset, h5py.Dataset):
                 try:
-                    self._get_column_type(h5_dataset)
+                    self._get_dtype(h5_dataset)
                 except (KeyError, exceptions.InvalidDTypeError):
                     continue
                 else:
@@ -2825,7 +2807,7 @@ class Dataset:
                     f"contain unknown categories."
                 ) from e
         if column_type is datetime:
-            if _check_valid_array(values, column_type):
+            if _check_valid_array(values, dtype):
                 encoded_values = np.array(
                     [None if x is None else x.isoformat() for x in values.tolist()]
                 )
@@ -2838,7 +2820,7 @@ class Dataset:
                 return encoded_values
             return self._replace_none(encoded_values, column)
         if column_type is Window:
-            encoded_values = self._asarray(values, column, column_type)
+            encoded_values = self._asarray(values, column, dtype)
             if encoded_values.ndim == 1:
                 if len(encoded_values) == 2:
                     # A single window, reshape it to an array.
@@ -2856,7 +2838,7 @@ class Dataset:
                 f"windows), but values with shape {encoded_values.shape} received."
             )
         if column_type is Embedding:
-            if _check_valid_array(values, column_type):
+            if _check_valid_array(values, dtype):
                 # This is the only case we can handle fast and easily, otherwise
                 # embedding should go through `_encode_value` element-wise.
                 if values.ndim == 1:
@@ -2879,7 +2861,7 @@ class Dataset:
             encoded_values = self._replace_none(encoded_values, column)
             return encoded_values
         # column type is `bool`, `int`, `float` or `str`.
-        encoded_values = self._asarray(values, column, column_type)
+        encoded_values = self._asarray(values, column, dtype)
         if encoded_values.ndim == 1:
             return encoded_values
         column_name = self._get_column_name(column)
@@ -3045,7 +3027,7 @@ class Dataset:
             if dtype.categories is None:
                 return -1
             else:
-                return dtype.categories.get(value, -1) # type: ignore
+                return dtype.categories.get(value, -1)  # type: ignore
         if dtype.name == "Window":
             value = np.asarray(value, dtype=column.dtype)
             if value.shape == (2,):
@@ -3234,10 +3216,10 @@ class Dataset:
     @staticmethod
     def _decode_simple_value(
         value: Union[np.bool_, np.integer, np.floating, bytes, str, np.ndarray],
-        dtype: DType
+        dtype: DType,
     ) -> Optional[Union[bool, int, float, str, datetime, np.ndarray]]:
         if dtype.name == "Window":
-            return value # type: ignore
+            return value  # type: ignore
         if dtype.name == "Embedding":
             value = cast(np.ndarray, value)
             if len(value) == 0:
@@ -3254,7 +3236,7 @@ class Dataset:
             if value == "":
                 return None
             return datetime.fromisoformat(value)
-        return VALUE_TYPE_BY_DTYPE_NAME[dtype.name](value) # type: ignore
+        return VALUE_TYPE_BY_DTYPE_NAME[dtype.name](value)  # type: ignore
 
     def _decode_ref_value(
         self,
@@ -3268,9 +3250,9 @@ class Dataset:
         value = self._resolve_ref(ref, column_name)[()]
         value = cast(Union[np.ndarray, np.void], value)
         if dtype.name in ("array", "Embedding"):
-            return value # type: ignore
+            return value  # type: ignore
         value_type = VALUE_TYPE_BY_DTYPE_NAME[dtype.name]
-        return value_type.decode(value) # type: ignore
+        return value_type.decode(value)  # type: ignore
 
     def _decode_external_value(
         self,
@@ -3283,7 +3265,7 @@ class Dataset:
             value = value.decode("utf-8")
         file = prepare_path_or_url(value, os.path.dirname(self._filepath))
         try:
-            return VALUE_TYPE_BY_DTYPE_NAME[dtype.name].from_file(file) # type: ignore
+            return VALUE_TYPE_BY_DTYPE_NAME[dtype.name].from_file(file)  # type: ignore
         except Exception:
             # No matter what happens, we should not crash, but warn instead.
             logger.warning(
@@ -3299,7 +3281,9 @@ class Dataset:
         Append internal columns to the first created or imported dataset.
         """
         internal_column_values = [self._get_username(), get_current_datetime()]
-        for column_name, value, dtype in zip(INTERNAL_COLUMN_NAMES, internal_column_values, INTERNAL_COLUMN_DTYPES):
+        for column_name, value, dtype in zip(
+            INTERNAL_COLUMN_NAMES, internal_column_values, INTERNAL_COLUMN_DTYPES
+        ):
             try:
                 column = self._h5_file[column_name]
             except KeyError:
@@ -3387,25 +3371,21 @@ class Dataset:
     def _get_username() -> str:
         return ""
 
-    @staticmethod
-    def _get_dtype(
-        x: Union[str, h5py.Dataset, h5py.AttributeManager]
-    ) -> DType:
+    def _get_dtype(self, x: Union[h5py.Dataset, h5py.AttributeManager]) -> DType:
         """
         Get column type by its name, or extract it from `h5py` entities.
         """
-        # TODO: handle categories
-
-        if isinstance(x, str):
-            return create_dtype(x)
         if isinstance(x, h5py.Dataset):
-            return create_dtype(x.attrs["type"])
-        if isinstance(x, h5py.AttributeManager):
-            return create_dtype(x["type"])
-        raise TypeError(
-            f"Argument is expected to ba an instance of type `str`, `h5py.Dataset` "
-            f"or `h5py.AttributeManager`, but `x` of type {type(x)} received."
-        )
+            return self._get_dtype(x.attrs)
+
+        type_name = x["type"]
+        if type_name == "Category":
+            return CategoryDType(
+                dict(zip(x.get("category_keys"), x.get("category_values")))
+            )
+        if type_name == "Sequence1D":
+            return Sequence1DDType(x.get("x_label", "x"), x.get("y_label", "y"))
+        return create_dtype(type_name)
 
     @staticmethod
     def _get_column_name(column: h5py.Dataset) -> str:

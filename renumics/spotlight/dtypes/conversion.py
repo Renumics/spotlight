@@ -16,7 +16,6 @@ paths: str, np.str_
 from abc import ABCMeta
 import ast
 from collections import defaultdict
-from dataclasses import dataclass
 import inspect
 import io
 import os
@@ -42,22 +41,17 @@ from renumics.spotlight.typing import PathOrUrlType, PathType
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.io import audio
 from renumics.spotlight.io.file import as_file
-
 from renumics.spotlight.dtypes.exceptions import InvalidFile
-
 from renumics.spotlight.backend.exceptions import Problem
-
-from renumics.spotlight.dtypes.v2 import CategoryDType, DType
-
-from .typing import (
-    FileBasedColumnType,
-    Sequence1D,
-    Image,
-    Audio,
-    Video,
-    Mesh,
-    get_column_type_name,
+from renumics.spotlight.dtypes.v2 import (
+    CategoryDType,
+    DType,
+    audio_dtype,
+    image_dtype,
+    mesh_dtype,
+    video_dtype,
 )
+from .typing import Sequence1D, Image, Audio, Video, Mesh
 
 
 NormalizedValue = Union[
@@ -346,7 +340,7 @@ def _(value: Union[str, np.str_], _: DType) -> np.ndarray:
 @convert("Image", simple=False)
 def _(value: Union[str, np.str_], _: DType) -> bytes:
     try:
-        if data := read_external_value(value, Image):
+        if data := read_external_value(value, image_dtype):
             return data.tolist()
     except InvalidFile:
         raise ConversionError()
@@ -366,7 +360,7 @@ def _(value: np.ndarray, _: DType) -> bytes:
 @convert("Audio", simple=False)
 def _(value: Union[str, np.str_], _: DType) -> bytes:
     try:
-        if data := read_external_value(value, Audio):
+        if data := read_external_value(value, audio_dtype):
             return data.tolist()
     except (InvalidFile, IndexError, ValueError):
         raise ConversionError()
@@ -381,7 +375,7 @@ def _(value: Union[bytes, np.bytes_], _: DType) -> bytes:
 @convert("Video", simple=False)
 def _(value: Union[str, np.str_], _: DType) -> bytes:
     try:
-        if data := read_external_value(value, Video):
+        if data := read_external_value(value, video_dtype):
             return data.tolist()
     except InvalidFile:
         raise ConversionError()
@@ -396,7 +390,7 @@ def _(value: Union[bytes, np.bytes_], _: DType) -> bytes:
 @convert("Mesh", simple=False)
 def _(value: Union[str, np.str_], _: DType) -> bytes:
     try:
-        if data := read_external_value(value, Mesh):
+        if data := read_external_value(value, mesh_dtype):
             return data.tolist()
     except InvalidFile:
         raise ConversionError()
@@ -449,7 +443,7 @@ def _(_: trimesh.Trimesh, _dtype: DType) -> str:
 
 def read_external_value(
     path_or_url: Optional[str],
-    column_type: Type[FileBasedColumnType],
+    dtype: DType,
     target_format: Optional[str] = None,
     workdir: PathType = ".",
 ) -> Optional[np.void]:
@@ -459,7 +453,7 @@ def read_external_value(
     """
     if not path_or_url:
         return None
-    cache_key = f"external:{path_or_url},{get_column_type_name(column_type)}"
+    cache_key = f"external:{path_or_url},{dtype}"
     if target_format is not None:
         cache_key += f"/{target_format}"
     try:
@@ -468,7 +462,7 @@ def read_external_value(
     except KeyError:
         ...
 
-    value = _decode_external_value(path_or_url, column_type, target_format, workdir)
+    value = _decode_external_value(path_or_url, dtype, target_format, workdir)
     external_data_cache[cache_key] = value.tolist()
     return value
 
@@ -486,7 +480,7 @@ def prepare_path_or_url(path_or_url: PathOrUrlType, workdir: PathType) -> str:
 
 def _decode_external_value(
     path_or_url: PathOrUrlType,
-    column_type: Type[FileBasedColumnType],
+    dtype: DType,
     target_format: Optional[str] = None,
     workdir: PathType = ".",
 ) -> np.void:
@@ -495,7 +489,7 @@ def _decode_external_value(
     """
 
     path_or_url = prepare_path_or_url(path_or_url, workdir)
-    if column_type is Audio:
+    if dtype.name == "Audio":
         file = audio.prepare_input_file(path_or_url, reusable=True)
         # `file` is a filepath of type `str` or an URL downloaded as `io.BytesIO`.
         input_format, input_codec = audio.get_format_codec(file)
@@ -527,7 +521,7 @@ def _decode_external_value(
         audio.transcode_audio(file, buffer, output_format, output_codec)
         return np.void(buffer.getvalue())
 
-    if column_type is Image:
+    if dtype.name == "Image":
         with as_file(path_or_url) as file:
             kind = filetype.guess(file)
             if kind is not None and kind.mime.split("/")[1] in (
@@ -544,5 +538,8 @@ def _decode_external_value(
             # `image/tiff`s become blank in frontend, so convert them too.
             return Image.from_file(file).encode(target_format)
 
-    data_obj = column_type.from_file(path_or_url)
-    return data_obj.encode(target_format)
+    if dtype.name == "Mesh":
+        return Mesh.from_file(path_or_url).encode(target_format)
+    if dtype.name == "Video":
+        return Video.from_file(path_or_url).encode(target_format)
+    assert False

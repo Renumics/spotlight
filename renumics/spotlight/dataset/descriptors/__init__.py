@@ -9,7 +9,6 @@ from sklearn.preprocessing import StandardScaler
 
 from renumics.spotlight.dataset import Dataset
 from renumics.spotlight.dataset.exceptions import ColumnExistsError, InvalidDTypeError
-from renumics.spotlight.dtypes import Audio, Sequence1D
 from .data_alignment import align_column_data
 
 
@@ -77,11 +76,11 @@ def catch22(
 
     if suffix is None:
         suffix = "catch24" if catch24 else "catch22"
-    column_type = dataset.get_column_type(column)
-    if column_type not in (Audio, Sequence1D):
+    dtype = dataset.get_dtype(column)
+    if dtype.name == ("Audio", "Sequence1D"):
         raise InvalidDTypeError(
             f"catch22 is only applicable to columns of type `Audio` and "
-            f'`Sequence1D`, but column "{column}" of type {column_type} received.'
+            f'`Sequence1D`, but column "{column}" of type {dtype} received.'
         )
 
     column_names = []

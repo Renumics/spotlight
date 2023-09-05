@@ -119,8 +119,7 @@ def test_conversion_to_category(
     Convert values to category
     """
     assert (
-        convert_to_dtype(value, v2.CategoryDType(categories=categories))
-        == target_value
+        convert_to_dtype(value, v2.CategoryDType(categories=categories)) == target_value
     )
 
 
@@ -137,7 +136,7 @@ def test_conversion_to_array(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to array
     """
-    assert np.array_equal(convert_to_dtype(value, v2.array_dtype), target_value) # type: ignore
+    assert np.array_equal(convert_to_dtype(value, v2.array_dtype), target_value)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -188,7 +187,9 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to sequence
     """
-    assert np.array_equal(convert_to_dtype(value, v2.sequence_1d_dtype), target_value)  # type: ignore
+    assert np.array_equal(  # type: ignore
+        convert_to_dtype(value, v2.sequence_1d_dtype), target_value
+    )
 
 
 @pytest.mark.parametrize(
@@ -269,7 +270,7 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
         (v2.sequence_1d_dtype, np.array([1, 2, 3]), "[...]"),
         (v2.image_dtype, np.array([[0.5, 0.7], [0.5, 0.7]]), "[...]"),
         (
-            v2.image_dtype, 
+            v2.image_dtype,
             "./data/images/nature-360p.jpg",
             "./data/images/nature-360p.jpg",
         ),
