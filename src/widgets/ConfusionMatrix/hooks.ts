@@ -62,7 +62,7 @@ export function useData(xColumn?: DataColumn, yColumn?: DataColumn): MatrixData 
             buckets[y * uniqueXValues.length + x].rows.push(filteredIndices[i]);
         }
         return buckets;
-    }, [uniqueXValues, uniqueYValues, xValues, yValues]);
+    }, [uniqueXValues, uniqueYValues, xValues, yValues, filteredIndices]);
 
     const xNames = useMemo(
         () =>
