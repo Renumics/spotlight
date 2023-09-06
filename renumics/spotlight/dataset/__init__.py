@@ -1543,7 +1543,7 @@ class Dataset:
                 slows down the execution.
 
         Example:
-            Find an example usage in :class:`renumics.spotlight.dtypes'.Audio`.
+            Find an example usage in :class:`renumics.spotlight.media.Audio`.
         """
         attrs = {}
         if lossy is None and external is False:
@@ -2027,14 +2027,7 @@ class Dataset:
             ...     dataset.append_mesh_column("mesh")
             >>> with Dataset("docs/example.h5", "r") as dataset:
             ...     for column_name in sorted(dataset.keys()):
-            ...         print(column_name, dataset.get_column_type(column_name))
-            array <class 'numpy.ndarray'>
-            bool <class 'bool'>
-            datetime <class 'datetime.datetime'>
-            mesh <class 'renumics.spotlight.dtypes.Mesh'>
-            >>> with Dataset("docs/example.h5", "r") as dataset:
-            ...     for column_name in sorted(dataset.keys()):
-            ...         print(column_name, dataset.get_column_type(column_name, True))
+            ...         print(column_name, dataset.get_dtype(column_name))
             array array
             bool bool
             datetime datetime
@@ -2072,11 +2065,11 @@ class Dataset:
             ...     attributes = dataset.get_column_attributes("int")
             ...     for key in sorted(attributes.keys()):
             ...         print(key, attributes[key])
-            default None
+            default -1
             description None
             editable True
             hidden False
-            optional False
+            optional True
             order None
             tags None
             >>> with Dataset("docs/example.h5", "r") as dataset:
@@ -3126,7 +3119,7 @@ class Dataset:
 
         Value *cannot* be `None` already.
         """
-        if is_audio_dtype(dtype):
+        if is_array_dtype(dtype):
             value = np.asarray(value)
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             return value
