@@ -12,6 +12,7 @@ from .media import (
     Sequence1D,  # noqa: F401
     Video,  # noqa: F401
 )
+from .dtypes.legacy import Category, Window  # noqa: F401
 from .viewer import Viewer, close, viewers, show
 from .plugin_loader import load_plugins
 from .settings import settings
