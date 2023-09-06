@@ -46,7 +46,11 @@ Here are some interactive examples on publicly available datasets:
     </thead>
     <tbody>
         <tr>
-            <td rowspan="2">🖼️ Image</td>
+            <td rowspan="3">🖼️ Image</td>
+            <td>Find Issues in Any Image Classification Dataset</td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a></td>
+        </tr>
+        <tr>
             <td>Find data issues in the CIFAR-100 image dataset</td>
             <td><a href="https://huggingface.co/spaces/renumics/navigate-data-issues">🕹️</a></td>
         </tr>
@@ -55,7 +59,11 @@ Here are some interactive examples on publicly available datasets:
             <td><a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
         </tr>
         <tr>
-            <td rowspan="2">🔊 Audio</td>
+            <td rowspan="3">🔊 Audio</td>
+            <td>Find Issues in Any Audio Classification Dataset</td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a></td>
+        </tr>
+        <tr>
             <td>Find data issues in the Common Voice audio dataset</td>
             <td><a href="https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues">🕹️</a></td>
         </tr>
@@ -63,7 +71,12 @@ Here are some interactive examples on publicly available datasets:
             <td>Compare gender detection models on the emodb dataset</td>
             <td><a href="https://huggingface.co/spaces/renumics/emodb-model-comparison">🕹️</a></td>
         </tr>
-         <tr>
+        <tr>
+            <td rowspan="1">📝 Text</td>
+            <td>Find Issues in Any Text Classification Dataset</td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/text-classification">👨‍💻</a></td>
+        </tr>
+        <tr>
             <td rowspan="2">📈🖼️ Mixed</td>
             <td>Explore results from the Formula1 Montreal 2023 GP</td>
             <td><a href="https://huggingface.co/spaces/renumics/f1_montreal_gp">🕹️</a></td>
