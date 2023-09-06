@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Any, Dict, Iterable, Optional, Union
-import numpy as np
 
+import numpy as np
+from typing_extensions import TypeGuard
 
 from renumics.spotlight.dtypes import (
     Audio,
@@ -127,6 +128,62 @@ def create_dtype(x: Any) -> DType:
     if isinstance(x, str):
         return ALIASES[x.lower()]
     return ALIASES[x]
+
+
+def is_bool_dtype(dtype: DType) -> bool:
+    return dtype.name == "bool"
+
+
+def is_int_dtype(dtype: DType) -> bool:
+    return dtype.name == "int"
+
+
+def is_float_dtype(dtype: DType) -> bool:
+    return dtype.name == "float"
+
+
+def is_str_dtype(dtype: DType) -> bool:
+    return dtype.name == "str"
+
+
+def is_datetime_dtype(dtype: DType) -> bool:
+    return dtype.name == "datetime"
+
+
+def is_category_dtype(dtype: DType) -> TypeGuard[CategoryDType]:
+    return dtype.name == "Category"
+
+
+def is_array_dtype(dtype: DType) -> bool:
+    return dtype.name == "array"
+
+
+def is_window_dtype(dtype: DType) -> bool:
+    return dtype.name == "Window"
+
+
+def is_embedding_dtype(dtype: DType) -> bool:
+    return dtype.name == "Embedding"
+
+
+def is_sequence_1d_dtype(dtype: DType) -> TypeGuard[Sequence1DDType]:
+    return dtype.name == "Sequence1D"
+
+
+def is_audio_dtype(dtype: DType) -> bool:
+    return dtype.name == "Audio"
+
+
+def is_image_dtype(dtype: DType) -> bool:
+    return dtype.name == "Image"
+
+
+def is_mesh_dtype(dtype: DType) -> bool:
+    return dtype.name == "Mesh"
+
+
+def is_video_dtype(dtype: DType) -> bool:
+    return dtype.name == "Video"
 
 
 def is_scalar_dtype(dtype: DType) -> bool:

@@ -8,7 +8,6 @@ from typing import List, Union, cast
 import h5py
 import numpy as np
 
-from renumics.spotlight.dtypes import Embedding
 from renumics.spotlight.typing import IndexType
 from renumics.spotlight.dataset import Dataset, INTERNAL_COLUMN_NAMES
 
@@ -17,9 +16,8 @@ from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
 )
-from renumics.spotlight.dtypes.conversion import NormalizedValue
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-from renumics.spotlight.dtypes.v2 import DTypeMap, create_dtype
+from renumics.spotlight.dtypes.v2 import DTypeMap, create_dtype, is_embedding_dtype
 
 
 class H5Dataset(Dataset):
@@ -32,26 +30,6 @@ class H5Dataset(Dataset):
         Get the dataset's generation if set.
         """
         return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
-
-    def read_value(self, column_name: str, index: IndexType) -> NormalizedValue:
-        """
-        Get a dataset value as it is stored in the H5 dataset, resolve references.
-        """
-
-        self._assert_column_exists(column_name, internal=True)
-        self._assert_index_exists(index)
-        column = cast(h5py.Dataset, self._h5_file[column_name])
-        value = column[index]
-        if isinstance(value, bytes):
-            value = value.decode("utf-8")
-        if self._is_ref_column(column):
-            if value:
-                value = self._resolve_ref(value, column_name)[()]
-                return value.tolist() if isinstance(value, np.void) else value
-            return None
-        if self._get_column_type(column.attrs) is Embedding and len(value) == 0:
-            return None
-        return value
 
     def read_column(
         self,
@@ -79,7 +57,7 @@ class H5Dataset(Dataset):
                 for value in self._resolve_refs(raw_values, column_name)
             ]
             return normalized_values
-        if self._get_column_type(column.attrs) is Embedding:
+        if is_embedding_dtype(self._get_dtype(column)):
             normalized_values = np.empty(len(raw_values), dtype=object)
             normalized_values[:] = [None if len(x) == 0 else x for x in raw_values]
             return normalized_values
@@ -104,7 +82,7 @@ class H5Dataset(Dataset):
             if to_index != length:
                 # Shift all values after the insertion position by one.
                 raw_values = column[int(to_index) : -1]
-                if self._get_column_type(column) is Embedding:
+                if is_embedding_dtype(self._get_dtype(column)):
                     raw_values = list(raw_values)
                 column[int(to_index) + 1 :] = raw_values
             column[int(to_index)] = column[from_index]
@@ -159,7 +137,7 @@ class Hdf5DataSource(DataSource):
 
     def guess_dtypes(self) -> DTypeMap:
         return {
-            column_name: create_dtype(self._table.get_column_type(column_name))
+            column_name: create_dtype(self._table.get_dtype(column_name))
             for column_name in self.column_names
         }
 

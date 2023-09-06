@@ -9,9 +9,8 @@ import pandas as pd
 from sklearn import preprocessing
 
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
-from renumics.spotlight.dtypes import Category, Embedding
-
 from renumics.spotlight.data_store import DataStore
+from renumics.spotlight.dtypes.v2 import is_category_dtype, is_embedding_dtype
 
 SEED = 42
 
@@ -36,7 +35,7 @@ def align_data(
     for column_name in column_names:
         dtype = data_store.dtypes[column_name]
         column_values = data_store.get_converted_values(column_name, indices)
-        if dtype is Embedding:
+        if is_embedding_dtype(dtype):
             embedding_length = max(
                 0 if x is None else len(cast(np.ndarray, x)) for x in column_values
             )
@@ -50,7 +49,7 @@ def align_data(
                         ]
                     )
                 )
-        elif dtype is Category:
+        elif is_category_dtype(dtype):
             na_mask = np.array(column_values) == -1
             one_hot_values = preprocessing.label_binarize(
                 column_values, classes=sorted(set(column_values).difference({-1}))  # type: ignore

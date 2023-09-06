@@ -7,9 +7,9 @@ from typing import Iterable, List
 
 import numpy as np
 import cleanlab.outlier
-from renumics.spotlight.dtypes import Embedding
-from renumics.spotlight.data_store import DataStore
 
+from renumics.spotlight.data_store import DataStore
+from renumics.spotlight.dtypes.v2 import is_embedding_dtype
 from ..decorator import data_analyzer
 from ..typing import DataIssue
 
@@ -23,7 +23,9 @@ def analyze_with_cleanlab(
     """
 
     embedding_columns = (
-        col for col in columns if data_store.dtypes.get(col) == Embedding
+        col
+        for col in columns
+        if col in data_store.dtypes and is_embedding_dtype(data_store.dtypes[col])
     )
 
     for column_name in embedding_columns:

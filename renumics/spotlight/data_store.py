@@ -5,11 +5,17 @@ import numpy as np
 
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.dtypes import Audio
 from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
 from renumics.spotlight.io import audio
-from renumics.spotlight.dtypes.v2 import CategoryDType, DTypeMap, str_dtype
+from renumics.spotlight.dtypes.v2 import (
+    CategoryDType,
+    DTypeMap,
+    is_audio_dtype,
+    is_category_dtype,
+    is_str_dtype,
+    str_dtype,
+)
 
 
 class DataStore:
@@ -29,9 +35,9 @@ class DataStore:
         }
         for column_name, dtype in dtypes.items():
             if (
-                isinstance(dtype, CategoryDType)
+                is_category_dtype(dtype)
                 and dtype.categories is None
-                and guessed_dtypes[column_name].name == "str"
+                and is_str_dtype(guessed_dtypes[column_name])
             ):
                 normalized_values = self._data_source.get_column_values(column_name)
                 converted_values = [
@@ -95,7 +101,7 @@ class DataStore:
         """
         return the waveform of an audio cell
         """
-        assert self._dtypes[column_name] is Audio
+        assert is_audio_dtype(self._dtypes[column_name])
 
         blob = self.get_converted_value(column_name, index, simple=False)
         if blob is None:
