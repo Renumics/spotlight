@@ -26,7 +26,6 @@ from renumics.spotlight.data_source import (
 )
 from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
-
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
 
 
@@ -44,9 +43,11 @@ class PandasDataSource(DataSource):
     _generation_id: int
     _uid: str
     _df: pd.DataFrame
+    _name: str
 
     def __init__(self, source: Union[Path, pd.DataFrame]):
         if isinstance(source, Path):
+            self._name = source.name
             if source.is_dir():
                 try:
                     hf_dataset = datasets.load_dataset(
@@ -68,11 +69,20 @@ class PandasDataSource(DataSource):
                     for feature_name, feature_type in hf_dataset[
                         splits[0]
                     ].features.items():
+                        print(feature_type)
                         if isinstance(feature_type, datasets.ClassLabel):
-                            df[feature_name] = pd.Categorical.from_codes(
-                                df[feature_name], categories=feature_type.names
-                            )
-
+                            print(feature_type.names)
+                            print(df[feature_name])
+                            try:
+                                df[feature_name] = pd.Categorical.from_codes(
+                                    df[feature_name], categories=feature_type.names
+                                )
+                            except ValueError:
+                                # The codes have wrong type.
+                                # This happens when there are splits but no classes.
+                                # load_dataset tries to add a label col for the splits.
+                                # Just delete it.
+                                del df[feature_name]
                 except Exception as e:
                     raise InvalidDataSource() from e
             else:
@@ -89,6 +99,7 @@ class PandasDataSource(DataSource):
                     raise InvalidDataSource()
         else:
             df = cast(pd.DataFrame, source)
+            self._name = "pd.DataFrame"
 
         if not df.columns.is_unique:
             raise DatasetColumnsNotUnique()
