@@ -9,7 +9,7 @@ import numpy as np
 import cleanlab.outlier
 
 from renumics.spotlight.data_store import DataStore
-from renumics.spotlight.dtypes.v2 import is_embedding_dtype
+from renumics.spotlight.dtypes import is_embedding_dtype
 from ..decorator import data_analyzer
 from ..typing import DataIssue
 

@@ -3,38 +3,32 @@ This module provides type annotation for Spotlight dataset.
 """
 
 from datetime import datetime
-from typing import (
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-)
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import trimesh
-from typing_extensions import get_args
 
 from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrUrlType
-from renumics.spotlight.dtypes import (
+from renumics.spotlight.media import (
     Array1dLike,
+    ImageLike,
+    MediaType,
     Embedding,
     Mesh,
     Sequence1D,
     Image,
-    ImageLike,
     Audio,
-    Category,
     Video,
-    Window,
 )
-from renumics.spotlight.dtypes.typing import FileBasedColumnType, NAME_BY_COLUMN_TYPE
 
 
+ColumnType = Union[bool, int, float, str, datetime, np.ndarray, MediaType]
 # Only pure types.
-SimpleColumnType = Union[bool, int, float, str, datetime, Category, Window, Embedding]
+SimpleColumnType = Union[bool, int, float, str, datetime, Embedding]
 RefColumnType = Union[np.ndarray, Embedding, Mesh, Sequence1D, Image, Audio, Video]
+FileBasedColumnType = Union[Audio, Image, Mesh, Video]
 ExternalColumnType = FileBasedColumnType
+ArrayBasedColumnType = Union[Embedding, Image, Sequence1D]
 # Pure types, compatible types and `None`.
 BoolColumnInputType = Optional[BoolType]
 IntColumnInputType = Optional[IntType]
@@ -80,10 +74,3 @@ FileColumnInputType = Union[
     VideoColumnInputType,
 ]
 ExternalColumnInputType = Optional[PathOrUrlType]
-
-REF_COLUMN_TYPE_NAMES = [
-    NAME_BY_COLUMN_TYPE[column_type] for column_type in get_args(RefColumnType)
-]
-SIMPLE_COLUMN_TYPE_NAMES = [
-    NAME_BY_COLUMN_TYPE[column_type] for column_type in get_args(SimpleColumnType)
-]

@@ -14,7 +14,7 @@ from renumics.spotlight.dataset.exceptions import (
 )
 from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
 
-from renumics.spotlight.dtypes.v2 import DTypeMap
+from renumics.spotlight.dtypes import DTypeMap
 
 
 @dataclasses.dataclass

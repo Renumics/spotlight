@@ -41,9 +41,9 @@ from renumics.spotlight.typing import PathOrUrlType, PathType
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.io import audio
 from renumics.spotlight.io.file import as_file
-from renumics.spotlight.dtypes.exceptions import InvalidFile
+from renumics.spotlight.media.exceptions import InvalidFile
 from renumics.spotlight.backend.exceptions import Problem
-from renumics.spotlight.dtypes.v2 import (
+from renumics.spotlight.dtypes import (
     CategoryDType,
     DType,
     audio_dtype,
@@ -51,7 +51,7 @@ from renumics.spotlight.dtypes.v2 import (
     mesh_dtype,
     video_dtype,
 )
-from .typing import Sequence1D, Image, Audio, Video, Mesh
+from renumics.spotlight.media import Sequence1D, Image, Audio, Video, Mesh
 
 
 NormalizedValue = Union[

@@ -8,7 +8,7 @@ from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
 from renumics.spotlight.io import audio
-from renumics.spotlight.dtypes.v2 import (
+from renumics.spotlight.dtypes import (
     CategoryDType,
     DTypeMap,
     is_audio_dtype,

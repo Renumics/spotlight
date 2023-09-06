@@ -60,7 +60,7 @@ from renumics.spotlight.dtypes import (
 
 from renumics.spotlight.dtypes.conversion import prepare_path_or_url
 
-from renumics.spotlight.dtypes.v2 import (
+from renumics.spotlight.dtypes import (
     CategoryDType,
     Sequence1DDType,
     create_dtype,
@@ -95,10 +95,9 @@ from renumics.spotlight.dtypes.v2 import (
     video_dtype,
 )
 
-from renumics.spotlight.dtypes.typing import ColumnType
 from . import exceptions
 from .typing import (
-    REF_COLUMN_TYPE_NAMES,
+    ColumnType,
     ExternalColumnType,
     BoolColumnInputType,
     IntColumnInputType,
@@ -3453,7 +3452,15 @@ class Dataset:
         """
         Check if a column is ref column.
         """
-        return column.attrs["type"] in REF_COLUMN_TYPE_NAMES and (
+        return column.attrs["type"] in [
+            "array",
+            "Embedding",
+            "Sequence1D",
+            "Audio",
+            "Image",
+            "Mesh",
+            "Video",
+        ] and (
             h5py.check_string_dtype(column.dtype) or h5py.check_ref_dtype(column.dtype)
         )
 

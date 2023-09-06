@@ -66,7 +66,7 @@ from renumics.spotlight.server import Server
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.app_config import AppConfig
 
-from renumics.spotlight.dtypes.v2 import create_dtype
+from renumics.spotlight.dtypes import create_dtype
 
 
 class ViewerNotFoundError(Exception):

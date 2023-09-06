@@ -22,30 +22,9 @@ from renumics.spotlight.dtypes import (
     Sequence1D,
     Video,
 )
-from renumics.spotlight.dtypes.exceptions import UnsupportedDType
-from renumics.spotlight.dtypes.typing import (
-    is_file_based_column_type,
-)
+from renumics.spotlight.media.exceptions import UnsupportedDType
 from renumics.spotlight.typing import is_iterable, is_pathtype
-
-from renumics.spotlight.dtypes.v2 import (
-    CategoryDType,
-    DType,
-    DTypeMap,
-    bool_dtype,
-    int_dtype,
-    float_dtype,
-    str_dtype,
-    datetime_dtype,
-    array_dtype,
-    window_dtype,
-    embedding_dtype,
-    sequence_1d_dtype,
-    image_dtype,
-    audio_dtype,
-    video_dtype,
-    mesh_dtype,
-)
+from renumics.spotlight import dtypes
 
 
 def is_empty(value: Any) -> bool:
@@ -76,7 +55,7 @@ def stringify_columns(df: pd.DataFrame) -> List[str]:
     return [str(column_name) for column_name in df.columns]
 
 
-def infer_dtype(column: pd.Series) -> DType:
+def infer_dtype(column: pd.Series) -> dtypes.DType:
     """
     Get an equivalent Spotlight data type for a `pandas` column, if possible.
 
@@ -98,20 +77,20 @@ def infer_dtype(column: pd.Series) -> DType:
     """
 
     if pd.api.types.is_bool_dtype(column) and not column.hasnans:
-        return bool_dtype
+        return dtypes.bool_dtype
     if pd.api.types.is_categorical_dtype(column):
-        return CategoryDType(
+        return dtypes.CategoryDType(
             {
                 category: code
                 for code, category in zip(column.cat.codes, column.cat.categories)
             }
         )
     if pd.api.types.is_integer_dtype(column) and not column.hasnans:
-        return int_dtype
+        return dtypes.int_dtype
     if pd.api.types.is_float_dtype(column):
-        return float_dtype
+        return dtypes.float_dtype
     if pd.api.types.is_datetime64_any_dtype(column):
-        return datetime_dtype
+        return dtypes.datetime_dtype
 
     column = column.copy()
     str_mask = is_string_mask(column)
@@ -119,15 +98,15 @@ def infer_dtype(column: pd.Series) -> DType:
 
     column = column[~column.isna()]
     if len(column) == 0:
-        return str_dtype
+        return dtypes.str_dtype
 
     column_head = column.iloc[:10]
     head_dtypes = column_head.apply(infer_value_dtype).to_list()  # type: ignore
     dtype_mode = statistics.mode(head_dtypes)
 
     if dtype_mode is None:
-        return str_dtype
-    if dtype_mode in [window_dtype, embedding_dtype]:
+        return dtypes.str_dtype
+    if dtype_mode in [dtypes.window_dtype, dtypes.embedding_dtype]:
         column = column.astype(object)
         str_mask = is_string_mask(column)
         x = column[str_mask].apply(try_literal_eval)
@@ -137,31 +116,31 @@ def infer_dtype(column: pd.Series) -> DType:
         try:
             np.asarray(column.to_list(), dtype=float)
         except (TypeError, ValueError):
-            return sequence_1d_dtype
+            return dtypes.sequence_1d_dtype
         return dtype_mode
     return dtype_mode
 
 
-def infer_value_dtype(value: Any) -> Optional[DType]:
+def infer_value_dtype(value: Any) -> Optional[dtypes.DType]:
     """
     Infer dtype for value
     """
     if isinstance(value, Embedding):
-        return embedding_dtype
+        return dtypes.embedding_dtype
     if isinstance(value, Sequence1D):
-        return sequence_1d_dtype
+        return dtypes.sequence_1d_dtype
     if isinstance(value, Image):
-        return image_dtype
+        return dtypes.image_dtype
     if isinstance(value, Audio):
-        return audio_dtype
+        return dtypes.audio_dtype
     if isinstance(value, Video):
-        return video_dtype
+        return dtypes.video_dtype
     if isinstance(value, Mesh):
-        return mesh_dtype
+        return dtypes.mesh_dtype
     if isinstance(value, PIL.Image.Image):
-        return image_dtype
+        return dtypes.image_dtype
     if isinstance(value, trimesh.Trimesh):
-        return mesh_dtype
+        return dtypes.mesh_dtype
     if isinstance(value, np.ndarray):
         return infer_array_dtype(value)
 
@@ -175,11 +154,11 @@ def infer_value_dtype(value: Any) -> Optional[DType]:
         if kind is not None:
             mime_group = kind.mime.split("/")[0]
             if mime_group == "image":
-                return image_dtype
+                return dtypes.image_dtype
             if mime_group == "audio":
-                return audio_dtype
+                return dtypes.audio_dtype
             if mime_group == "video":
-                return video_dtype
+                return dtypes.video_dtype
         return None
     if is_iterable(value):
         try:
@@ -191,24 +170,24 @@ def infer_value_dtype(value: Any) -> Optional[DType]:
     return None
 
 
-def infer_array_dtype(value: np.ndarray) -> DType:
+def infer_array_dtype(value: np.ndarray) -> dtypes.DType:
     """
     Infer dtype of a numpy array
     """
     if value.ndim == 3:
         if value.shape[-1] in (1, 3, 4):
-            return image_dtype
+            return dtypes.image_dtype
     elif value.ndim == 2:
         if value.shape[0] == 2 or value.shape[1] == 2:
-            return sequence_1d_dtype
+            return dtypes.sequence_1d_dtype
     elif value.ndim == 1:
         if len(value) == 2:
-            return window_dtype
-        return embedding_dtype
-    return array_dtype
+            return dtypes.window_dtype
+        return dtypes.embedding_dtype
+    return dtypes.array_dtype
 
 
-def infer_dtypes(df: pd.DataFrame, dtype: Optional[DTypeMap]) -> DTypeMap:
+def infer_dtypes(df: pd.DataFrame, dtype: Optional[dtypes.DTypeMap]) -> dtypes.DTypeMap:
     """
     Check column types from the given `dtype` and complete it with auto inferred
     column types for the given `pandas.DataFrame`.
@@ -219,7 +198,7 @@ def infer_dtypes(df: pd.DataFrame, dtype: Optional[DTypeMap]) -> DTypeMap:
             try:
                 column_type = infer_dtype(df[column_index])
             except UnsupportedDType:
-                column_type = str_dtype
+                column_type = dtypes.str_dtype
             inferred_dtype[str(column_index)] = column_type
     return inferred_dtype
 
@@ -260,7 +239,7 @@ def prepare_hugging_face_dict(x: Dict) -> Any:
     return x["path"]
 
 
-def prepare_column(column: pd.Series, dtype: DType) -> pd.Series:
+def prepare_column(column: pd.Series, dtype: dtypes.DType) -> pd.Series:
     """
     Convert a `pandas` column to the desired `dtype` and prepare some values,
     but still as `pandas` column.
@@ -277,26 +256,26 @@ def prepare_column(column: pd.Series, dtype: DType) -> pd.Series:
     """
     column = column.copy()
 
-    if dtype.name == "Category":
+    if dtypes.is_category_dtype(dtype):
         # We only support string/`NA` categories, but `pandas` can more, so
         # force categories to be strings (does not affect `NA`s).
         return to_categorical(column, str_categories=True)
 
-    if dtype.name == "datetime":
+    if dtypes.is_datetime_dtype(dtype):
         # `errors="coerce"` will produce `NaT`s instead of fail.
         return pd.to_datetime(column, errors="coerce")
 
-    if dtype.name == "str":
+    if dtypes.is_str_dtype(dtype):
         # Allow `NA`s, convert all other elements to strings.
         return column.astype(str).mask(column.isna(), None)  # type: ignore
 
-    if dtype.name == "bool":
+    if dtypes.is_bool_dtype(dtype):
         return column.astype(bool)
 
-    if dtype.name == "int":
+    if dtypes.is_int_dtype(dtype):
         return column.astype(int)
 
-    if dtype.name == "float":
+    if dtypes.is_float_dtype(dtype):
         return column.astype(float)
 
     # We explicitely don't want to change the original `DataFrame`.
@@ -311,7 +290,7 @@ def prepare_column(column: pd.Series, dtype: DType) -> pd.Series:
         str_mask = is_string_mask(column)
         column[str_mask] = column[str_mask].apply(try_literal_eval)
 
-        if is_file_based_column_type(dtype):
+        if dtypes.is_file_dtype(dtype):
             dict_mask = column.map(type) == dict
             column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
 

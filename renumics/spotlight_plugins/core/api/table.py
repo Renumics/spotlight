@@ -14,7 +14,7 @@ from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
 
-from renumics.spotlight.dtypes.v2 import is_category_dtype
+from renumics.spotlight.dtypes import is_category_dtype
 
 
 class Column(BaseModel):

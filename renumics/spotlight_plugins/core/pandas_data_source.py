@@ -22,7 +22,7 @@ from renumics.spotlight.data_source import (
 from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
-from renumics.spotlight.dtypes.v2 import DTypeMap
+from renumics.spotlight.dtypes import DTypeMap
 
 
 @datasource(pd.DataFrame)

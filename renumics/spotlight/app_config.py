@@ -10,7 +10,7 @@ import pandas as pd
 
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.analysis.typing import DataIssue
-from renumics.spotlight.dtypes.v2 import DTypeMap
+from renumics.spotlight.dtypes import DTypeMap
 
 
 @dataclass(frozen=True)

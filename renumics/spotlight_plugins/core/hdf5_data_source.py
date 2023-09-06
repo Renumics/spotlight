@@ -17,7 +17,7 @@ from renumics.spotlight.backend.exceptions import (
     CouldNotOpenTableFile,
 )
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-from renumics.spotlight.dtypes.v2 import DTypeMap, create_dtype, is_embedding_dtype
+from renumics.spotlight.dtypes import DTypeMap, create_dtype, is_embedding_dtype
 
 
 class H5Dataset(Dataset):

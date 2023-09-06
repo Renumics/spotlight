@@ -10,7 +10,7 @@ from sklearn import preprocessing
 
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.data_store import DataStore
-from renumics.spotlight.dtypes.v2 import is_category_dtype, is_embedding_dtype
+from renumics.spotlight.dtypes import is_category_dtype, is_embedding_dtype
 
 SEED = 42
 

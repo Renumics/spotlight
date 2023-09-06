@@ -54,7 +54,7 @@ from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
 from renumics.spotlight.data_store import DataStore
 
-from renumics.spotlight.dtypes.v2 import DTypeMap
+from renumics.spotlight.dtypes import DTypeMap
 
 
 class IssuesUpdatedMessage(Message):
