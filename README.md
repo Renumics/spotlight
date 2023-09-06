@@ -36,14 +36,57 @@ Machine learning and engineering teams use Spotlight to understand and communica
 
 Here are some interactive examples on publicly available datasets:
 
-| Modality | Description | Links | 
-| -------- | -------- | -------- | 
-| 🖼️ Image | Find data issues in the CIFAR-100 image dataset | [🕹️](https://huggingface.co/spaces/renumics/navigate-data-issues) | 
-| 🖼️ Image | Explore data slices in the CIFAR-100 image dataset | [🕹️](https://huggingface.co/spaces/renumics/sliceguard-unstructured-data) | 
-| 🔊 Audio | Find data issues in the Common Voice audio dataset | [🕹️](https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues)| 
-| 🔊 Audio | Compare gender detection models on the emodb dataset | [🕹️](https://huggingface.co/spaces/renumics/emodb-model-comparison)| 
-| 📈🖼️ Mixed | Explore results from the Formula1 Montreal 2023 GP | [🕹️](https://huggingface.co/spaces/renumics/f1_montreal_gp) | 
-| 📈 🚗 Mixed | Explore a crash simulation dataset | [🕹️](https://huggingface.co/spaces/renumics/crash-simulation-demo)| 
+<table>
+    <thead>
+        <tr>
+            <th>Modality</th>
+            <th>Description</th>
+            <th>Link</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan="3">🖼️ Image</td>
+            <td>Find Issues in Any Image Classification Dataset</td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a></td>
+        </tr>
+        <tr>
+            <td>Find data issues in the CIFAR-100 image dataset</td>
+            <td><a href="https://huggingface.co/spaces/renumics/navigate-data-issues">🕹️</a></td>
+        </tr>
+        <tr>
+            <td>Explore data slices in the CIFAR-100 image dataset</td>
+            <td><a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
+        </tr>
+        <tr>
+            <td rowspan="3">🔊 Audio</td>
+            <td>Find Issues in Any Audio Classification Dataset</td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a></td>
+        </tr>
+        <tr>
+            <td>Find data issues in the Common Voice audio dataset</td>
+            <td><a href="https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues">🕹️</a></td>
+        </tr>
+        <tr>
+            <td>Compare gender detection models on the emodb dataset</td>
+            <td><a href="https://huggingface.co/spaces/renumics/emodb-model-comparison">🕹️</a></td>
+        </tr>
+        <tr>
+            <td rowspan="1">📝 Text</td>
+            <td>Find Issues in Any Text Classification Dataset</td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/text-classification">👨‍💻</a></td>
+        </tr>
+        <tr>
+            <td rowspan="2">📈🖼️ Mixed</td>
+            <td>Explore results from the Formula1 Montreal 2023 GP</td>
+            <td><a href="https://huggingface.co/spaces/renumics/f1_montreal_gp">🕹️</a></td>
+        </tr>
+        <tr>
+            <td>Explore a crash simulation dataset</td>
+            <td><a href="https://huggingface.co/spaces/renumics/crash-simulation-demo">🕹️</a></td>
+        </tr>
+    </tbody>
+</table>
 
 
 ## ⏱️ Quickstart
