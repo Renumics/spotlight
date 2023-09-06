@@ -97,8 +97,8 @@ from renumics.spotlight.dtypes import (
 
 from . import exceptions
 from .typing import (
-    ColumnType,
-    ExternalColumnType,
+    OutputType,
+    ExternalOutputType,
     BoolColumnInputType,
     IntColumnInputType,
     FloatColumnInputType,
@@ -429,13 +429,13 @@ class Dataset:
         ...
 
     @overload
-    def __getitem__(self, item: IndexType) -> Dict[str, Optional[ColumnType]]:
+    def __getitem__(self, item: IndexType) -> Dict[str, Optional[OutputType]]:
         ...
 
     @overload
     def __getitem__(
         self, item: Union[Tuple[str, IndexType], Tuple[IndexType, str]]
-    ) -> Optional[ColumnType]:
+    ) -> Optional[OutputType]:
         ...
 
     def __getitem__(
@@ -446,7 +446,7 @@ class Dataset:
             Tuple[str, Union[IndexType, Indices1dType]],
             Tuple[Union[IndexType, Indices1dType], str],
         ],
-    ) -> Union[np.ndarray, Dict[str, Optional[ColumnType]], Optional[ColumnType]]:
+    ) -> Union[np.ndarray, Dict[str, Optional[OutputType]], Optional[OutputType]]:
         """
         Get a dataset column, row or value.
 
@@ -667,21 +667,21 @@ class Dataset:
         return list(self._column_names)
 
     @overload
-    def iterrows(self) -> Iterable[Dict[str, Optional[ColumnType]]]:
+    def iterrows(self) -> Iterable[Dict[str, Optional[OutputType]]]:
         ...
 
     @overload
     def iterrows(
         self, column_names: Union[str, Iterable[str]]
     ) -> Union[
-        Iterable[Dict[str, Optional[ColumnType]]], Iterable[Optional[ColumnType]]
+        Iterable[Dict[str, Optional[OutputType]]], Iterable[Optional[OutputType]]
     ]:
         ...
 
     def iterrows(
         self, column_names: Optional[Union[str, Iterable[str]]] = None
     ) -> Union[
-        Iterable[Dict[str, Optional[ColumnType]]], Iterable[Optional[ColumnType]]
+        Iterable[Dict[str, Optional[OutputType]]], Iterable[Optional[OutputType]]
     ]:
         """
         Iterate through dataset rows.
@@ -1877,12 +1877,12 @@ class Dataset:
         ...
 
     @overload
-    def pop(self, item: IndexType) -> Dict[str, Optional[ColumnType]]:
+    def pop(self, item: IndexType) -> Dict[str, Optional[OutputType]]:
         ...
 
     def pop(
         self, item: Union[str, IndexType]
-    ) -> Union[np.ndarray, Dict[str, Optional[ColumnType]]]:
+    ) -> Union[np.ndarray, Dict[str, Optional[OutputType]]]:
         """
         Delete a dataset column or row and return it.
         """
@@ -2734,7 +2734,7 @@ class Dataset:
 
     def _get_value(
         self, column: h5py.Dataset, index: IndexType, check_index: bool = False
-    ) -> Optional[ColumnType]:
+    ) -> Optional[OutputType]:
         if check_index:
             self._assert_index_exists(index)
         value = column[index]
@@ -3247,7 +3247,7 @@ class Dataset:
             np.bool_, np.integer, np.floating, bytes, str, np.ndarray, h5py.Reference
         ],
         column: h5py.Dataset,
-    ) -> Optional[ColumnType]:
+    ) -> Optional[OutputType]:
         dtype = self._get_dtype(column)
         if column.attrs.get("external", False):
             value = cast(bytes, value)
@@ -3304,7 +3304,7 @@ class Dataset:
         self,
         value: Union[str, bytes],
         dtype: DType,
-    ) -> Optional[ExternalColumnType]:
+    ) -> Optional[ExternalOutputType]:
         if not value:
             return None
         if isinstance(value, bytes):

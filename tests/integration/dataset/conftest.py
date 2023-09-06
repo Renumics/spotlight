@@ -6,7 +6,7 @@ import os.path
 import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Sequence, Union, Dict
+from typing import List, Optional, Sequence, Union, Dict, cast
 
 import numpy as np
 import pytest
@@ -22,9 +22,7 @@ from renumics.spotlight import (
     Dataset,
     Window,
 )
-from renumics.spotlight.dataset.typing import ColumnInputType
-from renumics.spotlight.dtypes.typing import ColumnType
-
+from renumics.spotlight.dataset.typing import OutputType, ColumnInputType
 from renumics.spotlight.dataset import VALUE_TYPE_BY_DTYPE_NAME
 
 
@@ -712,7 +710,7 @@ def descriptors_dataset() -> Dataset:
 
 
 def approx(
-    expected: Optional[ColumnType], actual: ColumnInputType, dtype_name: str
+    expected: ColumnInputType, actual: Optional[OutputType], dtype_name: str
 ) -> bool:
     """
     Check whether expected and actual dataset values are almost equal.
@@ -776,6 +774,8 @@ def approx(
                 )
             )
         if issubclass(type_, Sequence1D):
+            actual = cast(Sequence1D, actual)
+            expected = cast(Sequence1D, expected)
             return approx(actual.index, expected.index, "array") and approx(
                 actual.value, expected.value, "array"
             )

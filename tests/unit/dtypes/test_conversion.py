@@ -188,8 +188,8 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     """
     Convert values to sequence
     """
-    assert np.array_equal(  # type: ignore
-        convert_to_dtype(value, dtypes.sequence_1d_dtype), target_value
+    assert np.array_equal(
+        convert_to_dtype(value, dtypes.sequence_1d_dtype), target_value  # type: ignore
     )
 
 
@@ -316,7 +316,7 @@ def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
         "video-bytes",
     ],
 )
-def test_simple_conversion(dtype: dtypes.DType, value: Any, target_value: Any):
+def test_simple_conversion(dtype: dtypes.DType, value: Any, target_value: Any) -> None:
     """
     Convert values for simple view.
     """

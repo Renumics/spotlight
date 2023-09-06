@@ -171,7 +171,8 @@ module = [
     "cleanlab.*",
     "machineid",
     "filetype",
-    "datasets"
+    "datasets",
+    "diffimg"
 ]
 ignore_missing_imports = true
 

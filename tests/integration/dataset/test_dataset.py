@@ -8,7 +8,7 @@ import string
 import tempfile
 from datetime import datetime
 from glob import glob
-from typing import List
+from typing import List, Optional, cast
 
 import numpy as np
 import pandas as pd
@@ -24,6 +24,8 @@ from renumics.spotlight import (
     Video,
 )
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
+
+from renumics.spotlight.dataset.typing import OutputType
 from .conftest import approx, get_append_column_fn_name, ColumnData
 
 
@@ -518,13 +520,13 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                         dataset[key] = value
                 dataset[key] = values
             for i in range(-len(dataset), len(dataset)):
-                dataset[i] = dataset[i]
-            dataset[0] = dataset[-3]
-            dataset[-3] = dataset[5]
-            dataset[2] = dataset[-1]
+                dataset[i] = dataset[i]  # type: ignore
+            dataset[0] = dataset[-3]  # type: ignore
+            dataset[-3] = dataset[5]  # type: ignore
+            dataset[2] = dataset[-1]  # type: ignore
             dataset.append_row(**dataset[-2])
             dataset.append_row(**dataset[1])
-            dataset[-7] = dataset[7]
+            dataset[-7] = dataset[7]  # type: ignore
             for key in dataset.keys():
                 for i in range(-len(dataset), len(dataset)):
                     dataset[key, i] = dataset[key, i]
@@ -610,15 +612,16 @@ def test_iterrows(
             for dataset_row in dataset.iterrows():
                 assert dataset_row.keys() == set(dataset.keys())
             for keys in (keys1, keys2, keys3, keys4, keys5, keys6):
-                for dataset_row in dataset.iterrows(keys):
-                    assert dataset_row.keys() == set(keys)
-            for dataset_row in dataset.iterrows(sample.name for sample in data):
-                assert dataset_row.keys() == set(sample.name for sample in data)
+                for dataset_row1 in dataset.iterrows(keys):
+                    assert dataset_row1.keys() == set(keys)  # type: ignore
+            for dataset_row2 in dataset.iterrows(sample.name for sample in data):
+                assert dataset_row2.keys() == set(sample.name for sample in data)  # type: ignore
             for sample in data:
                 values = sample.values
                 dtype_name = dataset.get_dtype(sample.name).name
                 dataset_values = dataset.iterrows(sample.name)
                 for value, dataset_value in zip(values, dataset_values):
+                    dataset_value = cast(Optional[OutputType], dataset_value)
                     assert approx(value, dataset_value, dtype_name)
 
 
@@ -892,8 +895,8 @@ def test_import_csv_with_dtype() -> None:
         df["int"] = df["int1"] = df["int2"] = np.random.randint(-1000, 1000, 10)
         df["float"] = df["float1"] = np.random.random(10)
         indices = np.random.choice(len(df), 3, replace=False)
-        df.loc[indices, "float"] = [np.nan, np.inf, -np.inf]
-        df.loc[indices, "float1"] = [np.nan, np.inf, -np.inf]
+        df.loc[indices, "float"] = [np.nan, np.inf, -np.inf]  # type: ignore
+        df.loc[indices, "float1"] = [np.nan, np.inf, -np.inf]  # type: ignore
         df["string"] = df["string1"] = [
             "".join(
                 np.random.choice(list(string.ascii_letters), np.random.randint(1, 22))
@@ -967,9 +970,9 @@ def test_import_csv_with_dtype() -> None:
         df["image3"] = df["image2"]
         df["mesh3"] = df["mesh2"]
         df["video3"] = df["video2"]
-        optional_or_nan_columns = list(df.columns.difference(set(columns)))
+        optional_or_nan_columns: List[str] = list(df.columns.difference(columns))
 
-        df.loc[indices, optional_or_nan_columns] = ""
+        df.loc[indices, optional_or_nan_columns] = ""  # type: ignore
 
         df.to_csv(csv_file, index=False)
 

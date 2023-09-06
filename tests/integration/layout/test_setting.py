@@ -11,7 +11,7 @@ from renumics.spotlight import layout
 from renumics.spotlight import settings
 
 
-def test_settings_layout_is_used(monkeypatch: MonkeyPatch):
+def test_settings_layout_is_used(monkeypatch: MonkeyPatch) -> None:
     """
     Test if the layout set via env var is actually used in the frontend.
     """
@@ -32,7 +32,7 @@ def test_settings_layout_is_used(monkeypatch: MonkeyPatch):
     assert "env_layout_table" in app_layout
 
 
-def test_layout_from_params_has_priority(monkeypatch: MonkeyPatch):
+def test_layout_from_params_has_priority(monkeypatch: MonkeyPatch) -> None:
     """
     Test if the layout set via layout= param in spotlight.show is preferred
     over the layout set via env.

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import httpx
 from renumics import spotlight
-from renumics.spotlight.dtypes.typing import ColumnType
+from renumics.spotlight.dataset.typing import OutputType
 
 from .data import COLUMNS
 
@@ -31,7 +31,7 @@ def test_get_table_returns_http_ok(dataset_path: str) -> None:
         ("embedding", np.ndarray),
     ],
 )
-def test_custom_dtypes(dataset_path: str, col: str, dtype: Type[ColumnType]) -> None:
+def test_custom_dtypes(dataset_path: str, col: str, dtype: Type[OutputType]) -> None:
     """
     Test h5 data source with custom dtypes.
     """

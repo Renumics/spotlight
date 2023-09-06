@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from renumics.spotlight import Audio, Embedding, Mesh, Sequence1D, Image, Video
-from .conftest import approx
+from ..dataset.conftest import approx
 
 
 SEED = 42
@@ -45,9 +45,9 @@ class TestEmbedding:
         embedding = Embedding(array)
 
         assert approx(array, embedding.data, "Embedding")
-        encoded_image = embedding.encode()
-        decoded_image = Embedding.decode(encoded_image)
-        assert approx(embedding, decoded_image, "Embedding")
+        encoded_embedding = embedding.encode()
+        decoded_embedding = Embedding.decode(encoded_embedding)
+        assert approx(embedding, decoded_embedding.data, "Embedding")
 
     @pytest.mark.parametrize("input_type", ["array", "list", "tuple"])
     def test_zero_length_embedding(self, input_type: str) -> None:
@@ -246,7 +246,7 @@ class TestImage:
         assert filepath.is_file()
         with filepath.open("rb") as file:
             blob = file.read()
-            _ = Image.from_file(blob)
+            _ = Image.from_bytes(blob)
 
     @pytest.mark.parametrize(
         "filename",

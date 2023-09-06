@@ -12,7 +12,6 @@ from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrUrlTy
 from renumics.spotlight.media import (
     Array1dLike,
     ImageLike,
-    MediaType,
     Embedding,
     Mesh,
     Sequence1D,
@@ -22,13 +21,15 @@ from renumics.spotlight.media import (
 )
 
 
-ColumnType = Union[bool, int, float, str, datetime, np.ndarray, MediaType]
+OutputType = Union[
+    bool, int, float, str, datetime, np.ndarray, Sequence1D, Audio, Image, Mesh, Video
+]
 # Only pure types.
-SimpleColumnType = Union[bool, int, float, str, datetime, Embedding]
-RefColumnType = Union[np.ndarray, Embedding, Mesh, Sequence1D, Image, Audio, Video]
-FileBasedColumnType = Union[Audio, Image, Mesh, Video]
-ExternalColumnType = FileBasedColumnType
-ArrayBasedColumnType = Union[Embedding, Image, Sequence1D]
+SimpleOutputType = Union[bool, int, float, str, datetime, Embedding]
+RefOutputType = Union[np.ndarray, Embedding, Mesh, Sequence1D, Image, Audio, Video]
+FileBasedOutputType = Union[Audio, Image, Mesh, Video]
+ExternalOutputType = FileBasedOutputType
+ArrayBasedOutputType = Union[Embedding, Image, Sequence1D]
 # Pure types, compatible types and `None`.
 BoolColumnInputType = Optional[BoolType]
 IntColumnInputType = Optional[IntType]
@@ -60,10 +61,10 @@ SimpleColumnInputType = Union[
 RefColumnInputType = Union[
     ArrayColumnInputType,
     EmbeddingColumnInputType,
+    Sequence1DColumnInputType,
     AudioColumnInputType,
     ImageColumnInputType,
     MeshColumnInputType,
-    Sequence1DColumnInputType,
     VideoColumnInputType,
 ]
 ColumnInputType = Union[SimpleColumnInputType, RefColumnInputType]
