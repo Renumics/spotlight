@@ -4,77 +4,27 @@ Helper methods for tests
 
 import os.path
 import tempfile
-from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Sequence, Union, Dict, cast
+from typing import Iterator, List
 
 import numpy as np
 import pytest
 from _pytest.fixtures import SubRequest
 
-from renumics.spotlight import (
-    Embedding,
-    Mesh,
-    Sequence1D,
-    Image,
-    Audio,
-    Video,
-    Dataset,
-    Window,
+from renumics.spotlight import Embedding, Mesh, Sequence1D, Image, Audio, Dataset
+
+from .data import (
+    ColumnData,
+    categorical_data,
+    array_data,
+    window_data,
+    embedding_data,
+    sequence_1d_data,
+    audio_data,
+    image_data,
+    mesh_data,
+    video_data,
 )
-from renumics.spotlight.dataset.typing import OutputType, ColumnInputType
-from renumics.spotlight.dataset import VALUE_TYPE_BY_DTYPE_NAME
-
-
-@dataclass
-class ColumnData:
-    """
-    Data for a dataset column.
-    """
-
-    name: str
-    dtype_name: str
-    values: Union[Sequence[ColumnInputType], np.ndarray]
-    optional: bool = False
-    default: ColumnInputType = None
-    description: Optional[str] = None
-    attrs: Dict = field(default_factory=dict)
-
-
-def get_append_column_fn_name(dtype_name: str) -> str:
-    """
-    Get name of the `append_column` dataset method for the given column type.
-    """
-
-    if dtype_name == "bool":
-        return "append_bool_column"
-    if dtype_name == "int":
-        return "append_int_column"
-    if dtype_name == "float":
-        return "append_float_column"
-    if dtype_name == "str":
-        return "append_string_column"
-    if dtype_name == "datetime":
-        return "append_datetime_column"
-    if dtype_name == "array":
-        return "append_array_column"
-    if dtype_name == "Embedding":
-        return "append_embedding_column"
-    if dtype_name == "Image":
-        return "append_image_column"
-    if dtype_name == "Sequence1D":
-        return "append_sequence_1d_column"
-    if dtype_name == "Mesh":
-        return "append_mesh_column"
-    if dtype_name == "Audio":
-        return "append_audio_column"
-    if dtype_name == "Category":
-        return "append_categorical_column"
-    if dtype_name == "Video":
-        return "append_video_column"
-    if dtype_name == "Window":
-        return "append_window_column"
-    raise TypeError(dtype_name)
 
 
 @pytest.fixture
@@ -222,333 +172,8 @@ def complex_data() -> List[ColumnData]:
     )
 
 
-def array_data() -> List[ColumnData]:
-    """
-    Get a list of array column data.
-    """
-    return [
-        ColumnData(
-            "array",
-            "array",
-            [
-                np.array([1, 2]),
-                np.array([3, 4]),
-                np.array([5, 6]),
-                np.array([7, 8]),
-                np.array([9, 10]),
-                np.array([11, 12]),
-            ],
-            description="list of np.ndarray of fixed shape",
-        ),
-        ColumnData(
-            "array1",
-            "array",
-            [
-                np.zeros(0, np.int64),
-                np.array([1], np.int64),
-                np.array([2, 3], np.int64),
-                np.array([4, 5, 6], np.int64),
-                np.array([7, 8, 9, 10], np.int64),
-                np.array([11, 12, 13, 14, 15], np.int64),
-            ],
-            description="list of np.ndarray of variable shape",
-        ),
-        ColumnData(
-            "array2",
-            "array",
-            [
-                1.0,
-                [],
-                [[[[]]]],
-                [[1.0, 2, 3], [4, 5, 6]],
-                (7.0, 8, 9, 10),
-                np.array([11.0, 12, 13, 14, 15]),
-            ],
-            description="mixed types",
-        ),
-        ColumnData(
-            "array3", "array", np.random.rand(6, 2, 2), description="batch array"
-        ),
-    ]
-
-
-def embedding_data() -> List[ColumnData]:
-    """
-    Get a list of embedding column data.
-    """
-    return [
-        ColumnData(
-            "embedding",
-            "Embedding",
-            [
-                Embedding(np.array([1.0, 2.0])),
-                Embedding(np.array([3.0, 4.0])),
-                Embedding(np.array([5.0, 6.0])),
-                Embedding(np.array([7.0, np.nan])),
-                Embedding(np.array([np.nan, 8.0])),
-                Embedding(np.array([np.nan, np.nan])),
-            ],
-        ),
-        ColumnData(
-            "embedding1",
-            "Embedding",
-            [
-                [1.0, 2.0],
-                (3.0, 4.0),
-                np.array([5.0, 6.0]),
-                [7.0, float("nan")],
-                (float("nan"), 8.0),
-                np.array([np.nan, np.nan]),
-            ],
-            description="mixed types",
-        ),
-        ColumnData(
-            "embedding2", "Embedding", np.random.rand(6, 2), description="batch array"
-        ),
-    ]
-
-
-def image_data() -> List[ColumnData]:
-    """
-    Get a list of image column data.
-    """
-    return [
-        ColumnData(
-            "image",
-            "Image",
-            [
-                Image.empty(),
-                Image.empty(),
-                Image(np.zeros((10, 10), dtype=np.uint8)),
-                Image(np.zeros((10, 20, 1), dtype=np.int64)),
-                Image(np.zeros((20, 10, 3), dtype=np.float64)),
-                Image(np.zeros((20, 20, 4), dtype=np.uint8)),
-            ],
-        ),
-        ColumnData(
-            "image1",
-            "Image",
-            [
-                [[0]],
-                [[[1.0]]],
-                [[[127, 127, 127]]],
-                np.zeros((10, 10), dtype=np.uint8),
-                np.zeros((20, 10), dtype=np.int64),
-                np.zeros((20, 10, 3), dtype=np.float64),
-            ],
-            description="mixed types",
-        ),
-        ColumnData(
-            "image2",
-            "Image",
-            np.random.randint(0, 256, (6, 10, 20, 3), "uint8"),
-            description="batch array",
-        ),
-    ]
-
-
-def sequence_1d_data() -> List[ColumnData]:
-    """
-    Get a list of 1d-sequence column data.
-    """
-    return [
-        ColumnData(
-            "sequence_1d",
-            "Sequence1D",
-            [
-                Sequence1D(np.array([0.0, 1.0]), np.array([1.0, 2.0])),
-                Sequence1D(np.array([0.0, 1.0]), np.array([3.0, 4.0])),
-                Sequence1D(np.array([0.0, 1.0]), np.array([5.0, 6.0])),
-                Sequence1D(np.array([0.0, 1.0]), np.array([7.0, 8.0])),
-                Sequence1D(np.array([np.inf, 1.0]), np.array([-np.inf, 1.0])),
-                Sequence1D(np.array([np.nan, np.nan]), np.array([np.nan, np.nan])),
-            ],
-            description="fixed shape",
-        ),
-        ColumnData(
-            "sequence_1d1",
-            "Sequence1D",
-            [
-                Sequence1D.empty(),
-                Sequence1D(np.array([0.0]), np.array([1.0])),
-                Sequence1D(np.array([0.0, 1.0, 2.0]), np.array([2.0, 3.0, 4.0])),
-                Sequence1D(
-                    np.array([0.0, 1.0, 2.0, 3.0]), np.array([5.0, 6.0, 7.0, 8.0])
-                ),
-                Sequence1D(np.array([np.inf, 1.0]), np.array([-np.inf, 1.0])),
-                Sequence1D(np.array([np.nan, np.nan]), np.array([np.nan, np.nan])),
-            ],
-            description="variable shape",
-        ),
-        ColumnData(
-            "sequence_1d2",
-            "Sequence1D",
-            [
-                [],
-                [1.0],
-                (float("nan"), float("inf"), -float("inf")),
-                np.array([5.0, 6.0, 7.0, 8.0]),
-                np.array([-np.inf, 1.0]),
-                np.array([np.nan, np.nan]),
-            ],
-            description="variable shape, mixed types",
-        ),
-    ]
-
-
-def mesh_data() -> List[ColumnData]:
-    """
-    Get a list of mesh column data.
-    """
-    return [
-        ColumnData(
-            "mesh",
-            "Mesh",
-            [
-                Mesh.empty(),
-                Mesh.empty(),
-                Mesh(
-                    np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]),
-                    np.array([[0, 1, 2]]),
-                ),
-                Mesh(
-                    np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]),
-                    np.array([[0, 1, 2]]),
-                ),
-                Mesh(
-                    np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]),
-                    np.array([[0, 1, 2]]),
-                ),
-                Mesh(
-                    np.array(
-                        [
-                            [0.0, 0.0, 0.0],
-                            [0.0, 0.0, 1.0],
-                            [0.0, 1.0, 0.0],
-                            [1.0, 0.0, 0.0],
-                        ]
-                    ),
-                    np.array([[0, 1, 2], [0, 1, 3], [1, 2, 3]]),
-                ),
-            ],
-            description="",
-        ),
-    ]
-
-
-def audio_data() -> List[ColumnData]:
-    """
-    Get a list of audio column data.
-    """
-
-    samplerate = 44100
-    time = np.linspace(0.0, 1.0, samplerate)
-    amplitude = np.iinfo(np.int16).max * 0.4
-    data = np.array(amplitude * np.sin(2.0 * np.pi * 1000 * time), dtype=np.int16)
-    audio_data_left, audio_data_right = data, data
-    return [
-        ColumnData(
-            "audio",
-            "Audio",
-            6
-            * [
-                Audio(
-                    samplerate,
-                    np.array([audio_data_left, audio_data_right]).transpose(),
-                ),
-            ],
-            description="List of 3 stereo Audio Signals",
-        ),
-        ColumnData(
-            "audio1",
-            "Audio",
-            6
-            * [
-                Audio(
-                    samplerate,
-                    np.array([audio_data_right, audio_data_right]).transpose(),
-                ),
-            ],
-            description="List of 2 stereo Audio Signals",
-        ),
-    ]
-
-
-def categorical_data() -> List[ColumnData]:
-    """
-    Get a list of categorical column data.
-    """
-    return [
-        ColumnData(
-            "category",
-            "Category",
-            2 * ["red", "blue", "red"],
-            description="strings of three categories",
-            attrs={"categories": ["red", "green", "blue"]},
-        ),
-        ColumnData(
-            "category1",
-            "Category",
-            2 * ["red", "blue", "red"],
-            description="strings of three categories",
-            attrs={"categories": ["red", "green", "blue"]},
-        ),
-    ]
-
-
-def video_data() -> List[ColumnData]:
-    """
-    Get a list of video column data.
-    """
-    return [
-        ColumnData(
-            "video",
-            "Video",
-            [
-                Video.empty(),
-                Video.empty(),
-                Video.from_file("data/videos/sea-360p.avi"),
-                Video.from_file("data/videos/sea-360p.mp4"),
-                Video.from_file("data/videos/sea-360p.wmv"),
-                Video.empty(),
-            ],
-            description="",
-        ),
-    ]
-
-
-def window_data() -> List[ColumnData]:
-    """
-    Get a list of window column data.
-    """
-    return [
-        ColumnData(
-            "window",
-            "Window",
-            np.random.uniform(-1, 1, (6, 2)),
-        ),
-        ColumnData(
-            "window1",
-            "Window",
-            np.random.randint(-1000, 1000, (6, 2)),
-        ),
-        ColumnData(
-            "window2",
-            "Window",
-            [
-                (1, 2),
-                (1.0, np.nan),
-                [np.nan, np.inf],
-                [1.0, -1.0],
-                np.array([1, 2]),
-                np.array([np.nan, -np.inf]),
-            ],
-        ),
-    ]
-
-
 @pytest.fixture
-def empty_dataset() -> Dataset:
+def empty_dataset() -> Iterator[Dataset]:
     """
     An empty dataset.
     """
@@ -559,7 +184,7 @@ def empty_dataset() -> Dataset:
 
 
 @pytest.fixture
-def categorical_color_dataset(request: SubRequest) -> Dataset:
+def categorical_color_dataset(request: SubRequest) -> Iterator[Dataset]:
     """a dataset with category column"""
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
@@ -575,7 +200,7 @@ def categorical_color_dataset(request: SubRequest) -> Dataset:
 
 
 @pytest.fixture
-def fancy_indexing_dataset() -> Dataset:
+def fancy_indexing_dataset() -> Iterator[Dataset]:
     """a dataset with a single range column"""
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
@@ -588,7 +213,7 @@ def fancy_indexing_dataset() -> Dataset:
 
 
 @pytest.fixture
-def descriptors_dataset_for_compress_dataset() -> Dataset:
+def descriptors_dataset_for_compress_dataset() -> Iterator[Dataset]:
     """
     dataset without faulty/ problematic columns
     """
@@ -618,7 +243,7 @@ def descriptors_dataset_for_compress_dataset() -> Dataset:
 
 
 @pytest.fixture
-def descriptors_dataset() -> Dataset:
+def descriptors_dataset() -> Iterator[Dataset]:
     """
     builds descriptor testing dataset
     """
@@ -707,76 +332,3 @@ def descriptors_dataset() -> Dataset:
             data.append_audio_column("audio_none", [audio_1, audio_6, audio_1])
 
             yield data
-
-
-def approx(
-    expected: ColumnInputType, actual: Optional[OutputType], dtype_name: str
-) -> bool:
-    """
-    Check whether expected and actual dataset values are almost equal.
-    """
-    type_ = VALUE_TYPE_BY_DTYPE_NAME[dtype_name]
-    if expected is None and actual is None:
-        return True
-    if issubclass(type_, (bool, int, float, str)):
-        # Cast and compare scalars.
-        expected = np.array(expected, dtype=type_)
-        actual = np.array(actual, dtype=type_)
-        return approx(expected, actual, "array")
-    if issubclass(type_, datetime):
-        # Cast and compare datetimes.
-        expected = np.array(expected, dtype="datetime64")
-        actual = np.array(actual, dtype="datetime64")
-        return approx(expected, actual, "array")
-    if issubclass(type_, Window):
-        return approx(np.array(expected, dtype=float), np.array(actual), "array")
-    if issubclass(type_, np.ndarray):
-        # Cast and compare arrays.
-        expected = np.asarray(expected)
-        actual = np.asarray(actual)
-        if actual.shape != expected.shape:
-            return False
-        if issubclass(expected.dtype.type, np.inexact):
-            return np.allclose(actual, expected, equal_nan=True)
-        return actual.tolist() == expected.tolist()
-    if issubclass(type_, (Embedding, Image, Mesh, Sequence1D, Audio, Video)):
-        # Cast and compare custom types.
-        if not isinstance(expected, type_):
-            expected = type_(expected)
-        if not isinstance(actual, type_):
-            actual = type_(actual)
-        if issubclass(type_, (Embedding, Image, Video)):
-            return approx(actual.data, expected.data, "array")
-        if issubclass(type_, Audio):
-            return (
-                approx(actual.data, expected.data, "array")
-                and actual.sampling_rate == expected.sampling_rate
-            )
-        if issubclass(type_, Mesh):
-            return (
-                approx(actual.points, expected.points, "array")
-                and approx(actual.triangles, expected.triangles, "array")
-                and len(actual.point_displacements) == len(expected.point_displacements)
-                and all(
-                    approx(actual_displacement, expected_displacement, "array")
-                    for actual_displacement, expected_displacement in zip(
-                        actual.point_displacements, expected.point_displacements
-                    )
-                )
-                and actual.point_attributes.keys() == expected.point_attributes.keys()
-                and all(
-                    approx(
-                        actual.point_attributes[attribute_name],
-                        point_attribute,
-                        "array",
-                    )
-                    for attribute_name, point_attribute in expected.point_attributes.items()
-                )
-            )
-        if issubclass(type_, Sequence1D):
-            actual = cast(Sequence1D, actual)
-            expected = cast(Sequence1D, expected)
-            return approx(actual.index, expected.index, "array") and approx(
-                actual.value, expected.value, "array"
-            )
-    raise TypeError(f"Invalid `type_` received: value {type_} of type {type(type_)}.")

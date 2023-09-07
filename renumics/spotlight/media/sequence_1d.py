@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 import numpy as np
 
@@ -36,7 +36,7 @@ class Sequence1D(MediaType):
         self,
         index: Optional[Array1dLike],
         value: Optional[Array1dLike] = None,
-        dtype: Optional[Union[str, np.dtype]] = None,
+        dtype: Optional[Union[str, np.dtype, Type[np.number]]] = None,
     ) -> None:
         if value is None:
             if index is None:

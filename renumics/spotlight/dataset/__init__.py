@@ -95,6 +95,7 @@ from renumics.spotlight.dtypes import (
     video_dtype,
 )
 
+
 from . import exceptions
 from .typing import (
     OutputType,
@@ -296,10 +297,10 @@ class Dataset:
             return 0
         if is_float_dtype(dtype):
             return float("nan")
+        if is_str_dtype(dtype):
+            return ""
         if is_datetime_dtype(dtype):
             return np.datetime64("NaT")
-        if is_str_dtype(dtype) or is_category_dtype(dtype):
-            return ""
         if is_window_dtype(dtype):
             return [np.nan, np.nan]
         return None
@@ -2223,12 +2224,7 @@ class Dataset:
             attrs: Optional more DType specific attributes .
         """
         self._assert_is_writable()
-        if not isinstance(name, str):
-            raise TypeError(
-                f"`name` argument should be a string, but value {name} of type "
-                f"`{type(name)}` received.`"
-            )
-        self._assert_column_exists(name)
+        self._assert_column_exists(name, check_type=True)
 
         if default is not None:
             optional = True
@@ -2278,6 +2274,10 @@ class Dataset:
                 raise exceptions.InvalidAttributeError(
                     f'Attribute "categories" for column "{name}" contains '
                     "invalid dict - keys and values must be unique"
+                )
+            if -1 in attrs["categories"].values():
+                raise exceptions.InvalidAttributeError(
+                    f'Invalid categories received for column "{name}". Code `-1` is reserved.'
                 )
             if column.attrs.get("category_keys") is not None:
                 values_must_include = column[:]
@@ -2341,29 +2341,29 @@ class Dataset:
             old_default = column.attrs.pop("default", None)
             # Set new default value.
             try:
+                print(default, old_default)
                 if default is None and old_default is None:
                     default = self._default_default(dtype)
-                    if (
-                        default is None
-                        and dtype.name == "Embedding"
-                        and not self._is_ref_column(column)
-                    ):
-                        # For a non-ref `Embedding` column, replace `None` with an empty array.
-                        default = np.empty(0, column.dtype.metadata["vlen"])
-                if dtype.name == "Category" and default != "":
-                    if default not in column.attrs["category_keys"]:
+                    if default is None:
+                        if is_embedding_dtype(dtype) and not self._is_ref_column(
+                            column
+                        ):
+                            # For a non-ref `Embedding` column, replace `None` with an empty array.
+                            default = np.empty(0, column.dtype.metadata["vlen"])
+                if is_category_dtype(dtype) and default is not None:
+                    categories: List[str] = column.attrs["category_keys"].tolist()
+                    if default not in categories:
                         column.attrs["category_values"] = np.append(
-                            column.attrs["category_values"],
-                            max(column.attrs["category_values"] + 1),
+                            column.attrs["category_values"], -1
                         ).astype(dtype=np.int32)
-                        column.attrs["category_keys"] = np.append(
-                            column.attrs["category_keys"], np.array(default)
-                        )
+                        column.attrs["category_keys"] = categories + [default]
                 if default is not None:
                     encoded_value = self._encode_value(default, column)
                     if dtype.name == "datetime" and encoded_value is None:
                         encoded_value = ""
                     column.attrs["default"] = encoded_value
+                elif is_category_dtype(dtype):
+                    column.attrs["default"] = -1
 
             except Exception as e:
                 # Rollback
@@ -2819,9 +2819,14 @@ class Dataset:
                 )
             except KeyError as e:
                 column_name = self._get_column_name(column)
+                if dtype.categories:
+                    categories_str = ", ".join(dtype.categories.keys())
+                else:
+                    categories_str = "<empty>"
                 raise exceptions.InvalidValueError(
-                    f'Values for the categorical column "{column_name}" '
-                    f"contain unknown categories."
+                    f"Unknown value(s) received for categorical column "
+                    f"'{column_name}'. Valid values for this column are: "
+                    f"{categories_str}."
                 ) from e
         if is_datetime_dtype(dtype):
             if _check_valid_array(values, dtype):
@@ -3063,10 +3068,19 @@ class Dataset:
         self._assert_valid_value_type(value, dtype, column_name)
         attrs = column.attrs
         if is_category_dtype(dtype):
-            if dtype.categories is None:
-                return -1
-            else:
-                return dtype.categories.get(value, -1)  # type: ignore
+            value = cast(str, value)
+            if dtype.categories:
+                try:
+                    return dtype.categories[value]
+                except KeyError:
+                    ...
+                categories_str = ", ".join(dtype.categories.keys())
+            categories_str = "<empty>"
+            raise exceptions.InvalidValueError(
+                f"Unknown value '{value}' of type {type(value)} received for "
+                f"categorical column '{column_name}'. Valid values for this "
+                f"column are: {categories_str}."
+            )
         if is_window_dtype(dtype):
             value = np.asarray(value, dtype=column.dtype)
             if value.shape == (2,):
@@ -3294,11 +3308,9 @@ class Dataset:
         if not ref:
             return None
         value = self._resolve_ref(ref, column_name)[()]
-        value = cast(Union[np.ndarray, np.void], value)
         if is_array_dtype(dtype) or is_embedding_dtype(dtype):
-            return value  # type: ignore
-        value_type = VALUE_TYPE_BY_DTYPE_NAME[dtype.name]
-        return value_type.decode(value)  # type: ignore
+            return np.asarray(value)
+        return VALUE_TYPE_BY_DTYPE_NAME[dtype.name].decode(value)  # type: ignore
 
     def _decode_external_value(
         self,

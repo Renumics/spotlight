@@ -10,10 +10,13 @@ from renumics.spotlight import Dataset
 @pytest.mark.parametrize(
     "categorical_color_dataset", ["red", "green", None], indirect=True
 )
-def test_categorical_unknown_category(categorical_color_dataset: Dataset) -> None:
+@pytest.mark.parametrize("value", ["invalid_color", ""])
+def test_categorical_unknown_category(
+    categorical_color_dataset: Dataset, value: str
+) -> None:
     """adding not existing category value should add `None`"""
-    categorical_color_dataset.append_row(my_new_cat="invalid_color")
-    assert categorical_color_dataset["my_new_cat", -1] is None
+    with pytest.raises(exceptions.InvalidValueError):
+        categorical_color_dataset.append_row(my_new_cat=value)
 
 
 @pytest.mark.parametrize(
@@ -37,7 +40,7 @@ def test_categorical_new_category(categorical_color_dataset: Dataset) -> None:
 @pytest.mark.parametrize(
     "categorical_color_dataset", ["red", "green", None], indirect=True
 )
-def test_categorical_remvove_used_raises(categorical_color_dataset: Dataset) -> None:
+def test_categorical_remove_used_raises(categorical_color_dataset: Dataset) -> None:
     """removing used categories should raise"""
     with pytest.raises(exceptions.InvalidAttributeError):
         categorical_color_dataset.set_column_attributes(
@@ -48,7 +51,7 @@ def test_categorical_remvove_used_raises(categorical_color_dataset: Dataset) -> 
 @pytest.mark.parametrize(
     "categorical_color_dataset", ["red", "green", None], indirect=True
 )
-def test_categorical_remvove_unused(categorical_color_dataset: Dataset) -> None:
+def test_categorical_remove_unused(categorical_color_dataset: Dataset) -> None:
     """removing unused categories should work"""
     old_categories = categorical_color_dataset.get_column_attributes("my_new_cat")[
         "categories"

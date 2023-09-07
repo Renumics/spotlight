@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 import numpy as np
 
@@ -29,7 +29,9 @@ class Embedding(MediaType):
     data: np.ndarray
 
     def __init__(
-        self, data: Array1dLike, dtype: Optional[Union[str, np.dtype]] = None
+        self,
+        data: Array1dLike,
+        dtype: Optional[Union[str, np.dtype, Type[np.number]]] = None,
     ) -> None:
         data_array = np.asarray(data, dtype)
         if data_array.ndim != 1 or data_array.size == 0:

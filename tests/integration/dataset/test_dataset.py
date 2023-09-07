@@ -26,7 +26,9 @@ from renumics.spotlight import (
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
 
 from renumics.spotlight.dataset.typing import OutputType
-from .conftest import approx, get_append_column_fn_name, ColumnData
+from .conftest import ColumnData
+from .helpers import get_append_column_fn_name
+from ..helpers import approx
 
 
 @pytest.mark.parametrize(
@@ -202,7 +204,8 @@ def test_append_row(
                 for name in names:
                     value = data_dict[name]
                     dataset_value = dataset_row[name]
-                    assert approx(value, dataset_value, dataset.get_dtype(name).name)
+                    dtype = dataset.get_dtype(name)
+                    assert approx(value, dataset_value, dtype.name)
         with Dataset(output_h5_file, "a") as dataset:
             dataset_length = len(dataset)
             for i in range(length):
@@ -367,7 +370,7 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
     assert approx(~null_mask, empty_dataset.notnull("datetime"), "array")
     empty_dataset.append_categorical_column(
         "category",
-        ["foo", "foo", "", "", "", "barbaz", "barbaz", "barbaz", "foo", ""],
+        ["foo", "foo", None, None, None, "barbaz", "barbaz", "barbaz", "foo", None],
         optional=True,
         categories=["barbaz", "foo"],
     )
