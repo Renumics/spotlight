@@ -2341,7 +2341,6 @@ class Dataset:
             old_default = column.attrs.pop("default", None)
             # Set new default value.
             try:
-                print(default, old_default)
                 if default is None and old_default is None:
                     default = self._default_default(dtype)
                     if default is None:
