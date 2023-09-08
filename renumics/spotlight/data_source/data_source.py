@@ -57,6 +57,13 @@ class DataSource(ABC):
         """
 
     @property
+    @abstractmethod
+    def intermediate_dtypes(self) -> DTypeMap:
+        """
+        The dtypes of intermediate values
+        """
+
+    @property
     def df(self) -> Optional[pd.DataFrame]:
         """
         Get the source data as a pandas dataframe if possible

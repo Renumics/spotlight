@@ -35,6 +35,7 @@ from filetype import filetype
 
 import numpy as np
 import trimesh
+import PIL.Image
 import validators
 
 from renumics.spotlight.typing import PathOrUrlType, PathType
@@ -357,6 +358,13 @@ def _(value: np.ndarray, _: DType) -> bytes:
     return Image(value).encode().tolist()
 
 
+@convert("Image", simple=False)
+def _(value: PIL.Image.Image, _: DType) -> bytes:
+    buffer = io.BytesIO()
+    value.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 @convert("Audio", simple=False)
 def _(value: Union[str, np.str_], _: DType) -> bytes:
     try:
@@ -420,6 +428,11 @@ def _(_: np.ndarray, _dtype: DType) -> str:
 
 
 @convert("Image", simple=True)
+def _(_: PIL.Image.Image, _dtype: DType) -> str:
+    return "<PIL.Image>"
+
+
+@convert("Image", simple=True)
 @convert("Audio", simple=True)
 @convert("Video", simple=True)
 @convert("Mesh", simple=True)
@@ -438,7 +451,7 @@ def _(_: Union[bytes, np.bytes_], _dtype: DType) -> str:
 # this should not be necessary
 @convert("Mesh", simple=True)  # type: ignore
 def _(_: trimesh.Trimesh, _dtype: DType) -> str:
-    return "<object>"
+    return "<Trimesh>"
 
 
 def read_external_value(

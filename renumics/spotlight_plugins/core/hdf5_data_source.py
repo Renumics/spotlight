@@ -132,6 +132,10 @@ class Hdf5DataSource(DataSource):
     def column_names(self) -> List[str]:
         return self._table.keys()
 
+    @property
+    def intermediate_dtypes(self) -> DTypeMap:
+        return self.guess_dtypes()
+
     def __len__(self) -> int:
         return len(self._table)
 

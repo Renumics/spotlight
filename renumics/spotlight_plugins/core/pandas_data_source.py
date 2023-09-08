@@ -7,6 +7,7 @@ from typing import Any, List, Union, cast
 import numpy as np
 import pandas as pd
 import datasets
+from renumics.spotlight import dtypes
 
 from renumics.spotlight.io.pandas import (
     infer_dtype,
@@ -102,6 +103,11 @@ class PandasDataSource(DataSource):
         self._generation_id = 0
         self._uid = str(id(df))
         self._df = df.convert_dtypes()
+        self._intermediate_dtypes = {
+            # TODO: convert column name
+            col: _determine_intermediate_dtype(self._df[col])
+            for col in self._df.columns
+        }
 
     @property
     def column_names(self) -> List[str]:
@@ -113,6 +119,10 @@ class PandasDataSource(DataSource):
         Get **a copy** of the served `DataFrame`.
         """
         return self._df.copy()
+
+    @property
+    def intermediate_dtypes(self) -> DTypeMap:
+        return self._intermediate_dtypes
 
     def __len__(self) -> int:
         return len(self._df)
@@ -197,3 +207,25 @@ class PandasDataSource(DataSource):
                 f"Column '{column_name}' doesn't exist in the dataset."
             ) from e
         return self._df.columns[index]
+
+
+def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
+    if pd.api.types.is_bool_dtype(column):
+        return dtypes.bool_dtype
+    if pd.api.types.is_categorical_dtype(column):
+        return dtypes.CategoryDType(
+            {
+                category: code
+                for code, category in zip(column.cat.codes, column.cat.categories)
+            }
+        )
+    if pd.api.types.is_integer_dtype(column):
+        return dtypes.int_dtype
+    if pd.api.types.is_float_dtype(column):
+        return dtypes.float_dtype
+    if pd.api.types.is_datetime64_any_dtype(column):
+        return dtypes.datetime_dtype
+    if pd.api.types.is_string_dtype(column):
+        return dtypes.str_dtype
+    else:
+        return dtypes.mixed_dtype
