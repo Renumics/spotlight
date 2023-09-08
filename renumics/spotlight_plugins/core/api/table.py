@@ -13,8 +13,7 @@ from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
-
-from renumics.spotlight.dtypes import is_category_dtype
+from renumics.spotlight import dtypes
 
 
 class Column(BaseModel):
@@ -81,7 +80,7 @@ def get_table(request: Request) -> ORJSONResponse:
             editable=meta.editable,
             optional=meta.nullable,
             role=dtype.name,
-            categories=dtype.categories if is_category_dtype(dtype) else None,
+            categories=dtype.categories if dtypes.is_category_dtype(dtype) else None,
             description=meta.description,
             tags=meta.tags,
         )
