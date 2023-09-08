@@ -7,7 +7,7 @@ from renumics import spotlight
 
 
 @pytest.mark.parametrize("extension", ["csv", "feather", "parquet", "orc"])
-def test_successful_load(extension: str, project_root: Path):
+def test_successful_load(extension: str, project_root: Path) -> None:
     """
     Check if the file loads without error when calling spotlight.show
     """

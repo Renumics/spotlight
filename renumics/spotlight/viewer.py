@@ -50,7 +50,7 @@ Example:
 
 from pathlib import Path
 import time
-from typing import Collection, List, Union, Optional
+from typing import Any, Collection, Dict, List, Union, Optional
 
 import pandas as pd
 from typing_extensions import Literal
@@ -59,13 +59,14 @@ import IPython.display
 
 import __main__
 from renumics.spotlight.settings import settings
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
 from renumics.spotlight.server import Server
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.app_config import AppConfig
+
+from renumics.spotlight.dtypes import create_dtype
 
 
 class ViewerNotFoundError(Exception):
@@ -106,7 +107,7 @@ class Viewer:
         no_browser: bool = False,
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
         wait: Union[bool, Literal["auto", "forever"]] = "auto",
-        dtype: Optional[ColumnTypeMapping] = None,
+        dtype: Optional[Dict[str, Any]] = None,
         analyze: Optional[Union[bool, List[str]]] = None,
         issues: Optional[Collection[DataIssue]] = None,
     ) -> None:
@@ -153,10 +154,15 @@ class Viewer:
 
         layout = layout or settings.layout
         parsed_layout = parse(layout) if layout else None
+        converted_dtypes = (
+            {column_name: create_dtype(d) for column_name, d in dtype.items()}
+            if dtype
+            else None
+        )
 
         config = AppConfig(
             dataset=dataset,
-            dtypes=dtype,
+            dtypes=converted_dtypes,
             project_root=project_root,
             analyze=analyze,
             custom_issues=list(issues) if issues else None,
@@ -320,7 +326,7 @@ def show(
     no_browser: bool = False,
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
     wait: Union[bool, Literal["auto", "forever"]] = "auto",
-    dtype: Optional[ColumnTypeMapping] = None,
+    dtype: Optional[Dict[str, Any]] = None,
     analyze: Optional[Union[bool, List[str]]] = None,
     issues: Optional[Collection[DataIssue]] = None,
 ) -> Viewer:

@@ -4,7 +4,6 @@ table api endpoints
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
@@ -12,24 +11,10 @@ from pydantic import BaseModel
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
-from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
 
-from renumics.spotlight.dtypes import (
-    Audio,
-    Category,
-    Embedding,
-    Image,
-    Mesh,
-    Sequence1D,
-    Video,
-)
-
-
-# for now specify all lazy dtypes right here
-# we should probably move closer to the actual dtype definition for easier extensibility
-LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio, str]
+from renumics.spotlight.dtypes import is_category_dtype
 
 
 class Column(BaseModel):
@@ -90,17 +75,13 @@ def get_table(request: Request) -> ORJSONResponse:
         dtype = data_store.dtypes[column_name]
         values = data_store.get_converted_values(column_name, simple=True)
         meta = data_store.get_column_metadata(column_name)
-        if dtype == Category:
-            categories = data_store._data_source.get_column_categories(column_name)
-        else:
-            categories = {}
         column = Column(
             name=column_name,
             values=values,
             editable=meta.editable,
             optional=meta.nullable,
-            role=get_column_type_name(dtype),
-            categories=categories,
+            role=dtype.name,
+            categories=dtype.categories if is_category_dtype(dtype) else None,
             description=meta.description,
             tags=meta.tags,
         )

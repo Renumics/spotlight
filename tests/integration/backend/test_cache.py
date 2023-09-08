@@ -14,6 +14,7 @@ def test_external_data_cache(non_existing_image_df_viewer: spotlight.Viewer) -> 
     """
     Test loading non-existing external data, cache it and clear cache.
     """
+    assert non_existing_image_df_viewer.df is not None
     image_path = non_existing_image_df_viewer.df["image"][0]
     app_url = str(non_existing_image_df_viewer)
 

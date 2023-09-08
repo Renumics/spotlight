@@ -118,13 +118,13 @@ def test_delitem(fancy_indexing_dataset: Dataset) -> None:
 
     length = len(fancy_indexing_dataset)
     column_name = fancy_indexing_dataset.keys()[0]
-    column_type = fancy_indexing_dataset.get_column_type(column_name)
+    dtype = fancy_indexing_dataset.get_dtype(column_name)
     target = np.array(fancy_indexing_dataset[column_name])
 
     def _restore_column() -> None:
         del fancy_indexing_dataset[column_name]
         assert column_name not in fancy_indexing_dataset.keys()
-        fancy_indexing_dataset.append_column(column_name, column_type, target)
+        fancy_indexing_dataset.append_column(column_name, dtype, target)
         assert column_name in fancy_indexing_dataset.keys()
         assert (target == fancy_indexing_dataset[column_name]).all()
 

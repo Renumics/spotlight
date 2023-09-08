@@ -48,12 +48,13 @@ from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.data_source import DataSource, create_datasource
 from renumics.spotlight.layout.default import DEFAULT_LAYOUT
 
 from renumics.spotlight.data_store import DataStore
+
+from renumics.spotlight.dtypes import DTypeMap
 
 
 class IssuesUpdatedMessage(Message):
@@ -79,7 +80,7 @@ class SpotlightApp(FastAPI):
 
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
-    _user_dtypes: ColumnTypeMapping
+    _user_dtypes: DTypeMap
     _data_source: Optional[DataSource]
     _data_store: Optional[DataStore]
 

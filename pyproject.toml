@@ -140,6 +140,9 @@ files = [
 
 [tool.ruff]
 line-length = 100
+ignore = [
+    "E501"
+]
 
 [tool.mypy]
 ignore_missing_imports = false
@@ -168,7 +171,8 @@ module = [
     "cleanlab.*",
     "machineid",
     "filetype",
-    "datasets"
+    "datasets",
+    "diffimg"
 ]
 ignore_missing_imports = true
 
