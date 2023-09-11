@@ -629,7 +629,7 @@ class Dataset:
             self.close()
             self._mode = mode
         if self._closed:
-            self._h5_file = h5py.File(self._filepath, self._mode)
+            self._h5_file = h5py.File(self._filepath, self._mode, locking=False)
             self._closed = False
             self._column_names, self._length = self._get_column_names_and_length()
             if self._is_writable():
