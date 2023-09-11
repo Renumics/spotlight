@@ -48,6 +48,10 @@ class DataStore:
         return self._data_source.column_names
 
     @property
+    def data_source(self) -> DataSource:
+        return self._data_source
+
+    @property
     def dtypes(self) -> DTypeMap:
         return self._dtypes
 

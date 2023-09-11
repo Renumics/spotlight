@@ -7,12 +7,13 @@ import pkgutil
 from dataclasses import dataclass
 from types import ModuleType
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Optional
 from fastapi import FastAPI
 
 from renumics.spotlight.settings import settings
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.io.path import is_path_relative_to
+from renumics.spotlight.app_config import AppConfig
 
 import renumics.spotlight_plugins as plugins_namespace
 
@@ -28,6 +29,7 @@ class Plugin:
     module: ModuleType
     init: Callable[[], None]
     activate: Callable[[FastAPI], None]
+    update: Callable[[FastAPI, AppConfig], None]
     dev: bool
     frontend_entrypoint: Optional[Path]
 
@@ -46,14 +48,9 @@ def load_plugins() -> List[Plugin]:
     if _plugins is not None:
         return _plugins
 
-    def noinit() -> None:
+    def noop(*_args: Any, **_kwargs: Any) -> None:
         """
-        noop impl for __init__
-        """
-
-    def noactivate(_: FastAPI) -> None:
-        """
-        noop impl for __activate__
+        noop impl for plugin hooks
         """
 
     plugins = {}
@@ -73,8 +70,9 @@ def load_plugins() -> List[Plugin]:
         plugins[name] = Plugin(
             name=name,
             priority=getattr(module, "__priority__", 1000),
-            init=getattr(module, "__register__", noinit),
-            activate=getattr(module, "__activate__", noactivate),
+            init=getattr(module, "__register__", noop),
+            activate=getattr(module, "__activate__", noop),
+            update=getattr(module, "__update__", noop),
             module=module,
             dev=dev,
             frontend_entrypoint=main_js if main_js.exists() else None,
