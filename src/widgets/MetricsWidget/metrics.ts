@@ -35,21 +35,23 @@ export const METRICS: Record<string, Metric> = {
     },
     accuracy: {
         signature: {
-            X: ['bool'],
-            y: ['bool'],
+            X: ['bool', 'int', 'Category'],
+            y: ['bool', 'int', 'Category'],
         },
         compute: ([actualValues, assignedValues]) => {
-            const {
-                truePositives: tp,
-                trueNegatives: tn,
-                falsePositives: fp,
-                falseNegatives: fn,
-            } = computeConfusion(
-                actualValues as boolean[],
-                assignedValues as boolean[]
-            );
+            const all = actualValues.length;
+            let correct = 0;
 
-            return (tp + tn) / (tp + tn + fp + fn);
+            for (let i = 0; i < actualValues.length; i++) {
+                const actual = actualValues[i];
+                const assigned = assignedValues[i];
+
+                if (actual === assigned) {
+                    correct++;
+                }
+            }
+
+            return correct / all;
         },
     },
     F1: {
