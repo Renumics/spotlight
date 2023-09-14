@@ -19,34 +19,14 @@ from renumics.spotlight.dtypes import (
 
 
 class DataStore:
-    _dtypes: DTypeMap
     _data_source: DataSource
+    _user_dtypes: DTypeMap
+    _dtypes: DTypeMap
 
     def __init__(self, data_source: DataSource, user_dtypes: DTypeMap) -> None:
         self._data_source = data_source
-        guessed_dtypes = self._data_source.guess_dtypes()
-        dtypes = {
-            **guessed_dtypes,
-            **{
-                column_name: dtype
-                for column_name, dtype in user_dtypes.items()
-                if column_name in guessed_dtypes
-            },
-        }
-        for column_name, dtype in dtypes.items():
-            if (
-                is_category_dtype(dtype)
-                and dtype.categories is None
-                and is_str_dtype(guessed_dtypes[column_name])
-            ):
-                normalized_values = self._data_source.get_column_values(column_name)
-                converted_values = [
-                    convert_to_dtype(value, str_dtype, simple=True, check=True)
-                    for value in normalized_values
-                ]
-                category_names = sorted(cast(Set[str], set(converted_values)))
-                dtypes[column_name] = CategoryDType(category_names)
-        self._dtypes = dtypes
+        self._user_dtypes = user_dtypes
+        self._update_dtypes()
 
     def __len__(self) -> int:
         return len(self._data_source)
@@ -66,6 +46,10 @@ class DataStore:
     @property
     def column_names(self) -> List[str]:
         return self._data_source.column_names
+
+    @property
+    def data_source(self) -> DataSource:
+        return self._data_source
 
     @property
     def dtypes(self) -> DTypeMap:
@@ -116,3 +100,28 @@ class DataStore:
         waveform = audio.get_waveform(io.BytesIO(blob))  # type: ignore
         external_data_cache[cache_key] = waveform
         return waveform
+
+    def _update_dtypes(self) -> None:
+        guessed_dtypes = self._data_source.guess_dtypes()
+        dtypes = {
+            **guessed_dtypes,
+            **{
+                column_name: dtype
+                for column_name, dtype in self._user_dtypes.items()
+                if column_name in guessed_dtypes
+            },
+        }
+        for column_name, dtype in dtypes.items():
+            if (
+                is_category_dtype(dtype)
+                and dtype.categories is None
+                and is_str_dtype(guessed_dtypes[column_name])
+            ):
+                normalized_values = self._data_source.get_column_values(column_name)
+                converted_values = [
+                    convert_to_dtype(value, str_dtype, simple=True, check=True)
+                    for value in normalized_values
+                ]
+                category_names = sorted(cast(Set[str], set(converted_values)))
+                dtypes[column_name] = CategoryDType(category_names)
+        self._dtypes = dtypes

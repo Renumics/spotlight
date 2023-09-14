@@ -312,6 +312,9 @@ class SpotlightApp(FastAPI):
             self._broadcast(RefreshMessage())
             self._update_issues()
 
+        for plugin in load_plugins():
+            plugin.update(self, config)
+
         if not self._startup_complete:
             self._startup_complete = True
             self._connection.send({"kind": "startup_complete"})

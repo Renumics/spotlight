@@ -8,8 +8,7 @@ from typing import List, Union, cast
 import h5py
 import numpy as np
 
-from renumics.spotlight.typing import IndexType
-from renumics.spotlight.dataset import Dataset, INTERNAL_COLUMN_NAMES
+from renumics.spotlight.dataset import Dataset
 
 from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
@@ -63,32 +62,6 @@ class H5Dataset(Dataset):
             return normalized_values
         return raw_values
 
-    def duplicate_row(self, from_index: IndexType, to_index: IndexType) -> None:
-        """
-        Duplicate a dataset's row. Increases the dataset's length by 1.
-        """
-        self._assert_is_writable()
-        self._assert_index_exists(from_index)
-        length = self._length
-        if from_index < 0:
-            from_index += length
-        if to_index < 0:
-            to_index += length
-        if to_index != length:
-            self._assert_index_exists(to_index)
-        for column_name in self.keys() + INTERNAL_COLUMN_NAMES:
-            column = cast(h5py.Dataset, self._h5_file[column_name])
-            column.resize(length + 1, axis=0)
-            if to_index != length:
-                # Shift all values after the insertion position by one.
-                raw_values = column[int(to_index) : -1]
-                if is_embedding_dtype(self._get_dtype(column)):
-                    raw_values = list(raw_values)
-                column[int(to_index) + 1 :] = raw_values
-            column[int(to_index)] = column[from_index]
-        self._length += 1
-        self._update_generation_id()
-
     def _resolve_refs(self, refs: np.ndarray, column_name: str) -> np.ndarray:
         raw_values = np.empty(len(refs), dtype=object)
         raw_values[:] = [
@@ -131,6 +104,10 @@ class Hdf5DataSource(DataSource):
     @property
     def column_names(self) -> List[str]:
         return self._table.keys()
+
+    @property
+    def intermediate_dtypes(self) -> DTypeMap:
+        return self.guess_dtypes()
 
     def __len__(self) -> int:
         return len(self._table)
