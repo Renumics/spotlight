@@ -40,13 +40,11 @@ def cli_dtype_callback(
 @click.command()  # type: ignore
 @click.argument(
     "dataset",
-    type=Optional[str],
     required=False,
     default=os.environ.get("SPOTLIGHT_TABLE_FILE"),
 )
 @click.option(
     "--folder",
-    type=str,
     help="Root folder for filebrowser and file lookup.",
     required=False,
 )
@@ -60,7 +58,6 @@ def cli_dtype_callback(
 @click.option(
     "--port",
     "-p",
-    type=str,
     default="auto",
     help="The port that Spotlight should listen on (use 'auto' to use a random free port)",
     show_default=True,
