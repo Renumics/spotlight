@@ -47,6 +47,9 @@ from .widgets import (
     TableView as _TableView,
     UmapMetric as _UmapMetric,
     Widget as _Widget,
+    WordCloud,
+    WordCloudConfig,
+    WordCloudScaling as _WordCloudScaling,
 )
 
 
@@ -365,6 +368,41 @@ def issues(name: Optional[str] = None) -> Issues:
     """
 
     return Issues(name=name)
+
+
+def wordcloud(
+    name: Optional[str] = None,
+    column: Optional[str] = None,
+    min_word_length: Optional[int] = None,
+    stop_words: Optional[Iterable[str]] = None,
+    scaling: Optional[_WordCloudScaling] = None,
+    max_word_count: Optional[int] = None,
+    filter: Optional[bool] = None,
+) -> WordCloud:
+    """
+    Add configured confusion matrix to Spotlight layout.
+    """
+    if min_word_length is not None and min_word_length < 1:
+        raise ValueError(
+            f"`min_word_length` argument should be positive, but value "
+            f"{min_word_length} received."
+        )
+    if max_word_count is not None and max_word_count < 1:
+        raise ValueError(
+            f"`max_word_count` argument should be positive, but value "
+            f"{max_word_count} received."
+        )
+    return WordCloud(
+        name=name,
+        config=WordCloudConfig(
+            column=column,
+            min_word_length=min_word_length,
+            stop_words=None if stop_words is None else list(stop_words),
+            scaling=scaling,
+            max_word_count=max_word_count,
+            filter=filter,
+        ),
+    )
 
 
 def confusion_matrix(

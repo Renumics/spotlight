@@ -156,13 +156,38 @@ class Issues(Widget):
     type: Literal["IssuesWidget"] = "IssuesWidget"
 
 
+WordCloudScaling = Literal["log", "linear", "sqrt"]
+
+
+class WordCloudConfig(WidgetConfig):
+    """
+    Config for the Word Cloud Widget.
+    """
+
+    column: Optional[str] = Field(None, alias="cloudByColumnKey")
+    min_word_length: Optional[int] = Field(None, alias="minWordLength")
+    stop_words: Optional[List[str]] = Field(None, alias="stopwords")
+    scaling: Optional[WordCloudScaling] = Field(None, alias="scaling")
+    max_word_count: Optional[int] = Field(None, alias="wordCount")
+    filter: Optional[bool] = Field(None, alias="hideFiltered")
+
+
+class WordCloud(Widget):
+    """
+    Word Cloud Widget.
+    """
+
+    type: Literal["wordcloud"] = "wordcloud"
+    config: Optional[WordCloudConfig] = None
+
+
 class ConfusionMatrixConfig(WidgetConfig):
     """
     Config for the Confusion Matrix Widget.
     """
 
-    x_column: Optional[str] = Field(default_factory=None, alias="xColumn")
-    y_column: Optional[str] = Field(default_factory=None, alias="yColumn")
+    x_column: Optional[str] = Field(None, alias="xColumn")
+    y_column: Optional[str] = Field(None, alias="yColumn")
 
 
 class ConfusionMatrix(Widget):
