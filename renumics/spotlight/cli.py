@@ -7,7 +7,6 @@ import platform
 import signal
 import sys
 from typing import Dict, Optional, Tuple, Union, List
-from pathlib import Path
 
 import click
 
@@ -41,9 +40,9 @@ def cli_dtype_callback(
 @click.command()  # type: ignore
 @click.argument(
     "dataset",
-    type=str,
+    type=Optional[str],
     required=False,
-    default=os.environ.get("SPOTLIGHT_TABLE_FILE", str(Path.cwd())),
+    default=os.environ.get("SPOTLIGHT_TABLE_FILE"),
 )
 @click.option(
     "--folder",
@@ -99,12 +98,13 @@ def cli_dtype_callback(
 @click.option(
     "--analyze",
     default=[],
+    multiple=True,
     help="Automatically analyze issues for all columns.",
 )
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
-    dataset: str,
+    dataset: Optional[str],
     folder: Optional[str],
     host: str,
     port: Union[int, str],
