@@ -139,7 +139,7 @@ class Viewer:
                 project_root = dataset
             else:
                 project_root = dataset.parent
-        elif isinstance(dataset, pd.DataFrame):
+        elif isinstance(dataset, pd.DataFrame) or dataset is None:
             project_root = None
         else:
             raise TypeError("Dataset has invalid type")
