@@ -26,11 +26,15 @@ from .nodes import (
 )
 from .lenses import Lens
 from .widgets import (
+    ConfusionMatrix,
+    ConfusionMatrixConfig,
     Histogram,
     HistogramConfig,
     Inspector,
     InspectorConfig,
     Issues,
+    MetricWidget,
+    MetricWidgetConfig,
     NumInspectorColumns as _NumInspectorColumns,
     PCANormalization as _PCANormalization,
     ReductionMethod as _ReductionMethod,
@@ -361,3 +365,35 @@ def issues(name: Optional[str] = None) -> Issues:
     """
 
     return Issues(name=name)
+
+
+def confusion_matrix(
+    name: Optional[str] = None,
+    x_column: Optional[str] = None,
+    y_column: Optional[str] = None,
+) -> ConfusionMatrix:
+    """
+    Add configured confusion matrix to Spotlight layout.
+    """
+    return ConfusionMatrix(
+        name=name,
+        config=ConfusionMatrixConfig(x_column=x_column, y_column=y_column),
+    )
+
+
+def metric(
+    name: Optional[str] = None,
+    metric: Optional[str] = None,
+    columns: Optional[Union[str, Iterable[Optional[str]]]] = None,
+) -> MetricWidget:
+    """
+    Add configured metric widget to Spotlight layout.
+    """
+    metric_columns: List[Optional[str]] = []
+    if isinstance(columns, str):
+        metric_columns.append(columns)
+    elif columns is not None:
+        metric_columns.extend(columns)
+    return MetricWidget(
+        name=name, config=MetricWidgetConfig(metric=metric, columns=metric_columns)
+    )
