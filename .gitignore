@@ -19,6 +19,7 @@ test_install/
 __pycache__/
 .mypy_cache/
 .pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 
 # Spotlight licenses

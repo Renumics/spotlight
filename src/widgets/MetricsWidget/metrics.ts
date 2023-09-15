@@ -36,7 +36,7 @@ export const METRICS: Record<string, Metric> = {
     accuracy: {
         signature: {
             X: ['bool', 'int', 'Category'],
-            y: ['bool', 'int', 'Category'],
+            Y: ['bool', 'int', 'Category'],
         },
         compute: ([actualValues, assignedValues]) => {
             const all = actualValues.length;
