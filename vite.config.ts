@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -17,6 +18,7 @@ export default defineConfig(({ mode }) => {
                     compact: false,
                 },
             }),
+            nodePolyfills(),
             dts({
                 insertTypesEntry: true,
                 copyDtsFiles: true,
@@ -42,6 +44,7 @@ export default defineConfig(({ mode }) => {
         },
         define: {
             'process.env.NODE_ENV': JSON.stringify(mode),
+            'process.versions': '{node: "v19.4.0"}',
         },
     };
 });

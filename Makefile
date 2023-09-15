@@ -78,7 +78,7 @@ build: build-frontend build-wheel
 
 .PHONY: build-frontend
 build-frontend: ## Build react frontend
-	pnpm run build
+	NODE_OPTIONS=--max-old-space-size=32768 pnpm run build
 
 .PHONY: build-wheel
 build-wheel: ## Build installable python package

@@ -131,7 +131,8 @@
         "twin.macro": "^3.3.0",
         "typescript": "^5.1.6",
         "vite": "^4.4.9",
-        "vite-plugin-dts": "^3.5.2"
+        "vite-plugin-dts": "^3.5.2",
+        "vite-plugin-node-polyfills": "^0.14.0"
     },
     "babelMacros": {
         "twin": {
