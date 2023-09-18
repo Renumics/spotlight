@@ -24,8 +24,9 @@ from renumics.spotlight import (
     Video,
 )
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
-
+from renumics.spotlight import dtypes
 from renumics.spotlight.dataset.typing import OutputType
+from renumics.spotlight.io.pandas import infer_dtype
 from .conftest import ColumnData
 from .helpers import get_append_column_fn_name
 from ..helpers import approx
@@ -1007,3 +1008,26 @@ def test_import_csv_with_dtype() -> None:
             dataset.from_csv(csv_file, dtypes)
             assert set(dataset.keys()) == set(columns)
             assert {key: dataset.get_dtype(key).name for key in dtypes} == dtypes
+
+
+def test_to_pandas() -> None:
+    exported_dtypes = (
+        dtypes.bool_dtype,
+        dtypes.int_dtype,
+        dtypes.float_dtype,
+        dtypes.str_dtype,
+        dtypes.datetime_dtype,
+        dtypes.CategoryDType(["foo", "bar"]),
+    )
+
+    with tempfile.TemporaryDirectory() as output_folder:
+        output_h5_file = os.path.join(output_folder, "dataset.h5")
+        with Dataset(output_h5_file, "w") as dataset:
+            for dtype in exported_dtypes:
+                dataset.append_column(dtype.name, dtype, optional=True)
+            df = dataset.to_pandas()
+        for dtype in exported_dtypes:
+            column_name = dtype.name
+            assert column_name in df
+            inferred_dtype = infer_dtype(df[column_name])
+            assert inferred_dtype.name == dtype.name
