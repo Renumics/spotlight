@@ -6,7 +6,7 @@ import ast
 import os.path
 import statistics
 from contextlib import suppress
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import PIL.Image
 import filetype
@@ -25,6 +25,37 @@ from renumics.spotlight.dtypes import (
 from renumics.spotlight.media.exceptions import UnsupportedDType
 from renumics.spotlight.typing import is_iterable, is_pathtype
 from renumics.spotlight import dtypes
+
+
+def create_typed_series(
+    dtype: dtypes.DType, values: Optional[Union[Sequence, np.ndarray]] = None
+) -> pd.Series:
+    if dtypes.is_category_dtype(dtype):
+        if values is None or len(values) == 0:
+            return pd.Series(
+                dtype=pd.CategoricalDtype(
+                    [] if not dtype.categories else list(dtype.categories.keys())
+                )
+            )
+        if dtype.inverted_categories is None:
+            return pd.Series([None] * len(values), dtype=pd.CategoricalDtype())
+        return pd.Series(
+            [dtype.inverted_categories.get(code) for code in values],
+            dtype=pd.CategoricalDtype(),
+        )
+    if dtypes.is_bool_dtype(dtype):
+        pandas_dtype = "boolean"
+    elif dtypes.is_int_dtype(dtype):
+        pandas_dtype = "Int64"
+    elif dtypes.is_float_dtype(dtype):
+        pandas_dtype = "float"
+    elif dtypes.is_str_dtype(dtype):
+        pandas_dtype = "string"
+    elif dtypes.is_datetime_dtype(dtype):
+        pandas_dtype = "datetime64[ns]"
+    else:
+        pandas_dtype = "object"
+    return pd.Series([] if values is None else values, dtype=pandas_dtype)
 
 
 def is_empty(value: Any) -> bool:
@@ -76,7 +107,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
         ValueError: If dtype cannot be inferred automatically.
     """
 
-    if pd.api.types.is_bool_dtype(column) and not column.hasnans:
+    if pd.api.types.is_bool_dtype(column):
         return dtypes.bool_dtype
     if pd.api.types.is_categorical_dtype(column):
         return dtypes.CategoryDType(
@@ -85,7 +116,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
                 for code, category in zip(column.cat.codes, column.cat.categories)
             }
         )
-    if pd.api.types.is_integer_dtype(column) and not column.hasnans:
+    if pd.api.types.is_integer_dtype(column):
         return dtypes.int_dtype
     if pd.api.types.is_float_dtype(column):
         return dtypes.float_dtype
