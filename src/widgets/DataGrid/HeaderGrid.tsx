@@ -1,25 +1,25 @@
 import usePrevious from '../../hooks/usePrevious';
 import * as React from 'react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { VariableSizeGrid as Grid } from 'react-window';
 import 'twin.macro';
 import HeaderCell from './Cell/HeaderCell';
 import { useColumnCount, useVisibleColumns } from './context/columnContext';
+import { ResizingContext } from './context/resizeContext';
 
 interface Props {
     height: number;
     width: number;
-    columnWidth: (index: number) => number;
-    onStartResize: (columnIndex: number) => void;
-    resizedIndex?: number;
 }
 
 const HeaderGrid: React.ForwardRefRenderFunction<Grid, Props> = (
-    { height, width, columnWidth, onStartResize, resizedIndex },
+    { height, width },
     ref
 ) => {
     const rowHeight = useCallback(() => height, [height]);
     const columnCount = useColumnCount();
+
+    const { getColumnWidth } = useContext(ResizingContext);
 
     const [displayedColumns] = useVisibleColumns();
 
@@ -39,12 +39,11 @@ const HeaderGrid: React.ForwardRefRenderFunction<Grid, Props> = (
     return (
         <Grid
             columnCount={columnCount}
-            columnWidth={columnWidth}
+            columnWidth={getColumnWidth}
             rowCount={1}
             rowHeight={rowHeight}
             height={height}
             width={width}
-            itemData={{ onStartResize, resizedIndex }}
             style={{
                 overflow: 'hidden',
             }}
