@@ -80,10 +80,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
         return dtypes.bool_dtype
     if pd.api.types.is_categorical_dtype(column):
         return dtypes.CategoryDType(
-            {
-                category: code
-                for code, category in zip(column.cat.codes, column.cat.categories)
-            }
+            {category: code for code, category in enumerate(column.cat.categories)}
         )
     if pd.api.types.is_integer_dtype(column) and not column.hasnans:
         return dtypes.int_dtype
