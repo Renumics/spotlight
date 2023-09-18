@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => {
                 },
             },
             rollupOptions: {
+                input: ['src/main.tsx', 'src/lib.ts'],
                 output: {
                     name: 'Spotlight',
                 },
