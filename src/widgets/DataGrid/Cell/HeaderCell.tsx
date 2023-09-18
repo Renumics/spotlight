@@ -4,7 +4,7 @@ import Tooltip from '../../../components/ui/Tooltip';
 import dataformat from '../../../dataformat';
 import { useColorTransferFunction } from '../../../hooks/useColorTransferFunction';
 import * as React from 'react';
-import { FunctionComponent, useCallback, useMemo } from 'react';
+import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
 import { HiChevronDown, HiChevronUp } from 'react-icons/hi';
 import type { GridChildComponentProps as CellProps } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../../stores/dataset';
@@ -12,6 +12,7 @@ import tw from 'twin.macro';
 import { useColumn } from '../context/columnContext';
 import { useSortByColumn } from '../context/sortingContext';
 import RelevanceIndicator from '../RelevanceIndicator';
+import { ResizingContext } from '../context/resizeContext';
 
 interface SortingIndicatorProps {
     sorting?: Sorting;
@@ -39,16 +40,13 @@ const stopPropagation: React.MouseEventHandler<HTMLButtonElement> = (event) => {
     event.stopPropagation();
 };
 
-type ItemData = {
-    onStartResize: (columnIndex: number) => void;
-    resizedIndex?: number;
-};
+type Props = CellProps;
 
-type Props = CellProps<ItemData>;
-
-const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
+const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
     const column = useColumn(columnIndex);
     const [columnSorting, sortBy, resetSorting] = useSortByColumn(column.key);
+
+    const { startResizing, resizedIndex } = useContext(ResizingContext);
 
     const tags = useDataset(tagsSelector);
     const tagColorTransferFunction = useColorTransferFunction(tags, {
@@ -130,9 +128,9 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
     const onStartResize: React.MouseEventHandler<HTMLButtonElement> = useCallback(
         (event) => {
             stopPropagation(event);
-            data.onStartResize(columnIndex);
+            startResizing(columnIndex);
         },
-        [columnIndex, data]
+        [columnIndex, startResizing]
     );
 
     return (
@@ -163,7 +161,7 @@ const HeaderCell: FunctionComponent<Props> = ({ data, style, columnIndex }) => {
                 onMouseDown={onStartResize}
                 css={[
                     tw`h-full w-[3px] border-r bg-none hover:border-r-0 hover:bg-gray-400 transition transform cursor-col-resize`,
-                    data.resizedIndex === columnIndex && tw`bg-gray-400 border-r-0`,
+                    resizedIndex.current === columnIndex && tw`bg-gray-400 border-r-0`,
                 ]}
             />
         </div>

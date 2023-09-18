@@ -1,14 +1,15 @@
 import usePrevious from '../../hooks/usePrevious';
 import {
-    ForwardRefRenderFunction,
     forwardRef,
+    ForwardRefRenderFunction,
     useCallback,
+    useContext,
     useEffect,
-    useRef,
     useImperativeHandle,
+    useRef,
 } from 'react';
-import { VariableSizeGrid as Grid } from 'react-window';
 import type { GridOnScrollProps, GridProps } from 'react-window';
+import { VariableSizeGrid as Grid } from 'react-window';
 import Cell from './Cell';
 import CellPlaceholder from './Cell/CellPlaceholder';
 import { useColumnCount, useVisibleColumns } from './context/columnContext';
@@ -18,12 +19,12 @@ import useRowCount from './hooks/useRowCount';
 import useSort from './hooks/useSort';
 import KeyboardControls from './KeyboardControls';
 import MouseControls from './MouseControls';
+import { ResizingContext } from './context/resizeContext';
 
 interface Props {
     width: number;
     height: number;
     onScroll: GridProps['onScroll'];
-    columnWidth: (index: number) => number;
 }
 
 export type Ref = {
@@ -31,7 +32,7 @@ export type Ref = {
 };
 
 const TableGrid: ForwardRefRenderFunction<Ref, Props> = (
-    { width, height, onScroll, columnWidth },
+    { width, height, onScroll },
     fwdRef
 ) => {
     const ref = useRef<Grid>(null);
@@ -45,6 +46,8 @@ const TableGrid: ForwardRefRenderFunction<Ref, Props> = (
     const columnCount = useColumnCount();
 
     const [displayedColumns] = useVisibleColumns();
+
+    const { getColumnWidth } = useContext(ResizingContext);
 
     const { getOriginalIndex } = useSort();
     const rowCount = useRowCount();
@@ -96,7 +99,7 @@ const TableGrid: ForwardRefRenderFunction<Ref, Props> = (
                     height={height}
                     columnCount={columnCount}
                     rowCount={Math.max(1, rowCount)}
-                    columnWidth={columnWidth}
+                    columnWidth={getColumnWidth}
                     estimatedColumnWidth={100}
                     rowHeight={getRowHeight}
                     itemKey={rowCount ? itemKey : undefined}
