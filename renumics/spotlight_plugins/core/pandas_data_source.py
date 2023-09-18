@@ -68,8 +68,6 @@ class PandasDataSource(DataSource):
                     ].features.items():
                         print(feature_type)
                         if isinstance(feature_type, datasets.ClassLabel):
-                            print(feature_type.names)
-                            print(df[feature_name])
                             try:
                                 df[feature_name] = pd.Categorical.from_codes(
                                     df[feature_name], categories=feature_type.names
