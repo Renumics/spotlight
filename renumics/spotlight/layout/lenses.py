@@ -1,7 +1,7 @@
 """
 Viewers (lenses) for Spotlight inspector widget.
 
-For usage examples, see `renumics.spotlighth.layout.inspector`.
+For usage examples, see `renumics.spotlight.layout.inspector`.
 """
 
 import uuid

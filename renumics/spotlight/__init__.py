@@ -16,6 +16,7 @@ from .dtypes.legacy import Category, Window  # noqa: F401
 from .viewer import Viewer, close, viewers, show
 from .plugin_loader import load_plugins
 from .settings import settings
+from .analysis.typing import DataIssue
 from . import cache, logging
 
 if not settings.verbose:
@@ -23,7 +24,7 @@ if not settings.verbose:
 
 __plugins__ = load_plugins()
 
-__all__ = ["show", "close", "viewers", "Viewer", "clear_caches"]
+__all__ = ["show", "close", "viewers", "Viewer", "clear_caches", "DataIssue"]
 
 
 def clear_caches() -> None:

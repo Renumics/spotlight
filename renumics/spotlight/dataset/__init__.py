@@ -95,7 +95,6 @@ from renumics.spotlight.dtypes import (
     video_dtype,
 )
 
-
 from . import exceptions
 from .typing import (
     OutputType,
@@ -118,6 +117,10 @@ from .typing import (
     RefColumnInputType,
     ColumnInputType,
 )
+
+
+__all__ = ["Dataset"]
+
 
 INTERNAL_COLUMN_NAMES = ["__last_edited_by__", "__last_edited_at__"]
 INTERNAL_COLUMN_DTYPES = [str_dtype, datetime_dtype]
