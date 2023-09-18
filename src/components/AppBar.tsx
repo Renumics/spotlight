@@ -64,7 +64,7 @@ const FileBar = () => {
                     onCancel={closeBrowser}
                     cancellable={hasTable}
                     openCaption={openCaption}
-                    extensions={['h5', 'csv']}
+                    extensions={['h5', 'csv', 'parquet', 'feather', 'orc']}
                 />
             </Dialog>
         </>
