@@ -9,6 +9,9 @@ from pydantic.dataclasses import dataclass
 from renumics.spotlight.data_store import DataStore
 
 
+Severity = Literal["low", "medium", "high"]
+
+
 @dataclass
 class DataIssue:
     """
@@ -17,7 +20,7 @@ class DataIssue:
 
     title: str
     rows: List[int]
-    severity: Literal["low", "medium", "high"] = "medium"
+    severity: Severity = "medium"
     columns: Optional[List[str]] = None
     description: str = ""
 

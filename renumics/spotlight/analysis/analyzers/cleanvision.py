@@ -4,7 +4,7 @@ find issues in images
 
 import os
 import inspect
-from typing import Iterable, List
+from typing import Dict, Iterable, List, Tuple
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import redirect_stderr, redirect_stdout
@@ -13,14 +13,12 @@ import numpy as np
 import cleanvision
 
 from renumics.spotlight.dtypes import Image
-
 from renumics.spotlight.data_store import DataStore
-
 from ..decorator import data_analyzer
-from ..typing import DataIssue
+from ..typing import DataIssue, Severity
 
 
-_issue_types = {
+_issue_types: Dict[str, Tuple[str, Severity, str]] = {
     "is_light_issue": (
         "Bright images",
         "medium",
@@ -83,9 +81,9 @@ _issue_types = {
 def _make_issue(cleanvision_key: str, column: str, rows: List[int]) -> DataIssue:
     title, severity, description = _issue_types[cleanvision_key]
     return DataIssue(
-        severity=severity,
         title=title,
         rows=rows,
+        severity=severity,
         columns=[column],
         description=inspect.cleandoc(description),
     )
