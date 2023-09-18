@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { MutableRefObject, useCallback, useMemo, useRef } from 'react';
-import type { Dataset } from '../../../types';
 import { useColumns } from './columnContext';
 import columnWidthByType from '../columnWidthByType';
 import { useWidgetConfig } from '../../../hooks';
 
 const MIN_COLUMN_WIDTH = 50;
-const editCellsSelector = (d: Dataset) => d.editCells;
 
 type EditingContextState = {
     getColumnWidth: (index: number) => number;
@@ -104,7 +102,7 @@ export const ColumnResizeProvider = ({ children, onResize }: Props) => {
             }
             return 0;
         },
-        [columns, defaultColumnWidths]
+        [columnWidths, columns, defaultColumnWidths]
     );
 
     return (
