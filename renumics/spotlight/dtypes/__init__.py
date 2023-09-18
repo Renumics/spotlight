@@ -7,6 +7,26 @@ from typing_extensions import TypeGuard
 from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window
 
 
+__all__ = [
+    "CategoryDType",
+    "Sequence1DDType",
+    "bool_dtype",
+    "int_dtype",
+    "float_dtype",
+    "str_dtype",
+    "datetime_dtype",
+    "category_dtype",
+    "window_dtype",
+    "embedding_dtype",
+    "array_dtype",
+    "image_dtype",
+    "audio_dtype",
+    "mesh_dtype",
+    "sequence_1d_dtype",
+    "video_dtype",
+]
+
+
 class DType:
     _name: str
 
@@ -22,6 +42,10 @@ class DType:
 
 
 class CategoryDType(DType):
+    """
+    Categorical dtype with predefined categories.
+    """
+
     _categories: Optional[Dict[str, int]]
     _inverted_categories: Optional[Dict[int, str]]
 
@@ -57,6 +81,10 @@ class CategoryDType(DType):
 
 
 class Sequence1DDType(DType):
+    """
+    1D-sequence dtype with predefined axis labels.
+    """
+
     x_label: str
     y_label: str
 
@@ -78,36 +106,52 @@ def register_dtype(dtype: DType, aliases: list) -> None:
 
 
 bool_dtype = DType("bool")
+"""Bool dtype"""
 register_dtype(bool_dtype, [bool])
 int_dtype = DType("int")
+"""Integer dtype"""
 register_dtype(int_dtype, [int])
 float_dtype = DType("float")
+"""Float dtype"""
 register_dtype(float_dtype, [float])
 bytes_dtype = DType("bytes")
+"""Bytes dtype"""
 register_dtype(bytes_dtype, [bytes])
 str_dtype = DType("str")
+"""String dtype"""
 register_dtype(str_dtype, [str])
 datetime_dtype = DType("datetime")
+"""Datetime dtype"""
 register_dtype(datetime_dtype, [datetime])
 category_dtype = CategoryDType()
+"""Categorical dtype with arbitraty categories"""
 register_dtype(category_dtype, [Category])
 window_dtype = DType("Window")
+"""Window dtype"""
 register_dtype(window_dtype, [Window])
 embedding_dtype = DType("Embedding")
+"""Embedding dtype"""
 register_dtype(embedding_dtype, [Embedding])
 array_dtype = DType("array")
+"""numpy array dtype"""
 register_dtype(array_dtype, [np.ndarray])
 image_dtype = DType("Image")
+"""Image dtype"""
 register_dtype(image_dtype, [Image])
 audio_dtype = DType("Audio")
+"""Audio dtype"""
 register_dtype(audio_dtype, [Audio])
 mesh_dtype = DType("Mesh")
+"""Mesh dtype"""
 register_dtype(mesh_dtype, [Mesh])
 sequence_1d_dtype = Sequence1DDType()
+"""1D-sequence dtype with arbitraty axis labels"""
 register_dtype(sequence_1d_dtype, [Sequence1D])
 video_dtype = DType("Video")
+"""Video dtype"""
 register_dtype(video_dtype, [Video])
 mixed_dtype = DType("mixed")
+"""Unknown or mixed dtype"""
 
 
 DTypeMap = Dict[str, DType]

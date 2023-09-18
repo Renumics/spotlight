@@ -66,10 +66,7 @@ class PandasDataSource(DataSource):
                     for feature_name, feature_type in hf_dataset[
                         splits[0]
                     ].features.items():
-                        print(feature_type)
                         if isinstance(feature_type, datasets.ClassLabel):
-                            print(feature_type.names)
-                            print(df[feature_name])
                             try:
                                 df[feature_name] = pd.Categorical.from_codes(
                                     df[feature_name], categories=feature_type.names
@@ -214,10 +211,7 @@ def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
         return dtypes.bool_dtype
     if pd.api.types.is_categorical_dtype(column):
         return dtypes.CategoryDType(
-            {
-                category: code
-                for code, category in zip(column.cat.codes, column.cat.categories)
-            }
+            {category: code for code, category in enumerate(column.cat.categories)}
         )
     if pd.api.types.is_integer_dtype(column):
         return dtypes.int_dtype

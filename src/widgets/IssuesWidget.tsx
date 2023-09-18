@@ -80,7 +80,9 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
                             {collapsed ? <TriangleRight /> : <TriangleDown />}
                         </div>
                     }
-                    <Icon />
+                    <div tw="flex-grow-0 flex items-center justify-center">
+                        <Icon />
+                    </div>
                     <div
                         css={[
                             tw`rounded-full border border-yellow-600 text-xxs h-4 flex items-center justify-center whitespace-nowrap px-2 align-middle items-center align-middle mx-0.5`,
@@ -91,7 +93,7 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
                     </div>
                     <div
                         css={[
-                            tw`flex-grow flex text-start items-center align-middle mx-1`,
+                            tw`flex-grow flex text-start items-center align-middle mx-1 whitespace-nowrap text-ellipsis`,
                             !collapsed && tw`font-bold`,
                         ]}
                     >
@@ -136,7 +138,7 @@ const IssuesWidget: Widget = () => {
                 {
                     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
                     <div
-                        tw="flex items-center px-1 hover:bg-gray-200"
+                        tw="flex items-center px-1 hover:bg-gray-200 whitespace-nowrap"
                         onMouseOver={highlight}
                         onFocus={highlight}
                         onMouseLeave={dehighlight}

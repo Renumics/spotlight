@@ -53,6 +53,22 @@ from .widgets import (
 )
 
 
+__all__ = [
+    "layout",
+    "split",
+    "tab",
+    "histogram",
+    "inspector",
+    "scatterplot",
+    "similaritymap",
+    "table",
+    "issues",
+    "wordcloud",
+    "confusion_matrix",
+    "metric",
+]
+
+
 _WidgetLike = Union[_Widget, str]
 _NodeLike = Union[Split, Tab, _WidgetLike, List]
 _LayoutLike = Union[str, os.PathLike, Layout, _NodeLike]
