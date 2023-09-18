@@ -36,9 +36,9 @@ def analyze_with_cleanlab(
 
         if len(rows):
             yield DataIssue(
-                severity="medium",
                 title="Outliers in embeddings",
                 rows=rows,
+                severity="medium",
                 columns=[column_name],
                 description=inspect.cleandoc(
                     """
