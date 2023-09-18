@@ -86,7 +86,7 @@ const Matrix = ({ data, onHoverCell, onClickCell }: Props): JSX.Element => {
                     fill={fgColorCss}
                     fontWeight="bold"
                 >
-                    {data.buckets[i].rows.length > 0 ? data.buckets[i].rows.length : ''}
+                    {data.buckets[i].rows.length}
                 </text>
             </g>
         );
