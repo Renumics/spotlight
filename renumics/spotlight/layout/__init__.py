@@ -74,14 +74,41 @@ _NodeLike = Union[Split, Tab, _WidgetLike, List]
 _LayoutLike = Union[str, os.PathLike, Layout, _NodeLike]
 
 
-def _clean_nodes(nodes: Iterable[_NodeLike]) -> List[Union[Split, Tab]]:
+def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> Layout:
     """
-    Wrap standalone widgets into tabs with a single widget inside and
-    lists of widgets into common tabs. Pass splits and tabs as is.
+    Create a new layout with the given orientation and given nodes inside.
     """
+    cleaned_nodes: List[Union[Split, Tab]]
     if all(isinstance(node, (_Widget, str)) for node in nodes):
-        nodes = cast(Iterable[_WidgetLike], nodes)
-        return [tab(*nodes)]
+        widgets = cast(Iterable[_WidgetLike], nodes)
+        cleaned_nodes = [tab(*widgets)]
+    else:
+        cleaned_nodes = []
+        for node in nodes:
+            if isinstance(node, (Split, Tab)):
+                cleaned_nodes.append(node)
+            elif isinstance(node, (_Widget, str)):
+                cleaned_nodes.append(tab(node))
+            elif isinstance(node, list):
+                if all(isinstance(subnode, (_Widget, str)) for subnode in node):
+                    # All widgets inside, group them into one tab.
+                    cleaned_nodes.append(tab(*node))
+                else:
+                    # Non-homogeneous content, wrap into a split.
+                    cleaned_nodes.append(split(*node))
+            else:
+                raise TypeError(
+                    f"Cannot parse layout content. Unexpected node of type {type(node)} received."
+                )
+    return Layout(children=cleaned_nodes, orientation=orientation)
+
+
+def split(
+    *nodes: _NodeLike, weight: Union[float, int] = 1, orientation: _Orientation = None
+) -> Split:
+    """
+    Create a new split with the given weight, orientation and given nodes inside.
+    """
     cleaned_nodes = []
     for node in nodes:
         if isinstance(node, (Split, Tab)):
@@ -99,23 +126,7 @@ def _clean_nodes(nodes: Iterable[_NodeLike]) -> List[Union[Split, Tab]]:
             raise TypeError(
                 f"Cannot parse layout content. Unexpected node of type {type(node)} received."
             )
-    return cleaned_nodes
-
-
-def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> Layout:
-    """
-    Create a new layout with the given orientation and given nodes inside.
-    """
-    return Layout(children=_clean_nodes(nodes), orientation=orientation)
-
-
-def split(
-    *nodes: _NodeLike, weight: Union[float, int] = 1, orientation: _Orientation = None
-) -> Split:
-    """
-    Create a new split with the given weight, orientation and given nodes inside.
-    """
-    return Split(children=_clean_nodes(nodes), weight=weight, orientation=orientation)
+    return Split(children=cleaned_nodes, weight=weight, orientation=orientation)
 
 
 def tab(*widgets: _WidgetLike, weight: Union[float, int] = 1) -> Tab:
