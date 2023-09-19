@@ -57,9 +57,8 @@ from renumics.spotlight.dtypes import (
     Video,
     Window,
 )
-
+from renumics.spotlight.io.pandas import create_typed_series
 from renumics.spotlight.dtypes.conversion import prepare_path_or_url
-
 from renumics.spotlight.dtypes import (
     CategoryDType,
     Sequence1DDType,
@@ -887,23 +886,16 @@ class Dataset:
         df = pd.DataFrame()
         for column_name in self._column_names:
             dtype = self.get_dtype(column_name)
-            if (
+            if is_datetime_dtype(dtype):
+                df[column_name] = create_typed_series(dtype, self[column_name])
+            elif (
                 is_scalar_dtype(dtype)
                 or is_str_dtype(dtype)
-                or is_datetime_dtype(dtype)
+                or is_category_dtype(dtype)
             ):
-                df[column_name] = self[column_name]
-            elif is_category_dtype(dtype):
-                if dtype.inverted_categories is None:
-                    values: List[Optional[str]] = [None] * len(
-                        self._h5_file[column_name]
-                    )
-                else:
-                    values = [
-                        dtype.inverted_categories.get(code)
-                        for code in self._h5_file[column_name]
-                    ]
-                df[column_name] = pd.Categorical(values)
+                df[column_name] = create_typed_series(
+                    dtype, self._h5_file[column_name][:]
+                )
 
         not_exported_columns = self._column_names.difference(df.columns)
         if len(not_exported_columns) > 0:
