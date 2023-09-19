@@ -1647,7 +1647,7 @@ class Dataset:
         default: ColumnInputType = None,
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        **attrs: Optional[Union[str, bool]],
+        **attrs: Any,
     ) -> None:
         """
         Create and optionally fill a dataset column of the given type.
@@ -1701,6 +1701,13 @@ class Dataset:
             append_column_fn = self.append_datetime_column
         elif spotlight_dtypes.is_category_dtype(dtype):
             append_column_fn = self.append_categorical_column
+            if dtype.categories:
+                if "categories" in attrs and attrs["categories"] != dtype.categories:
+                    raise exceptions.InvalidAttributeError(
+                        f"Categories differ between `dtype` ({dtype.categories}) "
+                        f"and `categories` ({attrs['categories']}) keyword argument."
+                    )
+                attrs["categories"] = dtype.categories
         elif spotlight_dtypes.is_array_dtype(dtype):
             append_column_fn = self.append_array_column
         elif spotlight_dtypes.is_window_dtype(dtype):

@@ -1030,4 +1030,8 @@ def test_to_pandas() -> None:
             column_name = dtype.name
             assert column_name in df
             inferred_dtype = infer_dtype(df[column_name])
-            assert inferred_dtype.name == dtype.name
+            if dtypes.is_category_dtype(dtype):
+                assert dtypes.is_category_dtype(inferred_dtype)
+                assert inferred_dtype.categories == dtype.categories
+            else:
+                assert inferred_dtype.name == dtype.name
