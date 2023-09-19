@@ -42,7 +42,7 @@ def compare_classification(
     Returns:
         Layout: _description_
     """
-    
+
     # first column: table + issues
     metrics = split(
         [
@@ -118,7 +118,7 @@ def compare_classification(
             )
             column2_list.append(row3)
 
-    column2:Union[Tab, Split]
+    column2: Union[Tab, Split]
 
     if len(column2_list) == 1:
         column2 = column2_list[0]

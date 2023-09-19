@@ -1,6 +1,8 @@
 from renumics.spotlight import layout
 from renumics.spotlight.layout import (
     Layout,
+    Tab,
+    Split,
     lenses,
     table,
     similaritymap,
@@ -12,9 +14,8 @@ from renumics.spotlight.layout import (
     confusion_matrix,
     histogram,
 )
-from typing import Optional
+from typing import Optional, Union
 from renumics.spotlight import Audio, Image
-
 
 
 def debug_classification(
@@ -81,6 +82,8 @@ def debug_classification(
             weight=40,
         )
         column2_list.append(row3)
+
+    column2: Union[Tab, Split]
 
     if len(column2_list) == 1:
         column2 = column2_list[0]
