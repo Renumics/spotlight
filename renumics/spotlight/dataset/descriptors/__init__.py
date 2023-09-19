@@ -78,7 +78,7 @@ def catch22(
     if suffix is None:
         suffix = "catch24" if catch24 else "catch22"
     dtype = dataset.get_dtype(column)
-    if dtypes.is_audio_dtype(dtype) or dtypes.is_sequence_1d_dtype(dtype):
+    if not dtypes.is_audio_dtype(dtype) and not dtypes.is_sequence_1d_dtype(dtype):
         raise InvalidDTypeError(
             f"catch22 is only applicable to columns of type `Audio` and "
             f'`Sequence1D`, but column "{column}" of type {dtype} received.'

@@ -83,7 +83,7 @@ def align_image_data(dataset: Dataset, column: str) -> Tuple[np.ndarray, np.ndar
     Align data from an image column.
     """
     dtype = dataset.get_dtype(column)
-    if dtypes.is_image_dtype(dtype):
+    if not dtypes.is_image_dtype(dtype):
         raise exceptions.InvalidDTypeError(
             f'An image column expected, but column "{column}" of type {dtype} received.'
         )
@@ -125,7 +125,7 @@ def align_sequence_1d_data(
     Align data from an sequence 1D column.
     """
     dtype = dataset.get_dtype(column)
-    if dtypes.is_sequence_1d_dtype(dtype):
+    if not dtypes.is_sequence_1d_dtype(dtype):
         raise exceptions.InvalidDTypeError(
             f'A sequence 1D column expected, but column "{column}" of type {dtype} received.'
         )
