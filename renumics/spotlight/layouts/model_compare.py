@@ -23,7 +23,7 @@ def model_compare_classification(
     model2_prediction: str = "m2_prediction",
     model2_embedding: str = "",
     model2_correct: str = "",
-    inspect: Optional[dict] = None
+    inspect: Optional[dict] = None,
 ) -> Layout:
     # first column: table + issues
     metrics = split(
@@ -53,14 +53,21 @@ def model_compare_classification(
         [column1, tab(issues(), weight=40)], weight=80, orientation="horizontal"
     )
 
-    column2 = tab(
-        confusion_matrix(
-            name="Model 1 confusion matrix", x_column=label, y_column=model1_prediction
-        ),
-        confusion_matrix(
-            name="Model 2 confusion matrix", x_column=label, y_column=model2_prediction
-        ),
-        weight=40,
+    column2_list = []
+    column2_list.append(
+        tab(
+            confusion_matrix(
+                name="Model 1 confusion matrix",
+                x_column=label,
+                y_column=model1_prediction,
+            ),
+            confusion_matrix(
+                name="Model 2 confusion matrix",
+                x_column=label,
+                y_column=model2_prediction,
+            ),
+            weight=40,
+        )
     )
 
     # third column: similarity maps
@@ -74,7 +81,7 @@ def model_compare_classification(
                 ),
                 weight=40,
             )
-            column2 = split([column2, row2], weight=80, orientation="horizontal")
+            column2_list.append(row2)
 
     if model1_embedding != "":
         if model2_embedding != "":
@@ -91,7 +98,17 @@ def model_compare_classification(
                 ),
                 weight=40,
             )
-            column2 = split([column2, row3], orientation="horizontal")
+            column2_list.append(row3)
+
+    if len(column2_list) == 1:
+        column2 = column2_list[0]
+    elif len(column2_list) == 2:
+        column2 = split(column2_list, orientation="horizontal")
+    else:
+        column2 = split(
+            [column2_list[0], column2_list[1]], weight=80, orientation="horizontal"
+        )
+        column2 = split([column2, column2_list[2]], orientation="horizontal")
 
     # fourth column: inspector
     inspector_fields = []

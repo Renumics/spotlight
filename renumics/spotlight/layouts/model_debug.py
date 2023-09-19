@@ -35,9 +35,14 @@ def model_debug_classification(
         [column1, tab(issues(), weight=40)], weight=80, orientation="horizontal"
     )
 
-    column2 = tab(
-        confusion_matrix(name="Confusion matrix", x_column=label, y_column=prediction),
-        weight=40,
+    column2_list = []
+    column2_list.append(
+        tab(
+            confusion_matrix(
+                name="Confusion matrix", x_column=label, y_column=prediction
+            ),
+            weight=40,
+        )
     )
 
     # third column: confusion matric, feature histograms (optional), embedding (optional)
@@ -54,15 +59,24 @@ def model_debug_classification(
             histogram_list.append(h)
 
         row2 = tab(*histogram_list, weight=40)
-        column2 = split([column2, row2], weight=80, orientation="horizontal")
+        column2_list.append(row2)
 
     if embedding != "":
         row3 = tab(
             similaritymap(name="Embedding", columns=[embedding], color_by_column=label),
             weight=40,
         )
+        column2_list.append(row3)
 
-        column2 = split([column2, row3], orientation="horizontal")
+    if len(column2_list) == 1:
+        column2 = column2_list[0]
+    elif len(column2_list) == 2:
+        column2 = split(column2_list, orientation="horizontal")
+    else:
+        column2 = split(
+            [column2_list[0], column2_list[1]], weight=80, orientation="horizontal"
+        )
+        column2 = split([column2, column2_list[2]], orientation="horizontal")
 
     # fourth column: inspector
     inspector_fields = []
