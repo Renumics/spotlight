@@ -48,7 +48,7 @@ Here are some interactive examples on publicly available datasets:
         <tr>
             <td rowspan="3">🖼️ Image</td>
             <td>Find Issues in Any Image Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a></td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
         </tr>
         <tr>
             <td>Find data issues in the CIFAR-100 image dataset</td>
@@ -61,7 +61,7 @@ Here are some interactive examples on publicly available datasets:
         <tr>
             <td rowspan="3">🔊 Audio</td>
             <td>Find Issues in Any Audio Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a></td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
         </tr>
         <tr>
             <td>Find data issues in the Common Voice audio dataset</td>
@@ -74,7 +74,7 @@ Here are some interactive examples on publicly available datasets:
         <tr>
             <td rowspan="1">📝 Text</td>
             <td>Find Issues in Any Text Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/text-classification">👨‍💻</a></td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/text-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
         </tr>
         <tr>
             <td rowspan="2">📈🖼️ Mixed</td>
