@@ -47,16 +47,6 @@ from renumics.spotlight.typing import (
     is_integer,
     is_iterable,
 )
-from renumics.spotlight.dtypes import (
-    Embedding,
-    Mesh,
-    Sequence1D,
-    Image,
-    Audio,
-    Category,
-    Video,
-    Window,
-)
 from renumics.spotlight.io.pandas import create_typed_series
 from renumics.spotlight.dtypes.conversion import prepare_path_or_url
 from renumics.spotlight import dtypes as spotlight_dtypes
@@ -100,15 +90,15 @@ VALUE_TYPE_BY_DTYPE_NAME = {
     "float": float,
     "str": str,
     "datetime": datetime,
-    "Category": Category,
+    "Category": spotlight_dtypes.Category,
     "array": np.ndarray,
-    "Window": Window,
-    "Embedding": Embedding,
-    "Sequence1D": Sequence1D,
-    "Audio": Audio,
-    "Image": Image,
-    "Video": Video,
-    "Mesh": Mesh,
+    "Window": spotlight_dtypes.Window,
+    "Embedding": spotlight_dtypes.Embedding,
+    "Sequence1D": spotlight_dtypes.Sequence1D,
+    "Audio": spotlight_dtypes.Audio,
+    "Image": spotlight_dtypes.Image,
+    "Video": spotlight_dtypes.Video,
+    "Mesh": spotlight_dtypes.Mesh,
 }
 
 
@@ -168,12 +158,12 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
         np.floating,
     ),
     "Window": (np.ndarray, list, tuple),
-    "Embedding": (Embedding, np.ndarray, list, tuple),
-    "Sequence1D": (Sequence1D, np.ndarray, list, tuple),
-    "Audio": (Audio, bytes, str, os.PathLike),
-    "Image": (Image, bytes, str, os.PathLike, np.ndarray, list, tuple),
-    "Mesh": (Mesh, trimesh.Trimesh, str, os.PathLike),
-    "Video": (Video, bytes, str, os.PathLike),
+    "Embedding": (spotlight_dtypes.Embedding, np.ndarray, list, tuple),
+    "Sequence1D": (spotlight_dtypes.Sequence1D, np.ndarray, list, tuple),
+    "Audio": (spotlight_dtypes.Audio, bytes, str, os.PathLike),
+    "Image": (spotlight_dtypes.Image, bytes, str, os.PathLike, np.ndarray, list, tuple),
+    "Mesh": (spotlight_dtypes.Mesh, trimesh.Trimesh, str, os.PathLike),
+    "Video": (spotlight_dtypes.Video, bytes, str, os.PathLike),
 }
 _ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
     "bool": (np.bool_,),
@@ -3067,7 +3057,7 @@ class Dataset:
             )
         if spotlight_dtypes.is_embedding_dtype(dtype):
             # `Embedding` column is not a ref column.
-            if isinstance(value, Embedding):
+            if isinstance(value, spotlight_dtypes.Embedding):
                 value = value.encode(attrs.get("format", None))
             value = np.asarray(value, dtype=column.dtype.metadata["vlen"])
             self._assert_valid_or_set_embedding_shape(value.shape, column)
@@ -3117,58 +3107,58 @@ class Dataset:
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             return value
         if spotlight_dtypes.is_embedding_dtype(dtype):
-            if not isinstance(value, Embedding):
-                value = Embedding(value)  # type: ignore
+            if not isinstance(value, spotlight_dtypes.Embedding):
+                value = spotlight_dtypes.Embedding(value)  # type: ignore
             value = value.encode()
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             self._assert_valid_or_set_embedding_shape(value.shape, column)
             return value
         if spotlight_dtypes.is_sequence_1d_dtype(dtype):
-            if not isinstance(value, Sequence1D):
-                value = Sequence1D(value)  # type: ignore
+            if not isinstance(value, spotlight_dtypes.Sequence1D):
+                value = spotlight_dtypes.Sequence1D(value)  # type: ignore
             value = value.encode()
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             return value
         if spotlight_dtypes.is_audio_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
-                    value = Audio.from_file(value)
+                    value = spotlight_dtypes.Audio.from_file(value)
                 except Exception:
                     return None
             if isinstance(value, bytes):
-                value = Audio.from_bytes(value)
-            assert isinstance(value, Audio)
+                value = spotlight_dtypes.Audio.from_bytes(value)
+            assert isinstance(value, spotlight_dtypes.Audio)
             return value.encode(column.attrs.get("format", None))
         if spotlight_dtypes.is_image_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
-                    value = Image.from_file(value)
+                    value = spotlight_dtypes.Image.from_file(value)
                 except Exception:
                     return None
             if isinstance(value, bytes):
-                value = Image.from_bytes(value)
-            if not isinstance(value, Image):
-                value = Image(value)  # type: ignore
+                value = spotlight_dtypes.Image.from_bytes(value)
+            if not isinstance(value, spotlight_dtypes.Image):
+                value = spotlight_dtypes.Image(value)  # type: ignore
             return value.encode()
         if spotlight_dtypes.is_mesh_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
-                    value = Mesh.from_file(value)
+                    value = spotlight_dtypes.Mesh.from_file(value)
                 except Exception:
                     return None
             if isinstance(value, trimesh.Trimesh):
-                value = Mesh.from_trimesh(value)
-            assert isinstance(value, Mesh)
+                value = spotlight_dtypes.Mesh.from_trimesh(value)
+            assert isinstance(value, spotlight_dtypes.Mesh)
             return value.encode()
         if spotlight_dtypes.is_video_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
-                    value = Video.from_file(value)
+                    value = spotlight_dtypes.Video.from_file(value)
                 except Exception:
                     return None
             if isinstance(value, bytes):
-                value = Video.from_bytes(value)
-            assert isinstance(value, Video)
+                value = spotlight_dtypes.Video.from_bytes(value)
+            assert isinstance(value, spotlight_dtypes.Video)
             return value.encode(column.attrs.get("format", None))
         assert False
 
@@ -3282,7 +3272,16 @@ class Dataset:
         ref: Union[bytes, str, h5py.Reference],
         dtype: spotlight_dtypes.DType,
         column_name: str,
-    ) -> Optional[Union[np.ndarray, Audio, Image, Mesh, Sequence1D, Video]]:
+    ) -> Optional[
+        Union[
+            np.ndarray,
+            spotlight_dtypes.Audio,
+            spotlight_dtypes.Image,
+            spotlight_dtypes.Mesh,
+            spotlight_dtypes.Sequence1D,
+            spotlight_dtypes.Video,
+        ]
+    ]:
         # Value can be a H5 reference or a string reference.
         if not ref:
             return None
