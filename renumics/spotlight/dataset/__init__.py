@@ -59,40 +59,7 @@ from renumics.spotlight.dtypes import (
 )
 from renumics.spotlight.io.pandas import create_typed_series
 from renumics.spotlight.dtypes.conversion import prepare_path_or_url
-from renumics.spotlight.dtypes import (
-    CategoryDType,
-    Sequence1DDType,
-    create_dtype,
-    is_bool_dtype,
-    is_int_dtype,
-    is_float_dtype,
-    is_str_dtype,
-    is_datetime_dtype,
-    is_category_dtype,
-    is_array_dtype,
-    is_window_dtype,
-    is_embedding_dtype,
-    is_sequence_1d_dtype,
-    is_audio_dtype,
-    is_image_dtype,
-    is_mesh_dtype,
-    is_video_dtype,
-    is_file_dtype,
-    is_scalar_dtype,
-    DType,
-    bool_dtype,
-    int_dtype,
-    float_dtype,
-    str_dtype,
-    datetime_dtype,
-    array_dtype,
-    window_dtype,
-    embedding_dtype,
-    audio_dtype,
-    image_dtype,
-    mesh_dtype,
-    video_dtype,
-)
+from renumics.spotlight import dtypes as spotlight_dtypes
 
 from . import exceptions
 from .typing import (
@@ -122,7 +89,7 @@ __all__ = ["Dataset"]
 
 
 INTERNAL_COLUMN_NAMES = ["__last_edited_by__", "__last_edited_at__"]
-INTERNAL_COLUMN_DTYPES = [str_dtype, datetime_dtype]
+INTERNAL_COLUMN_DTYPES = [spotlight_dtypes.str_dtype, spotlight_dtypes.datetime_dtype]
 
 _EncodedColumnType = Optional[Union[bool, int, float, str, np.ndarray, h5py.Reference]]
 
@@ -218,7 +185,7 @@ _ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
 }
 
 
-def _check_valid_value_type(value: Any, dtype: DType) -> bool:
+def _check_valid_value_type(value: Any, dtype: spotlight_dtypes.DType) -> bool:
     """
     Check if a value is suitable for the given column type. Instances of the
     given type are always suitable for its type, but extra types from
@@ -228,7 +195,9 @@ def _check_valid_value_type(value: Any, dtype: DType) -> bool:
     return isinstance(value, allowed_types)
 
 
-def _check_valid_value_dtype(value_dtype: np.dtype, dtype: DType) -> bool:
+def _check_valid_value_dtype(
+    value_dtype: np.dtype, dtype: spotlight_dtypes.DType
+) -> bool:
     """
     Check if an array with the given dtype is suitable for the given column type.
     Only types from `_ALLOWED_COLUMN_DTYPES` are checked. All other column types
@@ -240,7 +209,9 @@ def _check_valid_value_dtype(value_dtype: np.dtype, dtype: DType) -> bool:
     )
 
 
-def _check_valid_array(value: Any, dtype: DType) -> TypeGuard[np.ndarray]:
+def _check_valid_array(
+    value: Any, dtype: spotlight_dtypes.DType
+) -> TypeGuard[np.ndarray]:
     """
     Check if a value is an array and its type is suitable for the given column type.
     """
@@ -263,7 +234,7 @@ class Dataset:
     _length: int
 
     @staticmethod
-    def _user_column_attributes(dtype: DType) -> Dict[str, Type]:
+    def _user_column_attributes(dtype: spotlight_dtypes.DType) -> Dict[str, Type]:
         attribute_names = {
             "order": int,
             "hidden": bool,
@@ -273,37 +244,37 @@ class Dataset:
             "tags": list,
         }
         if (
-            is_scalar_dtype(dtype)
-            or is_str_dtype(dtype)
-            or is_category_dtype(dtype)
-            or is_window_dtype(dtype)
+            spotlight_dtypes.is_scalar_dtype(dtype)
+            or spotlight_dtypes.is_str_dtype(dtype)
+            or spotlight_dtypes.is_category_dtype(dtype)
+            or spotlight_dtypes.is_window_dtype(dtype)
         ):
             attribute_names["editable"] = bool
-        if is_category_dtype(dtype):
+        if spotlight_dtypes.is_category_dtype(dtype):
             attribute_names["categories"] = dict
-        if is_sequence_1d_dtype(dtype):
+        if spotlight_dtypes.is_sequence_1d_dtype(dtype):
             attribute_names["x_label"] = str
             attribute_names["y_label"] = str
-        if is_file_dtype(dtype):
+        if spotlight_dtypes.is_file_dtype(dtype):
             attribute_names["lookup"] = dict
             attribute_names["external"] = bool
-        if is_audio_dtype(dtype):
+        if spotlight_dtypes.is_audio_dtype(dtype):
             attribute_names["lossy"] = bool
         return attribute_names
 
     @classmethod
-    def _default_default(cls, dtype: DType) -> Any:
-        if is_bool_dtype(dtype):
+    def _default_default(cls, dtype: spotlight_dtypes.DType) -> Any:
+        if spotlight_dtypes.is_bool_dtype(dtype):
             return False
-        if is_int_dtype(dtype):
+        if spotlight_dtypes.is_int_dtype(dtype):
             return 0
-        if is_float_dtype(dtype):
+        if spotlight_dtypes.is_float_dtype(dtype):
             return float("nan")
-        if is_str_dtype(dtype):
+        if spotlight_dtypes.is_str_dtype(dtype):
             return ""
-        if is_datetime_dtype(dtype):
+        if spotlight_dtypes.is_datetime_dtype(dtype):
             return np.datetime64("NaT")
-        if is_window_dtype(dtype):
+        if spotlight_dtypes.is_window_dtype(dtype):
             return [np.nan, np.nan]
         return None
 
@@ -413,7 +384,7 @@ class Dataset:
             for column_name in self.keys() + INTERNAL_COLUMN_NAMES:
                 column = self._h5_file[column_name]
                 raw_values = column[item + 1 :]
-                if is_embedding_dtype(self._get_dtype(column)):
+                if spotlight_dtypes.is_embedding_dtype(self._get_dtype(column)):
                     raw_values = list(raw_values)
                 column[item:-1] = raw_values
                 column.resize(self._length - 1, axis=0)
@@ -783,7 +754,11 @@ class Dataset:
             dtypes = {}
 
         inferred_dtypes = infer_dtypes(
-            df, {col: create_dtype(dtype) for col, dtype in dtypes.items()}
+            df,
+            {
+                col: spotlight_dtypes.create_dtype(dtype)
+                for col, dtype in dtypes.items()
+            },
         )
 
         for column_name in df.columns:
@@ -793,7 +768,7 @@ class Dataset:
 
                 column = prepare_column(column, dtype)
 
-                if workdir is not None and is_file_dtype(dtype):
+                if workdir is not None and spotlight_dtypes.is_file_dtype(dtype):
                     # For file-based data types, relative paths should be resolved.
                     str_mask = is_string_mask(column)
                     column[str_mask] = column[str_mask].apply(
@@ -802,17 +777,17 @@ class Dataset:
 
                 attrs = {}
 
-                if is_category_dtype(dtype):
+                if spotlight_dtypes.is_category_dtype(dtype):
                     attrs["categories"] = column.cat.categories.to_list()
                     values = column.to_numpy()
                     # `pandas` uses `NaN`s for unknown values, we use `None`.
                     values = np.where(pd.isna(values), np.array(None), values)
-                elif is_datetime_dtype(dtype):
+                elif spotlight_dtypes.is_datetime_dtype(dtype):
                     values = column.to_numpy("datetime64[us]")
                 else:
                     values = column.to_numpy()
 
-                if is_file_dtype(dtype):
+                if spotlight_dtypes.is_file_dtype(dtype):
                     attrs["external"] = False  # type: ignore
                     attrs["lookup"] = False  # type: ignore
 
@@ -886,12 +861,12 @@ class Dataset:
         df = pd.DataFrame()
         for column_name in self._column_names:
             dtype = self.get_dtype(column_name)
-            if is_datetime_dtype(dtype):
+            if spotlight_dtypes.is_datetime_dtype(dtype):
                 df[column_name] = create_typed_series(dtype, self[column_name])
             elif (
-                is_scalar_dtype(dtype)
-                or is_str_dtype(dtype)
-                or is_category_dtype(dtype)
+                spotlight_dtypes.is_scalar_dtype(dtype)
+                or spotlight_dtypes.is_str_dtype(dtype)
+                or spotlight_dtypes.is_category_dtype(dtype)
             ):
                 df[column_name] = create_typed_series(
                     dtype, self._h5_file[column_name][:]
@@ -946,7 +921,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            bool_dtype,
+            spotlight_dtypes.bool_dtype,
             values,
             np.dtype(bool),
             order,
@@ -993,7 +968,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            int_dtype,
+            spotlight_dtypes.int_dtype,
             values,
             np.dtype(int),
             order,
@@ -1041,7 +1016,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            float_dtype,
+            spotlight_dtypes.float_dtype,
             values,
             np.dtype(float),
             order,
@@ -1089,7 +1064,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            str_dtype,
+            spotlight_dtypes.str_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1144,7 +1119,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            datetime_dtype,
+            spotlight_dtypes.datetime_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1195,7 +1170,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            array_dtype,
+            spotlight_dtypes.array_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1245,7 +1220,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            CategoryDType(categories),
+            spotlight_dtypes.CategoryDType(categories),
             values,
             np.dtype("int32"),
             order,
@@ -1299,7 +1274,7 @@ class Dataset:
             )
         self._append_column(
             name,
-            embedding_dtype,
+            spotlight_dtypes.embedding_dtype,
             values,
             h5py.vlen_dtype(np_dtype),
             order,
@@ -1353,7 +1328,7 @@ class Dataset:
             y_label = name
         self._append_column(
             name,
-            Sequence1DDType(x_label, y_label),
+            spotlight_dtypes.Sequence1DDType(x_label, y_label),
             values,
             h5py.string_dtype(),
             order,
@@ -1414,7 +1389,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            mesh_dtype,
+            spotlight_dtypes.mesh_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1475,7 +1450,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            image_dtype,
+            spotlight_dtypes.image_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1548,7 +1523,7 @@ class Dataset:
             attrs["lossy"] = lossy
         self._append_column(
             name,
-            audio_dtype,
+            spotlight_dtypes.audio_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1609,7 +1584,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            video_dtype,
+            spotlight_dtypes.video_dtype,
             values,
             h5py.string_dtype(),
             order,
@@ -1659,7 +1634,7 @@ class Dataset:
         """
         self._append_column(
             name,
-            window_dtype,
+            spotlight_dtypes.window_dtype,
             values,
             np.dtype("float32"),
             order,
@@ -1722,38 +1697,39 @@ class Dataset:
             [ True  True  True  True  True]
             [1. 1. 1. 1. 1.]
         """
-        dtype = create_dtype(dtype)
+        dtype = spotlight_dtypes.create_dtype(dtype)
 
-        if dtype.name == "bool":
+        if spotlight_dtypes.is_bool_dtype(dtype):
             append_column_fn: Callable = self.append_bool_column
-        elif dtype.name == "int":
+        elif spotlight_dtypes.is_int_dtype(dtype):
             append_column_fn = self.append_int_column
-        elif dtype.name == "float":
+        elif spotlight_dtypes.is_float_dtype(dtype):
             append_column_fn = self.append_float_column
-        elif dtype.name == "str":
+        elif spotlight_dtypes.is_str_dtype(dtype):
             append_column_fn = self.append_string_column
-        elif dtype.name == "datetime":
+        elif spotlight_dtypes.is_datetime_dtype(dtype):
             append_column_fn = self.append_datetime_column
-        elif dtype.name == "array":
-            append_column_fn = self.append_array_column
-        elif dtype.name == "Embedding":
-            append_column_fn = self.append_embedding_column
-        elif dtype.name == "Image":
-            append_column_fn = self.append_image_column
-        elif dtype.name == "Mesh":
-            append_column_fn = self.append_mesh_column
-        elif dtype.name == "Sequence1D":
-            append_column_fn = self.append_sequence_1d_column
-        elif dtype.name == "Audio":
-            append_column_fn = self.append_audio_column
-        elif dtype.name == "Category":
+        elif spotlight_dtypes.is_category_dtype(dtype):
             append_column_fn = self.append_categorical_column
-        elif dtype.name == "Video":
-            append_column_fn = self.append_video_column
-        elif dtype.name == "Window":
+        elif spotlight_dtypes.is_array_dtype(dtype):
+            append_column_fn = self.append_array_column
+        elif spotlight_dtypes.is_window_dtype(dtype):
             append_column_fn = self.append_window_column
+        elif spotlight_dtypes.is_embedding_dtype(dtype):
+            append_column_fn = self.append_embedding_column
+        elif spotlight_dtypes.is_sequence_1d_dtype(dtype):
+            append_column_fn = self.append_sequence_1d_column
+        elif spotlight_dtypes.is_audio_dtype(dtype):
+            append_column_fn = self.append_audio_column
+        elif spotlight_dtypes.is_image_dtype(dtype):
+            append_column_fn = self.append_image_column
+        elif spotlight_dtypes.is_mesh_dtype(dtype):
+            append_column_fn = self.append_mesh_column
+        elif spotlight_dtypes.is_video_dtype(dtype):
+            append_column_fn = self.append_video_column
         else:
             raise exceptions.InvalidDTypeError(f"Unknown column type: {dtype}.")
+
         append_column_fn(
             name=name,
             values=values,  # type: ignore
@@ -1857,7 +1833,7 @@ class Dataset:
             column = self._h5_file[column_name]
             column.resize(length + 1, axis=0)
             raw_values = column[index:-1]
-            if self._get_dtype(column).name == "Embedding":
+            if spotlight_dtypes.is_embedding_dtype(self._get_dtype(column)):
                 raw_values = list(raw_values)
             column[index + 1 :] = raw_values
         self._length += 1
@@ -1903,15 +1879,15 @@ class Dataset:
         dtype = self._get_dtype(column)
         if self._is_ref_column(column):
             return ~raw_values.astype(bool)
-        if dtype.name == "datetime":
+        if spotlight_dtypes.is_datetime_dtype(dtype):
             return np.array([raw_value in ["", b""] for raw_value in raw_values])
-        if dtype.name == "float":
+        if spotlight_dtypes.is_float_dtype(dtype):
             return np.isnan(raw_values)
-        if dtype.name == "Category":
+        if spotlight_dtypes.is_category_dtype(dtype):
             return raw_values == -1
-        if dtype.name == "Window":
+        if spotlight_dtypes.is_window_dtype(dtype):
             return np.isnan(raw_values).all(axis=1)
-        if dtype.name == "Embedding":
+        if spotlight_dtypes.is_embedding_dtype(dtype):
             return np.array([len(x) == 0 for x in raw_values])
         return np.full(len(self), False)
 
@@ -2000,14 +1976,14 @@ class Dataset:
                                 else:
                                     refs.append(None)
                             raw_values = refs
-                    if self._get_dtype(column).name == "Embedding":
+                    if spotlight_dtypes.is_embedding_dtype(self._get_dtype(column)):
                         raw_values = list(raw_values)
                     new_column[:] = raw_values
             self.close()
             shutil.move(new_dataset, os.path.realpath(self._filepath))
             self.open()
 
-    def get_dtype(self, column_name: str) -> DType:
+    def get_dtype(self, column_name: str) -> spotlight_dtypes.DType:
         """
         Get type of dataset column.
 
@@ -2339,12 +2315,12 @@ class Dataset:
                 if default is None and old_default is None:
                     default = self._default_default(dtype)
                     if default is None:
-                        if is_embedding_dtype(dtype) and not self._is_ref_column(
-                            column
-                        ):
+                        if spotlight_dtypes.is_embedding_dtype(
+                            dtype
+                        ) and not self._is_ref_column(column):
                             # For a non-ref `Embedding` column, replace `None` with an empty array.
                             default = np.empty(0, column.dtype.metadata["vlen"])
-                if is_category_dtype(dtype) and default is not None:
+                if spotlight_dtypes.is_category_dtype(dtype) and default is not None:
                     categories: List[str] = column.attrs["category_keys"].tolist()
                     if default not in categories:
                         column.attrs["category_values"] = np.append(
@@ -2353,10 +2329,13 @@ class Dataset:
                         column.attrs["category_keys"] = categories + [default]
                 if default is not None:
                     encoded_value = self._encode_value(default, column)
-                    if dtype.name == "datetime" and encoded_value is None:
+                    if (
+                        spotlight_dtypes.is_datetime_dtype(dtype)
+                        and encoded_value is None
+                    ):
                         encoded_value = ""
                     column.attrs["default"] = encoded_value
-                elif is_category_dtype(dtype):
+                elif spotlight_dtypes.is_category_dtype(dtype):
                     column.attrs["default"] = -1
 
             except Exception as e:
@@ -2401,7 +2380,7 @@ class Dataset:
         for column in columns:
             attrs = column.attrs
             type_name = attrs["type"]
-            dtype = create_dtype(type_name)
+            dtype = spotlight_dtypes.create_dtype(type_name)
             optional_keys = set(self._user_column_attributes(dtype).keys()).difference(
                 required_keys
             )
@@ -2425,7 +2404,7 @@ class Dataset:
     def _append_column(
         self,
         name: str,
-        dtype: DType,
+        dtype: spotlight_dtypes.DType,
         values: Union[ColumnInputType, Iterable[ColumnInputType]],
         np_dtype: np.dtype,
         order: Optional[int] = None,
@@ -2443,7 +2422,7 @@ class Dataset:
         # `set_column_attributes` method.
         shape: Tuple[int, ...] = (0,)
         maxshape: Tuple[Optional[int], ...] = (None,)
-        if is_category_dtype(dtype):
+        if spotlight_dtypes.is_category_dtype(dtype):
             if dtype.categories is None:
                 if is_iterable(values):
                     categories: List[str] = sorted(set(values))
@@ -2451,15 +2430,16 @@ class Dataset:
                     categories = []
                 else:
                     categories = cast(List[str], [values])
-                dtype = CategoryDType(categories)
+                dtype = spotlight_dtypes.CategoryDType(categories)
             attrs["categories"] = dtype.categories
-        elif is_window_dtype(dtype):
+            print(name, attrs["categories"])
+        elif spotlight_dtypes.is_window_dtype(dtype):
             shape = (0, 2)
             maxshape = (None, 2)
-        elif is_sequence_1d_dtype(dtype):
+        elif spotlight_dtypes.is_sequence_1d_dtype(dtype):
             attrs["x_label"] = dtype.x_label
             attrs["y_label"] = dtype.y_label
-        elif is_file_dtype(dtype):
+        elif spotlight_dtypes.is_file_dtype(dtype):
             lookup = attrs.get("lookup", None)
             if is_iterable(lookup) and not isinstance(lookup, dict):
                 # Assume that we can keep all the lookup values in memory.
@@ -2569,7 +2549,7 @@ class Dataset:
             else:
                 # Reorder values according to the given indices.
                 encoded_values = encoded_values[values_indices]
-            if self._get_dtype(column).name == "Embedding":
+            if spotlight_dtypes.is_embedding_dtype(self._get_dtype(column)):
                 encoded_values = list(encoded_values)
         elif values is not None:
             # A single value is given. `Window` and `Embedding` values should
@@ -2681,30 +2661,30 @@ class Dataset:
 
     @staticmethod
     def _decode_simple_values(
-        values: np.ndarray, column: h5py.Dataset, dtype: DType
+        values: np.ndarray, column: h5py.Dataset, dtype: spotlight_dtypes.DType
     ) -> np.ndarray:
-        if is_category_dtype(dtype):
+        if spotlight_dtypes.is_category_dtype(dtype):
             if dtype.inverted_categories is None:
                 return np.full(len(values), None)
             return np.array([dtype.inverted_categories.get(x) for x in values])
         if h5py.check_string_dtype(column.dtype):
             # `dtype` is `str` or `datetime`.
             values = np.array([x.decode("utf-8") for x in values])
-            if is_str_dtype(dtype):
+            if spotlight_dtypes.is_str_dtype(dtype):
                 return values
             # Decode datetimes.
             return np.array(
                 [None if x == "" else datetime.fromisoformat(x) for x in values],
                 dtype=object,
             )
-        if is_embedding_dtype(dtype):
+        if spotlight_dtypes.is_embedding_dtype(dtype):
             null_mask = [len(x) == 0 for x in values]
             values[null_mask] = None
         # For column types `bool`, `int`, `float` or `Window`, return the array as-is.
         return values
 
     def _decode_ref_values(
-        self, values: np.ndarray, column: h5py.Dataset, dtype: DType
+        self, values: np.ndarray, column: h5py.Dataset, dtype: spotlight_dtypes.DType
     ) -> np.ndarray:
         column_name = self._get_column_name(column)
         if dtype.name in ("array", "Embedding"):
@@ -2720,7 +2700,9 @@ class Dataset:
             dtype=object,
         )
 
-    def _decode_external_values(self, values: np.ndarray, dtype: DType) -> np.ndarray:
+    def _decode_external_values(
+        self, values: np.ndarray, dtype: spotlight_dtypes.DType
+    ) -> np.ndarray:
         return np.array(
             [self._decode_external_value(value, dtype) for value in values],
             dtype=object,
@@ -2797,7 +2779,7 @@ class Dataset:
         self, values: Iterable[SimpleColumnInputType], column: h5py.Dataset
     ) -> np.ndarray:
         dtype = self._get_dtype(column)
-        if is_category_dtype(dtype):
+        if spotlight_dtypes.is_category_dtype(dtype):
             categories = cast(Dict[Optional[str], int], (dtype.categories or {}).copy())
             if column.attrs.get("optional", False):
                 default = column.attrs.get("default", -1)
@@ -2822,7 +2804,7 @@ class Dataset:
                     f"'{column_name}'. Valid values for this column are: "
                     f"{categories_str}."
                 ) from e
-        if is_datetime_dtype(dtype):
+        if spotlight_dtypes.is_datetime_dtype(dtype):
             if _check_valid_array(values, dtype):
                 encoded_values = np.array(
                     [None if x is None else x.isoformat() for x in values.tolist()]
@@ -2837,7 +2819,7 @@ class Dataset:
                 # That means, we have all strings in array, no `None`s.
                 return encoded_values
             return self._replace_none(encoded_values, column)
-        if is_window_dtype(dtype):
+        if spotlight_dtypes.is_window_dtype(dtype):
             encoded_values = self._asarray(values, column, dtype)
             if encoded_values.ndim == 1:
                 if len(encoded_values) == 2:
@@ -2855,7 +2837,7 @@ class Dataset:
                 f"one of shapes (2,) (a single window) or (n, 2) (multiple "
                 f"windows), but values with shape {encoded_values.shape} received."
             )
-        if is_embedding_dtype(dtype):
+        if spotlight_dtypes.is_embedding_dtype(dtype):
             if _check_valid_array(values, dtype):
                 # This is the only case we can handle fast and easily, otherwise
                 # embedding should go through `_encode_value` element-wise.
@@ -2904,7 +2886,7 @@ class Dataset:
         self,
         values: Iterable[SimpleColumnInputType],
         column: h5py.Dataset,
-        dtype: DType,
+        dtype: spotlight_dtypes.DType,
     ) -> np.ndarray:
         if isinstance(values, np.ndarray):
             if _check_valid_value_dtype(values.dtype, dtype):
@@ -3024,7 +3006,7 @@ class Dataset:
         if self._is_ref_column(column):
             value = cast(RefColumnInputType, value)
             self._assert_valid_value_type(value, dtype, column_name)
-            if is_file_dtype(dtype) and isinstance(value, str):
+            if spotlight_dtypes.is_file_dtype(dtype) and isinstance(value, str):
                 try:
                     return self._find_lookup_ref(value, column)
                 except KeyError:
@@ -3050,7 +3032,7 @@ class Dataset:
         self,
         value: SimpleColumnInputType,
         column: h5py.Dataset,
-        dtype: DType,
+        dtype: spotlight_dtypes.DType,
         column_name: str,
     ) -> _EncodedColumnType:
         """
@@ -3061,7 +3043,7 @@ class Dataset:
         """
         self._assert_valid_value_type(value, dtype, column_name)
         attrs = column.attrs
-        if is_category_dtype(dtype):
+        if spotlight_dtypes.is_category_dtype(dtype):
             value = cast(str, value)
             if dtype.categories:
                 try:
@@ -3075,7 +3057,7 @@ class Dataset:
                 f"categorical column '{column_name}'. Valid values for this "
                 f"column are: {categories_str}."
             )
-        if is_window_dtype(dtype):
+        if spotlight_dtypes.is_window_dtype(dtype):
             value = np.asarray(value, dtype=column.dtype)
             if value.shape == (2,):
                 return value
@@ -3083,7 +3065,7 @@ class Dataset:
                 f"Windows should consist of 2 values, but window of shape "
                 f"{value.shape} received for column {column_name}."
             )
-        if is_embedding_dtype(dtype):
+        if spotlight_dtypes.is_embedding_dtype(dtype):
             # `Embedding` column is not a ref column.
             if isinstance(value, Embedding):
                 value = value.encode(attrs.get("format", None))
@@ -3119,7 +3101,10 @@ class Dataset:
         return ref
 
     def _encode_ref_value(
-        self, value: RefColumnInputType, column: h5py.Dataset, dtype: DType
+        self,
+        value: RefColumnInputType,
+        column: h5py.Dataset,
+        dtype: spotlight_dtypes.DType,
     ) -> Optional[Union[np.ndarray, np.void]]:
         """
         Encode a ref value, e.g. np.ndarray, Sequence1D, Image, Mesh, Audio,
@@ -3127,24 +3112,24 @@ class Dataset:
 
         Value *cannot* be `None` already.
         """
-        if is_array_dtype(dtype):
+        if spotlight_dtypes.is_array_dtype(dtype):
             value = np.asarray(value)
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             return value
-        if is_embedding_dtype(dtype):
+        if spotlight_dtypes.is_embedding_dtype(dtype):
             if not isinstance(value, Embedding):
                 value = Embedding(value)  # type: ignore
             value = value.encode()
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             self._assert_valid_or_set_embedding_shape(value.shape, column)
             return value
-        if is_sequence_1d_dtype(dtype):
+        if spotlight_dtypes.is_sequence_1d_dtype(dtype):
             if not isinstance(value, Sequence1D):
                 value = Sequence1D(value)  # type: ignore
             value = value.encode()
             self._assert_valid_or_set_value_dtype(value.dtype, column)
             return value
-        if is_audio_dtype(dtype):
+        if spotlight_dtypes.is_audio_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = Audio.from_file(value)
@@ -3154,7 +3139,7 @@ class Dataset:
                 value = Audio.from_bytes(value)
             assert isinstance(value, Audio)
             return value.encode(column.attrs.get("format", None))
-        if is_image_dtype(dtype):
+        if spotlight_dtypes.is_image_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = Image.from_file(value)
@@ -3165,7 +3150,7 @@ class Dataset:
             if not isinstance(value, Image):
                 value = Image(value)  # type: ignore
             return value.encode()
-        if is_mesh_dtype(dtype):
+        if spotlight_dtypes.is_mesh_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = Mesh.from_file(value)
@@ -3175,7 +3160,7 @@ class Dataset:
                 value = Mesh.from_trimesh(value)
             assert isinstance(value, Mesh)
             return value.encode()
-        if is_video_dtype(dtype):
+        if spotlight_dtypes.is_video_dtype(dtype):
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = Video.from_file(value)
@@ -3239,7 +3224,7 @@ class Dataset:
 
     @staticmethod
     def _assert_valid_value_type(
-        value: ColumnInputType, dtype: DType, column_name: str
+        value: ColumnInputType, dtype: spotlight_dtypes.DType, column_name: str
     ) -> None:
         if not _check_valid_value_type(value, dtype):
             allowed_types = _ALLOWED_COLUMN_TYPES.get(dtype.name, ())
@@ -3270,22 +3255,22 @@ class Dataset:
     @staticmethod
     def _decode_simple_value(
         value: Union[np.bool_, np.integer, np.floating, bytes, str, np.ndarray],
-        dtype: DType,
+        dtype: spotlight_dtypes.DType,
     ) -> Optional[Union[bool, int, float, str, datetime, np.ndarray]]:
-        if is_window_dtype(dtype):
+        if spotlight_dtypes.is_window_dtype(dtype):
             return value  # type: ignore
-        if is_embedding_dtype(dtype):
+        if spotlight_dtypes.is_embedding_dtype(dtype):
             value = cast(np.ndarray, value)
             if len(value) == 0:
                 return None
             return value
-        if is_category_dtype(dtype):
+        if spotlight_dtypes.is_category_dtype(dtype):
             if dtype.inverted_categories is None:
                 return None
             return dtype.inverted_categories.get(cast(int, value), None)
         if isinstance(value, bytes):
             value = value.decode("utf-8")
-        if is_datetime_dtype(dtype):
+        if spotlight_dtypes.is_datetime_dtype(dtype):
             value = cast(str, value)
             if value == "":
                 return None
@@ -3295,21 +3280,23 @@ class Dataset:
     def _decode_ref_value(
         self,
         ref: Union[bytes, str, h5py.Reference],
-        dtype: DType,
+        dtype: spotlight_dtypes.DType,
         column_name: str,
     ) -> Optional[Union[np.ndarray, Audio, Image, Mesh, Sequence1D, Video]]:
         # Value can be a H5 reference or a string reference.
         if not ref:
             return None
         value = self._resolve_ref(ref, column_name)[()]
-        if is_array_dtype(dtype) or is_embedding_dtype(dtype):
+        if spotlight_dtypes.is_array_dtype(
+            dtype
+        ) or spotlight_dtypes.is_embedding_dtype(dtype):
             return np.asarray(value)
         return VALUE_TYPE_BY_DTYPE_NAME[dtype.name].decode(value)  # type: ignore
 
     def _decode_external_value(
         self,
         value: Union[str, bytes],
-        dtype: DType,
+        dtype: spotlight_dtypes.DType,
     ) -> Optional[ExternalOutputType]:
         if not value:
             return None
@@ -3354,7 +3341,7 @@ class Dataset:
                         f"has no type stored in attributes. Remove or rename "
                         f"the respective h5 dataset."
                     ) from e
-                if create_dtype(type_name).name != dtype.name:
+                if spotlight_dtypes.create_dtype(type_name).name != dtype.name:
                     raise exceptions.InconsistentDatasetError(
                         f'Internal column "{column_name}" already exists, '
                         f"but has invalid type `{type_name}` "
@@ -3423,7 +3410,9 @@ class Dataset:
     def _get_username() -> str:
         return ""
 
-    def _get_dtype(self, x: Union[h5py.Dataset, h5py.AttributeManager]) -> DType:
+    def _get_dtype(
+        self, x: Union[h5py.Dataset, h5py.AttributeManager]
+    ) -> spotlight_dtypes.DType:
         """
         Get column type by its name, or extract it from `h5py` entities.
         """
@@ -3432,12 +3421,14 @@ class Dataset:
 
         type_name = x["type"]
         if type_name == "Category":
-            return CategoryDType(
+            return spotlight_dtypes.CategoryDType(
                 dict(zip(x.get("category_keys", []), x.get("category_values", [])))
             )
         if type_name == "Sequence1D":
-            return Sequence1DDType(x.get("x_label", "x"), x.get("y_label", "y"))
-        return create_dtype(type_name)
+            return spotlight_dtypes.Sequence1DDType(
+                x.get("x_label", "x"), x.get("y_label", "y")
+            )
+        return spotlight_dtypes.create_dtype(type_name)
 
     @staticmethod
     def _get_column_name(column: h5py.Dataset) -> str:

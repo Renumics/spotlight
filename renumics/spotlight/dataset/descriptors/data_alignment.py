@@ -11,6 +11,7 @@ from skimage.transform import resize_local_mean
 
 from renumics.spotlight import (
     Dataset,
+    dtypes,
 )
 from renumics.spotlight.dataset import exceptions
 
@@ -21,7 +22,7 @@ def align_audio_data(dataset: Dataset, column: str) -> Tuple[np.ndarray, np.ndar
     """
 
     dtype = dataset.get_dtype(column)
-    if dtype.name != "Audio":
+    if not dtypes.is_audio_dtype(dtype):
         raise exceptions.InvalidDTypeError(
             f'An audio column expected, but column "{column}" of type {dtype} received.'
         )
@@ -66,7 +67,7 @@ def align_embedding_data(
     Align data from an embedding column.
     """
     dtype = dataset.get_dtype(column)
-    if dtype.name != "Embedding":
+    if not dtypes.is_embedding_dtype(dtype):
         raise exceptions.InvalidDTypeError(
             f'An embedding column expected, but column "{column}" of type {dtype} received.'
         )
@@ -82,7 +83,7 @@ def align_image_data(dataset: Dataset, column: str) -> Tuple[np.ndarray, np.ndar
     Align data from an image column.
     """
     dtype = dataset.get_dtype(column)
-    if dtype.name != "Image":
+    if dtypes.is_image_dtype(dtype):
         raise exceptions.InvalidDTypeError(
             f'An image column expected, but column "{column}" of type {dtype} received.'
         )
@@ -124,7 +125,7 @@ def align_sequence_1d_data(
     Align data from an sequence 1D column.
     """
     dtype = dataset.get_dtype(column)
-    if dtype.name != "Sequence1D":
+    if dtypes.is_sequence_1d_dtype(dtype):
         raise exceptions.InvalidDTypeError(
             f'A sequence 1D column expected, but column "{column}" of type {dtype} received.'
         )
@@ -161,15 +162,15 @@ def align_column_data(
     Align data from an Spotlight dataset column if possible.
     """
     dtype = dataset.get_dtype(column)
-    if dtype.name == "Audio":
+    if dtypes.is_audio_dtype(dtype):
         data, mask = align_audio_data(dataset, column)
-    elif dtype.name == "Embedding":
+    elif dtypes.is_embedding_dtype(dtype):
         data, mask = align_embedding_data(dataset, column)
-    elif dtype.name == "Image":
+    elif dtypes.is_image_dtype(dtype):
         data, mask = align_image_data(dataset, column)
-    elif dtype.name == "Sequence1D":
+    elif dtypes.is_sequence_1d_dtype(dtype):
         data, mask = align_sequence_1d_data(dataset, column)
-    elif dtype.name in ("bool", "int", "float", "Window"):
+    elif dtypes.is_scalar_dtype(dtype) or dtypes.is_window_dtype(dtype):
         data = dataset[column].astype(np.float64).reshape((len(dataset), -1))
         mask = np.full(len(dataset), True)
     else:

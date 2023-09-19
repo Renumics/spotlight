@@ -37,6 +37,7 @@ import numpy as np
 import trimesh
 import PIL.Image
 import validators
+from renumics.spotlight import dtypes
 
 from renumics.spotlight.typing import PathOrUrlType, PathType
 from renumics.spotlight.cache import external_data_cache
@@ -198,18 +199,18 @@ def convert_to_dtype(
     try:
         if value is None:
             return None
-        if dtype.name == "bool":
+        if dtypes.is_bool_dtype(dtype):
             return bool(value)  # type: ignore
-        if dtype.name == "int":
+        if dtypes.is_int_dtype(dtype):
             return int(value)  # type: ignore
-        if dtype.name == "float":
+        if dtypes.is_float_dtype(dtype):
             return float(value)  # type: ignore
-        if dtype.name == "str":
+        if dtypes.is_str_dtype(dtype):
             str_value = str(value)
             if simple and len(str_value) > 100:
                 return str_value[:97] + "..."
             return str_value
-        if dtype.name == "array":
+        if dtypes.is_array_dtype(dtype):
             if simple:
                 return "[...]"
             if isinstance(value, list):
@@ -502,7 +503,7 @@ def _decode_external_value(
     """
 
     path_or_url = prepare_path_or_url(path_or_url, workdir)
-    if dtype.name == "Audio":
+    if dtypes.is_audio_dtype(dtype):
         file = audio.prepare_input_file(path_or_url, reusable=True)
         # `file` is a filepath of type `str` or an URL downloaded as `io.BytesIO`.
         input_format, input_codec = audio.get_format_codec(file)
@@ -534,7 +535,7 @@ def _decode_external_value(
         audio.transcode_audio(file, buffer, output_format, output_codec)
         return np.void(buffer.getvalue())
 
-    if dtype.name == "Image":
+    if dtypes.is_image_dtype(dtype):
         with as_file(path_or_url) as file:
             kind = filetype.guess(file)
             if kind is not None and kind.mime.split("/")[1] in (
@@ -551,8 +552,8 @@ def _decode_external_value(
             # `image/tiff`s become blank in frontend, so convert them too.
             return Image.from_file(file).encode(target_format)
 
-    if dtype.name == "Mesh":
+    if dtypes.is_mesh_dtype(dtype):
         return Mesh.from_file(path_or_url).encode(target_format)
-    if dtype.name == "Video":
+    if dtypes.is_video_dtype(dtype):
         return Video.from_file(path_or_url).encode(target_format)
     assert False
