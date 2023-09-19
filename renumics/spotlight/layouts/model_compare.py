@@ -1,6 +1,8 @@
 from renumics.spotlight import layout
 from renumics.spotlight.layout import (
     Layout,
+    Tab,
+    Split,
     lenses,
     table,
     similaritymap,
@@ -11,11 +13,11 @@ from renumics.spotlight.layout import (
     issues,
     confusion_matrix,
 )
-from typing import Optional
+from typing import Optional, Union
 from renumics.spotlight import Audio, Image
 
 
-def model_compare_classification(
+def compare_classification(
     label: str = "label",
     model1_prediction: str = "m1_prediction",
     model1_embedding: str = "",
@@ -25,6 +27,22 @@ def model_compare_classification(
     model2_correct: str = "",
     inspect: Optional[dict] = None,
 ) -> Layout:
+    """This function generates a Spotlight layout for comparing two different machine learning classification models.
+
+    Args:
+        label (str, optional): Name of the dataframe column that contains the label. Defaults to "label".
+        model1_prediction (str, optional): Name of the dataframe column that contains the prediction for model 1. Defaults to "m1_prediction".
+        model1_embedding (str, optional): Name of the dataframe column that contains thee embedding for model 1. Defaults to "".
+        model1_correct (str, optional): Name of the dataframe column that contains a flag if the data sample is predicted correctly by model 1.
+        model2_prediction (str, optional): Name of the dataframe column that contains the prediction for model 2. Defaults to "m2_prediction".
+        model2_embedding (str, optional): Name of the dataframe column that contains thee embedding for model 2. Defaults to "".
+        model2_correct (str, optional): Name and type of the dataframe columns that are displayed in the inspector, e.g. {'audio': spotlight.Audio}. Defaults to None.
+        inspect (Optional[dict], optional): Name of the dataframe column that contains a flag if the data sample is predicted correctly by model 1.
+
+    Returns:
+        Layout: _description_
+    """
+    
     # first column: table + issues
     metrics = split(
         [
@@ -99,6 +117,8 @@ def model_compare_classification(
                 weight=40,
             )
             column2_list.append(row3)
+
+    column2:Union[Tab, Split]
 
     if len(column2_list) == 1:
         column2 = column2_list[0]

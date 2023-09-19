@@ -16,13 +16,27 @@ from typing import Optional
 from renumics.spotlight import Audio, Image
 
 
-def model_debug_classification(
+
+def debug_classification(
     label: str = "label",
     prediction: str = "prediction",
     embedding: str = "",
     inspect: Optional[dict] = None,
     features: Optional[list] = None,
 ) -> Layout:
+    """This function generates a Spotlight layout for debugging a machine learning classification model.
+
+    Args:
+        label (str, optional): Name of the dataframe column that contains the label. Defaults to "label".
+        prediction (str, optional): Name of the dataframe column that contains the prediction. Defaults to "prediction".
+        embedding (str, optional): Name of the dataframe column that contains the embedding. Defaults to "".
+        inspect (Optional[dict], optional): Name and type of the dataframe columns that are displayed in the inspector, e.g. {'audio': spotlight.Audio}. Defaults to None.
+        features (Optional[list], optional): Name of the dataframe columns that contain useful metadata and features. Defaults to None.
+
+    Returns:
+        Layout: Layout to be displayed with Spotlight.
+    """
+
     # first column: table + issues
     metrics = tab(
         metric(name="Accuracy", metric="accuracy", columns=[label, prediction]),
@@ -45,7 +59,7 @@ def model_debug_classification(
         )
     )
 
-    # third column: confusion matric, feature histograms (optional), embedding (optional)
+    # second column: confusion matric, feature histograms (optional), embedding (optional)
     if features is not None:
         histogram_list = []
         for idx, feature in enumerate(features):
