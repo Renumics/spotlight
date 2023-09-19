@@ -121,7 +121,7 @@ jobs:
               with:
                   matrix: |
                       os: ubuntu-latest,
-                      python-version: 3.8
+                      python-version: 3.8 3.10
             - name: Print matrix
               run: echo "$MATRIX" | yq -P '{"matrix":.}'
             - name: Set output
