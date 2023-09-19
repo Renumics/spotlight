@@ -6,6 +6,7 @@ import numpy as np
 import pycatch22
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from renumics.spotlight import dtypes
 
 from renumics.spotlight.dataset import Dataset
 from renumics.spotlight.dataset.exceptions import ColumnExistsError, InvalidDTypeError
@@ -77,7 +78,7 @@ def catch22(
     if suffix is None:
         suffix = "catch24" if catch24 else "catch22"
     dtype = dataset.get_dtype(column)
-    if dtype.name == ("Audio", "Sequence1D"):
+    if not dtypes.is_audio_dtype(dtype) and not dtypes.is_sequence_1d_dtype(dtype):
         raise InvalidDTypeError(
             f"catch22 is only applicable to columns of type `Audio` and "
             f'`Sequence1D`, but column "{column}" of type {dtype} received.'

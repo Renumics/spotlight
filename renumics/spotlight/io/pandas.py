@@ -235,6 +235,8 @@ def is_string_mask(column: pd.Series) -> pd.Series:
     """
     Return mask of column's elements of type string.
     """
+    if len(column) == 0:
+        return pd.Series([], dtype=bool)
     return column.map(type) == str
 
 
