@@ -2429,7 +2429,6 @@ class Dataset:
                     categories = cast(List[str], [values])
                 dtype = spotlight_dtypes.CategoryDType(categories)
             attrs["categories"] = dtype.categories
-            print(name, attrs["categories"])
         elif spotlight_dtypes.is_window_dtype(dtype):
             shape = (0, 2)
             maxshape = (None, 2)
