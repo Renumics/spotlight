@@ -21,7 +21,6 @@ def __register__() -> None:
     """
     register data sources
     """
-    from . import pandas_data_source, hdf5_data_source  # noqa: F401
 
 
 def __activate__(app: SpotlightApp) -> None:
