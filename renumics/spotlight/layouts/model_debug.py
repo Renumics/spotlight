@@ -1,3 +1,4 @@
+from typing import Optional, Union, Dict, List, Any
 from renumics.spotlight import layout
 from renumics.spotlight.layout import (
     Layout,
@@ -14,28 +15,27 @@ from renumics.spotlight.layout import (
     confusion_matrix,
     histogram,
 )
-from typing import Optional, Union
-from renumics.spotlight import Audio, Image
+from renumics.spotlight.dtypes import create_dtype, is_audio_dtype, is_image_dtype
 
 
 def debug_classification(
     label: str = "label",
     prediction: str = "prediction",
     embedding: str = "",
-    inspect: Optional[dict] = None,
-    features: Optional[list] = None,
+    inspect: Optional[Dict[str, Any]] = None,
+    features: Optional[List[str]] = None,
 ) -> Layout:
     """This function generates a Spotlight layout for debugging a machine learning classification model.
 
     Args:
-        label (str, optional): Name of the dataframe column that contains the label. Defaults to "label".
-        prediction (str, optional): Name of the dataframe column that contains the prediction. Defaults to "prediction".
-        embedding (str, optional): Name of the dataframe column that contains the embedding. Defaults to "".
-        inspect (Optional[dict], optional): Name and type of the dataframe columns that are displayed in the inspector, e.g. {'audio': spotlight.Audio}. Defaults to None.
-        features (Optional[list], optional): Name of the dataframe columns that contain useful metadata and features. Defaults to None.
+        label: Name of the column that contains the label.
+        prediction: Name of the column that contains the prediction.
+        embedding: Name of the column that contains the embedding.
+        inspect: Name and type of the columns that are displayed in the inspector, e.g. {'audio': spotlight.dtypes.audio_dtype}.
+        features: Names of the columns that contain useful metadata and features.
 
     Returns:
-        Layout: Layout to be displayed with Spotlight.
+        The configured layout for `spotlight.show`.
     """
 
     # first column: table + issues
@@ -98,13 +98,14 @@ def debug_classification(
     # fourth column: inspector
     inspector_fields = []
     if inspect:
-        for item, _type in inspect.items():
-            if _type == Audio:
+        for item, dtype_like in inspect.items():
+            dtype = create_dtype(dtype_like)
+            if is_audio_dtype(dtype):
                 inspector_fields.append(lenses.audio(item))
-            elif _type == Image:
+            elif is_image_dtype(dtype):
                 inspector_fields.append(lenses.image(item))
             else:
-                print("Type {} not supported by this layout.".format(_type))
+                print("Type {} not supported by this layout.".format(dtype))
 
         inspector_fields.append(lenses.scalar(label))
         inspector_fields.append(lenses.scalar(prediction))

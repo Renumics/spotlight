@@ -1,3 +1,5 @@
+from typing import Optional, Union, Dict, Any
+from renumics.spotlight import dtypes
 from renumics.spotlight import layout
 from renumics.spotlight.layout import (
     Layout,
@@ -13,8 +15,6 @@ from renumics.spotlight.layout import (
     issues,
     confusion_matrix,
 )
-from typing import Optional, Union
-from renumics.spotlight import Audio, Image
 
 
 def compare_classification(
@@ -25,22 +25,22 @@ def compare_classification(
     model2_prediction: str = "m2_prediction",
     model2_embedding: str = "",
     model2_correct: str = "",
-    inspect: Optional[dict] = None,
+    inspect: Optional[Dict[str, Any]] = None,
 ) -> Layout:
     """This function generates a Spotlight layout for comparing two different machine learning classification models.
 
     Args:
-        label (str, optional): Name of the dataframe column that contains the label. Defaults to "label".
-        model1_prediction (str, optional): Name of the dataframe column that contains the prediction for model 1. Defaults to "m1_prediction".
-        model1_embedding (str, optional): Name of the dataframe column that contains thee embedding for model 1. Defaults to "".
-        model1_correct (str, optional): Name of the dataframe column that contains a flag if the data sample is predicted correctly by model 1.
-        model2_prediction (str, optional): Name of the dataframe column that contains the prediction for model 2. Defaults to "m2_prediction".
-        model2_embedding (str, optional): Name of the dataframe column that contains thee embedding for model 2. Defaults to "".
-        model2_correct (str, optional): Name and type of the dataframe columns that are displayed in the inspector, e.g. {'audio': spotlight.Audio}. Defaults to None.
-        inspect (Optional[dict], optional): Name of the dataframe column that contains a flag if the data sample is predicted correctly by model 1.
+        label: Name of the column that contains the label.
+        model1_prediction: Name of the column that contains the prediction for model 1.
+        model1_embedding: Name of the column that contains thee embedding for model 1.
+        model1_correct: Name of the column that contains a flag if the data sample is predicted correctly by model 1.
+        model2_prediction: Name of the column that contains the prediction for model 2.
+        model2_embedding: Name of the column that contains thee embedding for model 2.
+        model2_correct: Name of the column that contains a flag if the data sample is predicted correctly by model 2.
+        inspect: Name and type of the columns that are displayed in the inspector, e.g. {'audio': spotlight.dtypes.audio_dtype}.
 
     Returns:
-        Layout: _description_
+        The configured layout for `spotlight.show`.
     """
 
     # first column: table + issues
@@ -133,13 +133,14 @@ def compare_classification(
     # fourth column: inspector
     inspector_fields = []
     if inspect:
-        for item, _type in inspect.items():
-            if _type == Audio:
+        for item, dtype_like in inspect.items():
+            dtype = dtypes.create_dtype(dtype_like)
+            if dtypes.is_audio_dtype(dtype):
                 inspector_fields.append(lenses.audio(item))
-            elif _type == Image:
+            elif dtypes.is_image_dtype(dtype):
                 inspector_fields.append(lenses.image(item))
             else:
-                print("Type {} not supported by this layout.".format(_type))
+                print(f"Type {dtype} not supported by this layout.")
 
         inspector_fields.append(lenses.scalar(label))
         inspector_fields.append(lenses.scalar(model1_prediction))
