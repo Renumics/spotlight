@@ -50,7 +50,7 @@ from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.data_source import DataSource, create_datasource
-from renumics.spotlight.layout.default import DEFAULT_LAYOUT
+from renumics.spotlight import layouts
 
 from renumics.spotlight.data_store import DataStore
 
@@ -86,7 +86,7 @@ class SpotlightApp(FastAPI):
 
     task_manager: TaskManager
     websocket_manager: Optional[WebsocketManager]
-    _layout: Optional[Layout]
+    _layout: Layout
     config: Config
     username: str
     filebrowsing_allowed: bool
@@ -106,7 +106,7 @@ class SpotlightApp(FastAPI):
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
-        self._layout = None
+        self._layout = layouts.default()
         self.project_root = Path.cwd()
         self.vite_url = None
         self.username = ""
@@ -368,11 +368,11 @@ class SpotlightApp(FastAPI):
         """
         Frontend layout
         """
-        return self._layout or DEFAULT_LAYOUT
+        return self._layout
 
     @layout.setter
     def layout(self, layout: Optional[Layout]) -> None:
-        self._layout = layout
+        self._layout = layout or layouts.default()
         self._broadcast(ResetLayoutMessage())
 
     async def get_current_layout_dict(self, user_id: str) -> Optional[Dict]:
