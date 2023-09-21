@@ -138,7 +138,6 @@ files = [
 ]
 
 [tool.ruff]
-line-length = 100
 ignore = [
     "E501"
 ]

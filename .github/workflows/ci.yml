@@ -294,8 +294,6 @@ jobs:
             - name: '🎨 Set up Chrome driver'
               if: matrix.browser == 'chrome'
               id: setup-chromedriver
-              with:
-                  chromedriver-version: '115.0.5790.102'
               uses: nanasess/setup-chromedriver@v2
             - name: '🦊 Set up Gecko driver'
               id: setup-geckodriver
@@ -373,6 +371,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry'
+              id: setup-poetry
               uses: ./.github/actions/setup-poetry
               with:
                   python-version: ${{ matrix.python-version }}
@@ -380,7 +379,7 @@ jobs:
             - name: Cache pip cache folder
               uses: actions/cache@v3
               with:
-                  path: ${{ needs.prepare-python.outputs.pip-cache-dir }}
+                  path: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
             - name: '📤 Restore Spotlight'
               uses: actions/download-artifact@v3
