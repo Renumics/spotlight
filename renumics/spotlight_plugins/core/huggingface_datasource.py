@@ -11,6 +11,7 @@ from renumics.spotlight.dtypes import (
     DTypeMap,
     is_array_dtype,
     is_embedding_dtype,
+    is_file_dtype,
     is_float_dtype,
     is_int_dtype,
 )
@@ -115,9 +116,12 @@ class HuggingfaceDataSource(DataSource):
             )
 
         if isinstance(feature, dict):
-            return np.array(
-                [value["bytes"].as_py() for value in raw_values], dtype=object
-            )
+            if is_file_dtype(intermediate_dtype):
+                return np.array(
+                    [value["bytes"].as_py() for value in raw_values], dtype=object
+                )
+            else:
+                return np.array([str(value) for value in raw_values])
 
         if isinstance(feature, datasets.Sequence):
             if is_array_dtype(intermediate_dtype):
@@ -152,19 +156,11 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         hf_dtype = cast(datasets.Value, feature).dtype
         if hf_dtype == "bool":
             return dtypes.bool_dtype
-        elif hf_dtype == "int8":
+        elif hf_dtype.startswith("int"):
             return dtypes.int_dtype
-        elif hf_dtype == "int16":
+        elif hf_dtype.startswith("uint"):
             return dtypes.int_dtype
-        elif hf_dtype == "int32":
-            return dtypes.int_dtype
-        elif hf_dtype == "int64":
-            return dtypes.int_dtype
-        elif hf_dtype == "float16":
-            return dtypes.float_dtype
-        elif hf_dtype == "float32":
-            return dtypes.float_dtype
-        elif hf_dtype == "float64":
+        elif hf_dtype.startswith("float"):
             return dtypes.float_dtype
         elif hf_dtype.startswith("time32"):
             return dtypes.datetime_dtype
@@ -206,7 +202,7 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         if len(feature) == 2 and "bytes" in feature and "path" in feature:
             return dtypes.file_dtype
         else:
-            raise UnsupportedFeature(feature)
+            return dtypes.str_dtype
     elif isinstance(feature, datasets.Translation):
         return dtypes.str_dtype
     else:
