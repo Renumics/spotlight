@@ -298,8 +298,8 @@ jobs:
               if: matrix.browser == 'chrome'
               id: setup-chromedriver
               uses: nanasess/setup-chromedriver@v2
-              with:
-                  chromedriver-version: '115.0.5790.102'
+              # with:
+              #     chromedriver-version: '115.0.5790.102'
             - name: '🦊 Set up Gecko driver'
               id: setup-geckodriver
               if: matrix.browser == 'firefox'
