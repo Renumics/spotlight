@@ -59,6 +59,11 @@ Here are some interactive examples on publicly available datasets:
             <td><a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
         </tr>
         <tr>
+            <td rowspan="3">🖼️ Image</td>
+            <td>Fine-tuning image classification models from Bing image search</td>
+            <td><a href="https://renumics.com/next/docs/use-cases/image-fine-tuning">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
+        </tr>
+        <tr>
             <td rowspan="3">🔊 Audio</td>
             <td>Find Issues in Any Audio Classification Dataset</td>
             <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
