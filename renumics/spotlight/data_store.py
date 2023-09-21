@@ -165,17 +165,15 @@ class DataStore:
         intermediate_dtype = self._data_source.intermediate_dtypes[col]
         fallback_dtype = _intermediate_to_semantic_dtype(intermediate_dtype)
 
-        sample_count = min(len(self._data_source), 10)
-        if sample_count == 0:
+        sample_values = self._data_source.get_column_values(col, slice(10))
+        sample_dtypes = [_guess_value_dtype(value) for value in sample_values]
+
+        try:
+            mode_dtype = statistics.mode(sample_dtypes)
+        except statistics.StatisticsError:
             return fallback_dtype
 
-        sample_values = self._data_source.get_column_values(
-            col, list(range(sample_count))
-        )
-        sample_dtypes = [_guess_value_dtype(value) for value in sample_values]
-        guessed_dtype = statistics.mode(sample_dtypes) or fallback_dtype
-
-        return guessed_dtype
+        return mode_dtype or fallback_dtype
 
 
 def _intermediate_to_semantic_dtype(intermediate_dtype: DType) -> DType:

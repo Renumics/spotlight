@@ -6,7 +6,14 @@ from renumics.spotlight import dtypes
 
 from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.data_source.decorator import datasource
-from renumics.spotlight.dtypes import DType, DTypeMap
+from renumics.spotlight.dtypes import (
+    DType,
+    DTypeMap,
+    is_array_dtype,
+    is_embedding_dtype,
+    is_float_dtype,
+    is_int_dtype,
+)
 from renumics.spotlight.data_source.data_source import ColumnMetadata
 
 
@@ -83,12 +90,14 @@ class HuggingfaceDataSource(DataSource):
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
+        intermediate_dtype = self._intermediate_dtypes[column_name]
+
         if isinstance(indices, slice):
             if indices == slice(None):
                 raw_values = self._dataset.data[column_name]
             else:
                 actual_indices = list(range(len(self._dataset)))[indices]
-                raw_values = self._dataset.data[column_name].take[actual_indices]
+                raw_values = self._dataset.data[column_name].take(actual_indices)
         else:
             raw_values = self._dataset.data[column_name].take(indices)
 
@@ -108,7 +117,11 @@ class HuggingfaceDataSource(DataSource):
                 [value["bytes"].as_py() for value in raw_values], dtype=object
             )
         if isinstance(feature, datasets.Sequence):
-            return raw_values.to_numpy()
+            if is_array_dtype(intermediate_dtype):
+                return raw_values.to_numpy()
+            if is_embedding_dtype(intermediate_dtype):
+                return raw_values.to_numpy()
+            return np.array([str(value) for value in raw_values])
         else:
             return raw_values.to_numpy()
 
@@ -178,10 +191,11 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
     elif isinstance(feature, datasets.Image):
         return dtypes.file_dtype
     elif isinstance(feature, datasets.Sequence):
-        if isinstance(feature.feature, datasets.Value):
+        inner_dtype = _get_intermediate_dtype(feature.feature)
+        if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
             return dtypes.array_dtype
         else:
-            raise UnsupportedFeature(feature)
+            return dtypes.str_dtype
     elif isinstance(feature, dict):
         if len(feature) == 2 and "bytes" in feature and "path" in feature:
             return dtypes.file_dtype
