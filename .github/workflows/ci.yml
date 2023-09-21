@@ -97,7 +97,10 @@ jobs:
               with:
                   matrix: |
                       os: ubuntu-latest,
-                      python-version: 3.8 3.9 3.10 3.11
+                      python-version: 3.8
+                  include: |
+                      os: windows-latest python-version: 3.8,
+                      os: macos-latest python-version: 3.8
             - name: '🧱 Build test matrix for release'
               if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
               uses: druzsan/setup-matrix@v1
@@ -294,9 +297,9 @@ jobs:
             - name: '🎨 Set up Chrome driver'
               if: matrix.browser == 'chrome'
               id: setup-chromedriver
+              uses: nanasess/setup-chromedriver@v2
               with:
                   chromedriver-version: '115.0.5790.102'
-              uses: nanasess/setup-chromedriver@v2
             - name: '🦊 Set up Gecko driver'
               id: setup-geckodriver
               if: matrix.browser == 'firefox'
