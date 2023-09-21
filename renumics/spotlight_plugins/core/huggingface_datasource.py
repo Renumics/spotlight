@@ -1,4 +1,4 @@
-from typing import List, Union, cast
+from typing import List, Optional, Union, cast
 
 import datasets
 import numpy as np
@@ -45,13 +45,14 @@ class HuggingfaceDataSource(DataSource):
         super().__init__(source)
         self._dataset = source
         self._intermediate_dtypes = {
-            col: _dtype_from_feature(feat, True)
+            col: _get_intermediate_dtype(feat)
             for col, feat in self._dataset.features.items()
         }
-        self._guessed_dtypes = {
-            col: _dtype_from_feature(feat, False)
-            for col, feat in self._dataset.features.items()
-        }
+        self._guessed_dtypes = {}
+        for col, feat in self._dataset.features.items():
+            guessed_dtype = _guess_semantic_dtype(feat)
+            if guessed_dtype:
+                self._guessed_dtypes[col] = guessed_dtype
 
     @property
     def column_names(self) -> List[str]:
@@ -64,7 +65,8 @@ class HuggingfaceDataSource(DataSource):
     def __len__(self) -> int:
         return len(self._dataset)
 
-    def guess_dtypes(self) -> DTypeMap:
+    @property
+    def semantic_dtypes(self) -> DTypeMap:
         return self._guessed_dtypes
 
     def get_generation_id(self) -> int:
@@ -92,7 +94,6 @@ class HuggingfaceDataSource(DataSource):
 
         feature = self._dataset.features[column_name]
         if isinstance(feature, datasets.Audio) or isinstance(feature, datasets.Image):
-            # TODO: use path for name if available?
             return np.array(
                 [
                     value["path"].as_py()
@@ -115,7 +116,19 @@ class HuggingfaceDataSource(DataSource):
         return ColumnMetadata(nullable=True, editable=False)
 
 
-def _dtype_from_feature(feature: _FeatureType, intermediate: bool) -> DType:
+def _guess_semantic_dtype(feature: _FeatureType) -> Optional[DType]:
+    if isinstance(feature, datasets.Audio):
+        return dtypes.audio_dtype
+    if isinstance(feature, datasets.Image):
+        return dtypes.image_dtype
+    if isinstance(feature, datasets.Sequence):
+        if isinstance(feature.feature, datasets.Value):
+            if feature.length != -1:
+                return dtypes.embedding_dtype
+    return None
+
+
+def _get_intermediate_dtype(feature: _FeatureType) -> DType:
     if isinstance(feature, datasets.Value):
         hf_dtype = cast(datasets.Value, feature).dtype
         if hf_dtype == "bool":
@@ -161,27 +174,17 @@ def _dtype_from_feature(feature: _FeatureType, intermediate: bool) -> DType:
     elif isinstance(feature, datasets.ClassLabel):
         return dtypes.CategoryDType(categories=cast(datasets.ClassLabel, feature).names)
     elif isinstance(feature, datasets.Audio):
-        if intermediate:
-            return dtypes.bytes_dtype
-        return dtypes.audio_dtype
+        return dtypes.file_dtype
     elif isinstance(feature, datasets.Image):
-        if intermediate:
-            return dtypes.bytes_dtype
-        return dtypes.image_dtype
+        return dtypes.file_dtype
     elif isinstance(feature, datasets.Sequence):
         if isinstance(feature.feature, datasets.Value):
-            if feature.length != -1:
-                return dtypes.embedding_dtype
             return dtypes.array_dtype
         else:
             raise UnsupportedFeature(feature)
     elif isinstance(feature, dict):
         if len(feature) == 2 and "bytes" in feature and "path" in feature:
-            if intermediate:
-                return dtypes.bytes_dtype
-            else:
-                # TODO: guess filetype from bytes
-                return dtypes.str_dtype
+            return dtypes.file_dtype
         else:
             raise UnsupportedFeature(feature)
     else:

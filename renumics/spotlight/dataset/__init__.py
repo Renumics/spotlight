@@ -245,7 +245,7 @@ class Dataset:
         if spotlight_dtypes.is_sequence_1d_dtype(dtype):
             attribute_names["x_label"] = str
             attribute_names["y_label"] = str
-        if spotlight_dtypes.is_file_dtype(dtype):
+        if spotlight_dtypes.is_filebased_dtype(dtype):
             attribute_names["lookup"] = dict
             attribute_names["external"] = bool
         if spotlight_dtypes.is_audio_dtype(dtype):
@@ -758,7 +758,7 @@ class Dataset:
 
                 column = prepare_column(column, dtype)
 
-                if workdir is not None and spotlight_dtypes.is_file_dtype(dtype):
+                if workdir is not None and spotlight_dtypes.is_filebased_dtype(dtype):
                     # For file-based data types, relative paths should be resolved.
                     str_mask = is_string_mask(column)
                     column[str_mask] = column[str_mask].apply(
@@ -777,7 +777,7 @@ class Dataset:
                 else:
                     values = column.to_numpy()
 
-                if spotlight_dtypes.is_file_dtype(dtype):
+                if spotlight_dtypes.is_filebased_dtype(dtype):
                     attrs["external"] = False  # type: ignore
                     attrs["lookup"] = False  # type: ignore
 
@@ -2435,7 +2435,7 @@ class Dataset:
         elif spotlight_dtypes.is_sequence_1d_dtype(dtype):
             attrs["x_label"] = dtype.x_label
             attrs["y_label"] = dtype.y_label
-        elif spotlight_dtypes.is_file_dtype(dtype):
+        elif spotlight_dtypes.is_filebased_dtype(dtype):
             lookup = attrs.get("lookup", None)
             if is_iterable(lookup) and not isinstance(lookup, dict):
                 # Assume that we can keep all the lookup values in memory.
@@ -3002,7 +3002,7 @@ class Dataset:
         if self._is_ref_column(column):
             value = cast(RefColumnInputType, value)
             self._assert_valid_value_type(value, dtype, column_name)
-            if spotlight_dtypes.is_file_dtype(dtype) and isinstance(value, str):
+            if spotlight_dtypes.is_filebased_dtype(dtype) and isinstance(value, str):
                 try:
                     return self._find_lookup_ref(value, column)
                 except KeyError:

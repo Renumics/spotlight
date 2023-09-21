@@ -97,12 +97,14 @@ class Sequence1DDType(DType):
 ALIASES: Dict[Any, DType] = {}
 
 
-def register_dtype(dtype: DType, aliases: list) -> None:
-    for alias in aliases:
-        assert dtype.name.lower() not in ALIASES
-        ALIASES[dtype.name.lower()] = dtype
-        assert alias not in ALIASES
-        ALIASES[alias] = dtype
+def register_dtype(dtype: DType, aliases: Optional[list] = None) -> None:
+    assert dtype.name.lower() not in ALIASES
+    ALIASES[dtype.name.lower()] = dtype
+
+    if aliases is not None:
+        for alias in aliases:
+            assert alias not in ALIASES
+            ALIASES[alias] = dtype
 
 
 bool_dtype = DType("bool")
@@ -150,8 +152,12 @@ register_dtype(sequence_1d_dtype, [Sequence1D])
 video_dtype = DType("Video")
 """Video dtype"""
 register_dtype(video_dtype, [Video])
+
 mixed_dtype = DType("mixed")
 """Unknown or mixed dtype"""
+
+file_dtype = DType("file")
+"""File Dtype (bytes or str(path))"""
 
 
 DTypeMap = Dict[str, DType]
@@ -221,9 +227,21 @@ def is_video_dtype(dtype: DType) -> bool:
     return dtype.name == "Video"
 
 
+def is_bytes_dtype(dtype: DType) -> bool:
+    return dtype.name == "bytes"
+
+
+def is_mixed_dtype(dtype: DType) -> bool:
+    return dtype.name == "mixed"
+
+
 def is_scalar_dtype(dtype: DType) -> bool:
     return dtype.name in ("bool", "int", "float")
 
 
 def is_file_dtype(dtype: DType) -> bool:
-    return dtype.name in ("Audio", "Image", "Video", "Mesh")
+    return dtype.name == "file"
+
+
+def is_filebased_dtype(dtype: DType) -> bool:
+    return dtype.name in ("Audio", "Image", "Video", "Mesh", "file")

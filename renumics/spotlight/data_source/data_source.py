@@ -89,10 +89,11 @@ class DataSource(ABC):
         if self.get_generation_id() != generation_id:
             raise GenerationIDMismatch()
 
+    @property
     @abstractmethod
-    def guess_dtypes(self) -> DTypeMap:
+    def semantic_dtypes(self) -> DTypeMap:
         """
-        Guess data source's dtypes.
+        Semantic dtypes for viewer.
         """
 
     @abstractmethod

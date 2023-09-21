@@ -107,12 +107,13 @@ class Hdf5DataSource(DataSource):
 
     @property
     def intermediate_dtypes(self) -> DTypeMap:
-        return self.guess_dtypes()
+        return self.semantic_dtypes
 
     def __len__(self) -> int:
         return len(self._table)
 
-    def guess_dtypes(self) -> DTypeMap:
+    @property
+    def semantic_dtypes(self) -> DTypeMap:
         return {
             column_name: create_dtype(self._table.get_dtype(column_name))
             for column_name in self.column_names

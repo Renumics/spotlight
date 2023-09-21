@@ -320,7 +320,7 @@ def prepare_column(column: pd.Series, dtype: dtypes.DType) -> pd.Series:
         str_mask = is_string_mask(column)
         column[str_mask] = column[str_mask].apply(try_literal_eval)
 
-        if dtypes.is_file_dtype(dtype):
+        if dtypes.is_filebased_dtype(dtype):
             dict_mask = column.map(type) == dict
             column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
 

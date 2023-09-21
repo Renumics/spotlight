@@ -1,7 +1,12 @@
 import hashlib
 import io
-from typing import List, Optional, Set, Union, cast
+import os
+import statistics
+from typing import Any, List, Optional, Set, Union, cast
 import numpy as np
+import filetype
+import trimesh
+import PIL.Image
 
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
@@ -10,12 +15,32 @@ from renumics.spotlight.data_source.data_source import ColumnMetadata
 from renumics.spotlight.io import audio
 from renumics.spotlight.dtypes import (
     CategoryDType,
+    DType,
     DTypeMap,
     is_audio_dtype,
     is_category_dtype,
+    is_file_dtype,
     is_str_dtype,
+    is_mixed_dtype,
+    is_bytes_dtype,
     str_dtype,
+    audio_dtype,
+    image_dtype,
+    video_dtype,
+    mesh_dtype,
+    embedding_dtype,
+    array_dtype,
+    window_dtype,
+    sequence_1d_dtype,
 )
+
+from renumics.spotlight.typing import is_iterable, is_pathtype
+from renumics.spotlight.media.mesh import Mesh
+from renumics.spotlight.media.video import Video
+from renumics.spotlight.media.audio import Audio
+from renumics.spotlight.media.image import Image
+from renumics.spotlight.media.sequence_1d import Sequence1D
+from renumics.spotlight.media.embedding import Embedding
 
 
 class DataStore:
@@ -102,7 +127,14 @@ class DataStore:
         return waveform
 
     def _update_dtypes(self) -> None:
-        guessed_dtypes = self._data_source.guess_dtypes()
+        guessed_dtypes = self._data_source.semantic_dtypes.copy()
+
+        # guess missing dtypes from intermediate dtypes
+        for col, dtype in self._data_source.intermediate_dtypes.items():
+            if col not in guessed_dtypes:
+                guessed_dtypes[col] = self._guess_dtype(col)
+
+        # merge guessed semantic dtypes with user dtypes
         dtypes = {
             **guessed_dtypes,
             **{
@@ -111,6 +143,8 @@ class DataStore:
                 if column_name in guessed_dtypes
             },
         }
+
+        # determine categories for _automatic_ CategoryDtypes
         for column_name, dtype in dtypes.items():
             if (
                 is_category_dtype(dtype)
@@ -124,4 +158,93 @@ class DataStore:
                 ]
                 category_names = sorted(cast(Set[str], set(converted_values)))
                 dtypes[column_name] = CategoryDType(category_names)
+
         self._dtypes = dtypes
+
+    def _guess_dtype(self, col: str) -> DType:
+        intermediate_dtype = self._data_source.intermediate_dtypes[col]
+        fallback_dtype = _intermediate_to_semantic_dtype(intermediate_dtype)
+
+        sample_count = min(len(self._data_source), 10)
+        if sample_count == 0:
+            return fallback_dtype
+
+        sample_values = self._data_source.get_column_values(
+            col, list(range(sample_count))
+        )
+        sample_dtypes = [_guess_value_dtype(value) for value in sample_values]
+        guessed_dtype = statistics.mode(sample_dtypes) or fallback_dtype
+
+        return guessed_dtype
+
+
+def _intermediate_to_semantic_dtype(intermediate_dtype: DType) -> DType:
+    if is_file_dtype(intermediate_dtype):
+        return str_dtype
+    if is_mixed_dtype(intermediate_dtype):
+        return str_dtype
+    if is_bytes_dtype(intermediate_dtype):
+        return str_dtype
+    else:
+        return intermediate_dtype
+
+
+def _guess_value_dtype(value: Any) -> Optional[DType]:
+    """
+    Infer dtype for value
+    """
+    if isinstance(value, Embedding):
+        return embedding_dtype
+    if isinstance(value, Sequence1D):
+        return sequence_1d_dtype
+    if isinstance(value, Image):
+        return image_dtype
+    if isinstance(value, Audio):
+        return audio_dtype
+    if isinstance(value, Video):
+        return video_dtype
+    if isinstance(value, Mesh):
+        return mesh_dtype
+    if isinstance(value, PIL.Image.Image):
+        return image_dtype
+    if isinstance(value, trimesh.Trimesh):
+        return mesh_dtype
+    if isinstance(value, np.ndarray):
+        return _infer_array_dtype(value)
+
+    if isinstance(value, bytes) or (is_pathtype(value) and os.path.isfile(value)):
+        kind = filetype.guess(value)
+        if kind is not None:
+            mime_group = kind.mime.split("/")[0]
+            if mime_group == "image":
+                return image_dtype
+            if mime_group == "audio":
+                return audio_dtype
+            if mime_group == "video":
+                return video_dtype
+        return str_dtype
+    if is_iterable(value):
+        try:
+            value = np.asarray(value, dtype=float)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return _infer_array_dtype(value)
+    return None
+
+
+def _infer_array_dtype(value: np.ndarray) -> DType:
+    """
+    Infer dtype of a numpy array
+    """
+    if value.ndim == 3:
+        if value.shape[-1] in (1, 3, 4):
+            return image_dtype
+    elif value.ndim == 2:
+        if value.shape[0] == 2 or value.shape[1] == 2:
+            return sequence_1d_dtype
+    elif value.ndim == 1:
+        if len(value) == 2:
+            return window_dtype
+        return embedding_dtype
+    return array_dtype
