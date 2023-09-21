@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     errors = []
 
-    if not pyproject["tool"]["poetry"]["version"]:
+    if pyproject["tool"]["poetry"]["version"] != "0.0.0":
         errors.append("Error: tool.poetry.version != 0.0.0")
     if not pyproject["tool"]["poetry-dynamic-versioning"]["enable"]:
         errors.append("Error: tool.poetry-dymamic-versioning.enable != true")
