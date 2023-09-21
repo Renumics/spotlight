@@ -46,7 +46,7 @@ Here are some interactive examples on publicly available datasets:
     </thead>
     <tbody>
         <tr>
-            <td rowspan="3">🖼️ Image</td>
+            <td rowspan="4">🖼️ Image</td>
             <td>Find Issues in Any Image Classification Dataset</td>
             <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
         </tr>
@@ -60,7 +60,7 @@ Here are some interactive examples on publicly available datasets:
         </tr>
         <tr>
             <td>Fine-tuning image classification models from Bing image search</td>
-            <td><a href="https://renumics.com/next/docs/use-cases/image-fine-tuning">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
+            <td><a href="https://renumics.com/next/docs/use-cases/image-fine-tuning">👨‍💻</a><a href="https://medium.com/@markus.stoll/image-classification-in-2023-8ab7dc552115">📝</a></td>
         </tr>
         <tr>
             <td rowspan="3">🔊 Audio</td>
