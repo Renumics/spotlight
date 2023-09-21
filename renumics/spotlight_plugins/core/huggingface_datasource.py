@@ -87,8 +87,8 @@ class HuggingfaceDataSource(DataSource):
             if indices == slice(None):
                 raw_values = self._dataset.data[column_name]
             else:
-                # TODO: handle slices
-                assert False
+                actual_indices = list(range(len(self._dataset)))[indices]
+                raw_values = self._dataset.data[column_name].take[actual_indices]
         else:
             raw_values = self._dataset.data[column_name].take(indices)
 
