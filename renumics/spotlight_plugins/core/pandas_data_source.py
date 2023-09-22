@@ -124,7 +124,8 @@ class PandasDataSource(DataSource):
     def __len__(self) -> int:
         return len(self._df)
 
-    def guess_dtypes(self) -> DTypeMap:
+    @property
+    def semantic_dtypes(self) -> DTypeMap:
         return {
             str(column_name): infer_dtype(self.df[column_name])
             for column_name in self.df

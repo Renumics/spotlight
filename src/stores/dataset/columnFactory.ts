@@ -11,7 +11,6 @@ function makeDatatype(column: Column): DataType {
         case 'float':
         case 'bool':
         case 'Window':
-        case 'array':
         case 'datetime':
             return {
                 kind,
@@ -20,6 +19,7 @@ function makeDatatype(column: Column): DataType {
                 optional: column.optional,
             };
         case 'str':
+        case 'array':
         case 'Embedding':
             return {
                 kind,
