@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import numpy as np
 from typing_extensions import TypeGuard
@@ -80,6 +80,38 @@ class CategoryDType(DType):
         return self._inverted_categories
 
 
+class ArrayDType(DType):
+    """
+    Array dtype with optional shape.
+    """
+
+    shape: Optional[Tuple[Optional[int], ...]]
+
+    def __init__(self, shape: Optional[Tuple[Optional[int], ...]] = None):
+        super().__init__("array")
+        self.shape = shape
+
+    @property
+    def ndim(self) -> int:
+        if self.shape is None:
+            return 0
+        return len(self.shape)
+
+
+class EmbeddingDType(DType):
+    """
+    Embedding dtype with optional length.
+    """
+
+    length: Optional[int]
+
+    def __init__(self, length: Optional[int] = None):
+        super().__init__("Embedding")
+        if length is not None and length < 0:
+            raise ValueError(f"Length must be non-negative, but {length} received.")
+        self.length = length
+
+
 class Sequence1DDType(DType):
     """
     1D-sequence dtype with predefined axis labels.
@@ -131,10 +163,10 @@ register_dtype(category_dtype, [Category])
 window_dtype = DType("Window")
 """Window dtype"""
 register_dtype(window_dtype, [Window])
-embedding_dtype = DType("Embedding")
+embedding_dtype = EmbeddingDType()
 """Embedding dtype"""
 register_dtype(embedding_dtype, [Embedding])
-array_dtype = DType("array")
+array_dtype = ArrayDType()
 """numpy array dtype"""
 register_dtype(array_dtype, [np.ndarray])
 image_dtype = DType("Image")
@@ -195,7 +227,7 @@ def is_category_dtype(dtype: DType) -> TypeGuard[CategoryDType]:
     return dtype.name == "Category"
 
 
-def is_array_dtype(dtype: DType) -> bool:
+def is_array_dtype(dtype: DType) -> TypeGuard[ArrayDType]:
     return dtype.name == "array"
 
 
@@ -203,7 +235,7 @@ def is_window_dtype(dtype: DType) -> bool:
     return dtype.name == "Window"
 
 
-def is_embedding_dtype(dtype: DType) -> bool:
+def is_embedding_dtype(dtype: DType) -> TypeGuard[EmbeddingDType]:
     return dtype.name == "Embedding"
 
 

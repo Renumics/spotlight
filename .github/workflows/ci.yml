@@ -376,7 +376,7 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
                   install-dependencies: false
-            - name: Cache pip cache folder
+            - name: '♻️ Cache pip cache folder'
               uses: actions/cache@v3
               with:
                   path: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
