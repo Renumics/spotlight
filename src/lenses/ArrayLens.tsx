@@ -1,35 +1,23 @@
 import 'twin.macro';
-import dataformat from '../dataformat';
 import { Lens } from '../types';
+import JsonView from '@uiw/react-json-view';
+import { githubLightTheme } from '@uiw/react-json-view/githubLight';
 
-interface ArrayProps {
-    value: Array<number>;
-}
-
-const ArrayComponent = ({ value }: ArrayProps): JSX.Element => {
-    return (
-        <>
-            <div tw="font-bold">[</div>
-            {value.map((element, i) =>
-                Array.isArray(element) ? (
-                    <ArrayComponent value={element} key={i} />
-                ) : (
-                    <div tw="m-1" key={i}>
-                        {dataformat.formatNumber(element)}
-                    </div>
-                )
-            )}
-            <div tw="font-bold">]</div>
-        </>
-    );
-};
+const THEME = { ...githubLightTheme, '--w-rjv-background-color': 'transparent' };
 
 const ArrayLens: Lens = ({ value }) => {
     const array = value as Array<number>;
 
     return (
-        <div tw="text-xs px-1 py-0.5 flex flex-wrap content-center items-center h-full">
-            <ArrayComponent value={array} />
+        <div tw="w-full h-full overflow-y-auto">
+            <JsonView
+                value={array}
+                style={THEME}
+                displayObjectSize={false}
+                displayDataTypes={false}
+                highlightUpdates={false}
+                enableClipboard={false}
+            />
         </div>
     );
 };
@@ -38,7 +26,7 @@ ArrayLens.key = 'ArrayLens';
 ArrayLens.dataTypes = ['array', 'Embedding', 'Window'];
 ArrayLens.defaultHeight = 22;
 ArrayLens.minHeight = 22;
-ArrayLens.maxHeight = 128;
+ArrayLens.maxHeight = 512;
 ArrayLens.displayName = 'Array';
 
 export default ArrayLens;
