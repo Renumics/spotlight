@@ -1,9 +1,8 @@
 import 'twin.macro';
 import { Lens } from '../types';
 import JsonView from '@uiw/react-json-view';
-import { githubLightTheme } from '@uiw/react-json-view/githubLight';
 
-const THEME = { ...githubLightTheme, '--w-rjv-background-color': 'transparent' };
+const THEME = { backgroundColor: 'transparent' };
 
 const ArrayLens: Lens = ({ value }) => {
     const array = value as Array<number>;
