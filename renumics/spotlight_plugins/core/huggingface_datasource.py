@@ -135,9 +135,27 @@ class HuggingfaceDataSource(DataSource):
 
         if isinstance(feature, datasets.Sequence):
             if is_array_dtype(intermediate_dtype):
-                return raw_values.to_numpy()
+                values = [
+                    _convert_object_array(value) for value in raw_values.to_numpy()
+                ]
+                return_array = np.empty(len(values), dtype=object)
+                return_array[:] = values
+                return return_array
             if is_embedding_dtype(intermediate_dtype):
                 return raw_values.to_numpy()
+            return np.array([str(value) for value in raw_values])
+
+        if isinstance(
+            feature,
+            (datasets.Array2D, datasets.Array3D, datasets.Array4D, datasets.Array5D),
+        ):
+            if is_array_dtype(intermediate_dtype):
+                values = [
+                    _convert_object_array(value) for value in raw_values.to_numpy()
+                ]
+                return_array = np.empty(len(values), dtype=object)
+                return_array[:] = values
+                return return_array
             return np.array([str(value) for value in raw_values])
 
         if isinstance(feature, datasets.Translation):
@@ -203,10 +221,29 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
             return ArrayDType((None if feature.length == -1 else feature.length,))
         if is_array_dtype(inner_dtype):
-            return ArrayDType(
-                (None if feature.length == -1 else feature.length, *inner_dtype.shape)
+            shape = (
+                None if feature.length == -1 else feature.length,
+                *inner_dtype.shape,
             )
+            if shape.count(None) > 1:
+                return str_dtype
+            return ArrayDType(shape)
         return str_dtype
+    elif isinstance(feature, list):
+        inner_dtype = _get_intermediate_dtype(feature[0])
+        if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
+            return ArrayDType((None,))
+        if is_array_dtype(inner_dtype):
+            shape = (None, *inner_dtype.shape)
+            if shape.count(None) > 1:
+                return str_dtype
+            return ArrayDType(shape)
+        return str_dtype
+    elif isinstance(
+        feature,
+        (datasets.Array2D, datasets.Array3D, datasets.Array4D, datasets.Array5D),
+    ):
+        return ArrayDType(feature.shape)
     elif isinstance(feature, dict):
         if len(feature) == 2 and "bytes" in feature and "path" in feature:
             return file_dtype
@@ -216,3 +253,9 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         return str_dtype
     else:
         raise UnsupportedFeature(feature)
+
+
+def _convert_object_array(value: np.ndarray) -> np.ndarray:
+    if value.dtype.type is np.object_:
+        return np.array([_convert_object_array(x) for x in value])
+    return value
