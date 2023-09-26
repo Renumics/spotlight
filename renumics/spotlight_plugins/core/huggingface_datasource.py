@@ -161,6 +161,15 @@ class HuggingfaceDataSource(DataSource):
         if isinstance(feature, datasets.Translation):
             return np.array([str(value) for value in raw_values])
 
+        if isinstance(feature, datasets.Value):
+            hf_dtype = feature.dtype
+            if hf_dtype.startswith("duration"):
+                return raw_values.to_numpy().astype(int)
+            if hf_dtype.startswith("time32") or hf_dtype.startswith("time64"):
+                return raw_values.to_numpy().astype(str)
+            if hf_dtype.startswith("timestamp[ns"):
+                return raw_values.to_numpy().astype(int)
+
         return raw_values.to_numpy()
 
     def get_column_metadata(self, _: str) -> ColumnMetadata:
@@ -187,17 +196,19 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         elif hf_dtype.startswith("float"):
             return float_dtype
         elif hf_dtype.startswith("time32"):
-            return datetime_dtype
+            return str_dtype
         elif hf_dtype.startswith("time64"):
-            return datetime_dtype
+            return str_dtype
         elif hf_dtype.startswith("timestamp"):
+            if hf_dtype.startswith("timestamp[ns"):
+                return int_dtype
             return datetime_dtype
         elif hf_dtype.startswith("date32"):
             return datetime_dtype
         elif hf_dtype.startswith("date64"):
             return datetime_dtype
         elif hf_dtype.startswith("duration"):
-            return float_dtype
+            return int_dtype
         elif hf_dtype.startswith("decimal"):
             return float_dtype
         elif hf_dtype == "binary":
