@@ -183,6 +183,8 @@ class DataStore:
 
 def _intermediate_to_semantic_dtype(intermediate_dtype: DType) -> DType:
     if is_array_dtype(intermediate_dtype):
+        if intermediate_dtype.shape is None:
+            return intermediate_dtype
         if intermediate_dtype.shape == (2,):
             return window_dtype
         if intermediate_dtype.ndim == 1 and intermediate_dtype.shape[0] is not None:

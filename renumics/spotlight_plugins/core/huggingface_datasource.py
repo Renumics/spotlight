@@ -186,7 +186,7 @@ def _guess_semantic_dtype(feature: _FeatureType) -> Optional[DType]:
 
 def _get_intermediate_dtype(feature: _FeatureType) -> DType:
     if isinstance(feature, datasets.Value):
-        hf_dtype = cast(datasets.Value, feature).dtype
+        hf_dtype = datasets.Value.dtype
         if hf_dtype == "bool":
             return bool_dtype
         elif hf_dtype.startswith("int"):
