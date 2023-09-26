@@ -232,6 +232,8 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
             return ArrayDType((None if feature.length == -1 else feature.length,))
         if is_array_dtype(inner_dtype):
+            if inner_dtype.shape is None:
+                return str_dtype
             shape = (
                 None if feature.length == -1 else feature.length,
                 *inner_dtype.shape,
@@ -245,6 +247,8 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
             return ArrayDType((None,))
         if is_array_dtype(inner_dtype):
+            if inner_dtype.shape is None:
+                return str_dtype
             shape = (None, *inner_dtype.shape)
             if shape.count(None) > 1:
                 return str_dtype
