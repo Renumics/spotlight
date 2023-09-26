@@ -138,7 +138,7 @@ class PandasDataSource(DataSource):
         return self._uid
 
     def get_name(self) -> str:
-        return "pd.DataFrame"
+        return self._name
 
     def get_column_values(
         self,
