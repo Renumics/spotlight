@@ -26,6 +26,7 @@ from renumics.spotlight.dtypes import (
     str_dtype,
 )
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.logging import logger
 
 
 _FeatureType = Union[
@@ -186,7 +187,7 @@ def _guess_semantic_dtype(feature: _FeatureType) -> Optional[DType]:
 
 def _get_intermediate_dtype(feature: _FeatureType) -> DType:
     if isinstance(feature, datasets.Value):
-        hf_dtype = datasets.Value.dtype
+        hf_dtype = feature.dtype
         if hf_dtype == "bool":
             return bool_dtype
         elif hf_dtype.startswith("int"):
@@ -220,7 +221,8 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
         elif hf_dtype == "large_string":
             return str_dtype
         else:
-            raise UnsupportedFeature(feature)
+            logger.warning(f"Unsupported Hugging Face value dtype: {hf_dtype}.")
+            return str_dtype
     elif isinstance(feature, datasets.ClassLabel):
         return CategoryDType(categories=cast(datasets.ClassLabel, feature).names)
     elif isinstance(feature, datasets.Audio):
@@ -266,6 +268,7 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
             return str_dtype
     elif isinstance(feature, datasets.Translation):
         return str_dtype
+    logger.warning(f"Unsupported Hugging Face feature: {feature}.")
     return str_dtype
 
 
