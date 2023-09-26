@@ -266,8 +266,7 @@ def _get_intermediate_dtype(feature: _FeatureType) -> DType:
             return str_dtype
     elif isinstance(feature, datasets.Translation):
         return str_dtype
-    else:
-        raise UnsupportedFeature(feature)
+    return str_dtype
 
 
 def _convert_object_array(value: np.ndarray) -> np.ndarray:
