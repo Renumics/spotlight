@@ -2,20 +2,31 @@ from typing import List, Optional, Union, cast
 
 import datasets
 import numpy as np
-from renumics.spotlight import dtypes
 
 from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.dtypes import (
+    ArrayDType,
+    CategoryDType,
     DType,
     DTypeMap,
+    audio_dtype,
+    bool_dtype,
+    datetime_dtype,
+    float_dtype,
+    image_dtype,
+    int_dtype,
+    file_dtype,
+    bytes_dtype,
     is_array_dtype,
     is_embedding_dtype,
     is_file_dtype,
     is_float_dtype,
     is_int_dtype,
+    str_dtype,
 )
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.logging import logger
 
 
 _FeatureType = Union[
@@ -84,7 +95,7 @@ class HuggingfaceDataSource(DataSource):
         return self._dataset._fingerprint
 
     def get_name(self) -> str:
-        return self._dataset.builder_name
+        return f"🤗 Dataset {self._dataset.builder_name or ''}"
 
     def get_column_values(
         self,
@@ -125,13 +136,40 @@ class HuggingfaceDataSource(DataSource):
 
         if isinstance(feature, datasets.Sequence):
             if is_array_dtype(intermediate_dtype):
-                return raw_values.to_numpy()
+                values = [
+                    _convert_object_array(value) for value in raw_values.to_numpy()
+                ]
+                return_array = np.empty(len(values), dtype=object)
+                return_array[:] = values
+                return return_array
             if is_embedding_dtype(intermediate_dtype):
                 return raw_values.to_numpy()
             return np.array([str(value) for value in raw_values])
 
+        if isinstance(
+            feature,
+            (datasets.Array2D, datasets.Array3D, datasets.Array4D, datasets.Array5D),
+        ):
+            if is_array_dtype(intermediate_dtype):
+                values = [
+                    _convert_object_array(value) for value in raw_values.to_numpy()
+                ]
+                return_array = np.empty(len(values), dtype=object)
+                return_array[:] = values
+                return return_array
+            return np.array([str(value) for value in raw_values])
+
         if isinstance(feature, datasets.Translation):
             return np.array([str(value) for value in raw_values])
+
+        if isinstance(feature, datasets.Value):
+            hf_dtype = feature.dtype
+            if hf_dtype.startswith("duration"):
+                return raw_values.to_numpy().astype(int)
+            if hf_dtype.startswith("time32") or hf_dtype.startswith("time64"):
+                return raw_values.to_numpy().astype(str)
+            if hf_dtype.startswith("timestamp[ns"):
+                return raw_values.to_numpy().astype(int)
 
         return raw_values.to_numpy()
 
@@ -141,69 +179,100 @@ class HuggingfaceDataSource(DataSource):
 
 def _guess_semantic_dtype(feature: _FeatureType) -> Optional[DType]:
     if isinstance(feature, datasets.Audio):
-        return dtypes.audio_dtype
+        return audio_dtype
     if isinstance(feature, datasets.Image):
-        return dtypes.image_dtype
-    if isinstance(feature, datasets.Sequence):
-        if isinstance(feature.feature, datasets.Value):
-            if feature.length != -1:
-                return dtypes.embedding_dtype
+        return image_dtype
     return None
 
 
 def _get_intermediate_dtype(feature: _FeatureType) -> DType:
     if isinstance(feature, datasets.Value):
-        hf_dtype = cast(datasets.Value, feature).dtype
+        hf_dtype = feature.dtype
         if hf_dtype == "bool":
-            return dtypes.bool_dtype
+            return bool_dtype
         elif hf_dtype.startswith("int"):
-            return dtypes.int_dtype
+            return int_dtype
         elif hf_dtype.startswith("uint"):
-            return dtypes.int_dtype
+            return int_dtype
         elif hf_dtype.startswith("float"):
-            return dtypes.float_dtype
+            return float_dtype
         elif hf_dtype.startswith("time32"):
-            return dtypes.datetime_dtype
+            return str_dtype
         elif hf_dtype.startswith("time64"):
-            return dtypes.datetime_dtype
+            return str_dtype
         elif hf_dtype.startswith("timestamp"):
-            return dtypes.datetime_dtype
+            if hf_dtype.startswith("timestamp[ns"):
+                return int_dtype
+            return datetime_dtype
         elif hf_dtype.startswith("date32"):
-            return dtypes.datetime_dtype
+            return datetime_dtype
         elif hf_dtype.startswith("date64"):
-            return dtypes.datetime_dtype
+            return datetime_dtype
         elif hf_dtype.startswith("duration"):
-            return dtypes.float_dtype
+            return int_dtype
         elif hf_dtype.startswith("decimal"):
-            return dtypes.float_dtype
+            return float_dtype
         elif hf_dtype == "binary":
-            return dtypes.bytes_dtype
+            return bytes_dtype
         elif hf_dtype == "large_binary":
-            return dtypes.bytes_dtype
+            return bytes_dtype
         elif hf_dtype == "string":
-            return dtypes.str_dtype
+            return str_dtype
         elif hf_dtype == "large_string":
-            return dtypes.str_dtype
+            return str_dtype
         else:
-            raise UnsupportedFeature(feature)
+            logger.warning(f"Unsupported Hugging Face value dtype: {hf_dtype}.")
+            return str_dtype
     elif isinstance(feature, datasets.ClassLabel):
-        return dtypes.CategoryDType(categories=cast(datasets.ClassLabel, feature).names)
+        return CategoryDType(categories=cast(datasets.ClassLabel, feature).names)
     elif isinstance(feature, datasets.Audio):
-        return dtypes.file_dtype
+        return file_dtype
     elif isinstance(feature, datasets.Image):
-        return dtypes.file_dtype
+        return file_dtype
     elif isinstance(feature, datasets.Sequence):
         inner_dtype = _get_intermediate_dtype(feature.feature)
         if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
-            return dtypes.array_dtype
-        else:
-            return dtypes.str_dtype
+            return ArrayDType((None if feature.length == -1 else feature.length,))
+        if is_array_dtype(inner_dtype):
+            if inner_dtype.shape is None:
+                return str_dtype
+            shape = (
+                None if feature.length == -1 else feature.length,
+                *inner_dtype.shape,
+            )
+            if shape.count(None) > 1:
+                return str_dtype
+            return ArrayDType(shape)
+        return str_dtype
+    elif isinstance(feature, list):
+        inner_dtype = _get_intermediate_dtype(feature[0])
+        if is_int_dtype(inner_dtype) or is_float_dtype(inner_dtype):
+            return ArrayDType((None,))
+        if is_array_dtype(inner_dtype):
+            if inner_dtype.shape is None:
+                return str_dtype
+            shape = (None, *inner_dtype.shape)
+            if shape.count(None) > 1:
+                return str_dtype
+            return ArrayDType(shape)
+        return str_dtype
+    elif isinstance(
+        feature,
+        (datasets.Array2D, datasets.Array3D, datasets.Array4D, datasets.Array5D),
+    ):
+        return ArrayDType(feature.shape)
     elif isinstance(feature, dict):
         if len(feature) == 2 and "bytes" in feature and "path" in feature:
-            return dtypes.file_dtype
+            return file_dtype
         else:
-            return dtypes.str_dtype
+            return str_dtype
     elif isinstance(feature, datasets.Translation):
-        return dtypes.str_dtype
-    else:
-        raise UnsupportedFeature(feature)
+        return str_dtype
+    logger.warning(f"Unsupported Hugging Face feature: {feature}.")
+    return str_dtype
+
+
+def _convert_object_array(value: np.ndarray) -> np.ndarray:
+    if value.dtype.type is np.object_:
+        return np.array([_convert_object_array(x) for x in value])
+    return value
