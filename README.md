@@ -32,31 +32,27 @@ spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embed
 
 ## 🚀 Start with a use case
 
-Machine learning and engineering teams use Spotlight to understand and communicate on complex unstructured data problems. 
-
-Here are some interactive examples on publicly available datasets:
+Machine learning and engineering teams use Spotlight to understand and communicate on complex unstructured data problems. Here are some examples on publicly available datasets along with code snippets (👨‍💻), interactive demos (🕹️) and blog articles (📝):
 
 <table>
     <thead>
         <tr>
             <th>Modality</th>
+	    <th>Task</th>
             <th>Description</th>
             <th>Link</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td rowspan="4">🖼️ Image</td>
+            <td rowspan="3">🖼️ Image</td>
+	    <td rowspan="3">[Classification]</td>
             <td>Find Issues in Any Image Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
-        </tr>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a> <a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
+        </tr>	
         <tr>
             <td>Find data issues in the CIFAR-100 image dataset</td>
             <td><a href="https://huggingface.co/spaces/renumics/navigate-data-issues">🕹️</a></td>
-        </tr>
-        <tr>
-            <td>Explore data slices in the CIFAR-100 image dataset</td>
-            <td><a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
         </tr>
         <tr>
             <td>Fine-tuning image classification models from Bing image search</td>
@@ -64,24 +60,27 @@ Here are some interactive examples on publicly available datasets:
         </tr>
         <tr>
             <td rowspan="3">🔊 Audio</td>
+	    <td rowspan="3">[Classification]</td>
             <td>Find Issues in Any Audio Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
+            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a><a href="https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues">🕹️</a></td>
         </tr>
         <tr>
-            <td>Find data issues in the Common Voice audio dataset</td>
-            <td><a href="https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues">🕹️</a></td>
+            <td>Debug pre-trained gender detection models on the emodb dataset</td>
+            <td><a href="https://medium.com/p/dbfd923a5a79#432e-3559ae606f80">📝</a> <a href="https://huggingface.co/spaces/renumics/emodb-model-debugging">🕹️</a></td>
         </tr>
         <tr>
             <td>Compare gender detection models on the emodb dataset</td>
-            <td><a href="https://huggingface.co/spaces/renumics/emodb-model-comparison">🕹️</a></td>
+            <td><a href="https://medium.com/p/dbfd923a5a79#432e-3559ae606f80">📝</a> <a href="https://huggingface.co/spaces/renumics/emodb-model-comparison">🕹️</a></td>
         </tr>
         <tr>
             <td rowspan="1">📝 Text</td>
+	    <td rowspan="1">[Classification]</td>
             <td>Find Issues in Any Text Classification Dataset</td>
             <td><a href="https://www.renumics.com/next/docs/use-cases/text-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
         </tr>
         <tr>
             <td rowspan="2">📈🖼️ Mixed</td>
+	    <td rowspan="2">[EDA]</td>
             <td>Explore results from the Formula1 Montreal 2023 GP</td>
             <td><a href="https://huggingface.co/spaces/renumics/f1_montreal_gp">🕹️</a></td>
         </tr>
@@ -116,7 +115,7 @@ import pandas as pd
 from renumics import spotlight
 
 df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
-spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
+spotlight.show(df, dtype={"image": spotlight.Image})
 ```
 
 `pd.read_csv` loads a sample csv file as a pandas [DataFrame](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html).
@@ -129,11 +128,12 @@ spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embed
 import datasets
 from renumics import spotlight
 
-dataset = datasets.load_dataset("renumics/dcase23-task2-enriched", "dev", split="all", streaming=False)
-df = dataset.to_pandas()
-simple_layout = datasets.load_dataset_builder("renumics/dcase23-task2-enriched", "dev").config.get_layout(config="simple")
-spotlight.show(df, dtype={'path': spotlight.Audio, "embeddings_ast-finetuned-audioset-10-10-0.4593": spotlight.Embedding}, layout=simple_layout)
+ds = datasets.load_dataset('renumics/emodb-enriched', split='all')
+layout= spotlight.layouts.debug_classification(label='gender', prediction='m1_gender_prediction', embedding='m1_embedding', features=['age', 'emotion'])
+df = ds.to_pandas()
+spotlight.show(df, layout=layout)
 ```
+Here, the data types are discovered automatically from the dataset and we use a pre-defined layout for model debugging. Custom layouts can be built programmatically or via the UI.
 
 > The `datasets[audio]` package can be installed via pip.
 
