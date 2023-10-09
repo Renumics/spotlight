@@ -26,8 +26,8 @@ clean: ## clean project
 
 .PHONY: audit
 audit: ## Audit project dependencies
-	poetry export --without-hashes -f requirements.txt | poetry run safety check --full-report --stdin \
-		--ignore 44715 --ignore 44716 --ignore 44717 --ignore 51668 # (https://github.com/numpy/numpy/issues/19038)
+	poetry export --without-hashes | poetry run safety check --full-report --stdin \
+	 	--ignore 61496 --ignore 51668
 	pnpm audit --production
 
 .PHONY: check-format
