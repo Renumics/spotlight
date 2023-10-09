@@ -26,7 +26,7 @@ const columnsSelector = (d: Dataset) => d.columns;
 const columnVisibleByDefault = (column: DataColumn) =>
     ['float', 'int', 'bool', 'str', 'datetime', 'Category', 'Window'].includes(
         column.type.kind
-    ) && !column.name.startsWith('__');
+    ) && !column.hidden;
 
 const DataGrid: Widget = () => {
     const headerGrid = useRef<Grid>(null);

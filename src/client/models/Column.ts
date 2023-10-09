@@ -39,6 +39,12 @@ export interface Column {
     optional: boolean;
     /**
      *
+     * @type {boolean}
+     * @memberof Column
+     */
+    hidden: boolean;
+    /**
+     *
      * @type {string}
      * @memberof Column
      */
@@ -77,6 +83,7 @@ export function instanceOfColumn(value: object): boolean {
     isInstance = isInstance && 'name' in value;
     isInstance = isInstance && 'editable' in value;
     isInstance = isInstance && 'optional' in value;
+    isInstance = isInstance && 'hidden' in value;
     isInstance = isInstance && 'role' in value;
     isInstance = isInstance && 'values' in value;
 
@@ -95,6 +102,7 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
         name: json['name'],
         editable: json['editable'],
         optional: json['optional'],
+        hidden: json['hidden'],
         role: json['role'],
         values: json['values'],
         description: !exists(json, 'description') ? undefined : json['description'],
@@ -114,6 +122,7 @@ export function ColumnToJSON(value?: Column | null): any {
         name: value.name,
         editable: value.editable,
         optional: value.optional,
+        hidden: value.hidden,
         role: value.role,
         values: value.values,
         description: value.description,

@@ -139,6 +139,7 @@ class Hdf5DataSource(DataSource):
         return ColumnMetadata(
             nullable=attributes.get("optional", False),
             editable=attributes.get("editable", True),
+            hidden=attributes.get("hidden", False),
             description=attributes.get("description"),
             tags=attributes.get("tags", []),
         )
