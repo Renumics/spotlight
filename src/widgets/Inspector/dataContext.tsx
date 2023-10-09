@@ -22,8 +22,7 @@ const selectedIndicesSelector = (d: Dataset) => d.selectedIndices;
 
 // column types that should be visible by default
 const columnVisibleByDefault = (column: DataColumn) =>
-    ['Mesh', 'Sequence1D', 'Image'].includes(column.type.kind) &&
-    !column.name.startsWith('__');
+    ['Mesh', 'Sequence1D', 'Image'].includes(column.type.kind);
 
 export const DataProvider: FunctionComponent<{ children: React.ReactNode }> = ({
     children,
