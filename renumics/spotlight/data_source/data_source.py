@@ -25,6 +25,7 @@ class ColumnMetadata:
 
     nullable: bool
     editable: bool
+    hidden: bool = False
     description: Optional[str] = None
     tags: List[str] = dataclasses.field(default_factory=list)
 

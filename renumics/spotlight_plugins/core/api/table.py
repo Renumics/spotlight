@@ -24,6 +24,7 @@ class Column(BaseModel):
     name: str
     editable: bool
     optional: bool
+    hidden: bool
     role: str
     values: List[Any]
     description: Optional[str]
@@ -79,6 +80,7 @@ def get_table(request: Request) -> ORJSONResponse:
             values=values,
             editable=meta.editable,
             optional=meta.nullable,
+            hidden=meta.hidden,
             role=dtype.name,
             categories=dtype.categories if dtypes.is_category_dtype(dtype) else None,
             description=meta.description,
