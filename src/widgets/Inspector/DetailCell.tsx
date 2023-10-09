@@ -5,7 +5,6 @@ import type { GridChildComponentProps as CellProps } from 'react-window';
 import { Dataset, useDataset } from '../../stores/dataset';
 import tw, { styled } from 'twin.macro';
 import { shallow } from 'zustand/shallow';
-import { DataContext } from './dataContext';
 import { useStore } from './store';
 
 type Props = CellProps;
@@ -41,6 +40,7 @@ const areEqualIgnoreScrollStart = (
 };
 
 const columnsSelector = (d: Dataset) => d.columns;
+const selectedIndicesSelector = (d: Dataset) => d.selectedIndices;
 
 const Cell: FunctionComponent<Props> = ({
     style,
@@ -49,7 +49,7 @@ const Cell: FunctionComponent<Props> = ({
     rowIndex: dataColumnIndex,
 }) => {
     const view = useStore((state) => state.views[dataColumnIndex]);
-    const { rowIndices } = useContext(DataContext);
+    const rowIndices = useDataset(selectedIndicesSelector);
     const allColumns = useDataset(columnsSelector);
     const columns = useMemo(
         () => allColumns.filter((c) => view.columns.includes(c.key)),

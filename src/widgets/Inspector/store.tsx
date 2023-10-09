@@ -64,7 +64,11 @@ const StoreProvider = ({ children }: ProviderProps): JSX.Element => {
     const allColumns = useDataset((d) => d.columns);
     const lenses = useComponentsStore((d) => d.lensesByKey);
     const defaultLenses = useMemo(() => {
-        const defaultColumns = allColumns.filter((c) => c.type.binary && !c.hidden);
+        const visibleColumns = allColumns.filter(
+            (c) => !c.hidden && c.type.kind !== 'Embedding'
+        );
+        const binaryColumns = visibleColumns.filter((c) => c.type.binary);
+        const defaultColumns = binaryColumns.length ? binaryColumns : visibleColumns;
         return _.compact(
             defaultColumns.map((column) => {
                 const lens = Object.values(lenses).filter((lens) =>

@@ -3,7 +3,6 @@ import DetailsIcon from '../../icons/ClipboardList';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
-import { DataContext, DataProvider } from './dataContext';
 import DetailsGrid, { COLUMN_COUNT_OPTIONS } from './DetailsGrid';
 import MenuBar from './MenuBar';
 import { StoreProvider } from './store';
@@ -16,31 +15,25 @@ const Inspector: Widget = () => {
     );
     return (
         <StoreProvider>
-            <DataProvider>
-                <DataContext.Consumer>
-                    {() => (
-                        <WidgetContainer>
-                            <MenuBar
-                                visibleColumnsCount={visibleColumnsCount}
-                                setVisibleColumnsCount={setVisibleColumnsCount}
-                                visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
-                            />
+            <WidgetContainer>
+                <MenuBar
+                    visibleColumnsCount={visibleColumnsCount}
+                    setVisibleColumnsCount={setVisibleColumnsCount}
+                    visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
+                />
 
-                            <WidgetContent>
-                                <AutoSizer>
-                                    {({ width, height }) => (
-                                        <DetailsGrid
-                                            width={width}
-                                            height={height}
-                                            visibleColumnsCount={visibleColumnsCount}
-                                        />
-                                    )}
-                                </AutoSizer>
-                            </WidgetContent>
-                        </WidgetContainer>
-                    )}
-                </DataContext.Consumer>
-            </DataProvider>
+                <WidgetContent>
+                    <AutoSizer>
+                        {({ width, height }) => (
+                            <DetailsGrid
+                                width={width}
+                                height={height}
+                                visibleColumnsCount={visibleColumnsCount}
+                            />
+                        )}
+                    </AutoSizer>
+                </WidgetContent>
+            </WidgetContainer>
         </StoreProvider>
     );
 };

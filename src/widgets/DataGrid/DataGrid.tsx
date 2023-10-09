@@ -35,13 +35,13 @@ const DataGrid: Widget = () => {
 
     const [scrollbarWidth] = getScrollbarSize();
 
-    const defaultVisibleColumnKeys = useMemo(
-        () =>
-            allColumns
-                .filter((column) => columnVisibleByDefault(column))
-                .map(({ key }) => key),
-        [allColumns]
-    );
+    const defaultVisibleColumnKeys = useMemo(() => {
+        const visibleColumnKeys = allColumns
+            .filter((column) => columnVisibleByDefault(column))
+            .map(({ key }) => key);
+        if (visibleColumnKeys.length) return visibleColumnKeys;
+        return allColumns.filter((col) => !col.hidden).map(({ key }) => key);
+    }, [allColumns]);
 
     const [tableView, setTableView] = useWidgetConfig<TableView>('tableView', 'full');
     const [visibleColumns, setVisibleColumns] = useWidgetConfig<string[]>(
