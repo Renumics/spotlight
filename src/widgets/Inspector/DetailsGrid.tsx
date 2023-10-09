@@ -2,7 +2,6 @@ import {
     FunctionComponent,
     KeyboardEvent,
     useCallback,
-    useContext,
     useEffect,
     useMemo,
     useRef,
@@ -12,7 +11,6 @@ import type { GridOnScrollProps, ListOnScrollProps } from 'react-window';
 import { Dataset, useDataset } from '../../stores/dataset';
 import tw from 'twin.macro';
 import getScrollbarSize from '../../browser';
-import { DataContext } from './dataContext';
 import Header, { Ref as HeaderRef } from './Header';
 import RowHeightContext from './rowHeightContext';
 import { State as StoreState, useStore } from './store';
@@ -29,6 +27,7 @@ const DetailsGridWrapper = tw.div`flex`;
 const viewsSelector = (state: StoreState) => state.views;
 const focusedRowSelector = (d: Dataset) => d.lastFocusedRow;
 const rowCountSelector = (d: Dataset) => d.length;
+const selectedIndicesSelector = (d: Dataset) => d.selectedIndices;
 
 const DetailsGrid: FunctionComponent<{
     width: number;
@@ -38,7 +37,6 @@ const DetailsGrid: FunctionComponent<{
     const [scrollbarWidth] = getScrollbarSize();
     const detailsGrid = useRef<VariableSizeGrid>(null);
     const header = useRef<HeaderRef>(null);
-    const { rowIndices } = useContext(DataContext);
     const scrollLeft = useRef<number>();
     const scrollTop = useRef<number>();
     const mouseDown = useRef(false);
@@ -48,6 +46,7 @@ const DetailsGrid: FunctionComponent<{
     const views = useStore(viewsSelector);
     const focusedRow = useDataset(focusedRowSelector);
     const rowCount = useDataset(rowCountSelector);
+    const rowIndices = useDataset(selectedIndicesSelector);
 
     const [columnCount, columnWidth] = useMemo(() => {
         let visibleCount: number = visibleColumnsCount;
