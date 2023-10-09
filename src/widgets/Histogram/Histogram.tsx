@@ -43,9 +43,7 @@ const Histogram: Widget = () => {
     const defaultColumnKey = useMemo(
         () =>
             columns
-                .filter(
-                    (col) => !col.isInternal && defaultTypes.includes(col.type.kind)
-                )
+                .filter((col) => defaultTypes.includes(col.type.kind))
                 .map((col) => col.key)[0],
         [columns]
     );
