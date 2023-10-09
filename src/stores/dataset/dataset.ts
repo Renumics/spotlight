@@ -423,10 +423,7 @@ export const useDataset = create(
             },
             recomputeColorTransferFunctions: async () => {
                 const columnsToCompute = get()
-                    .columns.filter(
-                        (c) =>
-                            !c.isInternal && (isScalar(c.type) || isCategorical(c.type))
-                    )
+                    .columns.filter((c) => isScalar(c.type) || isCategorical(c.type))
                     .map((c) => c.key);
 
                 const newTransferFunctions = makeColumnsColorTransferFunctions(
