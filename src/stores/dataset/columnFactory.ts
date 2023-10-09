@@ -66,11 +66,6 @@ export function makeColumn(column: Column, index: number): DataColumn {
         optional: column.optional,
         description: column.description ?? '',
         tags: _.uniq(column.tags),
-
-        // we access some internal columns like __id__ by their name
-        // therefore, if we set the key to something different than column.name
-        // we have to check for isInternal and use column.name for it
-        isInternal: column.name.startsWith('__'),
     };
 
     return col;

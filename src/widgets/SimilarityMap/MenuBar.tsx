@@ -50,12 +50,6 @@ const columnTypeSelector = (d: Dataset): { [key: string]: DataType } =>
         return a;
     }, {});
 
-const columnIsInternalSelector = (d: Dataset): { [key: string]: boolean } =>
-    d.columns.reduce((a: { [key: string]: boolean }, c: DataColumn) => {
-        a[c.key] = c.isInternal;
-        return a;
-    }, {});
-
 const SettingsMenu = ({
     colorBy,
     sizeBy,
@@ -77,7 +71,6 @@ const SettingsMenu = ({
     onChangePCANormalization,
 }: Props) => {
     const columnType = useDataset(columnTypeSelector, shallow);
-    const columnIsInternal = useDataset(columnIsInternalSelector, shallow);
 
     const changePlaceBy = useCallback(
         (keys: string[]): void => {
@@ -88,27 +81,20 @@ const SettingsMenu = ({
 
     const colorableColumns = useMemo(
         () =>
-            Object.entries(columnType)
-                .filter(
-                    ([key, type]) =>
-                        ['int', 'float', 'str', 'bool', 'Category'].includes(
-                            type.kind
-                        ) && !columnIsInternal[key]
+            Object.values(columnType)
+                .filter((type) =>
+                    ['int', 'float', 'str', 'bool', 'Category'].includes(type.kind)
                 )
-                .map(([key]) => key),
-        [columnIsInternal, columnType]
+                .map((type) => type.kind),
+        [columnType]
     );
 
     const scaleableColumns = useMemo(
         () =>
-            Object.entries(columnType)
-                .filter(
-                    ([key, type]) =>
-                        ['int', 'float', 'bool'].includes(type.kind) &&
-                        !columnIsInternal[key]
-                )
-                .map(([key]) => key),
-        [columnIsInternal, columnType]
+            Object.values(columnType)
+                .filter((type) => ['int', 'float', 'bool'].includes(type.kind))
+                .map((type) => type.kind),
+        [columnType]
     );
 
     const reductionParameterMenu =
