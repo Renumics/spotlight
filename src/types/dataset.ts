@@ -8,6 +8,7 @@ export interface DataColumn {
     type: datatypes.DataType;
     editable: boolean;
     optional: boolean;
+    hidden: boolean;
     description: string;
     tags: string[];
 }
