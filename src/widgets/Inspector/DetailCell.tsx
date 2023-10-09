@@ -1,5 +1,5 @@
 import LensFactory from '../../lenses/LensFactory';
-import { FunctionComponent, memo, useCallback, useContext, useMemo } from 'react';
+import { FunctionComponent, memo, useCallback, useMemo } from 'react';
 import { areEqual } from 'react-window';
 import type { GridChildComponentProps as CellProps } from 'react-window';
 import { Dataset, useDataset } from '../../stores/dataset';
