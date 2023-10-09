@@ -106,15 +106,6 @@ export function convertValue(value: any, type: DataType) {
     return value;
 }
 
-export function compareColumnOrder(a: DataColumn, b: DataColumn) {
-    if (a.isInternal && !b.isInternal) {
-        return 1;
-    } else if (b.isInternal && !a.isInternal) {
-        return -1;
-    }
-    return a.name.localeCompare(b.name);
-}
-
 const fetchTable = async (): Promise<{
     uid: string;
     generationID: number;
@@ -164,10 +155,8 @@ const fetchTable = async (): Promise<{
 
     const length = _.max(table.columns.map((col) => col.values?.length ?? 0)) ?? 0;
 
-    const sortedColumns = columns.sort(compareColumnOrder);
-
     const dataframe: DataFrame = {
-        columns: sortedColumns,
+        columns,
         length,
         data: columnData,
     };
