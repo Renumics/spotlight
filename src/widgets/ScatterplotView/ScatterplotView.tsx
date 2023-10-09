@@ -287,10 +287,7 @@ const ScatterplotView: Widget = () => {
 
             // compute z-scores for all number columns and order them descending
             const remainingColumns = Object.values(allColumns).filter(
-                (col) =>
-                    isNumberColumn(col) &&
-                    !col.isInternal &&
-                    !defaultColumns.includes(col.key)
+                (col) => isNumberColumn(col) && !defaultColumns.includes(col.key)
             ) as NumberColumn[];
             const interestingColumns = sortColumnsByZScore(
                 rowIndex,
@@ -327,22 +324,15 @@ const ScatterplotView: Widget = () => {
     const placeableColumns = useMemo(
         () =>
             Object.values(allColumns)
-                .filter(
-                    (col) =>
-                        ['int', 'float', 'bool'].includes(col.type.kind) &&
-                        !col.isInternal
-                )
+                .filter((col) => ['int', 'float', 'bool'].includes(col.type.kind))
                 .map((col) => col.key),
         [allColumns]
     );
     const colorableColumns = useMemo(
         () =>
             Object.values(allColumns)
-                .filter(
-                    (col) =>
-                        ['int', 'float', 'str', 'bool', 'Category'].includes(
-                            col.type.kind
-                        ) && !col.isInternal
+                .filter((col) =>
+                    ['int', 'float', 'str', 'bool', 'Category'].includes(col.type.kind)
                 )
                 .map((col) => col.key),
         [allColumns]
@@ -350,10 +340,8 @@ const ScatterplotView: Widget = () => {
     const scaleableColumns = useMemo(
         () =>
             Object.values(allColumns)
-                .filter(
-                    (col: DataColumn) =>
-                        ['int', 'float', 'bool'].includes(col.type.kind) &&
-                        !col.isInternal
+                .filter((col: DataColumn) =>
+                    ['int', 'float', 'bool'].includes(col.type.kind)
                 )
                 .map((col) => col.key),
         [allColumns]

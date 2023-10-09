@@ -64,11 +64,7 @@ export const makeColumnsColorTransferFunctions = (
     filteredMask: boolean[]
 ): ColumnsTransferFunctions => {
     return columns
-        .filter(
-            (column) =>
-                !column.isInternal &&
-                (isScalarColumn(column) || isCategoricalColumn(column))
-        )
+        .filter((column) => isScalarColumn(column) || isCategoricalColumn(column))
         .reduce((a, column) => {
             a[column.key] = {
                 full: makeApplicableColorTransferFunctions(

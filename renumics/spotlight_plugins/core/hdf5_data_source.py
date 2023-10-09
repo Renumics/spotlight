@@ -103,7 +103,13 @@ class Hdf5DataSource(DataSource):
 
     @property
     def column_names(self) -> List[str]:
-        return self._table.keys()
+        column_names = self._table.keys()
+        orders = {
+            name: self._table.get_column_attributes(name).get("order") or -1
+            for name in column_names
+        }
+        column_names.sort(key=lambda name: orders[name], reverse=True)
+        return column_names
 
     @property
     def intermediate_dtypes(self) -> DTypeMap:

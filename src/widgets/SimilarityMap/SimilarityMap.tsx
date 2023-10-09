@@ -124,7 +124,6 @@ const SimilarityMap: Widget = () => {
             return undefined;
         }
         const availableColumns = fullColumns
-            .filter((col) => !col.isInternal)
             .filter((col) =>
                 ['int', 'float', 'str', 'bool', 'Category'].includes(col.type.kind)
             )
@@ -165,11 +164,10 @@ const SimilarityMap: Widget = () => {
 
     const embeddableColumnKeys = useMemo(() => {
         return fullColumns
-            .filter(
-                (col) =>
-                    ['int', 'bool', 'float', 'Category', 'Embedding'].includes(
-                        col.type.kind
-                    ) && !col.isInternal
+            .filter((col) =>
+                ['int', 'bool', 'float', 'Category', 'Embedding'].includes(
+                    col.type.kind
+                )
             )
             .map((c) => c.key);
     }, [fullColumns]);
@@ -355,10 +353,7 @@ const SimilarityMap: Widget = () => {
             // compute z-scores for all number columns and order them descending
             //
             const remainingColumns = fullColumns.filter(
-                (col) =>
-                    isNumberColumn(col) &&
-                    !col.isInternal &&
-                    !defaultColumns.includes(col)
+                (col) => isNumberColumn(col) && !defaultColumns.includes(col)
             ) as NumberColumn[];
             const interestingColumns = sortColumnsByZScore(
                 rowIndex,
