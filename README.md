@@ -130,8 +130,7 @@ from renumics import spotlight
 
 ds = datasets.load_dataset('renumics/emodb-enriched', split='all')
 layout= spotlight.layouts.debug_classification(label='gender', prediction='m1_gender_prediction', embedding='m1_embedding', features=['age', 'emotion'])
-df = ds.to_pandas()
-spotlight.show(df, layout=layout)
+spotlight.show(ds, layout=layout)
 ```
 Here, the data types are discovered automatically from the dataset and we use a pre-defined layout for model debugging. Custom layouts can be built programmatically or via the UI.
 
