@@ -93,3 +93,14 @@ class Config:
         await self.database.execute(
             query, values={"name": name, "user": user, "dataset": dataset}
         )
+
+    async def remove_all(self, name: str, *, dataset: str = "") -> None:
+        """
+        remove a config value by name for all users
+        """
+        await self._lazy_init()
+        query = """
+        DELETE FROM entries
+        WHERE name = :name AND dataset = :dataset
+        """
+        await self.database.execute(query, values={"name": name, "dataset": dataset})

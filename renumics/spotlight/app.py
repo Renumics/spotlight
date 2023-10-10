@@ -57,6 +57,9 @@ from renumics.spotlight.data_store import DataStore
 from renumics.spotlight.dtypes import DTypeMap
 
 
+CURRENT_LAYOUT_KEY = "layout.current"
+
+
 class IssuesUpdatedMessage(Message):
     """
     Notify about updated issues.
@@ -73,6 +76,7 @@ class SpotlightApp(FastAPI):
 
     # lifecycle
     _startup_complete: bool
+    _loop: asyncio.AbstractEventLoop
 
     # connection
     _connection: multiprocessing.connection.Connection
@@ -124,6 +128,8 @@ class SpotlightApp(FastAPI):
         def _() -> None:
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
+
+            self._loop = asyncio.get_running_loop()
 
             for _ in range(10):
                 try:
@@ -301,7 +307,7 @@ class SpotlightApp(FastAPI):
             self._dataset = config.dataset
             self._data_source = create_datasource(self._dataset)
         if config.layout is not None:
-            self.layout = config.layout
+            self._layout = config.layout or layouts.default()
         if config.filebrowsing_allowed is not None:
             self.filebrowsing_allowed = config.filebrowsing_allowed
 
@@ -311,6 +317,15 @@ class SpotlightApp(FastAPI):
             self._data_store = DataStore(data_source, self._user_dtypes)
             self._broadcast(RefreshMessage())
             self._update_issues()
+        if config.layout is not None:
+            if self._data_store is not None:
+                dataset_uid = self._data_store.uid
+                future = asyncio.run_coroutine_threadsafe(
+                    self.config.remove_all(CURRENT_LAYOUT_KEY, dataset=dataset_uid),
+                    self._loop,
+                )
+                future.result()
+            self._broadcast(ResetLayoutMessage())
 
         for plugin in load_plugins():
             plugin.update(self, config)
@@ -370,11 +385,6 @@ class SpotlightApp(FastAPI):
         """
         return self._layout
 
-    @layout.setter
-    def layout(self, layout: Optional[Layout]) -> None:
-        self._layout = layout or layouts.default()
-        self._broadcast(ResetLayoutMessage())
-
     async def get_current_layout_dict(self, user_id: str) -> Optional[Dict]:
         """
         Get the user's current layout (as dict)
@@ -385,7 +395,7 @@ class SpotlightApp(FastAPI):
 
         dataset_uid = self._data_store.uid
         layout = await self.config.get(
-            "layout.current", dataset=dataset_uid, user=user_id
+            CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=user_id
         ) or self.layout.dict(by_alias=True)
         return cast(Optional[Dict], layout)
 
