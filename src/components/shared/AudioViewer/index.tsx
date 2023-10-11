@@ -15,6 +15,8 @@ import { notifyProblem } from '../../../notify';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js';
 import CursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.min.js';
+import useSetting from '../../../lenses/useSetting';
+import MenuBar from './MenuBar';
 
 // Maximum zoom level for waveform
 const MAX_ZOOM = 2500;
@@ -169,6 +171,8 @@ const AudioViewer = ({
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isReady, setIsReady] = useState(false);
+    const [autoplay, setAutoplay] = useSetting('autoplay', false);
+    const [looping, setLooping] = useSetting('looping', false);
 
     const redrawWaveform = (height: number) => {
         waveform.current?.setHeight(height);
@@ -287,6 +291,14 @@ const AudioViewer = ({
             redrawWaveform(height);
 
             setIsReady(true);
+
+            if (!waveform.current) return;
+
+            if (autoplay) waveform.current.play();
+            // "media" does not exist @compiletime.
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            waveform.current.backend.media.loop = looping;
         });
 
         // In case this widget was paused from the outside
@@ -315,6 +327,8 @@ const AudioViewer = ({
         onRegionClick,
         onRegionEnter,
         onRegionLeave,
+        autoplay,
+        looping,
     ]);
 
     useEffect(() => {
@@ -394,6 +408,23 @@ const AudioViewer = ({
             setIsPlaying(false);
 
             if (ActiveWidget === waveform.current) ActiveWidget = null;
+        }
+    };
+
+    const toggleRepeat = (enabled: boolean) => {
+        if (waveform.current?.isReady) {
+            if (!waveform.current) return;
+
+            setLooping(enabled);
+            waveform.current.backend.media.loop = enabled;
+        }
+    };
+
+    const toggleAutoPlay = (enabled: boolean) => {
+        if (waveform.current?.isReady) {
+            if (!waveform.current) return;
+            setAutoplay(enabled);
+            //waveform.current.backend.autoplay = true;//!waveform.current.autoplay;
         }
     };
 
@@ -558,6 +589,12 @@ const AudioViewer = ({
             )}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <audio ref={audioRef} src={url} />
+            <MenuBar
+                isLooping={looping}
+                shouldAutostart={autoplay}
+                onChangeLoop={toggleRepeat}
+                onChangeAutostart={toggleAutoPlay}
+            />
         </Container>
     );
 };
