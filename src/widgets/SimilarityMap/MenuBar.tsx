@@ -80,20 +80,24 @@ const SettingsMenu = ({
     );
 
     const colorableColumns = useMemo(
-        () =>
-            Object.values(columnType)
-                .filter((type) =>
+        () => [
+            '',
+            ...Object.entries(columnType)
+                .filter(([, type]) =>
                     ['int', 'float', 'str', 'bool', 'Category'].includes(type.kind)
                 )
-                .map((type) => type.kind),
+                .map(([col]) => col),
+        ],
         [columnType]
     );
 
     const scaleableColumns = useMemo(
-        () =>
-            Object.values(columnType)
-                .filter((type) => ['int', 'float', 'bool'].includes(type.kind))
-                .map((type) => type.kind),
+        () => [
+            '',
+            ...Object.entries(columnType)
+                .filter(([, type]) => ['int', 'float', 'bool'].includes(type.kind))
+                .map(([col]) => col),
+        ],
         [columnType]
     );
 
@@ -133,18 +137,22 @@ const SettingsMenu = ({
             </Menu.Item>
             {reductionParameterMenu}
             <Menu.HorizontalDivider />
-            <Menu.ColumnSelect
-                title="Color By"
-                onChangeColumn={onChangeColorBy}
-                selectableColumns={colorableColumns}
-                selected={colorBy}
-            />
-            <Menu.ColumnSelect
-                title="Scale By"
-                onChangeColumn={onChangeSizeBy}
-                selectableColumns={scaleableColumns}
-                selected={sizeBy}
-            />
+            <Menu.Item>
+                <Menu.Title>Color By</Menu.Title>
+                <Select
+                    onChange={onChangeColorBy}
+                    options={colorableColumns}
+                    value={colorBy}
+                />
+            </Menu.Item>
+            <Menu.Item>
+                <Menu.Title>Scale By</Menu.Title>
+                <Select
+                    onChange={onChangeSizeBy}
+                    options={scaleableColumns}
+                    value={sizeBy}
+                />
+            </Menu.Item>
         </Menu>
     );
 };

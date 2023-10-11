@@ -129,7 +129,10 @@ const SimilarityMap: Widget = () => {
             )
             .map((c) => c.key);
 
-        if (storedColorByKey && availableColumns.includes(storedColorByKey)) {
+        if (
+            storedColorByKey !== undefined &&
+            (storedColorByKey === '' || availableColumns.includes(storedColorByKey))
+        ) {
             return storedColorByKey;
         }
         return availableColumns[0];
