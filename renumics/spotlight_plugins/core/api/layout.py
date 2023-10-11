@@ -8,11 +8,9 @@ from typing_extensions import Annotated
 from fastapi import APIRouter, Request, Cookie
 from pydantic import BaseModel
 
-from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app import CURRENT_LAYOUT_KEY, SpotlightApp
 
 router = APIRouter()
-
-CURRENT_LAYOUT_KEY = "layout.current"
 
 
 @router.get(
