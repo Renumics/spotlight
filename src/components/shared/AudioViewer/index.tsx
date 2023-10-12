@@ -47,6 +47,15 @@ const WaveStyles = styled.div`
     }
 `;
 
+// Does not exist at compile time
+interface WebAudioMedia {
+    loop: boolean;
+}
+
+interface WebAudio {
+    media: WebAudioMedia;
+}
+
 // Only one active widget at a time
 let ActiveWidget: WaveSurfer | null;
 
@@ -295,10 +304,7 @@ const AudioViewer = ({
             if (!waveform.current) return;
 
             if (autoplay) waveform.current.play();
-            // "media" does not exist @compiletime.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            waveform.current.backend.media.loop = looping;
+            (waveform.current.backend as unknown as WebAudio).media.loop = looping;
         });
 
         // In case this widget was paused from the outside
