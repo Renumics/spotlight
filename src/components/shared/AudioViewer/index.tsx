@@ -422,7 +422,7 @@ const AudioViewer = ({
             if (!waveform.current) return;
 
             setLooping(enabled);
-            waveform.current.backend.media.loop = enabled;
+            (waveform.current.backend as unknown as WebAudio).media.loop = enabled;
         }
     };
 
