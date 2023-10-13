@@ -304,6 +304,7 @@ const AudioViewer = ({
             if (!waveform.current) return;
 
             if (autoplay) waveform.current.play();
+
             (waveform.current.backend as unknown as WebAudio).media.loop = looping;
         });
 
@@ -368,7 +369,7 @@ const AudioViewer = ({
         } else {
             redrawTimeline(timelineContainer.current, waveform.current);
         }
-    }, [url, peaks]);
+    }, [url, peaks, autoplay, looping]);
 
     const switchActiveWidget = () => {
         if (!waveform.current?.isReady) return;
@@ -414,23 +415,6 @@ const AudioViewer = ({
             setIsPlaying(false);
 
             if (ActiveWidget === waveform.current) ActiveWidget = null;
-        }
-    };
-
-    const toggleRepeat = (enabled: boolean) => {
-        if (waveform.current?.isReady) {
-            if (!waveform.current) return;
-
-            setLooping(enabled);
-            (waveform.current.backend as unknown as WebAudio).media.loop = enabled;
-        }
-    };
-
-    const toggleAutoPlay = (enabled: boolean) => {
-        if (waveform.current?.isReady) {
-            if (!waveform.current) return;
-            setAutoplay(enabled);
-            //waveform.current.backend.autoplay = true;//!waveform.current.autoplay;
         }
     };
 
@@ -598,8 +582,8 @@ const AudioViewer = ({
             <MenuBar
                 isLooping={looping}
                 shouldAutostart={autoplay}
-                onChangeLoop={toggleRepeat}
-                onChangeAutostart={toggleAutoPlay}
+                onChangeLoop={setLooping}
+                onChangeAutostart={setAutoplay}
             />
         </Container>
     );
