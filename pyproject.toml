@@ -75,7 +75,6 @@ imagecodecs = [
 av = "*"
 validators = "*"
 ipywidgets = "*"
-pycatch22 = "*"
 jinja2 = "*"
 toml = "*"
 cleanlab = "*"
@@ -88,6 +87,11 @@ numba = "^0.57.1"
 pillow = "^10.0.0"
 httpx = "^0.23.0"
 datasets = {extras = ["audio"], version = "^2.12.0"}
+
+pycatch22 = {version = "!=0.4.4", optional = true}
+
+[tool.poetry.extras]
+descriptors = ["pycatch22"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "*"
