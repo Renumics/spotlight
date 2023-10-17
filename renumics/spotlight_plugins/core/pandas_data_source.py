@@ -7,10 +7,9 @@ from typing import Any, List, Union, cast
 import numpy as np
 import pandas as pd
 import datasets
-from renumics.spotlight import dtypes
 
+from renumics.spotlight import dtypes
 from renumics.spotlight.io.pandas import (
-    infer_dtype,
     prepare_hugging_face_dict,
     stringify_columns,
     try_literal_eval,
@@ -23,7 +22,6 @@ from renumics.spotlight.data_source import (
 from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
-from renumics.spotlight.dtypes import DTypeMap
 
 
 @datasource(pd.DataFrame)
@@ -41,6 +39,7 @@ class PandasDataSource(DataSource):
     _uid: str
     _df: pd.DataFrame
     _name: str
+    _intermediate_dtypes: dtypes.DTypeMap
 
     def __init__(self, source: Union[Path, pd.DataFrame]):
         if isinstance(source, Path):
@@ -99,7 +98,9 @@ class PandasDataSource(DataSource):
             raise DatasetColumnsNotUnique()
         self._generation_id = 0
         self._uid = str(id(df))
+        print(df.dtypes)
         self._df = df.convert_dtypes()
+        print(self._df.dtypes)
         self._intermediate_dtypes = {
             # TODO: convert column name
             col: _determine_intermediate_dtype(self._df[col])
@@ -118,18 +119,15 @@ class PandasDataSource(DataSource):
         return self._df.copy()
 
     @property
-    def intermediate_dtypes(self) -> DTypeMap:
+    def intermediate_dtypes(self) -> dtypes.DTypeMap:
         return self._intermediate_dtypes
 
     def __len__(self) -> int:
         return len(self._df)
 
     @property
-    def semantic_dtypes(self) -> DTypeMap:
-        return {
-            str(column_name): infer_dtype(self.df[column_name])
-            for column_name in self.df
-        }
+    def semantic_dtypes(self) -> dtypes.DTypeMap:
+        return {}
 
     def get_generation_id(self) -> int:
         return self._generation_id
@@ -167,12 +165,14 @@ class PandasDataSource(DataSource):
         if pd.api.types.is_categorical_dtype(column):
             return column.cat.codes
         if pd.api.types.is_string_dtype(column):
-            values = column.to_numpy()
-            na_mask = column.isna()
-            values[na_mask] = None
-            return values
+            column = column.astype(object).mask(column.isna(), None)
+            str_mask = column.map(type) == str
+            column[str_mask] = column[str_mask].apply(try_literal_eval)
+            dict_mask = column.map(type) == dict
+            column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
+            return column.to_numpy()
         if pd.api.types.is_object_dtype(column):
-            column = column.mask(column.isna(), None)
+            column = column.astype(object).mask(column.isna(), None)
             str_mask = column.map(type) == str
             column[str_mask] = column[str_mask].apply(try_literal_eval)
             dict_mask = column.map(type) == dict
@@ -222,5 +222,4 @@ def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
         return dtypes.datetime_dtype
     if pd.api.types.is_string_dtype(column):
         return dtypes.str_dtype
-    else:
-        return dtypes.mixed_dtype
+    return dtypes.mixed_dtype

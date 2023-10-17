@@ -58,17 +58,6 @@ def create_typed_series(
     return pd.Series([] if values is None else values, dtype=pandas_dtype)
 
 
-def is_empty(value: Any) -> bool:
-    """
-    Check if value is `NA` or an empty string.
-    """
-    if is_iterable(value):
-        # `pd.isna` with an iterable argument returns an iterable result. But
-        # an iterable cannot be NA or empty string by default.
-        return False
-    return pd.isna(value) or value == ""
-
-
 def try_literal_eval(x: str) -> Any:
     """
     Try to evaluate a literal expression, otherwise return value as is.
