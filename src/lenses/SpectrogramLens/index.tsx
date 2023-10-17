@@ -10,15 +10,7 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import chroma from 'chroma-js';
-import {
-    fixWindow,
-    freqType,
-    unitType,
-    amplitudeToDb,
-    hzToMel,
-    melToHz,
-} from './Spectrogram';
+import { fixWindow, freqType, unitType, amplitudeToDb, hzToMel } from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -174,14 +166,22 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 return;
             }
 
+            //console.log(JSON.stringify((buffer.getChannelData(0).slice(start, end)))
+            //const slice = buffer.getChannelData(0).slice(start, end);
+            const arr = buffer.getChannelData(0).slice(start, end);
+            console.log(Math.max(...arr), Math.min(...arr));
             const frequenciesData = await worker(
                 FFT_SAMPLES,
                 backend.windowFunc,
                 backend.alpha,
                 width,
                 FFT_SAMPLES,
-                buffer.getChannelData(0).slice(start, end)
+                arr
             );
+
+            console.log(frequenciesData);
+            console.log(frequenciesData.length);
+            console.log(frequenciesData[0].length);
 
             setIsComputing(false);
 
@@ -216,7 +216,10 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
 
             let drawData = [];
-            let colorScale: chroma.Scale<chroma.Color>;
+            //let colorScale: chroma.Scale<chroma.Color>;
+
+            let min = 0;
+            let max = 0;
 
             if (ampScale === 'decibel') {
                 let ref = 0;
@@ -230,9 +233,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 //const top_db = 80;
                 const amin = 1e-5;
 
-                let log_spec_max = 0;
-                let log_spec_min = 0;
-
                 // Convert amplitudes to decibels
                 for (let i = 0; i < frequenciesData.length; i++) {
                     const col = [];
@@ -241,45 +241,51 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         const amplitude = frequenciesData[i][j];
                         col[j] = amplitudeToDb(amplitude, ref, amin);
 
-                        if (col[j] > log_spec_max) {
-                            log_spec_max = col[j];
+                        if (col[j] > max) {
+                            max = col[j];
                         }
 
-                        if (col[j] < log_spec_min) {
-                            log_spec_min = col[j];
+                        if (col[j] < min) {
+                            min = col[j];
                         }
                     }
 
                     drawData[i] = col;
                 }
-                colorScale = colorPalette.scale().domain([log_spec_min, log_spec_max]);
             } else if (ampScale === 'mel') {
-                let mel_spec_min = 0;
-                let mel_spec_max = 0;
-
                 for (let i = 0; i < frequenciesData.length; i++) {
                     const col = [];
 
                     for (let j = 0; j < frequenciesData[i].length; j++) {
                         const amplitude = frequenciesData[i][j];
-                        col[j] = hzToMel(amplitude);
+                        col[j] = hzToMel(amplitude ** 2);
 
-                        if (col[j] > mel_spec_max) {
-                            mel_spec_max = col[j];
+                        if (col[j] > max) {
+                            max = col[j];
                         }
 
-                        if (col[j] < mel_spec_min) {
-                            mel_spec_min = col[j];
+                        if (col[j] < min) {
+                            min = col[j];
                         }
                     }
                     drawData[i] = col;
                 }
-                colorScale = colorPalette.scale().domain([mel_spec_min, mel_spec_max]);
             } else {
                 // ampScale === 'linear'
-                colorScale = colorPalette.scale().domain([0, 256]);
+                for (let i = 0; i < frequenciesData.length; i++) {
+                    const maxI = Math.max(...frequenciesData[i]);
+                    const minI = Math.min(...frequenciesData[i]);
+
+                    if (maxI > max) {
+                        max = maxI;
+                    }
+                    if (minI < min) {
+                        min = minI;
+                    }
+                }
                 drawData = frequenciesData;
             }
+            const colorScale = colorPalette.scale().domain([min, max]);
 
             for (let y = 0; y < height; y++) {
                 let value = 0;
