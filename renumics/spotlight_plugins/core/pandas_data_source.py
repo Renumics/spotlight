@@ -98,9 +98,7 @@ class PandasDataSource(DataSource):
             raise DatasetColumnsNotUnique()
         self._generation_id = 0
         self._uid = str(id(df))
-        print(df.dtypes)
         self._df = df.convert_dtypes()
-        print(self._df.dtypes)
         self._intermediate_dtypes = {
             # TODO: convert column name
             col: _determine_intermediate_dtype(self._df[col])

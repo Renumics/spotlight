@@ -133,8 +133,6 @@ class DataStore:
 
     def _update_dtypes(self) -> None:
         guessed_dtypes = self._data_source.semantic_dtypes.copy()
-        print(self._data_source.intermediate_dtypes)
-        print(guessed_dtypes)
 
         # guess missing dtypes from intermediate dtypes
         for col, dtype in self._data_source.intermediate_dtypes.items():
