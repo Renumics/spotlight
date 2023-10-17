@@ -5,8 +5,10 @@ import statistics
 from typing import Any, List, Optional, Set, Union, cast
 import numpy as np
 import filetype
+import requests
 import trimesh
 import PIL.Image
+import validators
 
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
@@ -231,10 +233,22 @@ def _guess_value_dtype(value: Any) -> Optional[DType]:
     if isinstance(value, np.ndarray):
         return ArrayDType(value.shape)
 
-    if isinstance(value, bytes) or (is_pathtype(value) and os.path.isfile(value)):
-        kind = filetype.guess(value)
-        if kind is not None:
-            mime_group = kind.mime.split("/")[0]
+    if isinstance(value, bytes) or is_pathtype(value):
+        mimetype: Optional[str] = None
+        if isinstance(value, bytes) or (is_pathtype(value) and os.path.isfile(value)):
+            kind = filetype.guess(value)
+            if kind is not None:
+                mimetype = kind.mime
+        elif isinstance(value, str) and validators.url(value):
+            try:
+                response = requests.head(value, timeout=1)
+            except requests.ReadTimeout:
+                ...
+            else:
+                if response.ok:
+                    mimetype = response.headers.get("Content-Type")
+        if mimetype is not None:
+            mime_group = mimetype.split("/")[0]
             if mime_group == "image":
                 return image_dtype
             if mime_group == "audio":
