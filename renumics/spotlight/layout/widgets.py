@@ -4,12 +4,14 @@ Implementation of widget models and interfaces for widget creation.
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Extra, Field  # pylint: disable=no-name-in-module
+from pydantic import BaseModel, Extra, Field
 from typing_extensions import Literal
+
+from .lenses import Lens
 
 
 class WidgetConfig(BaseModel, allow_population_by_field_name=True):
-    # pylint: disable=too-few-public-methods
+
     """
     Base Spotlight widget configuration model.
     """
@@ -20,7 +22,6 @@ class Widget(BaseModel, extra=Extra.forbid):
     Spotlight widget model.
     """
 
-    # pylint: disable=too-few-public-methods
     type: str
     name: Optional[str] = None
     config: Optional[WidgetConfig] = None
@@ -32,7 +33,6 @@ class HistogramConfig(WidgetConfig):
     Histogram configuration model.
     """
 
-    # pylint: disable=too-few-public-methods
     column: Optional[str] = Field(None, alias="columnKey")
     stack_by_column: Optional[str] = Field(None, alias="stackByColumnKey")
     filter: bool = Field(False, alias="filter")
@@ -43,7 +43,6 @@ class Histogram(Widget):
     Spotlight histogram model.
     """
 
-    # pylint: disable=too-few-public-methods
     type: Literal["histogram"] = "histogram"
     config: Optional[HistogramConfig] = None
 
@@ -53,7 +52,6 @@ class ScatterplotConfig(WidgetConfig):
     Scatter plot configuration model.
     """
 
-    # pylint: disable=too-few-public-methods
     x_column: Optional[str] = Field(None, alias="xAxisColumn")
     y_column: Optional[str] = Field(None, alias="yAxisColumn")
     color_by_column: Optional[str] = Field(None, alias="colorBy")
@@ -66,32 +64,8 @@ class Scatterplot(Widget):
     Spotlight scatter plot model.
     """
 
-    # pylint: disable=too-few-public-methods
     type: Literal["scatterplot"] = "scatterplot"
     config: Optional[ScatterplotConfig] = None
-
-
-class ScatterplotGLConfig(WidgetConfig):
-    """
-    Experimental GL scatter plot configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    x_column: Optional[str] = Field(None, alias="xColumnKey")
-    y_column: Optional[str] = Field(None, alias="yColumnKey")
-    color_by_column: Optional[str] = Field(None, alias="colorColumnKey")
-    size_by_column: Optional[str] = Field(None, alias="sizeColumnKey")
-    filter: bool = Field(False, alias="filter")
-
-
-class ScatterplotGL(Widget):
-    """
-    Experimental GL scatter scatter plot model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: Literal["experimental/scatterplot-gl"] = "experimental/scatterplot-gl"
-    config: Optional[ScatterplotGLConfig] = None
 
 
 TableView = Literal["full", "filtered", "selected"]
@@ -102,7 +76,6 @@ class TableConfig(WidgetConfig):
     Table configuration model.
     """
 
-    # pylint: disable=too-few-public-methods
     active_view: TableView = Field("full", alias="tableView")
     visible_columns: Optional[List[str]] = Field(None, alias="visibleColumns")
     sort_by_columns: Optional[List[List[str]]] = Field(None, alias="sorting")
@@ -114,30 +87,8 @@ class Table(Widget):
     Spotlight table model.
     """
 
-    # pylint: disable=too-few-public-methods
     type: Literal["table"] = "table"
     config: Optional[TableConfig] = None
-
-
-class AudioOverviewConfig(WidgetConfig):
-    """
-    Audio overview configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    audio_column: Optional[str] = Field(None, alias="audioColumnKey")
-    window_column: Optional[str] = Field(None, alias="windowColumnKey")
-    audio_column_value: Optional[str] = Field(None, alias="audioName")
-
-
-class AudioOverview(Widget):
-    """
-    Spotlight audio overview model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: Literal["experimental/audio-overview"] = "experimental/audio-overview"
-    config: Optional[AudioOverviewConfig] = None
 
 
 ReductionMethod = Literal["umap", "pca"]
@@ -152,7 +103,6 @@ class SimilaritymapConfig(WidgetConfig):
     Similarity map configuration model.
     """
 
-    # pylint: disable=too-few-public-methods
     columns: Optional[List[str]] = Field(None, alias="placeBy")
     reduction_method: Optional[ReductionMethod] = Field(None, alias="reductionMethod")
     color_by_column: Optional[str] = Field(None, alias="colorBy")
@@ -173,21 +123,11 @@ class Similaritymap(Widget):
     Spotlight similarity map model.
     """
 
-    # pylint: disable=too-few-public-methods
     type: Literal["similaritymap"] = "similaritymap"
     config: Optional[SimilaritymapConfig] = None
 
 
-class InspectorView(WidgetConfig):
-    """
-    Inspector view configuration model.
-    """
-
-    # pylint: disable=too-few-public-methods
-    type: str = Field(..., alias="view")
-    columns: List[str] = Field(..., alias="columns")
-    name: Optional[str] = Field(None, alias="name")
-    id: Optional[str] = Field(None, alias="key")
+NumInspectorColumns = Literal[1, 2, 4, 6, 8]
 
 
 class InspectorConfig(WidgetConfig):
@@ -195,9 +135,8 @@ class InspectorConfig(WidgetConfig):
     Inspector configuration model.
     """
 
-    # pylint: disable=too-few-public-methods
-    views: Optional[List[InspectorView]] = Field(default_factory=None, alias="views")
-    num_columns: Literal[1, 2, 4, 6, 8] = Field(4, alias="visibleColumns")
+    lenses: Optional[List[Lens]] = Field(default_factory=None, alias="views")
+    num_columns: NumInspectorColumns = Field(4, alias="visibleColumns")
 
 
 class Inspector(Widget):
@@ -205,7 +144,6 @@ class Inspector(Widget):
     Spotlight inspector model.
     """
 
-    # pylint: disable=too-few-public-methods
     type: Literal["inspector"] = "inspector"
     config: Optional[InspectorConfig] = None
 
@@ -215,5 +153,65 @@ class Issues(Widget):
     Spotlight issues widget
     """
 
-    # pylint: disable=too-few-public-methods
     type: Literal["IssuesWidget"] = "IssuesWidget"
+
+
+WordCloudScaling = Literal["log", "linear", "sqrt"]
+
+
+class WordCloudConfig(WidgetConfig):
+    """
+    Config for the Word Cloud Widget.
+    """
+
+    column: Optional[str] = Field(None, alias="cloudByColumnKey")
+    min_word_length: Optional[int] = Field(None, alias="minWordLength")
+    stop_words: Optional[List[str]] = Field(None, alias="stopwords")
+    scaling: Optional[WordCloudScaling] = Field(None, alias="scaling")
+    max_word_count: Optional[int] = Field(None, alias="wordCount")
+    filter: Optional[bool] = Field(None, alias="hideFiltered")
+
+
+class WordCloud(Widget):
+    """
+    Word Cloud Widget.
+    """
+
+    type: Literal["wordcloud"] = "wordcloud"
+    config: Optional[WordCloudConfig] = None
+
+
+class ConfusionMatrixConfig(WidgetConfig):
+    """
+    Config for the Confusion Matrix Widget.
+    """
+
+    x_column: Optional[str] = Field(None, alias="xColumn")
+    y_column: Optional[str] = Field(None, alias="yColumn")
+
+
+class ConfusionMatrix(Widget):
+    """
+    Confusion Matrix Widget.
+    """
+
+    type: Literal["ConfusionMatrix"] = "ConfusionMatrix"
+    config: Optional[ConfusionMatrixConfig] = None
+
+
+class MetricWidgetConfig(WidgetConfig):
+    """
+    Config for the Metric Widget.
+    """
+
+    metric: Optional[str] = None
+    columns: List[Optional[str]] = Field(default_factory=list, alias="columns")
+
+
+class MetricWidget(Widget):
+    """
+    Metric Widget.
+    """
+
+    type: Literal["Metric"] = "Metric"
+    config: Optional[MetricWidgetConfig] = None

@@ -21,8 +21,11 @@ def __register__() -> None:
     """
     register data sources
     """
-    # pylint: disable=import-outside-toplevel, unused-import
-    from . import pandas_data_source, hdf5_data_source
+    from . import (
+        pandas_data_source,  # noqa: F401
+        hdf5_data_source,  # noqa: F401
+        huggingface_datasource,  # noqa: F401
+    )
 
 
 def __activate__(app: SpotlightApp) -> None:

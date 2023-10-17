@@ -19,12 +19,12 @@ const AddWidgetButton = ({
     const Icon = icon;
 
     return (
-        <Button tw="w-32" onClick={onClick}>
-            <div tw="flex flex-col text-xs items-center w-full">
-                <div tw="w-8 h-8">
+        <Button onClick={onClick}>
+            <div tw="overflow-hidden flex flex-row space-x-1 items-center w-full">
+                <div tw="w-8 h-8 bg-midnight-600 hover:bg-blue-600 text-gray-100 rounded p-0.5">
                     <Icon style={{ width: '100%', height: '100%' }} />
                 </div>
-                <div>{name}</div>
+                <div tw="font-normal text-sm">{name}</div>
                 {experimental && <Tag tw="text-xxs" tag="experimental" />}
             </div>
         </Button>

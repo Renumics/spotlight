@@ -50,12 +50,6 @@ const columnTypeSelector = (d: Dataset): { [key: string]: DataType } =>
         return a;
     }, {});
 
-const columnIsInternalSelector = (d: Dataset): { [key: string]: boolean } =>
-    d.columns.reduce((a: { [key: string]: boolean }, c: DataColumn) => {
-        a[c.key] = c.isInternal;
-        return a;
-    }, {});
-
 const SettingsMenu = ({
     colorBy,
     sizeBy,
@@ -77,7 +71,6 @@ const SettingsMenu = ({
     onChangePCANormalization,
 }: Props) => {
     const columnType = useDataset(columnTypeSelector, shallow);
-    const columnIsInternal = useDataset(columnIsInternalSelector, shallow);
 
     const changePlaceBy = useCallback(
         (keys: string[]): void => {
@@ -87,28 +80,25 @@ const SettingsMenu = ({
     );
 
     const colorableColumns = useMemo(
-        () =>
-            Object.entries(columnType)
-                .filter(
-                    ([key, type]) =>
-                        ['int', 'float', 'str', 'bool', 'Category'].includes(
-                            type.kind
-                        ) && !columnIsInternal[key]
+        () => [
+            '',
+            ...Object.entries(columnType)
+                .filter(([, type]) =>
+                    ['int', 'float', 'str', 'bool', 'Category'].includes(type.kind)
                 )
-                .map(([key]) => key),
-        [columnIsInternal, columnType]
+                .map(([col]) => col),
+        ],
+        [columnType]
     );
 
     const scaleableColumns = useMemo(
-        () =>
-            Object.entries(columnType)
-                .filter(
-                    ([key, type]) =>
-                        ['int', 'float', 'bool'].includes(type.kind) &&
-                        !columnIsInternal[key]
-                )
-                .map(([key]) => key),
-        [columnIsInternal, columnType]
+        () => [
+            '',
+            ...Object.entries(columnType)
+                .filter(([, type]) => ['int', 'float', 'bool'].includes(type.kind))
+                .map(([col]) => col),
+        ],
+        [columnType]
     );
 
     const reductionParameterMenu =
@@ -147,18 +137,22 @@ const SettingsMenu = ({
             </Menu.Item>
             {reductionParameterMenu}
             <Menu.HorizontalDivider />
-            <Menu.ColumnSelect
-                title="Color By"
-                onChangeColumn={onChangeColorBy}
-                selectableColumns={colorableColumns}
-                selected={colorBy}
-            />
-            <Menu.ColumnSelect
-                title="Scale By"
-                onChangeColumn={onChangeSizeBy}
-                selectableColumns={scaleableColumns}
-                selected={sizeBy}
-            />
+            <Menu.Item>
+                <Menu.Title>Color By</Menu.Title>
+                <Select
+                    onChange={onChangeColorBy}
+                    options={colorableColumns}
+                    value={colorBy}
+                />
+            </Menu.Item>
+            <Menu.Item>
+                <Menu.Title>Scale By</Menu.Title>
+                <Select
+                    onChange={onChangeSizeBy}
+                    options={scaleableColumns}
+                    value={sizeBy}
+                />
+            </Menu.Item>
         </Menu>
     );
 };

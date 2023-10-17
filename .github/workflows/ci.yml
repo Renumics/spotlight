@@ -228,11 +228,10 @@ jobs:
             - name: Check wheel contents
               run: make check-wheel
     unit-test:
-        name: '🧪 Unit-test'
+        name: '🧪 Unit Test'
         needs:
             - prepare-python
             - prepare-node
-            - build-datasets
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -243,19 +242,13 @@ jobs:
               uses: ./.github/actions/setup-poetry
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-pnpm
-            - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v3
-              with:
-                  name: datasets-${{ needs.prepare-python.outputs.version }}
-                  path: build/datasets/
-            - name: Execute unit-test
+            - name: Execute unit tests
               run: make unit-test
-    api-test:
-        name: '🧪 Test API'
+    doc-test:
+        name: '🧪 Doc Test'
         needs:
             - prepare-python
             - prepare-node
-            - build-spotlight
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -266,15 +259,10 @@ jobs:
               uses: ./.github/actions/setup-poetry
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-pnpm
-            - name: '📤 Restore pro frontend'
-              uses: actions/download-artifact@v3
-              with:
-                  name: .frontend-${{ needs.prepare-python.outputs.version }}
-                  path: build/frontend/
-            - name: Test API
-              run: make api-test
+            - name: Execute doc tests
+              run: make doc-test
     ui-test:
-        name: '🧪 Test UI'
+        name: '🧪 UI Test'
         needs:
             - prepare-python
             - build-datasets
@@ -306,7 +294,7 @@ jobs:
             - name: '🎨 Set up Chrome driver'
               if: matrix.browser == 'chrome'
               id: setup-chromedriver
-              uses: nanasess/setup-chromedriver@v1
+              uses: nanasess/setup-chromedriver@v2
             - name: '🦊 Set up Gecko driver'
               id: setup-geckodriver
               if: matrix.browser == 'firefox'
@@ -366,8 +354,8 @@ jobs:
                   name: .ui-test-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
                   if-no-files-found: error
-    test-install:
-        name: '🧪 Test installation'
+    integration-test:
+        name: '🧪 Integration Test'
         needs:
             - prepare-python
             - build-test-matrix
@@ -383,16 +371,17 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry'
+              id: setup-poetry
               uses: ./.github/actions/setup-poetry
               with:
                   python-version: ${{ matrix.python-version }}
                   install-dependencies: false
-            - name: Cache pip cache folder
+            - name: '♻️ Cache pip cache folder'
               uses: actions/cache@v3
               with:
-                  path: ${{ needs.prepare-python.outputs.pip-cache-dir }}
+                  path: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
-            - name: '📤 Restore pro Spotlight'
+            - name: '📤 Restore Spotlight'
               uses: actions/download-artifact@v3
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
@@ -404,9 +393,7 @@ jobs:
                   path: build/datasets/
             - name: Upgrade system packages
               run: python -m pip install --upgrade pip setuptools wheel
-            - name: Install packages for testing
-              run: python -m pip install pytest "httpx>=0.22.0"
-            - name: Install pro Spotlight
+            - name: Install Spotlight
               id: setup
               run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ needs.prepare-python.outputs.version }}
             - name: Test Spotlight start (Windows)
@@ -426,9 +413,12 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Execute unit-test
-              if: success() || steps.setup.outcome == 'success'
-              run: pytest --ignore=ui_tests --ignore=api-tests
+            - name: Install pytest
+              id: setup-tests
+              run: python -m pip install pytest
+            - name: Execute integration tests
+              if: success() || steps.setup-tests.outcome == 'success'
+              run: pytest --durations=5 tests/integration
     # Release stage
     release:
         name: '🚀 Release Spotlight'
@@ -444,9 +434,8 @@ jobs:
             - build-spotlight
             - check-wheel-contents
             - unit-test
-            - api-test
+            - integration-test
             - ui-test
-            - test-install
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code

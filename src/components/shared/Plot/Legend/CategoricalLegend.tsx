@@ -69,6 +69,8 @@ export const CategoricalTransferFunctionLegend: React.FunctionComponent<
         const map = transferFunction.domain.map((v) => {
             const label = isCategorical(transferFunction.dType)
                 ? transferFunction.dType.invertedCategories[v] ?? 'None'
+                : v === null
+                ? 'null'
                 : v.toString();
             return { label, color: transferFunction(v) };
         });

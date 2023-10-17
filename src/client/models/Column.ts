@@ -27,24 +27,6 @@ export interface Column {
     name: string;
     /**
      *
-     * @type {number}
-     * @memberof Column
-     */
-    index?: number;
-    /**
-     *
-     * @type {boolean}
-     * @memberof Column
-     */
-    hidden: boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof Column
-     */
-    lazy: boolean;
-    /**
-     *
      * @type {boolean}
      * @memberof Column
      */
@@ -57,6 +39,12 @@ export interface Column {
     optional: boolean;
     /**
      *
+     * @type {boolean}
+     * @memberof Column
+     */
+    hidden: boolean;
+    /**
+     *
      * @type {string}
      * @memberof Column
      */
@@ -67,18 +55,6 @@ export interface Column {
      * @memberof Column
      */
     values: Array<any>;
-    /**
-     *
-     * @type {string}
-     * @memberof Column
-     */
-    yLabel?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof Column
-     */
-    xLabel?: string;
     /**
      *
      * @type {string}
@@ -97,12 +73,6 @@ export interface Column {
      * @memberof Column
      */
     categories?: { [key: string]: number };
-    /**
-     *
-     * @type {number}
-     * @memberof Column
-     */
-    embeddingLength?: number;
 }
 
 /**
@@ -111,10 +81,9 @@ export interface Column {
 export function instanceOfColumn(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && 'name' in value;
-    isInstance = isInstance && 'hidden' in value;
-    isInstance = isInstance && 'lazy' in value;
     isInstance = isInstance && 'editable' in value;
     isInstance = isInstance && 'optional' in value;
+    isInstance = isInstance && 'hidden' in value;
     isInstance = isInstance && 'role' in value;
     isInstance = isInstance && 'values' in value;
 
@@ -131,21 +100,14 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
     }
     return {
         name: json['name'],
-        index: !exists(json, 'index') ? undefined : json['index'],
-        hidden: json['hidden'],
-        lazy: json['lazy'],
         editable: json['editable'],
         optional: json['optional'],
+        hidden: json['hidden'],
         role: json['role'],
         values: json['values'],
-        yLabel: !exists(json, 'y_label') ? undefined : json['y_label'],
-        xLabel: !exists(json, 'x_label') ? undefined : json['x_label'],
         description: !exists(json, 'description') ? undefined : json['description'],
         tags: !exists(json, 'tags') ? undefined : json['tags'],
         categories: !exists(json, 'categories') ? undefined : json['categories'],
-        embeddingLength: !exists(json, 'embedding_length')
-            ? undefined
-            : json['embedding_length'],
     };
 }
 
@@ -158,18 +120,13 @@ export function ColumnToJSON(value?: Column | null): any {
     }
     return {
         name: value.name,
-        index: value.index,
-        hidden: value.hidden,
-        lazy: value.lazy,
         editable: value.editable,
         optional: value.optional,
+        hidden: value.hidden,
         role: value.role,
         values: value.values,
-        y_label: value.yLabel,
-        x_label: value.xLabel,
         description: value.description,
         tags: value.tags,
         categories: value.categories,
-        embedding_length: value.embeddingLength,
     };
 }

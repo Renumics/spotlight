@@ -2,18 +2,15 @@ import * as datatypes from '../datatypes';
 import { IndexArray } from './base';
 
 export interface DataColumn {
-    order: number;
     index: number;
+    key: string;
     name: string;
     type: datatypes.DataType;
-    hidden?: boolean;
-    lazy: boolean;
     editable: boolean;
     optional: boolean;
-    isInternal: boolean;
-    description?: string;
-    key: string;
-    tags?: string[];
+    hidden: boolean;
+    description: string;
+    tags: string[];
 }
 
 export interface NumberColumn extends DataColumn {
@@ -21,6 +18,13 @@ export interface NumberColumn extends DataColumn {
 }
 export const isNumberColumn = (col: DataColumn): col is NumberColumn =>
     datatypes.isNumerical(col.type);
+
+export interface StringColumn extends DataColumn {
+    type: datatypes.StringDataType;
+}
+
+export const isStringColumn = (col: DataColumn): col is StringColumn =>
+    datatypes.isString(col.type);
 
 export interface BooleanColumn extends DataColumn {
     type: datatypes.BooleanDataType;

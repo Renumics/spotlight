@@ -18,9 +18,14 @@ export const datakinds = [
 ] as const;
 export type DataKind = typeof datakinds[number];
 
-export interface BaseDataType<K extends DataKind, B extends boolean = false> {
+export interface BaseDataType<
+    K extends DataKind,
+    L extends boolean = false,
+    B extends boolean = false
+> {
     kind: K;
     binary: B;
+    lazy: L;
     optional: boolean;
 }
 
@@ -29,23 +34,20 @@ export type UnknownDataType = BaseDataType<'Unknown'>;
 export type IntegerDataType = BaseDataType<'int'>;
 export type FloatDataType = BaseDataType<'float'>;
 export type BooleanDataType = BaseDataType<'bool'>;
-export type StringDataType = BaseDataType<'str'>;
-export type ArrayDataType = BaseDataType<'array'>;
 export type DateTimeDataType = BaseDataType<'datetime'>;
+export type ArrayDataType = BaseDataType<'array', true>;
 export type WindowDataType = BaseDataType<'Window'>;
-export type SequenceDataType = BaseDataType<'Sequence1D', true>;
-export type MeshDataType = BaseDataType<'Mesh', true>;
-export type ImageDataType = BaseDataType<'Image', true>;
-export type AudioDataType = BaseDataType<'Audio', true>;
-export type VideoDataType = BaseDataType<'Video', true>;
+export type StringDataType = BaseDataType<'str', true>;
+export type EmbeddingDataType = BaseDataType<'Embedding', true>;
+export type SequenceDataType = BaseDataType<'Sequence1D', true, true>;
+export type MeshDataType = BaseDataType<'Mesh', true, true>;
+export type ImageDataType = BaseDataType<'Image', true, true>;
+export type AudioDataType = BaseDataType<'Audio', true, true>;
+export type VideoDataType = BaseDataType<'Video', true, true>;
 export interface CategoricalDataType extends BaseDataType<'Category'> {
     kind: 'Category';
     categories: Record<string, number>;
     invertedCategories: Record<number, string>;
-}
-export interface EmbeddingDataType extends BaseDataType<'Embedding'> {
-    kind: 'Embedding';
-    embeddingLength: number;
 }
 
 export type DataType =
@@ -115,3 +117,10 @@ export function getNullValue(kind: DataKind): number | boolean | string | null {
             return null;
     }
 }
+
+export const unknownDataType: UnknownDataType = {
+    kind: 'Unknown',
+    lazy: false,
+    binary: false,
+    optional: true,
+};

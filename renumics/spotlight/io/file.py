@@ -12,7 +12,7 @@ import validators
 
 from renumics.spotlight.requests import headers
 from renumics.spotlight.typing import FileType
-from renumics.spotlight.dtypes import exceptions
+from renumics.spotlight.media import exceptions
 
 
 @contextlib.contextmanager

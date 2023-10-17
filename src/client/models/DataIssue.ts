@@ -24,12 +24,6 @@ export interface DataIssue {
      * @type {string}
      * @memberof DataIssue
      */
-    severity?: DataIssueSeverityEnum;
-    /**
-     *
-     * @type {string}
-     * @memberof DataIssue
-     */
     title: string;
     /**
      *
@@ -37,6 +31,12 @@ export interface DataIssue {
      * @memberof DataIssue
      */
     rows: Array<number>;
+    /**
+     *
+     * @type {string}
+     * @memberof DataIssue
+     */
+    severity?: DataIssueSeverityEnum;
     /**
      *
      * @type {Array<string>}
@@ -85,9 +85,9 @@ export function DataIssueFromJSONTyped(
         return json;
     }
     return {
-        severity: !exists(json, 'severity') ? undefined : json['severity'],
         title: json['title'],
         rows: json['rows'],
+        severity: !exists(json, 'severity') ? undefined : json['severity'],
         columns: !exists(json, 'columns') ? undefined : json['columns'],
         description: !exists(json, 'description') ? undefined : json['description'],
     };
@@ -101,9 +101,9 @@ export function DataIssueToJSON(value?: DataIssue | null): any {
         return null;
     }
     return {
-        severity: value.severity,
         title: value.title,
         rows: value.rows,
+        severity: value.severity,
         columns: value.columns,
         description: value.description,
     };

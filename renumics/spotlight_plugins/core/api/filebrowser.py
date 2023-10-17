@@ -6,18 +6,17 @@ from pathlib import Path
 from typing import Optional, List
 from typing_extensions import Literal
 from fastapi import APIRouter, Request
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
 from renumics.spotlight.backend.exceptions import (
     FilebrowsingNotAllowed,
-)  # pylint: disable=no-name-in-module
+)
 
 router = APIRouter()
 
 FileType = Literal["file", "folder"]
 
 
-# pylint: disable=too-few-public-methods
 class FileEntry(BaseModel):
     """
     A file entry
@@ -29,7 +28,6 @@ class FileEntry(BaseModel):
     size: int
 
 
-# pylint: disable=too-few-public-methods
 class Folder(BaseModel):
     """
     A single folder

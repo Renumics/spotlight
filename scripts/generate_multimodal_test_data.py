@@ -123,7 +123,6 @@ def _random_embeddings(
 
 
 def _random_data(data_type: Type, num_rows: int, seed: int) -> np.ndarray:
-    # pylint: disable=too-many-return-statements
     if data_type is bool:
         return _random_bools(num_rows, seed)
     if data_type is int:
@@ -190,5 +189,4 @@ def generate_multimodal_dataset(
 
 
 if __name__ == "__main__":
-    # pylint: disable=no-value-for-parameter
     generate_multimodal_dataset()  # type: ignore

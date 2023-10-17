@@ -5,7 +5,6 @@ from typing import Optional
 from pydantic import BaseSettings
 
 
-# pylint: disable=too-few-public-methods
 class Settings(BaseSettings):
     """
     Spotlight settings module

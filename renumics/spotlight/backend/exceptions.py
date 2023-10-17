@@ -2,11 +2,12 @@
 Exceptions to be raised from backend.
 """
 
-from typing import Any, Optional, Type
+from typing import Any, Optional
 from fastapi import status
 
-from renumics.spotlight.dtypes.typing import ColumnType
 from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
+
+from renumics.spotlight.dtypes import DType
 
 
 class Problem(Exception):
@@ -127,24 +128,13 @@ class ConversionFailed(Problem):
     Value cannot be converted to the desired dtype.
     """
 
-    def __init__(self, dtype: Type[ColumnType], value: Any) -> None:
+    def __init__(self, dtype: DType, value: Any) -> None:
         self.dtype = dtype
         self.value = value
         super().__init__(
             "Type conversion failed",
             f"Value of type {type(value)} cannot be converted to type {dtype}.",
             status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
-
-
-class DatasetNotEditable(Problem):
-    """The dataset is not editable"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Dataset not editable",
-            "The dataset is not editable.",
-            status.HTTP_403_FORBIDDEN,
         )
 
 

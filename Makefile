@@ -21,13 +21,13 @@ init-playbook: ## Locally install all playbook dev dependencies
 
 .PHONY: clean
 clean: ## clean project
-	rm -fr build/ .pytest_cache/ .mypy_cache/
-	-rm -rf node_modules
+	rm -rf build/ .pytest_cache/ .ruff_cache/ .mypy_cache/
+	rm -rf node_modules
 
 .PHONY: audit
 audit: ## Audit project dependencies
-	poetry export --without-hashes -f requirements.txt | poetry run safety check --full-report --stdin \
-		--ignore 44715 --ignore 44716 --ignore 44717 --ignore 51668 # (https://github.com/numpy/numpy/issues/19038)
+	poetry export --without-hashes | poetry run safety check --full-report --stdin \
+	 	--ignore 61496 --ignore 51668
 	pnpm audit --production
 
 .PHONY: check-format
@@ -45,17 +45,18 @@ typecheck: ## Typecheck all source files
 	poetry run mypy -p renumics.spotlight
 	poetry run mypy -p renumics.spotlight_plugins.core
 	poetry run mypy scripts
+	poetry run mypy tests
 	pnpm run typecheck
 
 .PHONY: lint
 lint: ## Lint all source files
-	poetry run pylint renumics tests ui_tests scripts/*.py
+	poetry run ruff renumics tests scripts/*.py
 	pnpm run lint
 
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"
 .PHONY: dev
 dev: ## Start dev setup
-	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} poetry run spotlight --analyze
+	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} poetry run spotlight --analyze-all
 
 .PHONY: datasets
 datasets: ## Build datasets (only needed for UI tests)
@@ -77,7 +78,7 @@ build: build-frontend build-wheel
 
 .PHONY: build-frontend
 build-frontend: ## Build react frontend
-	pnpm run build
+	NODE_OPTIONS=--max-old-space-size=32768 pnpm run build
 
 .PHONY: build-wheel
 build-wheel: ## Build installable python package
@@ -100,34 +101,37 @@ build-wheel: ## Build installable python package
 check-wheel: ## Check wheel content
 	poetry run check-wheel-contents build/dist/renumics_spotlight*
 
+.PHONY: test
+test: ## Execute all tests (unit/doc/integration/ui)
+test: unit-test doc-test integration-test ui-test
+
 .PHONY: unit-test
-unit-test: ## Execute tests
+unit-test: ## Execute unit tests
 	export SPOTLIGHT_DEV=False
-	poetry run pytest tests
-	poetry run pytest --doctest-modules --pyargs renumics
+	poetry run pytest --durations=3 tests/unit
 	pnpm run test
 
-.PHONY: api-test
-api-test: ## Execute API tests
+.PHONY: doc-test
+doc-test: ## Execute doc tests
 	export SPOTLIGHT_DEV=False
-	function teardown {
-		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
-	}
-	trap teardown EXIT
-	PORT="5005"
-	poetry run spotlight --host 127.0.0.1 --port $$PORT --no-browser data/tables/tallymarks-small.h5 &
-	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
-	wget -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
-	sleep 1
-	pnpm run api-test
+	poetry run pytest --durations=3 --doctest-modules --pyargs renumics
+
+.PHONY: integration-test
+integration-test: ## Execute integration-tests
+	export SPOTLIGHT_DEV=False
+	poetry run pytest --durations=3 tests/integration
+
+.PHONY: ui-test
+ui-test: ## Execute ui tests
+ui-test: ui-test-chrome ui-test-firefox
 
 .PHONY: .ui-test-chrome
 .ui-test-chrome:
-	poetry run pytest -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} ui_tests/
+	poetry run pytest --durations=3 -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} tests/ui
 
 .PHONY: .ui-test-firefox
 .ui-test-firefox:
-	poetry run pytest -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox ui_tests/
+	poetry run pytest --durations=3 -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox tests/ui
 
 .PHONY: ui-test-%
 ui-test-%:
@@ -140,7 +144,7 @@ ui-test-%:
 	poetry run spotlight --host 127.0.0.1 --port $$PORT --no-browser . &
 	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	export FRONTEND_BASE_URL="http://127.0.0.1:$${PORT}"
-	wget -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
+	wget -q -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
 	sleep 1
 	$(MAKE) .$@
 
@@ -154,7 +158,7 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 	PORT="5005"
 	spotlight --host 127.0.0.1 --port $$PORT --no-browser data/tables/tallymarks-small.h5 &
 	URL="http://127.0.0.1:$${PORT}"
-	wget -t20 -w0.5 --retry-connrefused --delete-after $$URL
+	wget -q -t20 -w0.5 --retry-connrefused --delete-after $$URL
 	sleep 0.5
 	GENERATION_ID=$$(wget -qO- "$${URL}/api/table/" | jq ".generation_id")
 	wget --delete-after "$${URL}/api/table/number/42?generation_id=$${GENERATION_ID}"

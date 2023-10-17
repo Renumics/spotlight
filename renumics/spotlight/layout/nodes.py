@@ -4,7 +4,7 @@ Implementation of layout models and interfaces for layout creation.
 
 from typing import Any, List, Optional, Union
 
-from pydantic import (  # pylint: disable=no-name-in-module
+from pydantic import (
     BaseModel,
     Extra,
     Field,
@@ -22,8 +22,6 @@ class Tab(BaseModel, extra=Extra.forbid):
     """
     Tab with widgets.
     """
-
-    # pylint: disable=too-few-public-methods
 
     children: List[Widget] = Field(default_factory=list)
     weight: Union[float, int] = 1
@@ -53,7 +51,6 @@ class Split(BaseModel, extra=Extra.forbid):
     Orientation `None` flips the previous orientation.
     """
 
-    # pylint: disable=too-few-public-methods
     children: List[Union["Split", Tab]] = Field(default_factory=list)
     orientation: Orientation = None
     weight: Union[float, int] = 1
@@ -65,7 +62,6 @@ class Layout(BaseModel, extra=Extra.forbid):
     Root node of layout.
     """
 
-    # pylint: disable=too-few-public-methods
     children: List[Union[Split, Tab]] = Field(default_factory=list)
     orientation: Orientation = None
 

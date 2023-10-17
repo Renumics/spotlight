@@ -1,105 +1,22 @@
 """
 access h5 table data
 """
-import os
 from hashlib import sha1
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast, Union, Type, Tuple
-from dataclasses import asdict
+from typing import List, Union, cast
 
 import h5py
 import numpy as np
 
-from renumics.spotlight.dtypes import Category, Embedding
-from renumics.spotlight.dtypes.typing import (
-    ColumnType,
-    ColumnTypeMapping,
-    get_column_type,
-    FileBasedColumnType,
-)
-from renumics.spotlight.typing import PathType, IndexType
-from renumics.spotlight.dataset import (
-    Dataset,
-    INTERNAL_COLUMN_NAMES,
-    unescape_dataset_name,
-)
+from renumics.spotlight.dataset import Dataset
 
-from renumics.spotlight.backend.data_source import (
-    DataSource,
-    Attrs,
-    Column,
-    read_external_value,
-)
+from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
     NoTableFileFound,
     CouldNotOpenTableFile,
-    NoRowFound,
-    InvalidExternalData,
 )
-
-from renumics.spotlight.backend import datasource
-
-
-def unescape_dataset_names(refs: np.ndarray) -> np.ndarray:
-    """
-    Unescape multiple dataset names.
-    """
-    return np.array([unescape_dataset_name(value) for value in refs])
-
-
-def _decode_attrs(raw_attrs: h5py.AttributeManager) -> Tuple[Attrs, bool, bool]:
-    """
-    Get relevant subset of column attributes.
-    """
-    column_type_name = raw_attrs.get("type", "unknown")
-    column_type = get_column_type(column_type_name)
-
-    categories: Optional[Dict[str, int]] = None
-    embedding_length: Optional[int] = None
-
-    if column_type is Category:
-        # If one of the attributes does not exist or is empty, an empty dict
-        # will be created.
-        categories = dict(
-            zip(
-                raw_attrs.get("category_keys", []),
-                raw_attrs.get("category_values", []),
-            )
-        )
-    elif column_type is Embedding:
-        embedding_length = raw_attrs.get("value_shape", [0])[0]
-
-    tags: List[str] = []
-    if "tags" in raw_attrs:
-        tags = raw_attrs["tags"].tolist()
-
-    has_lookup = "lookup_keys" in raw_attrs
-    is_external = raw_attrs.get("external", False)
-
-    return (
-        Attrs(
-            type=column_type,
-            order=raw_attrs.get("order", None),
-            hidden=raw_attrs.get("hidden", False),
-            optional=raw_attrs.get("optional", False),
-            description=raw_attrs.get("description", None),
-            tags=tags,
-            editable=raw_attrs.get("editable", False),
-            categories=categories,
-            x_label=raw_attrs.get("x_label", None),
-            y_label=raw_attrs.get("y_label", None),
-            embedding_length=embedding_length,
-        ),
-        has_lookup,
-        is_external,
-    )
-
-
-def ref_placeholder_names(mask: np.ndarray) -> np.ndarray:
-    """
-    Generate placeholder names for a ref column based of the given mask.
-    """
-    return np.array(["..." if x else None for x in mask], dtype=object)
+from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.dtypes import DTypeMap, create_dtype, is_embedding_dtype
 
 
 class H5Dataset(Dataset):
@@ -107,145 +24,43 @@ class H5Dataset(Dataset):
     A `spotlight.Dataset` class extension for better usage in Spotlight backend.
     """
 
-    def __enter__(self) -> "H5Dataset":
-        self.open()
-        return self
-
     def get_generation_id(self) -> int:
         """
         Get the dataset's generation if set.
         """
         return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
 
-    def read_value(
-        self, column_name: str, index: IndexType, simple: bool = False
-    ) -> Optional[Union[np.generic, str, np.void, np.ndarray]]:
-        """
-        Get a dataset value as it is stored in the H5 dataset, resolve references.
-        """
-        # pylint: disable=unused-argument
-        self._assert_column_exists(column_name, internal=True)
-        self._assert_index_exists(index)
-        column = self._h5_file[column_name]
-        value = column[index]
-        if isinstance(value, bytes):
-            value = value.decode("utf-8")
-        if column.attrs.get("external", False):
-            column_type = self._get_column_type(column)
-            target_format = column.attrs.get("format", None)
-            try:
-                column_type = cast(Type[FileBasedColumnType], column_type)
-                return read_external_value(
-                    value, column_type, target_format, os.path.dirname(self._filepath)
-                )
-            except Exception as e:
-                raise InvalidExternalData(value) from e
-        if self._is_ref_column(column):
-            return self._resolve_ref(value, column_name)[()] if value else None
-        return value
-
     def read_column(
         self,
         column_name: str,
-        indices: Optional[List[int]] = None,
-        simple: bool = False,
-    ) -> Column:
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
+    ) -> np.ndarray:
         """
-        Read a dataset column for serialization.
+        Get a decoded dataset column.
         """
-        # pylint: disable=too-many-branches, too-many-nested-blocks, too-many-locals, unused-argument
         self._assert_column_exists(column_name, internal=True)
 
-        column = self._h5_file[column_name]
-        attrs, has_lookup, is_external = _decode_attrs(column.attrs)
-        is_ref_column = self._is_ref_column(column)
+        column = cast(h5py.Dataset, self._h5_file[column_name])
         is_string_dtype = h5py.check_string_dtype(column.dtype)
 
-        raw_values: np.ndarray
-        if indices is None:
-            raw_values = column[:]
-        else:
-            raw_values = column[indices]
+        raw_values = column[indices]
+
         if is_string_dtype:
             raw_values = np.array([x.decode("utf-8") for x in raw_values])
 
-        refs: Optional[np.ndarray] = None
-        # Submit scalars, windows and small embeddings only
-        if attrs.type is Embedding:
-            if not is_ref_column:
-                none_mask = [len(x) == 0 for x in raw_values]
-                raw_values[none_mask] = np.array(None)
-            else:
-                raw_values = self._resolve_refs(raw_values, column_name)
-        elif is_external:
-            refs = raw_values != ""
-        elif is_ref_column:
-            if is_string_dtype:
-                # New-style string references.
-                raw_values = unescape_dataset_names(raw_values)
-                refs = raw_values != ""
-            else:
-                # Old-style H5 references.
-                # Invalid refs evaluated to `False`.
-                refs = raw_values.astype(bool)
-                if has_lookup:
-                    values = []
-                    for ref in raw_values:
-                        if ref:
-                            h5_dataset: h5py.Dataset = self._h5_file[ref]
-                            try:
-                                name = h5_dataset.attrs["key"]
-                            except KeyError:
-                                name = self._get_column_name(h5_dataset)
-                            values.append(name)
-                        else:
-                            values.append(None)
-                    raw_values = np.array(values, dtype=object)
-                else:
-                    raw_values = ref_placeholder_names(refs)
-
-        return Column(name=column_name, values=raw_values, **asdict(attrs))
-
-    def duplicate_row(self, from_index: IndexType, to_index: IndexType) -> None:
-        """
-        Duplicate a dataset's row. Increases the dataset's length by 1.
-        """
-        self._assert_is_writable()
-        self._assert_index_exists(from_index)
-        length = self._length
-        if from_index < 0:
-            from_index += length
-        if to_index < 0:
-            to_index += length
-        if to_index != length:
-            self._assert_index_exists(to_index)
-        for column_name in self.keys() + INTERNAL_COLUMN_NAMES:
-            column = self._h5_file[column_name]
-            column.resize(length + 1, axis=0)
-            if to_index != length:
-                # Shift all values after the insertion position by one.
-                raw_values = column[int(to_index) : -1]
-                if self._get_column_type(column) is Embedding:
-                    raw_values = list(raw_values)
-                column[int(to_index) + 1 :] = raw_values
-            column[int(to_index)] = column[from_index]
-        self._length += 1
-        self._update_generation_id()
-
-    def min_order(self) -> int:
-        """
-        Get minimum order over all columns, return 0 if no column has an order.
-        One can use `dataset.min_order() - 1` as order for a new column.
-        """
-        return int(
-            min(
-                (
-                    self._h5_file[name].attrs.get("order", 0)
-                    for name in self._column_names
-                ),
-                default=0,
-            )
-        )
+        if self._is_ref_column(column):
+            assert is_string_dtype, "Only new-style string h5 references supported."
+            normalized_values = np.empty(len(raw_values), dtype=object)
+            normalized_values[:] = [
+                value.tolist() if isinstance(value, np.void) else value
+                for value in self._resolve_refs(raw_values, column_name)
+            ]
+            return normalized_values
+        if is_embedding_dtype(self._get_dtype(column)):
+            normalized_values = np.empty(len(raw_values), dtype=object)
+            normalized_values[:] = [None if len(x) == 0 else x for x in raw_values]
+            return normalized_values
+        return raw_values
 
     def _resolve_refs(self, refs: np.ndarray, column_name: str) -> np.ndarray:
         raw_values = np.empty(len(refs), dtype=object)
@@ -261,69 +76,77 @@ class Hdf5DataSource(DataSource):
     access h5 table data
     """
 
-    def __init__(self, source: PathType):
-        # pylint: disable=unused-argument
-        self._table_file = Path(source)
+    def __init__(self, source: Path):
+        self._path = source
+        self._open()
+
+    def __getstate__(self) -> dict:
+        return {
+            "path": self._path,
+        }
+
+    def __setstate__(self, state: dict) -> None:
+        self._path = state["path"]
+        self._open()
+
+    def _open(self) -> None:
+        self._table = H5Dataset(self._path, "r")
+        try:
+            self._table.open()
+        except FileNotFoundError as e:
+            raise NoTableFileFound(self._path) from e
+        except OSError as e:
+            raise CouldNotOpenTableFile(self._path) from e
+
+    def __del__(self) -> None:
+        self._table.close()
 
     @property
     def column_names(self) -> List[str]:
-        with self._open_table() as dataset:
-            return dataset.keys()
+        column_names = self._table.keys()
+        orders = {
+            name: self._table.get_column_attributes(name).get("order") or -1
+            for name in column_names
+        }
+        column_names.sort(key=lambda name: orders[name], reverse=True)
+        return column_names
+
+    @property
+    def intermediate_dtypes(self) -> DTypeMap:
+        return self.semantic_dtypes
 
     def __len__(self) -> int:
-        with self._open_table() as dataset:
-            return len(dataset)
+        return len(self._table)
 
-    def guess_dtypes(self) -> ColumnTypeMapping:
-        with self._open_table() as dataset:
-            return {
-                column_name: dataset.get_column_type(column_name)
-                for column_name in self.column_names
-            }
+    @property
+    def semantic_dtypes(self) -> DTypeMap:
+        return {
+            column_name: create_dtype(self._table.get_dtype(column_name))
+            for column_name in self.column_names
+        }
 
     def get_generation_id(self) -> int:
-        with self._open_table() as dataset:
-            return dataset.get_generation_id()
+        return self._table.get_generation_id()
 
     def get_uid(self) -> str:
-        return sha1(str(self._table_file.absolute()).encode("utf-8")).hexdigest()
+        return sha1(str(self._path.absolute()).encode("utf-8")).hexdigest()
 
     def get_name(self) -> str:
-        return str(self._table_file.name)
+        return str(self._path.name)
 
-    def get_internal_columns(self) -> List[Column]:
-        with self._open_table() as dataset:
-            return [
-                dataset.read_column(column_name)
-                for column_name in INTERNAL_COLUMN_NAMES
-            ]
+    def get_column_metadata(self, column_name: str) -> ColumnMetadata:
+        attributes = cast(dict, self._table.get_column_attributes(column_name))
+        return ColumnMetadata(
+            nullable=attributes.get("optional", False),
+            editable=attributes.get("editable", True),
+            hidden=attributes.get("hidden", False),
+            description=attributes.get("description"),
+            tags=attributes.get("tags", []),
+        )
 
-    def get_column(
+    def get_column_values(
         self,
         column_name: str,
-        dtype: Type[ColumnType],
-        indices: Optional[List[int]] = None,
-        simple: bool = False,
-    ) -> Column:
-        with self._open_table() as dataset:
-            return dataset.read_column(column_name, indices=indices, simple=simple)
-
-    def get_cell_data(
-        self, column_name: str, row_index: int, dtype: Type[ColumnType]
-    ) -> Any:
-        """
-        return the value of a single cell
-        """
-        with self._open_table() as dataset:
-            try:
-                return dataset.read_value(column_name, row_index)
-            except IndexError as e:
-                raise NoRowFound(row_index) from e
-
-    def _open_table(self, mode: str = "r") -> H5Dataset:
-        try:
-            return H5Dataset(self._table_file, mode)
-        except FileNotFoundError as e:
-            raise NoTableFileFound(self._table_file) from e
-        except OSError as e:
-            raise CouldNotOpenTableFile(self._table_file) from e
+        indices: Union[List[int], np.ndarray, slice] = slice(None),
+    ) -> np.ndarray:
+        return self._table.read_column(column_name, indices=indices)

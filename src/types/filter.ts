@@ -1,4 +1,6 @@
 import * as datatypes from '../datatypes';
+import { isString } from '../datatypes';
+import { notifyError } from '../notify';
 import type { DataColumn, TableData } from './dataset';
 import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
 
@@ -30,6 +32,19 @@ export class PredicateFilter<T = any> extends Filter {
         this.column = column;
         this.predicate = predicate;
         this.referenceValue = referenceValue;
+
+        if (isString(column.type)) {
+            // as this is a string column try to create a regex from the reference value
+            // in order to be able to inform the user when this fails and we are likely going to
+            // fallback to a simple string comparison
+            try {
+                new RegExp(referenceValue as string);
+            } catch (e) {
+                notifyError(
+                    `Couldn't create regex from filter value ${referenceValue}. Falling back to string comparison.`
+                );
+            }
+        }
     }
 
     get type(): datatypes.DataType {

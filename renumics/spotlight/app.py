@@ -19,12 +19,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic.dataclasses import dataclass
 import pandas as pd
 
 from httpx import AsyncClient, URL
 
-from renumics.spotlight.backend.data_source import DataSource
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
     Message,
@@ -50,19 +48,18 @@ from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
-
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
-
 from renumics.spotlight.app_config import AppConfig
+from renumics.spotlight.data_source import DataSource, create_datasource
+from renumics.spotlight import layouts
 
-from renumics.spotlight.backend import create_datasource
+from renumics.spotlight.data_store import DataStore
 
-from renumics.spotlight.layout.default import DEFAULT_LAYOUT
-
-from renumics.spotlight_plugins.core.hdf5_data_source import Hdf5DataSource
+from renumics.spotlight.dtypes import DTypeMap
 
 
-@dataclass
+CURRENT_LAYOUT_KEY = "layout.current"
+
+
 class IssuesUpdatedMessage(Message):
     """
     Notify about updated issues.
@@ -77,10 +74,9 @@ class SpotlightApp(FastAPI):
     Spotlight wsgi application
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     # lifecycle
     _startup_complete: bool
+    _loop: asyncio.AbstractEventLoop
 
     # connection
     _connection: multiprocessing.connection.Connection
@@ -88,14 +84,13 @@ class SpotlightApp(FastAPI):
 
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
-    _user_dtypes: ColumnTypeMapping
-    _guessed_dtypes: ColumnTypeMapping
-    _dtypes: ColumnTypeMapping
+    _user_dtypes: DTypeMap
     _data_source: Optional[DataSource]
+    _data_store: Optional[DataStore]
 
     task_manager: TaskManager
     websocket_manager: Optional[WebsocketManager]
-    _layout: Optional[Layout]
+    _layout: Layout
     config: Config
     username: str
     filebrowsing_allowed: bool
@@ -107,34 +102,34 @@ class SpotlightApp(FastAPI):
     # data issues
     issues: Optional[List[DataIssue]] = []
     _custom_issues: List[DataIssue] = []
-    analyze_issues: bool = True
+    analyze_columns: Union[List[str], bool] = False
 
     def __init__(self) -> None:
-        # pylint: disable=too-many-statements
         super().__init__()
         self._startup_complete = False
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
-        self._layout = None
+        self._layout = layouts.default()
         self.project_root = Path.cwd()
         self.vite_url = None
         self.username = ""
         self.filebrowsing_allowed = False
-        self.analyze_issues = False
+        self.analyze_columns = False
         self.issues = None
         self._custom_issues = []
 
         self._dataset = None
-        self._guessed_dtypes = {}
         self._user_dtypes = {}
-        self._dtypes = {}
         self._data_source = None
+        self._data_store = None
 
         @self.on_event("startup")
         def _() -> None:
             port = int(os.environ["CONNECTION_PORT"])
             authkey = os.environ["CONNECTION_AUTHKEY"]
+
+            self._loop = asyncio.get_running_loop()
 
             for _ in range(10):
                 try:
@@ -229,7 +224,7 @@ class SpotlightApp(FastAPI):
             url = URL(path=request.url.path, query=request.url.query.encode("utf-8"))
 
             # URL-encoding is not accepted by vite. Use unencoded path instead.
-            # pylint: disable-next=protected-access
+
             url._uri_reference = url._uri_reference._replace(path=request.url.path)
 
             body = await request.body()
@@ -296,13 +291,6 @@ class SpotlightApp(FastAPI):
                 "/node_modules/.pnpm/{path:path}", _reverse_proxy, ["POST", "GET"]
             )
 
-    @property
-    def dtypes(self) -> ColumnTypeMapping:
-        """
-        Guessed dtypes merged with dtypes requested by user (preferred).
-        """
-        return self._dtypes
-
     def update(self, config: AppConfig) -> None:
         """
         Update application config.
@@ -312,31 +300,35 @@ class SpotlightApp(FastAPI):
         if config.dtypes is not None:
             self._user_dtypes = config.dtypes
         if config.analyze is not None:
-            self.analyze_issues = config.analyze
+            self.analyze_columns = config.analyze
         if config.custom_issues is not None:
             self.custom_issues = config.custom_issues
         if config.dataset is not None:
             self._dataset = config.dataset
             self._data_source = create_datasource(self._dataset)
-            self._guessed_dtypes = self._data_source.guess_dtypes()
         if config.layout is not None:
-            self.layout = config.layout
+            self._layout = config.layout or layouts.default()
         if config.filebrowsing_allowed is not None:
             self.filebrowsing_allowed = config.filebrowsing_allowed
 
         if config.dtypes is not None or config.dataset is not None:
-            dtypes = self._guessed_dtypes.copy()
-            if not isinstance(self._data_source, Hdf5DataSource):
-                dtypes.update(
-                    {
-                        column_name: column_type
-                        for column_name, column_type in self._user_dtypes.items()
-                        if column_name in self._guessed_dtypes
-                    }
-                )
-            self._dtypes = dtypes
+            data_source = self._data_source
+            assert data_source is not None
+            self._data_store = DataStore(data_source, self._user_dtypes)
             self._broadcast(RefreshMessage())
             self._update_issues()
+        if config.layout is not None:
+            if self._data_store is not None:
+                dataset_uid = self._data_store.uid
+                future = asyncio.run_coroutine_threadsafe(
+                    self.config.remove_all(CURRENT_LAYOUT_KEY, dataset=dataset_uid),
+                    self._loop,
+                )
+                future.result()
+            self._broadcast(ResetLayoutMessage())
+
+        for plugin in load_plugins():
+            plugin.update(self, config)
 
         if not self._startup_complete:
             self._startup_complete = True
@@ -351,7 +343,7 @@ class SpotlightApp(FastAPI):
         elif kind == "update":
             self.update(data)
         elif kind == "get_df":
-            df = self.data_source.df if self.data_source else None
+            df = self._data_source.df if self._data_source else None
             self._connection.send({"kind": "df", "data": df})
         elif kind == "refresh_frontends":
             self._broadcast(RefreshMessage())
@@ -368,11 +360,11 @@ class SpotlightApp(FastAPI):
                 return
 
     @property
-    def data_source(self) -> Optional[DataSource]:
+    def data_store(self) -> Optional[DataStore]:
         """
-        Current data source.
+        Current data store.
         """
-        return self._data_source
+        return self._data_store
 
     @property
     def custom_issues(self) -> List[DataIssue]:
@@ -391,24 +383,19 @@ class SpotlightApp(FastAPI):
         """
         Frontend layout
         """
-        return self._layout or DEFAULT_LAYOUT
-
-    @layout.setter
-    def layout(self, layout: Optional[Layout]) -> None:
-        self._layout = layout
-        self._broadcast(ResetLayoutMessage())
+        return self._layout
 
     async def get_current_layout_dict(self, user_id: str) -> Optional[Dict]:
         """
         Get the user's current layout (as dict)
         """
 
-        if not self.data_source:
+        if not self._data_store:
             return None
 
-        dataset_uid = self.data_source.get_uid()
+        dataset_uid = self._data_store.uid
         layout = await self.config.get(
-            "layout.current", dataset=dataset_uid, user=user_id
+            CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=user_id
         ) or self.layout.dict(by_alias=True)
         return cast(Optional[Dict], layout)
 
@@ -416,20 +403,25 @@ class SpotlightApp(FastAPI):
         """
         Update issues and notify client about.
         """
-        # pylint: disable=global-statement
 
-        if not self.analyze_issues:
+        # early out for [] and False
+        if not self.analyze_columns:
             self.issues = []
             self._broadcast(IssuesUpdatedMessage())
             return
 
-        table: Optional[DataSource] = self.data_source
         self.issues = None
         self._broadcast(IssuesUpdatedMessage())
-        if table is None:
+        if self._data_store is None:
             return
+
+        if self.analyze_columns is True:
+            columns = self._data_store.column_names
+        else:
+            columns = self.analyze_columns
+
         task = self.task_manager.create_task(
-            find_issues, (table, self._dtypes), name="update_issues"
+            find_issues, (self._data_store, columns), name="update_issues"
         )
 
         def _on_issues_ready(future: Future) -> None:

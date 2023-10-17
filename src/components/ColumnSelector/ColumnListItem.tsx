@@ -23,6 +23,7 @@ const ColumnListItem = ({ column, selected, onChangeSelected }: Props): JSX.Elem
         kind: 'str',
         optional: true,
         binary: false,
+        lazy: true,
     });
 
     const handleChange = useCallback(

@@ -7,9 +7,8 @@ dist/
 build/
 
 # Dev
-data/tables/*
 dev/
-scratch/
+/scratch/
 test_install/
 .tool-versions
 .envrc.local
@@ -20,6 +19,7 @@ test_install/
 __pycache__/
 .mypy_cache/
 .pytest_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 
 # Spotlight licenses
@@ -27,10 +27,11 @@ __pycache__/
 
 # Datasets
 *.h5
-!data/tables/tallymarks-small.h5
 *.csv
-!data/csv/australian-weather-small.csv
-!data/csv/australian-weather-small-edited.csv
+/data/tables/
+/data/coco/
+!/data/tables/tallymarks-small.h5
+!/data/csv/multimodal-random-small.csv
 
 #venv
 .venv/

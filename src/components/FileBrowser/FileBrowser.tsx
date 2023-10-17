@@ -97,7 +97,7 @@ const FileBrowser = ({
                 <Button
                     tw="bg-green-400 text-white disabled:bg-gray-400 disabled:text-gray-700 rounded px-1 py-0.5"
                     onClick={openSelectedFile}
-                    disabled={!(selectedFile?.type === 'file')}
+                    disabled={!selectedFile}
                 >
                     {openCaption}
                 </Button>

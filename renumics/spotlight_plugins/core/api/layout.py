@@ -6,13 +6,11 @@ from typing import Dict, Optional, Union
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Request, Cookie
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
-from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app import CURRENT_LAYOUT_KEY, SpotlightApp
 
 router = APIRouter()
-
-CURRENT_LAYOUT_KEY = "layout.current"
 
 
 @router.get(
@@ -41,8 +39,8 @@ async def reset_layout(
     """
     app: SpotlightApp = request.app
     layout = app.layout
-    if app.data_source:
-        dataset_uid = app.data_source.get_uid()
+    if app.data_store:
+        dataset_uid = app.data_store.uid
         await app.config.set(
             CURRENT_LAYOUT_KEY,
             layout.dict(by_alias=True),
@@ -57,8 +55,6 @@ class SetLayoutRequest(BaseModel):
     Set layout request model.
     """
 
-    # pylint: disable=too-few-public-methods
-
     layout: Dict
 
 
@@ -72,8 +68,8 @@ async def set_layout(
     Get layout.
     """
     app: SpotlightApp = request.app
-    if app.data_source:
-        dataset_uid = app.data_source.get_uid()
+    if app.data_store:
+        dataset_uid = app.data_store.uid
         await app.config.set(
             CURRENT_LAYOUT_KEY,
             set_layout_request.layout,

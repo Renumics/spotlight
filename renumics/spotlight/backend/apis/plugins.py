@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
 from renumics.spotlight.plugin_loader import load_plugins
 
@@ -15,7 +15,6 @@ from renumics.spotlight.backend.exceptions import Problem
 router = APIRouter(tags=["plugins"])
 
 
-# pylint: disable=too-few-public-methods
 class Plugin(BaseModel):
     """
     Frontend representation of a spotlight plugin

@@ -1,15 +1,12 @@
+import 'twin.macro';
 import DetailsIcon from '../../icons/ClipboardList';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import tw from 'twin.macro';
 import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
-import { DataContext, DataProvider } from './dataContext';
 import DetailsGrid, { COLUMN_COUNT_OPTIONS } from './DetailsGrid';
 import MenuBar from './MenuBar';
 import { StoreProvider } from './store';
-
-const Wrapper = tw.div`w-full h-full flex flex-col overflow-hidden`;
-const GridContainer = tw.div`flex-auto`;
+import { WidgetContainer, WidgetContent } from '../../lib';
 
 const Inspector: Widget = () => {
     const [visibleColumnsCount, setVisibleColumnsCount] = useWidgetConfig(
@@ -18,31 +15,25 @@ const Inspector: Widget = () => {
     );
     return (
         <StoreProvider>
-            <DataProvider>
-                <DataContext.Consumer>
-                    {() => (
-                        <Wrapper>
-                            <MenuBar
-                                visibleColumnsCount={visibleColumnsCount}
-                                setVisibleColumnsCount={setVisibleColumnsCount}
-                                visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
-                            />
+            <WidgetContainer>
+                <MenuBar
+                    visibleColumnsCount={visibleColumnsCount}
+                    setVisibleColumnsCount={setVisibleColumnsCount}
+                    visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
+                />
 
-                            <GridContainer>
-                                <AutoSizer>
-                                    {({ width, height }) => (
-                                        <DetailsGrid
-                                            width={width}
-                                            height={height}
-                                            visibleColumnsCount={visibleColumnsCount}
-                                        />
-                                    )}
-                                </AutoSizer>
-                            </GridContainer>
-                        </Wrapper>
-                    )}
-                </DataContext.Consumer>
-            </DataProvider>
+                <WidgetContent>
+                    <AutoSizer>
+                        {({ width, height }) => (
+                            <DetailsGrid
+                                width={width}
+                                height={height}
+                                visibleColumnsCount={visibleColumnsCount}
+                            />
+                        )}
+                    </AutoSizer>
+                </WidgetContent>
+            </WidgetContainer>
         </StoreProvider>
     );
 };

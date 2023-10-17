@@ -12,7 +12,7 @@ def _cpu_time() -> float:
     """
     get combined cpu time (user+system)
     """
-    # pylint: disable=import-outside-toplevel
+
     import resource
 
     usage = resource.getrusage(resource.RUSAGE_SELF)

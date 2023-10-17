@@ -1,41 +1,19 @@
 """
 table api endpoints
 """
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
-from renumics.spotlight.backend.data_source import (
-    Column as DatasetColumn,
-    idx_column,
-    last_edited_at_column,
-    last_edited_by_column,
-    sanitize_values,
-)
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
-from renumics.spotlight.dtypes.typing import get_column_type_name
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
-
-from renumics.spotlight.dtypes import (
-    Audio,
-    Embedding,
-    Image,
-    Mesh,
-    Sequence1D,
-    Video,
-)
-
-# for now specify all lazy dtypes right here
-# we should probably move closer to the actual dtype definition for easier extensibility
-LAZY_DTYPES = [Embedding, Mesh, Image, Video, Sequence1D, np.ndarray, Audio, str]
+from renumics.spotlight import dtypes
 
 
 class Column(BaseModel):
@@ -43,48 +21,17 @@ class Column(BaseModel):
     a single table column
     """
 
-    # pylint: disable=too-few-public-methods
-
     name: str
-    index: Optional[int]
-    hidden: bool
-    lazy: bool
     editable: bool
     optional: bool
+    hidden: bool
     role: str
     values: List[Any]
-    y_label: Optional[str]
-    x_label: Optional[str]
     description: Optional[str]
     tags: Optional[List[str]]
     categories: Optional[Dict[str, int]]
-    embedding_length: Optional[int]
-
-    @classmethod
-    def from_dataset_column(cls, column: DatasetColumn) -> "Column":
-        """
-        Instantiate column from a dataset column.
-        """
-
-        return cls(
-            name=column.name,
-            index=column.order,
-            hidden=column.hidden,
-            lazy=column.type in LAZY_DTYPES,
-            editable=column.editable,
-            optional=column.optional,
-            role=get_column_type_name(column.type),
-            values=sanitize_values(column.values),
-            x_label=column.x_label,
-            y_label=column.y_label,
-            description=column.description,
-            tags=column.tags,
-            categories=column.categories,
-            embedding_length=column.embedding_length,
-        )
 
 
-# pylint: disable=too-few-public-methods
 class Table(BaseModel):
     """
     a table slice
@@ -112,8 +59,8 @@ def get_table(request: Request) -> ORJSONResponse:
     table slice api endpoint
     """
     app: SpotlightApp = request.app
-    table = app.data_source
-    if table is None:
+    data_store = app.data_store
+    if data_store is None:
         return ORJSONResponse(
             Table(
                 uid="",
@@ -123,24 +70,30 @@ def get_table(request: Request) -> ORJSONResponse:
             ).dict()
         )
 
-    columns = [
-        table.get_column(name, app.dtypes[name], simple=True)
-        for name in table.column_names
-    ]
-    columns.extend(table.get_internal_columns())
-    row_count = len(table)
-    columns.append(idx_column(row_count))
-    if not any(column.name == "__last_edited_at__" for column in columns):
-        columns.append(last_edited_at_column(row_count, datetime.now()))
-    if not any(column.name == "__last_edited_by__" for column in columns):
-        columns.append(last_edited_by_column(row_count, app.username))
+    columns = []
+    for column_name in data_store.column_names:
+        dtype = data_store.dtypes[column_name]
+        values = data_store.get_converted_values(column_name, simple=True)
+        meta = data_store.get_column_metadata(column_name)
+        column = Column(
+            name=column_name,
+            values=values,
+            editable=meta.editable,
+            optional=meta.nullable,
+            hidden=meta.hidden,
+            role=dtype.name,
+            categories=dtype.categories if dtypes.is_category_dtype(dtype) else None,
+            description=meta.description,
+            tags=meta.tags,
+        )
+        columns.append(column)
 
     return ORJSONResponse(
         Table(
-            uid=table.get_uid(),
-            filename=table.get_name(),
-            columns=[Column.from_dataset_column(column) for column in columns],
-            generation_id=table.get_generation_id(),
+            uid=data_store.uid,
+            filename=data_store.name,
+            columns=columns,
+            generation_id=data_store.generation_id,
         ).dict()
     )
 
@@ -152,23 +105,22 @@ def get_table(request: Request) -> ORJSONResponse:
 )
 async def get_table_cell(
     column: str, row: int, generation_id: int, request: Request
-) -> Any:
+) -> Response:
     """
     table cell api endpoint
     """
     app: SpotlightApp = request.app
-    table = app.data_source
-    if table is None:
-        return None
-    table.check_generation_id(generation_id)
+    data_store = app.data_store
+    if data_store is None:
+        return ORJSONResponse(None)
+    data_store.check_generation_id(generation_id)
 
-    cell_data = table.get_cell_data(column, row, app.dtypes[column])
-    value = sanitize_values(cell_data)
+    value = data_store.get_converted_value(column, row, simple=False)
 
-    if isinstance(value, (bytes, str)):
+    if isinstance(value, bytes):
         return Response(value, media_type="application/octet-stream")
 
-    return value
+    return ORJSONResponse(value)
 
 
 @router.get(
@@ -179,19 +131,19 @@ async def get_table_cell(
 )
 async def get_waveform(
     column: str, row: int, generation_id: int, request: Request
-) -> Optional[List[float]]:
+) -> ORJSONResponse:
     """
     table cell api endpoint
     """
     app: SpotlightApp = request.app
-    table = app.data_source
-    if table is None:
-        return None
-    table.check_generation_id(generation_id)
+    data_store = app.data_store
+    if data_store is None:
+        return ORJSONResponse(None)
+    data_store.check_generation_id(generation_id)
 
-    waveform = table.get_waveform(column, row)
+    waveform = data_store.get_waveform(column, row)
 
-    return sanitize_values(waveform)
+    return ORJSONResponse(waveform)
 
 
 class AddColumnRequest(BaseModel):

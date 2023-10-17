@@ -27,6 +27,7 @@ import Info from '../../components/ui/Info';
 const columnsSelector = (d: Dataset) => d.columns;
 
 const validTypes = ['Category', 'str', 'bool', 'int', 'float'];
+const defaultTypes = ['Category', 'bool', 'float'];
 
 const Histogram: Widget = () => {
     const wrapper = useRef<HTMLDivElement>(null);
@@ -35,8 +36,15 @@ const Histogram: Widget = () => {
     const columnKeys = useMemo(
         () =>
             columns
-                .filter((col) => !col.isInternal && validTypes.includes(col.type.kind))
+                .filter((col) => validTypes.includes(col.type.kind))
                 .map((col) => col.key),
+        [columns]
+    );
+    const defaultColumnKey = useMemo(
+        () =>
+            columns
+                .filter((col) => defaultTypes.includes(col.type.kind))
+                .map((col) => col.key)[0],
         [columns]
     );
 
@@ -44,7 +52,7 @@ const Histogram: Widget = () => {
 
     const [_columnKey, setColumnKey] = useWidgetConfig<string | undefined>(
         'columnKey',
-        columnKeys[0]
+        defaultColumnKey
     );
 
     const columnKey =

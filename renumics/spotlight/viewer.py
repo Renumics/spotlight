@@ -48,10 +48,9 @@ Example:
 
 """
 
-import os
 from pathlib import Path
 import time
-from typing import Collection, List, Union, Optional
+from typing import Any, Collection, Dict, List, Union, Optional
 
 import pandas as pd
 from typing_extensions import Literal
@@ -60,13 +59,14 @@ import IPython.display
 
 import __main__
 from renumics.spotlight.settings import settings
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
 from renumics.spotlight.layout import _LayoutLike, parse
 from renumics.spotlight.typing import PathType, is_pathtype
 from renumics.spotlight.webbrowser import launch_browser_in_thread
 from renumics.spotlight.server import Server
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.app_config import AppConfig
+
+from renumics.spotlight.dtypes import create_dtype
 
 
 class ViewerNotFoundError(Exception):
@@ -86,8 +86,6 @@ class Viewer:
         port: port at which Spotlight is running
     """
 
-    # pylint: disable=too-many-instance-attributes
-
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _server: Optional[Server]
@@ -103,22 +101,24 @@ class Viewer:
 
     def show(
         self,
-        dataset_or_folder: Optional[Union[PathType, pd.DataFrame]] = None,
+        dataset: Union[PathType, pd.DataFrame, None],
+        folder: Optional[PathType] = None,
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
         wait: Union[bool, Literal["auto", "forever"]] = "auto",
-        dtype: Optional[ColumnTypeMapping] = None,
-        analyze: Optional[bool] = None,
+        dtype: Optional[Dict[str, Any]] = None,
+        analyze: Optional[Union[bool, List[str]]] = None,
         issues: Optional[Collection[DataIssue]] = None,
     ) -> None:
         """
         Show a dataset or folder in this spotlight viewer.
 
         Args:
-            dataset_or_folder: root folder, dataset file or pandas.DataFrame (df) to open.
-            layout: optional Spotlight :mod:`layout <renumics.spotlight.layout>`.
-            no_browser: do not show Spotlight in browser.
+            dataset: Dataset file or pandas.DataFrame (df) to open.
+            folder: Root folder for filebrowser and lookup of dataset files.
+            layout: Optional Spotlight :mod:`layout <renumics.spotlight.layout>`.
+            no_browser: Do not show Spotlight in browser.
             allow_filebrowsing: Whether to allow users to browse and open datasets.
                 If "auto" (default), allow to browse if `dataset_or_folder` is a path.
             wait: If `True`, block code execution until all Spotlight browser tabs are closed.
@@ -132,36 +132,35 @@ class Viewer:
             analyze: Automatically analyze common dataset issues (disabled by default).
             issues: Custom dataset issues displayed in the viewer.
         """
-        # pylint: disable=too-many-branches,too-many-arguments, too-many-locals
 
-        if is_pathtype(dataset_or_folder):
-            path = Path(dataset_or_folder).absolute()
-            if path.is_dir():
-                project_root = path
-                dataset = None
+        if is_pathtype(dataset):
+            dataset = Path(dataset).absolute()
+            if dataset.is_dir():
+                project_root = dataset
             else:
-                project_root = path.parent
-                dataset = path
-        elif isinstance(dataset_or_folder, pd.DataFrame):
-            dataset = dataset_or_folder
-            project_root = None
+                project_root = dataset.parent
         else:
-            dataset = None
             project_root = None
 
-        if allow_filebrowsing != "auto":
-            filebrowsing_allowed = allow_filebrowsing
-        elif allow_filebrowsing is None:
-            filebrowsing_allowed = is_pathtype(dataset_or_folder)
+        if folder:
+            project_root = Path(folder)
+
+        if allow_filebrowsing == "auto":
+            filebrowsing_allowed = project_root is not None
         else:
-            filebrowsing_allowed = allow_filebrowsing is True
+            filebrowsing_allowed = allow_filebrowsing
 
         layout = layout or settings.layout
         parsed_layout = parse(layout) if layout else None
+        converted_dtypes = (
+            {column_name: create_dtype(d) for column_name, d in dtype.items()}
+            if dtype
+            else None
+        )
 
         config = AppConfig(
             dataset=dataset,
-            dtypes=dtype,
+            dtypes=converted_dtypes,
             project_root=project_root,
             analyze=analyze,
             custom_issues=list(issues) if issues else None,
@@ -277,8 +276,7 @@ class Viewer:
         if not self._server:
             return
 
-        # pylint: disable=undefined-variable
-        if get_ipython().__class__.__name__ == "ZMQInteractiveShell":  # type: ignore
+        if get_ipython().__class__.__name__ == "ZMQInteractiveShell":  # type: ignore # noqa: F821
             # in notebooks display a rich html widget
 
             label = widgets.Label(f"Spotlight running on {self.url}")
@@ -317,24 +315,25 @@ def viewers() -> List[Viewer]:
     return list(_VIEWERS)
 
 
-# pylint: disable=too-many-arguments
 def show(
-    dataset_or_folder: Optional[Union[str, os.PathLike, pd.DataFrame]] = None,
+    dataset: Union[PathType, pd.DataFrame, None] = None,
+    folder: Optional[PathType] = None,
     host: str = "127.0.0.1",
     port: Union[int, Literal["auto"]] = "auto",
     layout: Optional[_LayoutLike] = None,
     no_browser: bool = False,
     allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
     wait: Union[bool, Literal["auto", "forever"]] = "auto",
-    dtype: Optional[ColumnTypeMapping] = None,
-    analyze: Optional[bool] = None,
+    dtype: Optional[Dict[str, Any]] = None,
+    analyze: Optional[Union[bool, List[str]]] = None,
     issues: Optional[Collection[DataIssue]] = None,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
 
     Args:
-        dataset_or_folder: root folder, dataset file or pandas.DataFrame (df) to open.
+        dataset: Dataset file or pandas.DataFrame (df) to open.
+        folder: Root folder for filebrowser and lookup of dataset files.
         host: optional host to run Spotlight at.
         port: optional port to run Spotlight at.
             If "auto" (default), automatically choose a random free port.
@@ -365,7 +364,8 @@ def show(
         viewer = Viewer(host, port)
 
     viewer.show(
-        dataset_or_folder,
+        dataset,
+        folder=folder,
         layout=layout,
         no_browser=no_browser,
         allow_filebrowsing=allow_filebrowsing,

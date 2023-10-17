@@ -3,12 +3,14 @@ import { Dataset, useDataset } from '../../../stores/dataset';
 import { shallow } from 'zustand/shallow';
 import Menu from '.';
 import Select from '../Select';
+import { SelectVariant } from '../Select/types';
 
 export interface Props {
-    title: string;
+    title?: string;
     selected?: string;
     selectableColumns: string[];
     onChangeColumn: (keys: string) => void;
+    variant?: SelectVariant;
 }
 
 const columnNamesSelector = (d: Dataset) =>
@@ -18,7 +20,7 @@ const columnNamesSelector = (d: Dataset) =>
     }, {});
 
 const ColumnSelect: FunctionComponent<Props> = (props) => {
-    const { title, selected, selectableColumns, onChangeColumn } = props;
+    const { title, selected, selectableColumns, onChangeColumn, variant } = props;
     const columnNames = useDataset(columnNamesSelector, shallow);
 
     const selectOptions = useMemo(
@@ -40,13 +42,14 @@ const ColumnSelect: FunctionComponent<Props> = (props) => {
 
     return (
         <>
-            <Menu.Title>{title}</Menu.Title>
+            {title && <Menu.Title>{title}</Menu.Title>}
             <Menu.Item>
                 <Select
                     value={selected}
                     onChange={onChangeColumnCallback}
                     options={selectOptions}
                     label={getColumnName}
+                    variant={variant}
                 />
             </Menu.Item>
         </>

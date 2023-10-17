@@ -6,7 +6,7 @@ from typing import Optional, Union
 from typing_extensions import Annotated
 
 from fastapi import APIRouter, Request, Cookie
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel
 
 from renumics.spotlight.backend.config import ConfigValue
 
@@ -30,8 +30,6 @@ class SetConfigRequest(BaseModel):
     """
     Set config request model.
     """
-
-    # pylint: disable=too-few-public-methods
 
     value: Optional[ConfigValue]
 

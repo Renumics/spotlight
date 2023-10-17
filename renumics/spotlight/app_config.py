@@ -4,15 +4,12 @@ Spotlight Application Config
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 
-import pandas as pd
 
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.analysis.typing import DataIssue
-from renumics.spotlight.typing import PathType
-
-from renumics.spotlight.dtypes.typing import ColumnTypeMapping
+from renumics.spotlight.dtypes import DTypeMap
 
 
 @dataclass(frozen=True)
@@ -22,12 +19,12 @@ class AppConfig:
     """
 
     # dataset
-    dataset: Optional[Union[PathType, pd.DataFrame]] = None
-    dtypes: Optional[ColumnTypeMapping] = None
+    dataset: Any = None
+    dtypes: Optional[DTypeMap] = None
     project_root: Optional[Path] = None
 
     # data analysis
-    analyze: Optional[bool] = None
+    analyze: Optional[Union[bool, List[str]]] = None
     custom_issues: Optional[List[DataIssue]] = None
 
     # frontend

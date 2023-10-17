@@ -18,7 +18,7 @@ import {
     TableData,
 } from '../../types';
 import api from '../../api';
-import { notifyAPIError } from '../../notify';
+import { notifyAPIError, notifyError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
@@ -87,39 +87,23 @@ export interface Dataset {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function convertValue(value: any, type: DataType) {
-    if (type.kind === 'datetime') {
-        if (value?.length === 0) {
-            return null;
-        } else {
-            return new Date(Date.parse(value));
-        }
-    }
-
     if (type.kind === 'float' && value === null) {
         return NaN;
     }
 
+    if (value === null) return null;
+
+    if (type.kind === 'datetime') {
+        return new Date(Date.parse(value));
+    }
+
     if (type.kind === 'Window') {
-        if (value[0] === null && value[1] === null) return null;
         value[0] = value[0] === null ? NaN : value[0];
         value[1] = value[1] === null ? NaN : value[1];
         return value;
     }
 
     return value;
-}
-
-export function compareColumnOrder(a: DataColumn, b: DataColumn) {
-    if (a.isInternal && !b.isInternal) {
-        return 1;
-    } else if (b.isInternal && !a.isInternal) {
-        return -1;
-    } else if (a.order < b.order) {
-        return 1;
-    } else if (a.order > b.order) {
-        return -1;
-    }
-    return a.name.localeCompare(b.name);
 }
 
 const fetchTable = async (): Promise<{
@@ -171,10 +155,8 @@ const fetchTable = async (): Promise<{
 
     const length = _.max(table.columns.map((col) => col.values?.length ?? 0)) ?? 0;
 
-    const sortedColumns = columns.sort(compareColumnOrder);
-
     const dataframe: DataFrame = {
-        columns: sortedColumns,
+        columns,
         length,
         data: columnData,
     };
@@ -441,10 +423,7 @@ export const useDataset = create(
             },
             recomputeColorTransferFunctions: async () => {
                 const columnsToCompute = get()
-                    .columns.filter(
-                        (c) =>
-                            !c.isInternal && (isScalar(c.type) || isCategorical(c.type))
-                    )
+                    .columns.filter((c) => isScalar(c.type) || isCategorical(c.type))
                     .map((c) => c.key);
 
                 const newTransferFunctions = makeColumnsColorTransferFunctions(
@@ -493,8 +472,20 @@ useDataset.subscribe(
         };
 
         const isIndexFiltered = Array(length);
-        for (let i = 0; i < length; i++) {
-            isIndexFiltered[i] = filters.every((filter) => applyFilter(filter, i));
+        try {
+            for (let i = 0; i < length; i++) {
+                isIndexFiltered[i] = filters.every((filter) => {
+                    try {
+                        return applyFilter(filter, i);
+                    } catch (error) {
+                        useDataset.getState().removeFilter(filter);
+                        throw error;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            notifyError(`Error applying filter! '${error}'`);
         }
         const filteredIndices: number[] = [];
         isIndexFiltered.forEach((isFiltered, i) => {

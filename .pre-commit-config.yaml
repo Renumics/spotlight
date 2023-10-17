@@ -4,9 +4,9 @@ repos:
     # local hooks
     - repo: local
       hooks:
-          - id: pylint
-            name: pylint
-            entry: poetry run pylint
+          - id: ruff
+            name: ruff
+            entry: poetry run ruff
             language: system
             types: [python]
             require_serial: true

@@ -47,7 +47,7 @@ def launch_browser(host: str, port: int) -> None:
                 webbrowser.open(app_url)
         else:
             webbrowser.open(app_url)
-    except Exception:  # pylint: disable=broad-except
+    except Exception:
         logger.warning(
             f"Couldn't launch browser automatically, you can reach Spotlight at {app_url}."
         )

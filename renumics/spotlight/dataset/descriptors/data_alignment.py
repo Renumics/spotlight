@@ -6,16 +6,12 @@ from typing import Tuple
 
 import numpy as np
 from scipy import interpolate, signal
-from skimage.color import rgba2rgb, rgb2gray  # pylint: disable=no-name-in-module
+from skimage.color import rgba2rgb, rgb2gray
 from skimage.transform import resize_local_mean
 
 from renumics.spotlight import (
-    Audio,
     Dataset,
-    Embedding,
-    Image,
-    Sequence1D,
-    Window,
+    dtypes,
 )
 from renumics.spotlight.dataset import exceptions
 
@@ -24,11 +20,11 @@ def align_audio_data(dataset: Dataset, column: str) -> Tuple[np.ndarray, np.ndar
     """
     Align data from an audio column.
     """
-    # pylint: disable=too-many-locals
-    column_type = dataset.get_column_type(column)
-    if column_type is not Audio:
+
+    dtype = dataset.get_dtype(column)
+    if not dtypes.is_audio_dtype(dtype):
         raise exceptions.InvalidDTypeError(
-            f'An audio column expected, but column "{column}" of type {column_type} received.'
+            f'An audio column expected, but column "{column}" of type {dtype} received.'
         )
     notnull_mask = dataset.notnull(column)
     if notnull_mask.sum() == 0:
@@ -70,10 +66,10 @@ def align_embedding_data(
     """
     Align data from an embedding column.
     """
-    column_type = dataset.get_column_type(column)
-    if column_type is not Embedding:
+    dtype = dataset.get_dtype(column)
+    if not dtypes.is_embedding_dtype(dtype):
         raise exceptions.InvalidDTypeError(
-            f'An embedding column expected, but column "{column}" of type {column_type} received.'
+            f'An embedding column expected, but column "{column}" of type {dtype} received.'
         )
     notnull_mask = dataset.notnull(column)
     if notnull_mask.sum() == 0:
@@ -86,10 +82,10 @@ def align_image_data(dataset: Dataset, column: str) -> Tuple[np.ndarray, np.ndar
     """
     Align data from an image column.
     """
-    column_type = dataset.get_column_type(column)
-    if column_type is not Image:
+    dtype = dataset.get_dtype(column)
+    if not dtypes.is_image_dtype(dtype):
         raise exceptions.InvalidDTypeError(
-            f'An image column expected, but column "{column}" of type {column_type} received.'
+            f'An image column expected, but column "{column}" of type {dtype} received.'
         )
     notnull_mask = dataset.notnull(column)
     if notnull_mask.sum() == 0:
@@ -128,10 +124,10 @@ def align_sequence_1d_data(
     """
     Align data from an sequence 1D column.
     """
-    column_type = dataset.get_column_type(column)
-    if column_type is not Sequence1D:
+    dtype = dataset.get_dtype(column)
+    if not dtypes.is_sequence_1d_dtype(dtype):
         raise exceptions.InvalidDTypeError(
-            f'A sequence 1D column expected, but column "{column}" of type {column_type} received.'
+            f'A sequence 1D column expected, but column "{column}" of type {dtype} received.'
         )
     notnull_mask = dataset.notnull(column)
     if notnull_mask.sum() == 0:
@@ -165,20 +161,20 @@ def align_column_data(
     """
     Align data from an Spotlight dataset column if possible.
     """
-    column_type = dataset.get_column_type(column)
-    if column_type is Audio:
+    dtype = dataset.get_dtype(column)
+    if dtypes.is_audio_dtype(dtype):
         data, mask = align_audio_data(dataset, column)
-    elif column_type is Embedding:
+    elif dtypes.is_embedding_dtype(dtype):
         data, mask = align_embedding_data(dataset, column)
-    elif column_type is Image:
+    elif dtypes.is_image_dtype(dtype):
         data, mask = align_image_data(dataset, column)
-    elif column_type is Sequence1D:
+    elif dtypes.is_sequence_1d_dtype(dtype):
         data, mask = align_sequence_1d_data(dataset, column)
-    elif column_type in (bool, int, float, Window):
+    elif dtypes.is_scalar_dtype(dtype) or dtypes.is_window_dtype(dtype):
         data = dataset[column].astype(np.float64).reshape((len(dataset), -1))
         mask = np.full(len(dataset), True)
     else:
-        raise NotImplementedError(f"{column_type} column currently not supported.")
+        raise NotImplementedError(f"{dtype} column currently not supported.")
 
     if not allow_nan:
         # Remove "rows" with `NaN`s.
