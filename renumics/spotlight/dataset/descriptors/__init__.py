@@ -65,7 +65,12 @@ def catch22(
     Generate Catch22 embeddings for the given column of a dataset and
     optionally write them back into dataset.
     """
-    import pycatch22
+    try:
+        import pycatch22
+    except ModuleNotFoundError as e:
+        raise RuntimeError(
+            "Install Spotlight with 'descriptors' extras in order to use `catch22`."
+        ) from e
 
     if suffix is None:
         suffix = "catch24" if catch24 else "catch22"
