@@ -7001,9 +7001,10 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.link
 testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
 
 [extras]
+all = ["pycatch22"]
 descriptors = ["pycatch22"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <3.12"
-content-hash = "47d0617387eb9a792fbb7b62b5a9ab3f55d11d8e7df87eb85f0d4c1b43b9ee61"
+content-hash = "1bbbb8a396f450c31697809ed76244912263615574da8b0ccaa59bcc83040fa9"
