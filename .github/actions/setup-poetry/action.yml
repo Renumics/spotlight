@@ -40,8 +40,6 @@ runs:
           if: inputs.install-dependencies != 'false' && steps.setup-python-with-cache.outputs.cache-hit != 'true'
           run: poetry install --sync --all-extras --without playbook --no-interaction
           shell: bash
-        - run: poetry show pycatch22
-          shell: bash
         - name: Get Spotlight version
           id: get-package-version
           run: |
