@@ -38,7 +38,7 @@ runs:
               python-version: ${{ inputs.python-version }}
         - name: Install dependencies
           if: inputs.install-dependencies != 'false' && steps.setup-python-with-cache.outputs.cache-hit != 'true'
-          run: poetry install --sync -E descriptors --without playbook --no-interaction
+          run: poetry install --sync --all-extras --without playbook --no-interaction
           shell: bash
         - run: poetry show pycatch22
           shell: bash
