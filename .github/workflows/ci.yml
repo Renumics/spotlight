@@ -395,7 +395,7 @@ jobs:
               run: python -m pip install --upgrade pip setuptools wheel
             - name: Install Spotlight
               id: setup
-              run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ needs.prepare-python.outputs.version }}
+              run: python -m pip install --find-links build/dist/ renumics-spotlight==${{ needs.prepare-python.outputs.version }}[all]
             - name: Test Spotlight start (Windows)
               if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
               run: ./scripts/Test-SpotlightStart.ps1
