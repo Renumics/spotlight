@@ -153,3 +153,11 @@ We have added crash report and perfomance collection. We do NOT collect user dat
 - 🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets 
 - 🏀 [Playbook](https://renumics.com/docs/playbook/) for data-centric AI workflows
 - 🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
+
+## Contribute
+
+We are currently participating in the running [Hacktoberfest 2023](https://hacktoberfest.com/).
+
+If you would like to contribute to Spotlight, the easiest way is to have a look at our [Contribution Docs](https://renumics.com/docs/development) and the [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+We are also equally happy about non-code contributions -- whether it's reporting bugs, suggesting features, contributing design ideas, or offering feedback, every non-code contribution is highly valued and helps make our project better for everyone.
