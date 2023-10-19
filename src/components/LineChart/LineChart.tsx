@@ -18,10 +18,18 @@ import { largestTriangleThreeBuckets } from '../../math/downsampling';
 
 const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-xs text-center`;
 
+const LineChartStyleWrapper = styled.div`
+    ${tw`w-full h-full`}
+    g.highlighted-region path {
+        ${tw`fill-blue-500 stroke-0 opacity-30 hover:opacity-50`}
+    }
+`;
+
 type Domain = [number, number];
 export type Series = { name: string; values: Vec2[]; xLabel?: string; yLabel?: string };
 export type LineChartProps = {
     chartData: Series[];
+    highlightedRegions?: [number, number][];
     multipleYScales?: boolean;
     chartColors?: string[];
     xExtents?: Vec2;
@@ -127,6 +135,7 @@ const LineChart: React.ForwardRefRenderFunction<Handle, LineChartProps> = (
         onChangeXExtents,
         syncKey,
         yDomains = DEFAULT_Y_DOMAINS,
+        highlightedRegions = [],
     },
     ref
 ) => {
@@ -267,90 +276,100 @@ const LineChart: React.ForwardRefRenderFunction<Handle, LineChartProps> = (
         );
     }
     return (
-        <ResponsiveContainer tw="text-xxs" width="100%" height="100%" debounce={1}>
-            <RechartLineChart
-                data={data}
-                onMouseDown={lineChartMouseDown}
-                onMouseMove={lineChartMouseMove}
-                syncId={syncKey}
-                onMouseUp={zoom}
-                margin={{ top: 4, right: 4, left: 4, bottom: 4 }}
-            >
-                <Tooltip
-                    allowEscapeViewBox={allowEscapeViewBox}
-                    wrapperStyle={tooltipWrapperStyle}
-                    labelFormatter={formatter}
-                    formatter={formatter}
-                    isAnimationActive={false}
-                    content={
-                        <CustomTooltip
-                            chartData={chartData}
-                            chartColors={chartColors}
-                        />
-                    }
-                />
-                <Legend verticalAlign="top" wrapperStyle={legendWrapperStyle} />
-                <XAxis
-                    xAxisId={0}
-                    label={xAxisLabel}
-                    dataKey="name"
-                    height={12}
-                    type="number"
-                    tickFormatter={formatter}
-                    domain={xDomain}
-                    allowDataOverflow={true}
-                    // needs dict like data format in order to function properly therefore diable it
-                    allowDuplicatedCategory={false}
-                />
-                {multipleYScales ? (
-                    data.map((_d, index) => (
+        <LineChartStyleWrapper>
+            <ResponsiveContainer tw="text-xxs" width="100%" height="100%" debounce={1}>
+                <RechartLineChart
+                    data={data}
+                    onMouseDown={lineChartMouseDown}
+                    onMouseMove={lineChartMouseMove}
+                    syncId={syncKey}
+                    onMouseUp={zoom}
+                    margin={{ top: 4, right: 4, left: 4, bottom: 4 }}
+                >
+                    <Tooltip
+                        allowEscapeViewBox={allowEscapeViewBox}
+                        wrapperStyle={tooltipWrapperStyle}
+                        labelFormatter={formatter}
+                        formatter={formatter}
+                        isAnimationActive={false}
+                        content={
+                            <CustomTooltip
+                                chartData={chartData}
+                                chartColors={chartColors}
+                            />
+                        }
+                    />
+                    <Legend verticalAlign="top" wrapperStyle={legendWrapperStyle} />
+                    <XAxis
+                        xAxisId={0}
+                        label={xAxisLabel}
+                        dataKey="name"
+                        height={12}
+                        type="number"
+                        tickFormatter={formatter}
+                        domain={xDomain}
+                        allowDataOverflow={true}
+                        // needs dict like data format in order to function properly therefore diable it
+                        allowDuplicatedCategory={false}
+                    />
+                    {multipleYScales ? (
+                        data.map((_d, index) => (
+                            <YAxis
+                                width={32}
+                                label={yAxisLabels}
+                                key={index}
+                                yAxisId={index}
+                                type="number"
+                                domain={yDomains[index]}
+                                tickFormatter={formatter}
+                                allowDataOverflow={true}
+                                stroke={chartColors[index] || chartColors[0]}
+                            />
+                        ))
+                    ) : (
                         <YAxis
                             width={32}
-                            label={yAxisLabels}
-                            key={index}
-                            yAxisId={index}
+                            yAxisId={0}
                             type="number"
-                            domain={yDomains[index]}
+                            label={yAxisLabel}
+                            domain={combinedYDomain}
                             tickFormatter={formatter}
                             allowDataOverflow={true}
-                            stroke={chartColors[index] || chartColors[0]}
                         />
-                    ))
-                ) : (
-                    <YAxis
-                        width={32}
-                        yAxisId={0}
-                        type="number"
-                        label={yAxisLabel}
-                        domain={combinedYDomain}
-                        tickFormatter={formatter}
-                        allowDataOverflow={true}
-                    />
-                )}
-                {data.map(({ name, values }, index) => (
-                    <Line
-                        yAxisId={multipleYScales ? index : 0}
-                        xAxisId={0}
-                        type="monotone"
-                        dataKey="y"
-                        data={values}
-                        name={name}
-                        key={name}
-                        dot={false}
-                        activeDot={false}
-                        stroke={chartColors[index] || chartColors[0]}
-                        animationDuration={100}
-                    />
-                ))}
-                {refAreaLeft && refAreaRight && (
-                    <ReferenceArea
-                        x1={refAreaLeft}
-                        x2={refAreaRight}
-                        strokeOpacity={0.3}
-                    />
-                )}
-            </RechartLineChart>
-        </ResponsiveContainer>
+                    )}
+                    {data.map(({ name, values }, index) => (
+                        <Line
+                            yAxisId={multipleYScales ? index : 0}
+                            xAxisId={0}
+                            type="monotone"
+                            dataKey="y"
+                            data={values}
+                            name={name}
+                            key={name}
+                            dot={false}
+                            activeDot={false}
+                            stroke={chartColors[index] || chartColors[0]}
+                            animationDuration={100}
+                        />
+                    ))}
+                    {refAreaLeft && refAreaRight && (
+                        <ReferenceArea
+                            x1={refAreaLeft}
+                            x2={refAreaRight}
+                            strokeOpacity={0.3}
+                        />
+                    )}
+                    {highlightedRegions?.map(([start, end], index) => (
+                        <ReferenceArea
+                            key={index}
+                            x1={start}
+                            x2={end}
+                            className="highlighted-region"
+                        />
+                    ))}
+                </RechartLineChart>
+            </ResponsiveContainer>
+        </LineChartStyleWrapper>
     );
 };
 
