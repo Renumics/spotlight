@@ -12,12 +12,12 @@ help: ## Print this help message
 
 .PHONY: init
 init: ## Locally install all dev dependencies
-	poetry install --without playbook
+	poetry install --all-extras --without playbook
 	pnpm install
 
 .PHONY: init-playbook
 init-playbook: ## Locally install all playbook dev dependencies
-	poetry install
+	poetry install --all-extras
 
 .PHONY: clean
 clean: ## clean project
