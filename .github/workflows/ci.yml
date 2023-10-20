@@ -336,9 +336,11 @@ jobs:
                   fi
             - name: '📸 Upload GUI screenshots'
               if: |
-                  success()
-                  || steps.setup-chromedriver.outcome == 'success'
-                  || steps.setup-geckodriver.outcome == 'success'
+                  (
+                    success()
+                    || steps.setup-chromedriver.outcome == 'success'
+                    || steps.setup-geckodriver.outcome == 'success'
+                  ) && github.repository_owner == 'Renumics'
               uses: LanceMcCarthy/Action-AzureBlobUpload@v2
               with:
                   connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
@@ -424,7 +426,7 @@ jobs:
     # Release stage
     release:
         name: '🚀 Release Spotlight'
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && github.repository_owner == 'Renumics'
         needs:
             - prepare-python
             - prepare-node
