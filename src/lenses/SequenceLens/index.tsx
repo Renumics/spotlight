@@ -170,13 +170,15 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
         [isXSynchronized, xExtents, localXExtents]
     );
 
-    const clampedWindow = useMemo(() => {
-        if (!window) return undefined;
+    const clampedWindows = useMemo(() => {
+        if (!window) return [];
         const [start, end] = window;
         return [
-            Math.max(start, displayedXExtents[0]),
-            Math.min(end, displayedXExtents[1]),
-        ] as [number, number];
+            [
+                Math.max(start, displayedXExtents[0]),
+                Math.min(end, displayedXExtents[1]),
+            ],
+        ] as [number, number][];
     }, [displayedXExtents, window]);
 
     const resetPlot = useCallback(() => {
@@ -198,7 +200,7 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
                         onChangeXExtents={setLocalAndGlobalXAxisExtents}
                         syncKey={syncKey}
                         yDomains={yDomains}
-                        highlightedRegions={clampedWindow ? [clampedWindow] : []}
+                        highlightedRegions={clampedWindows}
                     />
                 </ViewerWrapper>
             ) : (
@@ -235,21 +237,9 @@ SequenceView.displayName = 'Lineplot';
 SequenceView.minHeight = 45;
 SequenceView.multi = true;
 SequenceView.filterAllowedColumns = (allColumns, selectedColumns) => {
-    const sequenceColumnsCount = selectedColumns.filter(
-        (col) => col.type.kind === 'Sequence1D'
-    ).length;
-    const windowColumnsCount = selectedColumns.filter(
-        (col) => col.type.kind === 'Window'
-    ).length;
-
-    console.log({ sequenceColumnsCount, windowColumnsCount });
-
-    // only allow adding a window column if there is only one sequence column
-    // if a windowColumn is already selected only allow one sequence column to be added
-    if (sequenceColumnsCount > 1 || windowColumnsCount > 0)
+    // allow max 1 window column
+    if (selectedColumns.some((col) => col.type.kind === 'Window'))
         return allColumns.filter((col) => col.type.kind === 'Sequence1D');
-
-    if (sequenceColumnsCount === 1 && windowColumnsCount === 1) return [];
 
     return allColumns.filter((col) => ['Sequence1D', 'Window'].includes(col.type.kind));
 };
