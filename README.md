@@ -93,7 +93,6 @@ Machine learning and engineering teams use Spotlight to understand and communica
 
 
 ## ⏱️ Quickstart
-
 Get started by installing Spotlight and loading your first dataset.
 
 #### What you'll need
