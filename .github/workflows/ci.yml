@@ -17,7 +17,6 @@ jobs:
             - run: echo ${{ github.repository_owner }}
             - run: echo ${{ github.event.pull_request.head.repo.full_name }}
             - run: echo ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-            - run: echo ${{ github.event }} | jq -r
     # Prepare stage
     prepare-python:
         name: '🐍 Prepare Python'
