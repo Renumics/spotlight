@@ -57,6 +57,19 @@ class ReductionMessage(Message):
     generation_id: int
 
 
+class TaskErrorMessage(Message):
+    """
+    Common message model for task errors
+    """
+
+    widget_id: str
+    uid: str
+    error: str
+    title: str
+    detail: Optional[str] = None
+    data: None = None
+
+
 class ReductionRequestData(BaseModel):
     """
     Base data reduction request payload.
@@ -155,6 +168,7 @@ async def handle_message(request: Message, connection: "WebsocketConnection") ->
     New message types should be registered by decorating with `@handle_message.register`.
     """
 
+    # TODO: add generic error handler
     raise NotImplementedError
 
 
@@ -326,6 +340,16 @@ async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
         )
     except TaskCancelled:
         ...
+    except Exception as e:
+        msg = TaskErrorMessage(
+            type="tasks.error",
+            widget_id=request.widget_id,
+            uid=request.uid,
+            error=type(e).__name__,
+            title=type(e).__name__,
+            detail=type(e).__doc__,
+        )
+        await connection.send_async(msg)
     else:
         response = ReductionResponse(
             type="umap_result",

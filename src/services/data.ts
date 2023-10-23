@@ -2,6 +2,7 @@ import { useDataset } from '../stores/dataset';
 import { useLayout } from '../stores/layout';
 import { IndexArray } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { Problem } from '../types';
 
 export const umapMetricNames = [
     'euclidean',
@@ -110,9 +111,18 @@ export class DataService {
     ): Promise<ReductionResult> {
         const messageId = uuidv4();
 
-        const promise = new Promise<ReductionResult>((resolve) => {
+        const promise = new Promise<ReductionResult>((resolve, reject) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             this.dispatchTable.set(messageId, (message: any) => {
+                if (message.type === 'tasks.error') {
+                    const error: Problem = {
+                        type: message.error,
+                        title: message.title,
+                        detail: message.detail,
+                    };
+                    reject(error);
+                    return;
+                }
                 const result = {
                     points: message.data.points,
                     indices: message.data.indices,
