@@ -12,7 +12,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import tw from 'twin.macro';
+import tw, { styled } from 'twin.macro';
 import { Vec2 } from '../../types';
 import { largestTriangleThreeBuckets } from '../../math/downsampling';
 
