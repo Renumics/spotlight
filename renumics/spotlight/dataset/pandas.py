@@ -1,3 +1,7 @@
+"""
+Helper for conversion between H5 dataset and `pandas.DataFrame`.
+"""
+
 import os.path
 import statistics
 from typing import Any, Optional, Sequence, Union
