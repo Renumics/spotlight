@@ -3,7 +3,8 @@ import _ from 'lodash';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useColors } from '../../stores/colors';
 import tw, { styled } from 'twin.macro';
-import type { Sequence1DColumn, Vec2, Lens } from '../../types';
+import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
+import { isSequence1DColumn } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 
@@ -17,9 +18,19 @@ const ViewerWrapper = styled.div`
 const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-xs text-center`;
 
 const SequenceView: Lens = ({ values, columns, syncKey }) => {
+    const [sequences, window] = useMemo(
+        () => [
+            values.filter((value, index) => isSequence1DColumn(columns[index])),
+            values.find((value, index) => columns[index].type.kind === 'Window') as
+                | [number, number]
+                | undefined,
+        ],
+        [values, columns]
+    );
+
     const chartData = useMemo(() => {
         const decoder = new TextDecoder();
-        return values
+        return sequences
             .filter((v) => v !== null)
             .map((buffer, i) => {
                 const column = columns[i] as Sequence1DColumn;
@@ -34,7 +45,7 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
                     name: column.name,
                 };
             });
-    }, [values, columns]);
+    }, [sequences, columns]);
 
     const chartRef = useRef<LineChartRef>(null);
     const [localXExtents, setLocalXExtents] = useState<Vec2>([-Infinity, Infinity]);
@@ -159,6 +170,17 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
         [isXSynchronized, xExtents, localXExtents]
     );
 
+    const clampedWindows = useMemo(() => {
+        if (!window) return [];
+        const [start, end] = window;
+        return [
+            [
+                Math.max(start, displayedXExtents[0]),
+                Math.min(end, displayedXExtents[1]),
+            ],
+        ] as [number, number][];
+    }, [displayedXExtents, window]);
+
     const resetPlot = useCallback(() => {
         if (chartRef.current) {
             chartRef.current.reset();
@@ -178,6 +200,7 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
                         onChangeXExtents={setLocalAndGlobalXAxisExtents}
                         syncKey={syncKey}
                         yDomains={yDomains}
+                        highlightedRegions={clampedWindows}
                     />
                 </ViewerWrapper>
             ) : (
@@ -207,10 +230,21 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
 };
 
 SequenceView.key = 'SequenceView';
-SequenceView.dataTypes = ['Sequence1D'];
+SequenceView.dataTypes = ['Sequence1D', 'Window'];
 SequenceView.multi = true;
 SequenceView.defaultHeight = 192;
 SequenceView.displayName = 'Lineplot';
 SequenceView.minHeight = 45;
+SequenceView.multi = true;
+SequenceView.filterAllowedColumns = (allColumns, selectedColumns) => {
+    // allow max 1 window column
+    if (selectedColumns.some((col) => col.type.kind === 'Window'))
+        return allColumns.filter((col) => col.type.kind === 'Sequence1D');
+
+    return allColumns.filter((col) => ['Sequence1D', 'Window'].includes(col.type.kind));
+};
+SequenceView.isSatisfied = (columns) => {
+    return columns.some((col) => isSequence1DColumn(col));
+};
 
 export default SequenceView;
