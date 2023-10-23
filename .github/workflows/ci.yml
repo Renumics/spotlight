@@ -11,12 +11,6 @@ on:
 # `MATRIX` environment variable is set by the local `generate-matrix` action.
 
 jobs:
-    debug:
-        runs-on: ubuntu-latest
-        steps:
-            - run: echo ${{ github.repository_owner }}
-            - run: echo ${{ github.event.pull_request.head.repo.full_name }}
-            - run: echo ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     # Prepare stage
     prepare-python:
         name: '🐍 Prepare Python'
