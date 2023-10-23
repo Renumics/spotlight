@@ -346,7 +346,7 @@ jobs:
                       && github.repository == 'Renumics/spotlight'
                     ) || (
                       github.event_name == 'pull_request'
-                      && github.event.pull_request.head.repo.full_name == github.repository
+                      && github.event.pull_request.head.repo.full_name == 'Renumics/spotlight'
                     )
                   )
               uses: LanceMcCarthy/Action-AzureBlobUpload@v2
