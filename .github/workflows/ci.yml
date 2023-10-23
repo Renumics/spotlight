@@ -288,7 +288,7 @@ jobs:
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
-            - name: '📤 Restore pro frontend'
+            - name: '📤 Restore frontend'
               uses: actions/download-artifact@v3
               with:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
@@ -340,8 +340,15 @@ jobs:
                     success()
                     || steps.setup-chromedriver.outcome == 'success'
                     || steps.setup-geckodriver.outcome == 'success'
-                  ) && github.event_name == 'pull_request'
-                  && github.event.pull_request.head.repo.full_name == github.repository
+                  ) && (
+                    (
+                      github.event_name == 'push'
+                      && github.repository == 'Renumics/spotlight'
+                    ) || (
+                      github.event_name == 'pull_request'
+                      && github.event.pull_request.head.repo.full_name == github.repository
+                    )
+                  )
               uses: LanceMcCarthy/Action-AzureBlobUpload@v2
               with:
                   connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
