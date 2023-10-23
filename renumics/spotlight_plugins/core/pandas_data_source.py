@@ -9,11 +9,7 @@ import pandas as pd
 import datasets
 
 from renumics.spotlight import dtypes
-from renumics.spotlight.io.pandas import (
-    prepare_hugging_face_dict,
-    stringify_columns,
-    try_literal_eval,
-)
+from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
 from renumics.spotlight.data_source import (
     datasource,
     ColumnMetadata,
@@ -107,7 +103,7 @@ class PandasDataSource(DataSource):
 
     @property
     def column_names(self) -> List[str]:
-        return stringify_columns(self._df)
+        return [str(column) for column in self._df.columns]
 
     @property
     def df(self) -> pd.DataFrame:

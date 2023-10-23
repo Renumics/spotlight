@@ -32,12 +32,7 @@ from loguru import logger
 from typing_extensions import TypeGuard
 
 from renumics.spotlight.__version__ import __version__
-from renumics.spotlight.io.pandas import (
-    infer_dtypes,
-    prepare_column,
-    is_string_mask,
-    stringify_columns,
-)
+from .pandas import create_typed_series, infer_dtypes, is_string_mask, prepare_column
 from renumics.spotlight.typing import (
     BoolType,
     IndexType,
@@ -47,7 +42,6 @@ from renumics.spotlight.typing import (
     is_integer,
     is_iterable,
 )
-from renumics.spotlight.io.pandas import create_typed_series
 from renumics.spotlight.dtypes.conversion import prepare_path_or_url
 from renumics.spotlight import dtypes as spotlight_dtypes
 
@@ -738,7 +732,7 @@ class Dataset:
             df = df.reset_index(level=df.index.names)  # type: ignore
         else:
             df = df.copy()
-        df.columns = pd.Index(stringify_columns(df))
+        df.columns = pd.Index([str(column) for column in df.columns])
 
         if dtypes is None:
             dtypes = {}

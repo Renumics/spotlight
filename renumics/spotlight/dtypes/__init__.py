@@ -9,6 +9,8 @@ from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, 
 
 __all__ = [
     "CategoryDType",
+    "ArrayDType",
+    "EmbeddingDType",
     "Sequence1DDType",
     "bool_dtype",
     "int_dtype",
@@ -83,7 +85,7 @@ class CategoryDType(DType):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, CategoryDType):
-            return other._name == self._name and other._categories == self._categories
+            return other._categories == self._categories
         return False
 
     def __hash__(self) -> int:
@@ -117,7 +119,7 @@ class ArrayDType(DType):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, ArrayDType):
-            return other._name == self._name and other.shape == self.shape
+            return other.shape == self.shape
         return False
 
     def __hash__(self) -> int:
@@ -145,7 +147,7 @@ class EmbeddingDType(DType):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, EmbeddingDType):
-            return other._name == self._name and other.length == self.length
+            return other.length == self.length
         return False
 
     def __hash__(self) -> int:
@@ -164,6 +166,14 @@ class Sequence1DDType(DType):
         super().__init__("Sequence1D")
         self.x_label = x_label
         self.y_label = y_label
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Sequence1DDType):
+            return other.x_label == self.x_label and other.y_label == self.y_label
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._name) ^ hash(self.x_label) ^ hash(self.y_label)
 
 
 ALIASES: Dict[Any, DType] = {}
