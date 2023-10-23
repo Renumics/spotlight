@@ -16,7 +16,8 @@ jobs:
         steps:
             - run: echo ${{ github.repository_owner }}
             - run: echo ${{ github.event.pull_request.head.repo.full_name }}
-            - run: echo ${{ github.event }}
+            - run: echo ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+            - run: echo ${{ github.event }} | jq -r
     # Prepare stage
     prepare-python:
         name: '🐍 Prepare Python'
@@ -346,7 +347,8 @@ jobs:
                     success()
                     || steps.setup-chromedriver.outcome == 'success'
                     || steps.setup-geckodriver.outcome == 'success'
-                  ) && github.repository_owner == 'Renumics'
+                  ) && github.event_name == 'pull_request'
+                  && github.event.pull_request.head.repo.full_name == github.repository
               uses: LanceMcCarthy/Action-AzureBlobUpload@v2
               with:
                   connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}

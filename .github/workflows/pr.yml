@@ -6,7 +6,7 @@ jobs:
     # Comment
     comment-gui-screenshots:
         name: '🖍 Comment GUI screenshots'
-        if: github.repository_owner == 'Renumics'
+        if: github.event.pull_request.head.repo.full_name == github.repository
         permissions:
             pull-requests: write
         runs-on: ubuntu-latest
