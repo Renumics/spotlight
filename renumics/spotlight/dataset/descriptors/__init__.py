@@ -1,5 +1,6 @@
 """make descriptor methods more available
 """
+import warnings
 from typing import Optional, Tuple
 
 import numpy as np
@@ -10,6 +11,13 @@ from renumics.spotlight import dtypes
 from renumics.spotlight.dataset import Dataset
 from renumics.spotlight.dataset.exceptions import ColumnExistsError, InvalidDTypeError
 from .data_alignment import align_column_data
+
+warnings.warn(
+    "`renumics.spotlight.dataset.descriptors` module is deprecated and will "
+    "be removed in future versions.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def pca(
