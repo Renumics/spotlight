@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
+import { computeLevenshtein } from './levenshtein';
 
 export const METRICS: Record<string, Metric> = {
     sum: {
@@ -96,5 +97,12 @@ export const METRICS: Record<string, Metric> = {
                 Math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
             );
         },
+    },
+    Levenshtein: {
+        signature: {
+            X: ['bool'],
+            Y: ['bool'],
+        },
+        compute: ([actualValues, assignedValues]) => computeLevenshtein(actualValues as boolean[], assignedValues as boolean[]),
     },
 };
