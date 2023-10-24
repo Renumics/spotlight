@@ -38,7 +38,7 @@ runs:
               python-version: ${{ inputs.python-version }}
         - name: Install dependencies
           if: inputs.install-dependencies != 'false' && steps.setup-python-with-cache.outputs.cache-hit != 'true'
-          run: poetry install --sync --without playbook --no-interaction
+          run: poetry install --sync --all-extras --without playbook --no-interaction
           shell: bash
         - name: Get Spotlight version
           id: get-package-version

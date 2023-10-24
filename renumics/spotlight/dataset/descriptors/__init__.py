@@ -1,9 +1,9 @@
 """make descriptor methods more available
 """
-from typing import List, Optional, Tuple
+import warnings
+from typing import Optional, Tuple
 
 import numpy as np
-import pycatch22
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from renumics.spotlight import dtypes
@@ -11,6 +11,13 @@ from renumics.spotlight import dtypes
 from renumics.spotlight.dataset import Dataset
 from renumics.spotlight.dataset.exceptions import ColumnExistsError, InvalidDTypeError
 from .data_alignment import align_column_data
+
+warnings.warn(
+    "`renumics.spotlight.dataset.descriptors` module is deprecated and will "
+    "be removed in future versions.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def pca(
@@ -53,14 +60,6 @@ def pca(
     return embeddings, mask
 
 
-def get_catch22_feature_names(catch24: bool = False) -> List[str]:
-    """
-    Get Catch22 feature names in the same order as returned by :func:`catch22`.
-    """
-    # Run Catch22 with dummy data to get feature names.
-    return pycatch22.catch22_all([0], catch24)["names"]
-
-
 def catch22(
     dataset: Dataset,
     column: str,
@@ -74,6 +73,12 @@ def catch22(
     Generate Catch22 embeddings for the given column of a dataset and
     optionally write them back into dataset.
     """
+    try:
+        import pycatch22
+    except ModuleNotFoundError as e:
+        raise RuntimeError(
+            "Install Spotlight with 'descriptors' extras in order to use `catch22`."
+        ) from e
 
     if suffix is None:
         suffix = "catch24" if catch24 else "catch22"
@@ -86,7 +91,8 @@ def catch22(
 
     column_names = []
     if as_float_columns:
-        for name in get_catch22_feature_names(catch24):
+        feature_names = pycatch22.catch22_all([0], catch24)["names"]
+        for name in feature_names:
             column_names.append("-".join((column, suffix, name)))
     else:
         column_names.append(f"{column}-{suffix}")

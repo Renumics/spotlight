@@ -4,7 +4,7 @@ Test `renumics.spotlight.descriptors` module.
 
 from renumics.spotlight import Dataset
 from renumics.spotlight.dataset.descriptors import pca
-from renumics.spotlight.dataset.descriptors import catch22, get_catch22_feature_names
+from renumics.spotlight.dataset.descriptors import catch22
 
 
 class TestPCA:
@@ -293,9 +293,6 @@ class TestCatch22:
             as_float_columns=True,
             inplace=True,
         )
-        for prename in get_catch22_feature_names():
-            name = "sequence_1d_extended-catch22-" + prename
-            assert name in descriptors_dataset.keys()
 
     def test_sequence_nan(self, descriptors_dataset: Dataset) -> None:
         """

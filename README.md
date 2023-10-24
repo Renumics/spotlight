@@ -17,9 +17,10 @@
 
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_video.gif" width="100%"/></a></p>
 
-Spotlight helps you to **understand unstructured datasets** fast. You can quickly create **interactive visualizations** and leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical clusters** in your data. 
+Spotlight helps you to **understand unstructured datasets** fast. You can quickly create **interactive visualizations** and leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical clusters** in your data.
 
 Spotlight supports most unstructured data types including **images, audio, text, videos, time-series and geometric data**. You can start from your existing dataframe:
+
 <p align="left"><img src="static/img/dataframe_head_sample.png" width="100%"/></a></p>
 
 And start Spotlight with just a few lines of code:
@@ -49,7 +50,7 @@ Machine learning and engineering teams use Spotlight to understand and communica
 	    <td rowspan="3">[Classification]</td>
             <td>Find Issues in Any Image Classification Dataset</td>
             <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a> <a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
-        </tr>	
+        </tr>
         <tr>
             <td>Find data issues in the CIFAR-100 image dataset</td>
             <td><a href="https://huggingface.co/spaces/renumics/navigate-data-issues">🕹️</a></td>
@@ -91,7 +92,6 @@ Machine learning and engineering teams use Spotlight to understand and communica
     </tbody>
 </table>
 
-
 ## ⏱️ Quickstart
 
 Get started by installing Spotlight and loading your first dataset.
@@ -132,15 +132,14 @@ ds = datasets.load_dataset('renumics/emodb-enriched', split='all')
 layout= spotlight.layouts.debug_classification(label='gender', prediction='m1_gender_prediction', embedding='m1_embedding', features=['age', 'emotion'])
 spotlight.show(ds, layout=layout)
 ```
+
 Here, the data types are discovered automatically from the dataset and we use a pre-defined layout for model debugging. Custom layouts can be built programmatically or via the UI.
 
 > The `datasets[audio]` package can be installed via pip.
 
-
-
 #### Usage Tracking
 
-We have added crash report and perfomance collection. We do NOT collect user data other than an anonymized Machine Id obtained by py-machineid, and only log our own actions. We do NOT collect folder names, dataset names, or row data of any kind only aggregate performance statistics like total time of a table_load, crash data, etc. Collecting Spotlight crashes will help us improve stability. To opt out of the crash report collection define an environment variable called `SPOTLIGHT_OPT_OUT` and set it to true. e.G.`export SPOTLIGHT_OPT_OUT=true`
+We have added crash report and performance collection. We do NOT collect user data other than an anonymized Machine Id obtained by py-machineid, and only log our own actions. We do NOT collect folder names, dataset names, or row data of any kind only aggregate performance statistics like total time of a table_load, crash data, etc. Collecting Spotlight crashes will help us improve stability. To opt out of the crash report collection define an environment variable called `SPOTLIGHT_OPT_OUT` and set it to true. e.G.`export SPOTLIGHT_OPT_OUT=true`
 
 ## We are very happy to hear your feedback
 
@@ -150,6 +149,14 @@ We have added crash report and perfomance collection. We do NOT collect user dat
 
 ## Learn more about unstructured data workflows
 
-- 🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets 
-- 🏀 [Playbook](https://renumics.com/docs/playbook/) for data-centric AI workflows
-- 🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
+-   🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets
+-   🏀 [Playbook](https://renumics.com/docs/playbook/) for data-centric AI workflows
+-   🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
+
+## Contribute
+
+We are currently participating in the running [Hacktoberfest 2023](https://hacktoberfest.com/).
+
+If you would like to contribute to Spotlight, the easiest way is to have a look at our [Contribution Docs](https://renumics.com/docs/development) and the [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+We are also equally happy about non-code contributions -- whether it's reporting bugs, suggesting features, contributing design ideas, or offering feedback, every non-code contribution is highly valued and helps make our project better for everyone.

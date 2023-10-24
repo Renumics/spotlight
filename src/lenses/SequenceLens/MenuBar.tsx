@@ -53,7 +53,7 @@ const MenuBar: FunctionComponent<Props> = ({
     return (
         <Styles>
             <div data-test-tag="sequenceview-settings-dropdown">
-                <Dropdown content={settingsMenu} tw="p-4">
+                <Dropdown content={settingsMenu}>
                     <SettingsIcon />
                 </Dropdown>
             </div>
