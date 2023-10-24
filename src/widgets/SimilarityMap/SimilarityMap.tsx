@@ -456,10 +456,11 @@ const SimilarityMap: Widget = () => {
     if (problem) {
         content = (
             <div tw="w-full h-full flex flex-col items-stretch justify-end">
-                <div tw="bg-red-500 text-black/80 text-sm font-bold p-0.5">
-                    {problem.title}
+                <div tw="flex flex-col items-stretch justify-end bg-red-500 text-black/80 pb-0.5">
+                    <div tw="h-px bg-black/30" />
+                    <div tw="text-sm font-bold px-0.5">{problem.title}</div>
+                    <div tw="text-xs px-0.5">{problem.detail}</div>
                 </div>
-                <div tw="bg-red-500 text-black/80 text-xs p-0.5">{problem.detail}</div>
             </div>
         );
     } else if (isComputing) {
