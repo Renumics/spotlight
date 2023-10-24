@@ -12,12 +12,12 @@ help: ## Print this help message
 
 .PHONY: init
 init: ## Locally install all dev dependencies
-	poetry install --without playbook
+	poetry install --all-extras --without playbook
 	pnpm install
 
 .PHONY: init-playbook
 init-playbook: ## Locally install all playbook dev dependencies
-	poetry install
+	poetry install --all-extras
 
 .PHONY: clean
 clean: ## clean project
@@ -141,7 +141,7 @@ ui-test-%:
 	}
 	trap teardown EXIT
 	PORT="5005"
-	poetry run spotlight --host 127.0.0.1 --port $$PORT --no-browser . &
+	poetry run spotlight --host 127.0.0.1 --port $$PORT --no-browser  --folder . &
 	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	export FRONTEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	wget -q -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"

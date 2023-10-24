@@ -69,7 +69,7 @@ export const METRICS: Record<string, Metric> = {
                 assignedValues as boolean[]
             );
 
-            return (2 * tp) / (2 * tp + 2 * fp + fn);
+            return (2 * tp) / (2 * tp + fp + fn);
         },
     },
     MCC: {
