@@ -1,30 +1,22 @@
 """
-This module contains helpers for importing `pandas.DataFrame`s.
+Helper for conversion between H5 dataset and `pandas.DataFrame`.
 """
 
-import ast
 import os.path
 import statistics
-from contextlib import suppress
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Optional, Sequence, Union
 
 import PIL.Image
 import filetype
-import trimesh
 import numpy as np
 import pandas as pd
+import trimesh
 
-from renumics.spotlight.dtypes import (
-    Audio,
-    Embedding,
-    Image,
-    Mesh,
-    Sequence1D,
-    Video,
-)
-from renumics.spotlight.media.exceptions import UnsupportedDType
-from renumics.spotlight.typing import is_iterable, is_pathtype
 from renumics.spotlight import dtypes
+from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
+from renumics.spotlight.media import Audio, Embedding, Image, Mesh, Sequence1D, Video
+from renumics.spotlight.typing import is_iterable, is_pathtype
+from .exceptions import InvalidDTypeError
 
 
 def create_typed_series(
@@ -58,32 +50,62 @@ def create_typed_series(
     return pd.Series([] if values is None else values, dtype=pandas_dtype)
 
 
-def is_empty(value: Any) -> bool:
+def prepare_column(column: pd.Series, dtype: dtypes.DType) -> pd.Series:
     """
-    Check if value is `NA` or an empty string.
-    """
-    if is_iterable(value):
-        # `pd.isna` with an iterable argument returns an iterable result. But
-        # an iterable cannot be NA or empty string by default.
-        return False
-    return pd.isna(value) or value == ""
+    Convert a `pandas` column to the desired `dtype` and prepare some values,
+    but still as `pandas` column.
 
+    Args:
+        column: A `pandas` column to prepare.
+        dtype: Target data type.
 
-def try_literal_eval(x: str) -> Any:
-    """
-    Try to evaluate a literal expression, otherwise return value as is.
-    """
-    with suppress(Exception):
-        return ast.literal_eval(x)
-    return x
+    Returns:
+        Prepared `pandas` column.
 
+    Raises:
+        TypeError: If `dtype` is not a Spotlight data type.
+    """
+    column = column.copy()
 
-def stringify_columns(df: pd.DataFrame) -> List[str]:
-    """
-    Convert `pandas.DataFrame`'s column names to strings, no matter which index
-    is used.
-    """
-    return [str(column_name) for column_name in df.columns]
+    if dtypes.is_category_dtype(dtype):
+        # We only support string/`NA` categories, but `pandas` can more, so
+        # force categories to be strings (does not affect `NA`s).
+        return to_categorical(column, str_categories=True)
+
+    if dtypes.is_datetime_dtype(dtype):
+        # `errors="coerce"` will produce `NaT`s instead of fail.
+        return pd.to_datetime(column, errors="coerce")
+
+    if dtypes.is_str_dtype(dtype):
+        # Allow `NA`s, convert all other elements to strings.
+        return column.astype(str).mask(column.isna(), None)  # type: ignore
+
+    if dtypes.is_bool_dtype(dtype):
+        return column.astype(bool)
+
+    if dtypes.is_int_dtype(dtype):
+        return column.astype(int)
+
+    if dtypes.is_float_dtype(dtype):
+        return column.astype(float)
+
+    # We explicitely don't want to change the original `DataFrame`.
+    with pd.option_context("mode.chained_assignment", None):
+        # We consider empty strings as `NA`s.
+        str_mask = is_string_mask(column)
+        column[str_mask] = column[str_mask].replace("", None)
+        na_mask = column.isna()
+
+        # When `pandas` reads a csv, arrays and lists are read as literal strings,
+        # try to interpret them.
+        str_mask = is_string_mask(column)
+        column[str_mask] = column[str_mask].apply(try_literal_eval)
+
+        if dtypes.is_filebased_dtype(dtype):
+            dict_mask = column.map(type) == dict
+            column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
+
+    return column.mask(na_mask, None)  # type: ignore
 
 
 def infer_dtype(column: pd.Series) -> dtypes.DType:
@@ -225,7 +247,7 @@ def infer_dtypes(df: pd.DataFrame, dtype: Optional[dtypes.DTypeMap]) -> dtypes.D
         if column_index not in inferred_dtype:
             try:
                 column_type = infer_dtype(df[column_index])
-            except UnsupportedDType:
+            except InvalidDTypeError:
                 column_type = dtypes.str_dtype
             inferred_dtype[str(column_index)] = column_type
     return inferred_dtype
@@ -255,73 +277,3 @@ def to_categorical(column: pd.Series, str_categories: bool = False) -> pd.Series
     if str_categories:
         return column.cat.rename_categories(column.cat.categories.astype(str))
     return column
-
-
-def prepare_hugging_face_dict(x: Dict) -> Any:
-    """
-    Prepare HuggingFace format for files to be used in Spotlight.
-    """
-    if x.keys() != {"bytes", "path"}:
-        return x
-    blob = x["bytes"]
-    if blob is not None:
-        return blob
-    return x["path"]
-
-
-def prepare_column(column: pd.Series, dtype: dtypes.DType) -> pd.Series:
-    """
-    Convert a `pandas` column to the desired `dtype` and prepare some values,
-    but still as `pandas` column.
-
-    Args:
-        column: A `pandas` column to prepare.
-        dtype: Target data type.
-
-    Returns:
-        Prepared `pandas` column.
-
-    Raises:
-        TypeError: If `dtype` is not a Spotlight data type.
-    """
-    column = column.copy()
-
-    if dtypes.is_category_dtype(dtype):
-        # We only support string/`NA` categories, but `pandas` can more, so
-        # force categories to be strings (does not affect `NA`s).
-        return to_categorical(column, str_categories=True)
-
-    if dtypes.is_datetime_dtype(dtype):
-        # `errors="coerce"` will produce `NaT`s instead of fail.
-        return pd.to_datetime(column, errors="coerce")
-
-    if dtypes.is_str_dtype(dtype):
-        # Allow `NA`s, convert all other elements to strings.
-        return column.astype(str).mask(column.isna(), None)  # type: ignore
-
-    if dtypes.is_bool_dtype(dtype):
-        return column.astype(bool)
-
-    if dtypes.is_int_dtype(dtype):
-        return column.astype(int)
-
-    if dtypes.is_float_dtype(dtype):
-        return column.astype(float)
-
-    # We explicitely don't want to change the original `DataFrame`.
-    with pd.option_context("mode.chained_assignment", None):
-        # We consider empty strings as `NA`s.
-        str_mask = is_string_mask(column)
-        column[str_mask] = column[str_mask].replace("", None)
-        na_mask = column.isna()
-
-        # When `pandas` reads a csv, arrays and lists are read as literal strings,
-        # try to interpret them.
-        str_mask = is_string_mask(column)
-        column[str_mask] = column[str_mask].apply(try_literal_eval)
-
-        if dtypes.is_filebased_dtype(dtype):
-            dict_mask = column.map(type) == dict
-            column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
-
-    return column.mask(na_mask, None)  # type: ignore
