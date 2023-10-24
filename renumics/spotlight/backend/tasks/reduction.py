@@ -6,7 +6,6 @@ from typing import List, Tuple, cast
 
 import numpy as np
 import pandas as pd
-from sklearn import preprocessing
 
 from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.data_store import DataStore
@@ -27,6 +26,7 @@ def align_data(
     """
     Align data from table's columns, remove `NaN`'s.
     """
+    from sklearn import preprocessing
 
     if not column_names or not indices:
         return np.empty(0, np.float64), []
@@ -60,7 +60,7 @@ def align_data(
             aligned_values.append(np.array(column_values, dtype=float))
         else:
             raise ColumnNotEmbeddable(
-                "Column '{column_name}' of type {dtype} is not embeddable."
+                f"Column '{column_name}' of type {dtype} is not embeddable."
             )
 
     data = np.hstack([col.reshape((len(indices), -1)) for col in aligned_values])
@@ -120,7 +120,7 @@ def compute_pca(
 
     try:
         data, indices = align_data(data_store, column_names, indices)
-    except (ColumnNotExistsError, ValueError):
+    except (ColumnNotExistsError, ColumnNotEmbeddable):
         return np.empty(0, np.float64), []
     if data.size == 0:
         return np.empty(0, np.float64), []
@@ -131,5 +131,6 @@ def compute_pca(
     elif normalization == "robust standardize":
         data = preprocessing.RobustScaler(copy=False).fit_transform(data)
     reducer = decomposition.PCA(n_components=2, copy=False, random_state=SEED)
-    embeddings = reducer.fit_transform(data)
+    # `fit_transform` returns Fortran-ordered array.
+    embeddings = np.ascontiguousarray(reducer.fit_transform(data))
     return embeddings, indices
