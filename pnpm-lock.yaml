@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@floating-ui/react':
     specifier: ^0.19.2
@@ -148,6 +152,9 @@ dependencies:
   recharts:
     specifier: ^2.4.3
     version: 2.4.3(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
+  rouge:
+    specifier: ^1.0.3
+    version: 1.0.3
   seedrandom:
     specifier: ^3.0.5
     version: 3.0.5
@@ -5376,6 +5383,11 @@ packages:
       p-locate: 5.0.0
     dev: true
 
+  /lodash-node@2.4.1:
+    resolution: {integrity: sha512-egEt8eNQp2kZWRmngahiqMoDCDCENv3uM188S7Ed5t4k3v6RrLELXC+FqLNMUnhCo7gvQX3G1V8opK/Lcslahg==}
+    deprecated: This package is discontinued. Use lodash@^4.0.0.
+    dev: false
+
   /lodash.castarray@4.4.0:
     resolution: {integrity: sha512-aVx8ztPv7/2ULbArGJ2Y42bG1mEQ5mGjpdvrbJcJFU3TbYybe+QlLS4pst9zV52ymy2in1KpFPiZnAOATxD4+Q==}
     dev: false
@@ -6565,6 +6577,12 @@ packages:
       fsevents: 2.3.3
     dev: true
 
+  /rouge@1.0.3:
+    resolution: {integrity: sha512-YCt74Dxsi99E8/uh943FTa80EmGboaOu1ij4q8WD4EAGyvyWYaH7MRHorrDbGgLY7iFUwDwyW/g9KJZx7D5fUQ==}
+    dependencies:
+      lodash-node: 2.4.1
+    dev: false
+
   /run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
@@ -7653,7 +7671,3 @@ packages:
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
