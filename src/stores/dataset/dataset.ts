@@ -22,6 +22,7 @@ import { notifyAPIError, notifyError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
+import websocketService from '../../services/websocket';
 
 export type CallbackOrData<T> = ((data: T) => T) | T;
 
@@ -540,3 +541,11 @@ useDataset.subscribe(
 );
 
 useColors.subscribe(() => useDataset.getState().recomputeColorTransferFunctions());
+
+websocketService.registerMessageHandler('refresh', () => {
+    useDataset.getState().refresh();
+});
+
+websocketService.registerMessageHandler('issuesUpdated', () => {
+    useDataset.getState().fetchIssues();
+});

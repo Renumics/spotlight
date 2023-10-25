@@ -37,13 +37,9 @@ const websocketService = new WebsocketService(
 );
 export default websocketService;
 
-// TODO: reimplement/move
+// TODO: these functions should probably be somewhere else
 /*
-      if (message.type === 'refresh') {
-        useDataset.getState().refresh();
       } else if (message.type === 'resetLayout') {
         useLayout.getState().reset();
-      } else if (message.type === 'issuesUpdated') {
-        useDataset.getState().fetchIssues();
       }
 */
