@@ -1,6 +1,7 @@
 export interface Message {
     type: string;
-    data: any;
+    data: unknown;
 }
 
-export type MessageHandler = (message: Message) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type MessageHandler = (data: any) => void;

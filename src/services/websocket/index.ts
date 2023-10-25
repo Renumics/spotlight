@@ -1,4 +1,5 @@
 import { notifyProblem } from '../../notify';
+import { Problem } from '../../types';
 import Connection from './connection';
 import { Message, MessageHandler } from './types';
 
@@ -37,8 +38,8 @@ const websocketService = new WebsocketService(
     globalThis.location.port
 );
 
-websocketService.registerMessageHandler('error', (message: Message) => {
-    notifyProblem(message.data);
+websocketService.registerMessageHandler('error', (problem: Problem) => {
+    notifyProblem(problem);
 });
 
 export default websocketService;
