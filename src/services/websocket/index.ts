@@ -1,3 +1,4 @@
+import { notifyProblem } from '../../notify';
 import Connection from './connection';
 import { Message, MessageHandler } from './types';
 
@@ -35,11 +36,9 @@ const websocketService = new WebsocketService(
     globalThis.location.hostname,
     globalThis.location.port
 );
-export default websocketService;
 
-// TODO: these functions should probably be somewhere else
-/*
-      } else if (message.type === 'resetLayout') {
-        useLayout.getState().reset();
-      }
-*/
+websocketService.registerMessageHandler('error', (message: Message) => {
+    notifyProblem(message.data);
+});
+
+export default websocketService;

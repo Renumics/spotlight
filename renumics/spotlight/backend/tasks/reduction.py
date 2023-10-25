@@ -116,10 +116,7 @@ def compute_pca(
 
     from sklearn import preprocessing, decomposition
 
-    try:
-        data, indices = align_data(data_store, column_names, indices)
-    except (ColumnNotExistsError, ValueError):
-        return np.empty(0, np.float64), []
+    data, indices = align_data(data_store, column_names, indices)
     if data.size == 0:
         return np.empty(0, np.float64), []
     if data.shape[1] == 1:

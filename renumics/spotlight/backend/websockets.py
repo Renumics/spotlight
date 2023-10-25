@@ -108,11 +108,25 @@ class WebsocketConnection:
         """
         Send a message async.
         """
+
         try:
-            message_data = message.dict()
-            await self.websocket.send_text(
-                orjson.dumps(message_data, option=orjson.OPT_SERIALIZE_NUMPY).decode()
+            json_text = orjson.dumps(
+                message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
+            ).decode()
+        except TypeError as e:
+            error_message = Message(
+                type="error",
+                data={
+                    "type": type(e).__name__,
+                    "title": "Failed to serialize message",
+                    "detail": str(e),
+                },
             )
+            json_text = orjson.dumps(
+                error_message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
+            ).decode()
+        try:
+            await self.websocket.send_text(json_text)
         except WebSocketDisconnect:
             self._on_disconnect()
         except RuntimeError:
@@ -256,7 +270,6 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
 
     try:
         task_func = TASK_FUNCS[data.task]
-        print(data.args)
         result = await connection.task_manager.run_async(
             task_func,  # type: ignore
             args=(data_store,),
@@ -267,6 +280,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         points = cast(np.ndarray, result[0])
         valid_indices = cast(np.ndarray, result[1])
     except TaskCancelled:
+        print("task cancelled")
         pass
     except Problem as e:
         msg = Message(
@@ -275,13 +289,14 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
                 "task_id": data.task_id,
                 "error": {
                     "type": type(e).__name__,
-                    "title": type(e).__name__,
-                    "detail": type(e).__doc__,
+                    "title": e.title,
+                    "detail": e.detail,
                 },
             },
         )
         await connection.send_async(msg)
     except Exception as e:
+        print("task failed")
         msg = Message(
             type="task.error",
             data={

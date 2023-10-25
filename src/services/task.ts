@@ -1,5 +1,6 @@
 import { useDataset } from '../lib';
 import websocketService, { WebsocketService } from './websocket';
+import { Message } from './websocket/types';
 
 interface ResponseHandler {
     resolve: (result: unknown) => void;
@@ -16,12 +17,22 @@ class TaskService {
     constructor(websocketService: WebsocketService) {
         this.dispatchTable = new Map();
         this.websocketService = websocketService;
-        this.websocketService.registerMessageHandler('task.result', (message: any) => {
-            this.dispatchTable.get(message.data.task_id)?.resolve(message.data.result);
-        });
-        this.websocketService.registerMessageHandler('task.error', (message: any) => {
-            this.dispatchTable.get(message.data.task_id)?.reject(message.data.error);
-        });
+        this.websocketService.registerMessageHandler(
+            'task.result',
+            (message: Message) => {
+                this.dispatchTable
+                    .get(message.data.task_id)
+                    ?.resolve(message.data.result);
+            }
+        );
+        this.websocketService.registerMessageHandler(
+            'task.error',
+            (message: Message) => {
+                this.dispatchTable
+                    .get(message.data.task_id)
+                    ?.reject(message.data.error);
+            }
+        );
     }
 
     async run(task: string, name: string, args: unknown) {
