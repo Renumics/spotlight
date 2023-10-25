@@ -1,3 +1,4 @@
+<div id="top"></div>
 <p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
 <h1 align="center">Renumics Spotlight</h1>
 <p align="center">Interactively explore unstructured datasets from your dataframe.</p>
@@ -160,3 +161,5 @@ We are currently participating in the running [Hacktoberfest 2023](https://hackt
 If you would like to contribute to Spotlight, the easiest way is to have a look at our [Contribution Docs](https://renumics.com/docs/development) and the [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 We are also equally happy about non-code contributions -- whether it's reporting bugs, suggesting features, contributing design ideas, or offering feedback, every non-code contribution is highly valued and helps make our project better for everyone.
+
+<p align="right"><a href="#top">🔼 Back to top</a></p>
