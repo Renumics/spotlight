@@ -78,8 +78,6 @@ def compute_umap(
     Prepare data from table and compute U-Map on them.
     """
 
-    raise Exception("Ooops")
-
     try:
         data, indices = align_data(data_store, column_names, indices)
     except (ColumnNotExistsError, ColumnNotEmbeddable):
