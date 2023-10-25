@@ -6,7 +6,6 @@ from typing import Optional, List, Any, Union
 
 import pandas as pd
 import numpy as np
-from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
@@ -30,17 +29,6 @@ class ColumnMetadata:
     tags: List[str] = dataclasses.field(default_factory=list)
 
 
-@dataclass
-class CellsUpdate:
-    """
-    A dataset's cell update.
-    """
-
-    value: Any
-    author: str
-    edited_at: str
-
-
 class DataSource(ABC):
     """abstract base class for different data sources"""
 
@@ -61,7 +49,7 @@ class DataSource(ABC):
     @abstractmethod
     def intermediate_dtypes(self) -> DTypeMap:
         """
-        The dtypes of intermediate values
+        The dtypes of intermediate values. Values for all columns must be filled.
         """
 
     @property
@@ -94,7 +82,7 @@ class DataSource(ABC):
     @abstractmethod
     def semantic_dtypes(self) -> DTypeMap:
         """
-        Semantic dtypes for viewer.
+        Semantic dtypes for viewer. Some values may be not present.
         """
 
     @abstractmethod
