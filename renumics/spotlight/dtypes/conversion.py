@@ -338,23 +338,27 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
 
 
 @convert("Image", simple=False)
+def _(value: Union[np.ndarray, list], _: dtypes.DType) -> bytes:
+    return media.Image(value).encode().tolist()
+
+
+@convert("Image", simple=False)
 def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.image_dtype):
             return data.tolist()
     except InvalidFile:
-        raise ConversionError()
+        try:
+            obj = ast.literal_eval(value)
+            return media.Image(obj).encode().tolist()
+        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+            raise ConversionError()
     raise ConversionError()
 
 
 @convert("Image", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
     return media.Image.from_bytes(value).encode().tolist()
-
-
-@convert("Image", simple=False)
-def _(value: np.ndarray, _: dtypes.DType) -> bytes:
-    return media.Image(value).encode().tolist()
 
 
 @convert("Image", simple=False)
@@ -422,7 +426,7 @@ def _(_: Union[np.ndarray, list, str, np.str_], _dtype: dtypes.DType) -> str:
 
 
 @convert("Image", simple=True)
-def _(_: np.ndarray, _dtype: dtypes.DType) -> str:
+def _(_: Union[np.ndarray, list], _dtype: dtypes.DType) -> str:
     return "[...]"
 
 
