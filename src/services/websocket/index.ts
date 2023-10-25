@@ -17,7 +17,7 @@ export class WebsocketService {
         this.connection.onmessage = (message: any) => {
             const messageHandler = this.messageHandlers.get(message.type);
             if (messageHandler) {
-                messageHandler(message);
+                messageHandler(message.data);
             } else {
                 console.error(`Unknown websocket message: ${message.type}`);
             }
