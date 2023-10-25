@@ -37,8 +37,8 @@ import numpy as np
 import trimesh
 import PIL.Image
 import validators
-from renumics.spotlight import dtypes
 
+from renumics.spotlight import dtypes
 from renumics.spotlight.typing import PathOrUrlType, PathType
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.io import audio
@@ -221,15 +221,19 @@ def convert_to_dtype(
     except (TypeError, ValueError) as e:
         if check:
             raise ConversionFailed(value, dtype) from e
-        else:
-            return None
-
-    if check:
-        if last_conversion_error:
-            raise ConversionFailed(value, dtype, last_conversion_error.reason)
-        else:
+    else:
+        if check:
+            if last_conversion_error:
+                raise ConversionFailed(value, dtype, last_conversion_error.reason)
             raise NoConverterAvailable(value, dtype)
 
+    if simple and (
+        dtypes.is_array_dtype(dtype)
+        or dtypes.is_embedding_dtype(dtype)
+        or dtypes.is_sequence_1d_dtype(dtype)
+        or dtypes.is_filebased_dtype(dtype)
+    ):
+        return "<invalid>"
     return None
 
 
