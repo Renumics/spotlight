@@ -3,37 +3,34 @@ import 'twin.macro';
 import rouge from 'rouge';
 import { formatNumber } from '../dataformat';
 
-const calculateRougeScore = (values: unknown[]) => {
-    return rouge.n(values[0], values[1]);
-};
-
 const RougeScoreLens: Lens = ({ values }) => {
-    const result = calculateRougeScore(values);
+    const rouge1 = rouge.n(values[0], values[1], 1);
+    const rouge2 = rouge.n(values[0], values[1], 2);
     return (
-        <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
-            Rouge score: {formatNumber(result)}
+        <div>
+            <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
+                Rouge 1: {formatNumber(rouge1)}
+            </div>
+            <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
+                Rouge 2: {formatNumber(rouge2)}
+            </div>
         </div>
     );
 };
 
 RougeScoreLens.key = 'RougeScoreView';
 RougeScoreLens.dataTypes = ['str'];
-RougeScoreLens.defaultHeight = 22;
-RougeScoreLens.minHeight = 22;
-RougeScoreLens.maxHeight = 64;
+RougeScoreLens.defaultHeight = 50;
+RougeScoreLens.minHeight = 50;
+RougeScoreLens.maxHeight = 100;
 RougeScoreLens.multi = true;
 RougeScoreLens.displayName = 'ROUGE Score';
 RougeScoreLens.filterAllowedColumns = (allColumns, selectedColumns) => {
     if (selectedColumns.length === 2) return [];
-    else
-        return allColumns.filter(({ type, key }) => {
-            const isNotSelected = (key: string) => {
-                return selectedColumns.filter((selectedCol) => {
-                    selectedCol.key !== key;
-                });
-            };
-            return type.kind === 'str' && isNotSelected(key);
-        });
+    const selectedKeys = selectedColumns.map((selectedCol) => selectedCol.key);
+    return allColumns.filter(({ type, key }) => {
+        return type.kind === 'str' && !selectedKeys.includes(key);
+    });
 };
 RougeScoreLens.isSatisfied = (columns) => {
     if (columns.length === 2) return true;
