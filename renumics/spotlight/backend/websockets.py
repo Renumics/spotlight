@@ -305,7 +305,11 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         await connection.send_async(msg)
     else:
         msg = Message(
-            type="task.result", data={"points": points, "indices": valid_indices}
+            type="task.result",
+            data={
+                "task_id": data.task_id,
+                "result": {"points": points, "indices": valid_indices},
+            },
         )
         try:
             await connection.send_async(msg)
