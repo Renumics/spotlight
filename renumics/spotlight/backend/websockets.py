@@ -70,6 +70,12 @@ class UnknownMessageType(Exception):
     """
 
 
+class SerializationError(Exception):
+    """
+    Failed to serialize the WS message
+    """
+
+
 PayloadType = Type[BaseModel]
 MessageHandler = Callable[[Any, "WebsocketConnection"], Coroutine[Any, Any, Any]]
 MessageHandlerSpec = Tuple[PayloadType, MessageHandler]
@@ -114,17 +120,7 @@ class WebsocketConnection:
                 message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
             ).decode()
         except TypeError as e:
-            error_message = Message(
-                type="error",
-                data={
-                    "type": type(e).__name__,
-                    "title": "Failed to serialize message",
-                    "detail": str(e),
-                },
-            )
-            json_text = orjson.dumps(
-                error_message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
-            ).decode()
+            raise SerializationError(str(e))
         try:
             await self.websocket.send_text(json_text)
         except WebSocketDisconnect:
@@ -280,7 +276,6 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         points = cast(np.ndarray, result[0])
         valid_indices = cast(np.ndarray, result[1])
     except TaskCancelled:
-        print("task cancelled")
         pass
     except Problem as e:
         msg = Message(
@@ -296,7 +291,6 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         )
         await connection.send_async(msg)
     except Exception as e:
-        print("task failed")
         msg = Message(
             type="task.error",
             data={
@@ -313,4 +307,18 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         msg = Message(
             type="task.result", data={"points": points, "indices": valid_indices}
         )
-        await connection.send_async(msg)
+        try:
+            await connection.send_async(msg)
+        except SerializationError as e:
+            error_msg = Message(
+                type="task.error",
+                data={
+                    "task_id": data.task_id,
+                    "error": {
+                        "type": type(e).__name__,
+                        "title": "Serialization Error",
+                        "detail": str(e),
+                    },
+                },
+            )
+            await connection.send_async(error_msg)
