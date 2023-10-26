@@ -7,7 +7,6 @@ from typing import List, Tuple, cast
 import numpy as np
 import pandas as pd
 
-from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.data_store import DataStore
 from renumics.spotlight import dtypes
 
@@ -80,10 +79,8 @@ def compute_umap(
     Prepare data from table and compute U-Map on them.
     """
 
-    try:
-        data, indices = align_data(data_store, column_names, indices)
-    except (ColumnNotExistsError, ColumnNotEmbeddable):
-        return np.empty(0, np.float64), []
+    data, indices = align_data(data_store, column_names, indices)
+
     if data.size == 0:
         return np.empty(0, np.float64), []
 
@@ -116,14 +113,13 @@ def compute_pca(
     Prepare data from table and compute PCA on them.
     """
 
-    from sklearn import preprocessing, decomposition
+    data, indices = align_data(data_store, column_names, indices)
 
-    try:
-        data, indices = align_data(data_store, column_names, indices)
-    except (ColumnNotExistsError, ColumnNotEmbeddable):
-        return np.empty(0, np.float64), []
     if data.size == 0:
         return np.empty(0, np.float64), []
+
+    from sklearn import preprocessing, decomposition
+
     if data.shape[1] == 1:
         return np.hstack((data, np.zeros_like(data))), indices
     if normalization == "standardize":

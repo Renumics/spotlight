@@ -15,6 +15,7 @@ import uuid
 
 from typing_extensions import Annotated
 from fastapi import Cookie, FastAPI, Request, status
+from fastapi.datastructures import Headers
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -56,8 +57,21 @@ from renumics.spotlight.data_store import DataStore
 
 from renumics.spotlight.dtypes import DTypeMap
 
-
 CURRENT_LAYOUT_KEY = "layout.current"
+
+
+class UncachedStaticFiles(StaticFiles):
+    """
+    FastAPI StaticFiles but without caching
+    """
+
+    def is_not_modified(
+        self, response_headers: Headers, request_headers: Headers
+    ) -> bool:
+        """
+        Never Cache
+        """
+        return False
 
 
 class IssuesUpdatedMessage(Message):
@@ -207,9 +221,13 @@ class SpotlightApp(FastAPI):
             plugin.activate(self)
 
         try:
+            # Mount frontend files as uncached,
+            # so that we always get the new frontend after updating spotlight.
+            # NOTE: we might not need this if we added a version hash
+            # to our built js files
             self.mount(
                 "/static",
-                StaticFiles(packages=["renumics.spotlight.backend"]),
+                UncachedStaticFiles(packages=["renumics.spotlight.backend"]),
                 name="assets",
             )
         except AssertionError:

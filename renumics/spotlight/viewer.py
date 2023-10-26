@@ -220,7 +220,7 @@ class Viewer:
         """
         if not self.port:
             return
-        launch_browser_in_thread(self.host, self.port)
+        launch_browser_in_thread("localhost", self.port)
 
     def refresh(self) -> None:
         """
