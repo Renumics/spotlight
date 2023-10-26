@@ -10,7 +10,7 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import { fixWindow, freqType, unitType, amplitudeToDb, hzToMel } from './Spectrogram';
+import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -208,7 +208,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
 
             let drawData = [];
-
             let min = 0;
             let max = 0;
 
@@ -241,24 +240,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         }
                     }
 
-                    drawData[i] = col;
-                }
-            } else if (ampScale === 'mel') {
-                for (let i = 0; i < frequenciesData.length; i++) {
-                    const col = [];
-
-                    for (let j = 0; j < frequenciesData[i].length; j++) {
-                        const amplitude = frequenciesData[i][j];
-                        col[j] = hzToMel(amplitude ** 2);
-
-                        if (col[j] > max) {
-                            max = col[j];
-                        }
-
-                        if (col[j] < min) {
-                            min = col[j];
-                        }
-                    }
                     drawData[i] = col;
                 }
             } else {
@@ -467,7 +448,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 availableFreqScales={['linear', 'logarithmic']}
                 freqScale={freqScale}
                 onChangeFreqScale={handleFreqScaleChange}
-                availableAmpScales={['decibel', 'linear', 'mel']}
+                availableAmpScales={['decibel', 'linear']}
                 ampScale={ampScale}
                 onChangeAmpScale={handleAmpScaleChange}
             />

@@ -9,6 +9,8 @@ from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, 
 
 __all__ = [
     "CategoryDType",
+    "ArrayDType",
+    "EmbeddingDType",
     "Sequence1DDType",
     "bool_dtype",
     "int_dtype",
@@ -36,6 +38,14 @@ class DType:
     def __str__(self) -> str:
         return self.name
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, DType):
+            return other._name == self._name
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._name)
+
     @property
     def name(self) -> str:
         return self._name
@@ -53,8 +63,10 @@ class CategoryDType(DType):
         self, categories: Optional[Union[Iterable[str], Dict[str, int]]] = None
     ):
         super().__init__("Category")
-        if isinstance(categories, dict) or categories is None:
-            self._categories = categories
+        if isinstance(categories, dict):
+            self._categories = dict(sorted(categories.items(), key=lambda x: x[1]))
+        elif categories is None:
+            self._categories = None
         else:
             self._categories = {
                 category: code for code, category in enumerate(categories)
@@ -70,6 +82,20 @@ class CategoryDType(DType):
             self._categories = {
                 category: code for code, category in self._inverted_categories.items()
             }
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, CategoryDType):
+            return other._categories == self._categories
+        return False
+
+    def __hash__(self) -> int:
+        if self._categories is None:
+            return hash(self._name) ^ hash(None)
+        return (
+            hash(self._name)
+            ^ hash(tuple(self._categories.keys()))
+            ^ hash(tuple(self._categories.values()))
+        )
 
     @property
     def categories(self) -> Optional[Dict[str, int]]:
@@ -91,6 +117,14 @@ class ArrayDType(DType):
         super().__init__("array")
         self.shape = shape
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, ArrayDType):
+            return other.shape == self.shape
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._name) ^ hash(self.shape)
+
     @property
     def ndim(self) -> int:
         if self.shape is None:
@@ -111,6 +145,14 @@ class EmbeddingDType(DType):
             raise ValueError(f"Length must be non-negative, but {length} received.")
         self.length = length
 
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, EmbeddingDType):
+            return other.length == self.length
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._name) ^ hash(self.length)
+
 
 class Sequence1DDType(DType):
     """
@@ -124,6 +166,14 @@ class Sequence1DDType(DType):
         super().__init__("Sequence1D")
         self.x_label = x_label
         self.y_label = y_label
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Sequence1DDType):
+            return other.x_label == self.x_label and other.y_label == self.y_label
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._name) ^ hash(self.x_label) ^ hash(self.y_label)
 
 
 ALIASES: Dict[Any, DType] = {}
