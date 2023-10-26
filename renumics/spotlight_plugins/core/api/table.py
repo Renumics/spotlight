@@ -73,7 +73,7 @@ def get_table(request: Request) -> ORJSONResponse:
     columns = []
     for column_name in data_store.column_names:
         dtype = data_store.dtypes[column_name]
-        values = data_store.get_converted_values(column_name, simple=True)
+        values = data_store.get_converted_values(column_name, simple=True, check=False)
         meta = data_store.get_column_metadata(column_name)
         column = Column(
             name=column_name,
