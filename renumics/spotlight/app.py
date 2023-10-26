@@ -89,7 +89,6 @@ class SpotlightApp(FastAPI):
     """
 
     # lifecycle
-    _startup_complete: bool
     _loop: asyncio.AbstractEventLoop
 
     # connection
@@ -120,7 +119,6 @@ class SpotlightApp(FastAPI):
 
     def __init__(self) -> None:
         super().__init__()
-        self._startup_complete = False
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
@@ -313,44 +311,45 @@ class SpotlightApp(FastAPI):
         """
         Update application config.
         """
-        if config.project_root is not None:
-            self.project_root = config.project_root
-        if config.dtypes is not None:
-            self._user_dtypes = config.dtypes
-        if config.analyze is not None:
-            self.analyze_columns = config.analyze
-        if config.custom_issues is not None:
-            self.custom_issues = config.custom_issues
-        if config.dataset is not None:
-            self._dataset = config.dataset
-            self._data_source = create_datasource(self._dataset)
-        if config.layout is not None:
-            self._layout = config.layout or layouts.default()
-        if config.filebrowsing_allowed is not None:
-            self.filebrowsing_allowed = config.filebrowsing_allowed
+        try:
+            if config.project_root is not None:
+                self.project_root = config.project_root
+            if config.dtypes is not None:
+                self._user_dtypes = config.dtypes
+            if config.analyze is not None:
+                self.analyze_columns = config.analyze
+            if config.custom_issues is not None:
+                self.custom_issues = config.custom_issues
+            if config.dataset is not None:
+                self._dataset = config.dataset
+                self._data_source = create_datasource(self._dataset)
+            if config.layout is not None:
+                self._layout = config.layout or layouts.default()
+            if config.filebrowsing_allowed is not None:
+                self.filebrowsing_allowed = config.filebrowsing_allowed
 
-        if config.dtypes is not None or config.dataset is not None:
-            data_source = self._data_source
-            assert data_source is not None
-            self._data_store = DataStore(data_source, self._user_dtypes)
-            self._broadcast(RefreshMessage())
-            self._update_issues()
-        if config.layout is not None:
-            if self._data_store is not None:
-                dataset_uid = self._data_store.uid
-                future = asyncio.run_coroutine_threadsafe(
-                    self.config.remove_all(CURRENT_LAYOUT_KEY, dataset=dataset_uid),
-                    self._loop,
-                )
-                future.result()
-            self._broadcast(ResetLayoutMessage())
+            if config.dtypes is not None or config.dataset is not None:
+                data_source = self._data_source
+                assert data_source is not None
+                self._data_store = DataStore(data_source, self._user_dtypes)
+                self._broadcast(RefreshMessage())
+                self._update_issues()
+            if config.layout is not None:
+                if self._data_store is not None:
+                    dataset_uid = self._data_store.uid
+                    future = asyncio.run_coroutine_threadsafe(
+                        self.config.remove_all(CURRENT_LAYOUT_KEY, dataset=dataset_uid),
+                        self._loop,
+                    )
+                    future.result()
+                self._broadcast(ResetLayoutMessage())
 
-        for plugin in load_plugins():
-            plugin.update(self, config)
+            for plugin in load_plugins():
+                plugin.update(self, config)
+        except Exception as e:
+            self._connection.send({"kind": "update_complete", "error": e})
 
-        if not self._startup_complete:
-            self._startup_complete = True
-            self._connection.send({"kind": "startup_complete"})
+        self._connection.send({"kind": "update_complete"})
 
     def _handle_message(self, message: Any) -> None:
         kind = message.get("kind")
