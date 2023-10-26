@@ -41,6 +41,8 @@ class Server:
     process: Optional[subprocess.Popen]
 
     _startup_event: threading.Event
+    _update_complete_event: threading.Event
+    _update_error: Optional[Exception]
 
     connection: Optional[multiprocessing.connection.Connection]
     _connection_message_queue: Queue
@@ -77,7 +79,7 @@ class Server:
         )
 
         self._startup_event = threading.Event()
-        self._startup_complete_event = threading.Event()
+        self._update_complete_event = threading.Event()
 
         self._connection_thread_online = threading.Event()
         self._connection_thread = threading.Thread(
@@ -151,7 +153,6 @@ class Server:
             command.append("--reload")
 
         # start uvicorn
-
         self.process = subprocess.Popen(
             command,
             env=env,
@@ -164,7 +165,7 @@ class Server:
         )
         if platform.system() != "Windows":
             sock.close()
-        self._startup_complete_event.wait(timeout=120)
+        self._wait_for_update()
 
     def stop(self) -> None:
         """
@@ -197,7 +198,6 @@ class Server:
         self._port = self._requested_port
 
         self._startup_event.clear()
-        self._startup_complete_event.clear()
 
     @property
     def running(self) -> bool:
@@ -217,8 +217,20 @@ class Server:
         """
         Update app config
         """
+        self._update(config)
+        self._wait_for_update()
+
+    def _update(self, config: AppConfig) -> None:
         self._app_config = config
         self.send({"kind": "update", "data": config})
+
+    def _wait_for_update(self) -> None:
+        self._update_complete_event.wait(timeout=120)
+        self._update_complete_event.clear()
+        err = self._update_error
+        self._update_error = None
+        if err:
+            raise err
 
     def get_df(self) -> Optional[pd.DataFrame]:
         """
@@ -236,9 +248,10 @@ class Server:
 
         if kind == "startup":
             self._startup_event.set()
-            self.update(self._app_config)
-        elif kind == "startup_complete":
-            self._startup_complete_event.set()
+            self._update(self._app_config)
+        elif kind == "update_complete":
+            self._update_error = message.get("error")
+            self._update_complete_event.set()
         elif kind == "frontend_connected":
             self.connected_frontends = message["data"]
             self._all_frontends_disconnected.clear()

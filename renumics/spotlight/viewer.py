@@ -176,7 +176,11 @@ class Viewer:
             if self not in _VIEWERS:
                 _VIEWERS.append(self)
         else:
-            self._server.update(config)
+            try:
+                self._server.update(config)
+            except Exception as e:
+                self.close()
+                raise e
 
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
