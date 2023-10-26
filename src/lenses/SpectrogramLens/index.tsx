@@ -166,22 +166,14 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 return;
             }
 
-            //console.log(JSON.stringify((buffer.getChannelData(0).slice(start, end)))
-            //const slice = buffer.getChannelData(0).slice(start, end);
-            const arr = buffer.getChannelData(0).slice(start, end);
-            console.log(Math.max(...arr), Math.min(...arr));
             const frequenciesData = await worker(
                 FFT_SAMPLES,
                 backend.windowFunc,
                 backend.alpha,
                 width,
                 FFT_SAMPLES,
-                arr
+                buffer.getChannelData(0).slice(start, end)
             );
-
-            console.log(frequenciesData);
-            console.log(frequenciesData.length);
-            console.log(frequenciesData[0].length);
 
             setIsComputing(false);
 
@@ -216,7 +208,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
 
             let drawData = [];
-            //let colorScale: chroma.Scale<chroma.Color>;
 
             let min = 0;
             let max = 0;
