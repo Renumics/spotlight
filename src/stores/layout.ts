@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { AppLayout } from '../types';
 import api from '../api';
 import { saveAs } from 'file-saver';
+import websocketService from '../services/websocket';
 
 export interface State {
     layout: AppLayout;
@@ -41,3 +42,7 @@ export const useLayout = create<State>((set) => ({
         reader.readAsText(file);
     },
 }));
+
+websocketService.registerMessageHandler('resetLayout', () => {
+    useLayout.getState().reset();
+});

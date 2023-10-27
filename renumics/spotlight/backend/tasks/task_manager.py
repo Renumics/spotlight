@@ -6,7 +6,7 @@ import asyncio
 import multiprocessing
 from concurrent.futures import Future, ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
-from typing import Any, Callable, List, Optional, Sequence, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union
 
 from .exceptions import TaskCancelled
 from .task import Task
@@ -30,16 +30,20 @@ class TaskManager:
         self,
         func: Callable,
         args: Sequence[Any],
+        kwargs: Optional[Dict[str, Any]] = None,
         name: Optional[str] = None,
         tag: Optional[Union[str, int]] = None,
     ) -> Task:
         """
         create and launch a new task
         """
+        if kwargs is None:
+            kwargs = {}
+
         # cancel running task with same name
         self.cancel(name=name)
 
-        future = self.pool.submit(func, *args)
+        future = self.pool.submit(func, *args, **kwargs)
 
         task = Task(name, tag, future)
         self.tasks.append(task)
@@ -59,6 +63,7 @@ class TaskManager:
         self,
         func: Callable[..., T],
         args: Sequence[Any],
+        kwargs: Optional[Dict[str, Any]] = None,
         name: Optional[str] = None,
         tag: Optional[Union[str, int]] = None,
     ) -> T:
@@ -66,7 +71,7 @@ class TaskManager:
         Launch a new task. Await and return result.
         """
 
-        task = self.create_task(func, args, name, tag)
+        task = self.create_task(func, args=args, kwargs=kwargs, name=name, tag=tag)
         try:
             return await asyncio.wrap_future(task.future)
         except BrokenProcessPool as e:
