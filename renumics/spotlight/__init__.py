@@ -1,5 +1,24 @@
 """
 Renumics Spotlight
+
+Serving a `pandas.DataFrame`:
+    >>> import pandas as pd
+    >>> from renumics import spotlight
+    >>> df = pd.DataFrame(
+    ...    {
+    ...         "int": range(4),
+    ...         "str": "foo",
+    ...         "dt": pd.Timestamp("2017-01-01T12"),
+    ...         "cat": pd.Categorical(["foo", "bar"] * 2),
+    ...     }
+    ... )
+    >>> viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
+    Spotlight running on http://127.0.0.1:5000/
+    >>> spotlight.viewers()
+    [http://127.0.0.1:5000/]
+    >>> spotlight.close()
+    >>> spotlight.viewers()
+    []
 """
 
 from .__version__ import __version__  # noqa: F401
