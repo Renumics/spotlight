@@ -3,7 +3,7 @@ import 'twin.macro';
 import rouge from 'rouge';
 import { formatNumber } from '../dataformat';
 
-const RougeScoreLens: Lens = ({ values }) => {
+const RougeScoreLens: Lens<string> = ({ values }) => {
     const rouge1 = rouge.n(values[0], values[1], 1);
     const rouge2 = rouge.n(values[0], values[1], 2);
     return (
@@ -25,6 +25,7 @@ RougeScoreLens.minHeight = 50;
 RougeScoreLens.maxHeight = 100;
 RougeScoreLens.multi = true;
 RougeScoreLens.displayName = 'ROUGE Score';
+
 RougeScoreLens.filterAllowedColumns = (allColumns, selectedColumns) => {
     if (selectedColumns.length === 2) return [];
     const selectedKeys = selectedColumns.map((selectedCol) => selectedCol.key);
@@ -32,8 +33,6 @@ RougeScoreLens.filterAllowedColumns = (allColumns, selectedColumns) => {
         return type.kind === 'str' && !selectedKeys.includes(key);
     });
 };
-RougeScoreLens.isSatisfied = (columns) => {
-    if (columns.length === 2) return true;
-    return false;
-};
+RougeScoreLens.isSatisfied = (columns) => columns.length === 2;
+
 export default RougeScoreLens;
