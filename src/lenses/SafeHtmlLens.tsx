@@ -3,8 +3,8 @@ import { Lens } from '../types';
 import DOMPurify from 'dompurify';
 import Html from '../components/ui/Html';
 
-const SafeHtmlLens: Lens = ({ value }) => {
-    const safe_html = DOMPurify.sanitize(value as string);
+const SafeHtmlLens: Lens<string> = ({ value }) => {
+    const safe_html = DOMPurify.sanitize(value);
 
     return <Html html={safe_html} />;
 };
