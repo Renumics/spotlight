@@ -100,9 +100,20 @@ export const METRICS: Record<string, Metric> = {
     },
     Levenshtein: {
         signature: {
-            X: ['bool'],
-            Y: ['bool'],
+            X: ['str'],
+            Y: ['str'],
         },
-        compute: ([actualValues, assignedValues]) => computeLevenshtein(actualValues as boolean[], assignedValues as boolean[]),
+        compute: ([actualValues, assignedValues]) => {
+            const numValues = actualValues.length;
+            var sumLevenshtein = 0;
+
+            for (let i = 0; i < actualValues.length; i++) {
+                const actual = actualValues[i];
+                const assigned = assignedValues[i];
+                sumLevenshtein += computeLevenshtein(actual as string, assigned as string);
+            }
+
+            return sumLevenshtein / numValues;
+        },
     },
 };

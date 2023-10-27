@@ -1,4 +1,4 @@
-export function computeLevenshtein(actualValues: boolean[], assignedValues: boolean[]): number {
+export function computeLevenshtein(actualValues: string, assignedValues: string): number {
     if (actualValues.length === 0) {
         return assignedValues.length;
     }
