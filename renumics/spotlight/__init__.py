@@ -44,12 +44,13 @@ Serving a Hugging Face dataset:
     >>> spotlight.close()
 
 Serving a H5 dataset:
+    >>> from datetime import datetime
     >>> import datasets
     >>> from renumics import spotlight
     >>> with spotlight.Dataset("docs/example.h5", "w") as dataset:
     ...     dataset.append_int_column("int", range(4))
     ...     dataset.append_string_column("str", "foo")
-    ...     dataset.append_datetime_column("dt", datetime(2017, 01, 01, 12))
+    ...     dataset.append_datetime_column("dt", datetime(2017, 1, 1, 12))
     ...     dataset.append_categorical_column("cat", ["foo", "bar"] * 2)
     >>> viewer = spotlight.show(
     ...     "docs/example.h5", port=5000, no_browser=True, wait=False
@@ -62,6 +63,8 @@ Serving multiple datasets:
     >>> import pandas as pd
     >>> from renumics import spotlight
     >>> from renumics.spotlight import dtypes
+    >>> spotlight.viewers()
+    []
     >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
     >>> df_viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
