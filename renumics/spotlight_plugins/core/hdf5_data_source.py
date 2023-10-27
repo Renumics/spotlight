@@ -49,6 +49,11 @@ class H5Dataset(Dataset):
             raw_values = np.array([x.decode("utf-8") for x in raw_values])
 
         if self._is_ref_column(column):
+            if not is_string_dtype:
+                raise RuntimeError(
+                    "Only new-style string h5 references supported. Update "
+                    "your dataset using `dataset.rebuild()`."
+                )
             assert is_string_dtype, "Only new-style string h5 references supported."
             normalized_values = np.empty(len(raw_values), dtype=object)
             normalized_values[:] = [
