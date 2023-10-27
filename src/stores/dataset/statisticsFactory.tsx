@@ -1,4 +1,4 @@
-import { DataType, isNumerical } from '../../datatypes';
+import { DataType, isCategorical, isNumerical } from '../../datatypes';
 import { max, mean, min, quantile, standardDeviation } from 'simple-statistics';
 import {
     ColumnData,
@@ -13,7 +13,7 @@ export const makeStats = (
     data: ColumnData,
     mask?: boolean[]
 ): DataStatistics | undefined => {
-    if (!isNumerical(type)) {
+    if (!isNumerical(type) && !isCategorical(type)) {
         return;
     }
 

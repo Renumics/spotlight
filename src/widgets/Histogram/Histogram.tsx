@@ -81,7 +81,7 @@ const Histogram: Widget = () => {
             stackByColumnKey
                 ? d.colorTransferFunctions[stackByColumnKey]?.[
                       filter ? 'filtered' : 'full'
-                  ][0]
+                  ]
                 : createConstantTransferFunction(),
         [filter, stackByColumnKey]
     );
