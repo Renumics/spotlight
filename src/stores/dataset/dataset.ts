@@ -44,8 +44,8 @@ export interface Dataset {
     colorTransferFunctions: Record<
         string,
         {
-            full: TransferFunction[];
-            filtered: TransferFunction[];
+            full: TransferFunction;
+            filtered: TransferFunction;
         }
     >;
     recomputeColorTransferFunctions: () => void;
@@ -430,8 +430,7 @@ export const useDataset = create(
                 const newTransferFunctions = makeColumnsColorTransferFunctions(
                     get().columns.filter(({ key }) => columnsToCompute.includes(key)),
                     get().columnData,
-                    get().columnStats,
-                    get().isIndexFiltered
+                    get().filteredIndices
                 );
 
                 set({
@@ -534,6 +533,8 @@ useDataset.subscribe(
         useDataset.getState().recomputeColorTransferFunctions();
     }
 );
+
+useColors.subscribe(useDataset.getState().recomputeColorTransferFunctions);
 
 useDataset.subscribe(
     (state) => state.selectedIndices,

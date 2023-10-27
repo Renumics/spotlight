@@ -139,9 +139,7 @@ const ScatterplotView: Widget = () => {
     const transferFunctionSelector = useCallback(
         (d: Dataset) =>
             colorByKey !== undefined && colorByKey.length > 0
-                ? d.colorTransferFunctions[colorByKey]?.[
-                      filter ? 'filtered' : 'full'
-                  ][0]
+                ? d.colorTransferFunctions[colorByKey]?.[filter ? 'filtered' : 'full']
                 : createConstantTransferFunction(),
         [colorByKey, filter]
     );

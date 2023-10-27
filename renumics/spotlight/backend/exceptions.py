@@ -169,3 +169,15 @@ class FilebrowsingNotAllowed(Problem):
             "Filebrowsing is not allowed.",
             status.HTTP_403_FORBIDDEN,
         )
+
+
+class H5DatasetOutdated(Problem):
+    """H5 Dataset is outdated"""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "H5 Dataset outdated",
+            "Only new-style string H5 references supported. Update your "
+            "dataset using `dataset.rebuild()`.",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
