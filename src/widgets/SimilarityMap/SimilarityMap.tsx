@@ -23,6 +23,7 @@ import {
     IndexArray,
     isNumberColumn,
     NumberColumn,
+    Problem,
     TableData,
 } from '../../types';
 import { createSizeTransferFunction } from '../../dataformat';
@@ -220,8 +221,8 @@ const SimilarityMap: Widget = () => {
     const placeByColumns = useDataset(placeByColumnsSelector, shallow);
 
     const [positions, setPositions] = useState<[number, number][]>([]);
-
     const [visibleIndices, setVisibleIndices] = useState<IndexArray>([]);
+    const [problem, setProblem] = useState<Problem | null>(null);
 
     const selected = useMemo(() => {
         const selected: boolean[] = [];
@@ -242,9 +243,7 @@ const SimilarityMap: Widget = () => {
     const transferFunctionSelector = useCallback(
         (d: Dataset) =>
             colorByKey !== undefined && colorByKey.length > 0
-                ? d.colorTransferFunctions[colorByKey]?.[
-                      filter ? 'filtered' : 'full'
-                  ][0]
+                ? d.colorTransferFunctions[colorByKey]?.[filter ? 'filtered' : 'full']
                 : createConstantTransferFunction(colorBy?.type ?? unknownDataType),
         [colorByKey, filter, colorBy?.type]
     );
@@ -275,13 +274,14 @@ const SimilarityMap: Widget = () => {
     const widgetId = useMemo(() => uuidv4(), []);
 
     useEffect(() => {
+        setVisibleIndices([]);
+        setPositions([]);
+        setProblem(null);
+
         if (!indices.length || !placeByColumnKeys.length) {
-            setVisibleIndices([]);
-            setPositions([]);
             setIsComputing(false);
             return;
         }
-
         setIsComputing(true);
 
         const reductionPromise =
@@ -302,12 +302,18 @@ const SimilarityMap: Widget = () => {
                   );
 
         let cancelled = false;
-        reductionPromise.then(({ points, indices }) => {
-            if (cancelled) return;
-            setVisibleIndices(indices);
-            setPositions(points);
-            setIsComputing(false);
-        });
+        reductionPromise
+            .then(({ points, indices }) => {
+                if (cancelled) return;
+                setVisibleIndices(indices);
+                setPositions(points);
+                setIsComputing(false);
+            })
+            .catch((problem: Problem) => {
+                if (cancelled) return;
+                setProblem(problem);
+                setIsComputing(false);
+            });
 
         return () => {
             cancelled = true;
@@ -443,23 +449,36 @@ const SimilarityMap: Widget = () => {
     const areColumnsSelected = !!placeByColumnKeys.length;
     const hasVisibleRows = !!visibleIndices.length;
 
-    return (
-        <MapContainer data-test-tag="similaritymap">
-            {isComputing && <LoadingIndicator />}
-            {!areColumnsSelected && !isComputing && (
-                <Info>
-                    <span>
-                        Select columns and show at least two rows to display similarity
-                        map
-                    </span>
-                </Info>
-            )}
-            {areColumnsSelected && !hasVisibleRows && !isComputing && (
-                <Info>
-                    <span>Not enough rows</span>
-                </Info>
-            )}
-            {areColumnsSelected && hasVisibleRows && !isComputing && (
+    let content: JSX.Element;
+    if (problem) {
+        content = (
+            <div tw="w-full h-full flex flex-col items-stretch justify-end">
+                <div tw="flex flex-col items-stretch justify-end bg-red-500 text-black/80 pb-0.5">
+                    <div tw="h-px bg-black/30" />
+                    <div tw="text-sm font-bold px-0.5">{problem.title}</div>
+                    <div tw="text-xs px-0.5">{problem.detail}</div>
+                </div>
+            </div>
+        );
+    } else if (isComputing) {
+        content = <LoadingIndicator />;
+    } else if (!areColumnsSelected) {
+        content = (
+            <Info>
+                <span>
+                    Select columns and show at least two rows to display similarity map
+                </span>
+            </Info>
+        );
+    } else if (!hasVisibleRows) {
+        content = (
+            <Info>
+                <span>Not enough rows</span>
+            </Info>
+        );
+    } else {
+        content = (
+            <>
                 <PlotContainer>
                     <Plot
                         points={positions}
@@ -485,14 +504,17 @@ const SimilarityMap: Widget = () => {
                         />
                     )}
                 </PlotContainer>
-            )}
 
-            {!isComputing && (
                 <div tw="absolute bottom-0 w-full text-xs text-right text-gray-700 p-0.5 pointer-events-none">
                     {visibleIndices.length} of {indices.length} rows
                 </div>
-            )}
+            </>
+        );
+    }
 
+    return (
+        <MapContainer data-test-tag="similaritymap">
+            {content}
             <MenuBar
                 colorBy={colorByKey}
                 sizeBy={sizeByKey}

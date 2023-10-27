@@ -176,7 +176,11 @@ class Viewer:
             if self not in _VIEWERS:
                 _VIEWERS.append(self)
         else:
-            self._server.update(config)
+            try:
+                self._server.update(config)
+            except Exception as e:
+                self.close()
+                raise e
 
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
@@ -220,7 +224,7 @@ class Viewer:
         """
         if not self.port:
             return
-        launch_browser_in_thread(self.host, self.port)
+        launch_browser_in_thread("localhost", self.port)
 
     def refresh(self) -> None:
         """
@@ -356,8 +360,8 @@ def show(
     viewer = None
     if port != "auto":
         # reuse viewer with the same port if specified
-        for index, viewer in enumerate(_VIEWERS):
-            if viewer.port == port:
+        for index, viewer_ in enumerate(_VIEWERS):
+            if viewer_.port == port:
                 viewer = _VIEWERS[index]
                 break
     if not viewer:

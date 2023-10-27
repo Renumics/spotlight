@@ -233,12 +233,7 @@ const calculateFrequencies = (
                 tables.cosTable
             );
 
-            const array = new Uint8Array(fftSamples / 2);
-            let j;
-            for (j = 0; j < fftSamples / 2; j++) {
-                array[j] = Math.max(-255, Math.log10(spectrum[j]) * 45);
-            }
-            channelFreq.push(array);
+            channelFreq.push(spectrum);
             currentOffset += fftSamples - noverlap;
         }
         frequencies.push(channelFreq);

@@ -22,6 +22,7 @@ import { notifyAPIError, notifyError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
+import websocketService from '../../services/websocket';
 
 export type CallbackOrData<T> = ((data: T) => T) | T;
 
@@ -43,8 +44,8 @@ export interface Dataset {
     colorTransferFunctions: Record<
         string,
         {
-            full: TransferFunction[];
-            filtered: TransferFunction[];
+            full: TransferFunction;
+            filtered: TransferFunction;
         }
     >;
     recomputeColorTransferFunctions: () => void;
@@ -429,8 +430,7 @@ export const useDataset = create(
                 const newTransferFunctions = makeColumnsColorTransferFunctions(
                     get().columns.filter(({ key }) => columnsToCompute.includes(key)),
                     get().columnData,
-                    get().columnStats,
-                    get().isIndexFiltered
+                    get().filteredIndices
                 );
 
                 set({
@@ -534,9 +534,19 @@ useDataset.subscribe(
     }
 );
 
+useColors.subscribe(useDataset.getState().recomputeColorTransferFunctions);
+
 useDataset.subscribe(
     (state) => state.selectedIndices,
     useDataset.getState().recomputeColumnRelevance
 );
 
 useColors.subscribe(() => useDataset.getState().recomputeColorTransferFunctions());
+
+websocketService.registerMessageHandler('refresh', () => {
+    useDataset.getState().refresh();
+});
+
+websocketService.registerMessageHandler('issuesUpdated', () => {
+    useDataset.getState().fetchIssues();
+});

@@ -76,6 +76,7 @@
         "react-virtualized-auto-sizer": "^1.0.7",
         "react-window": "^1.8.8",
         "recharts": "^2.4.3",
+        "rouge": "^1.0.3",
         "seedrandom": "^3.0.5",
         "shallowequal": "^1.1.0",
         "short-uuid": "^4.2.2",

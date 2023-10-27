@@ -21,13 +21,16 @@ from renumics.spotlight.dtypes import (
     DType,
     DTypeMap,
     EmbeddingDType,
+    array_dtype,
     is_array_dtype,
     is_audio_dtype,
     is_category_dtype,
+    is_embedding_dtype,
     is_file_dtype,
     is_str_dtype,
     is_mixed_dtype,
     is_bytes_dtype,
+    is_window_dtype,
     str_dtype,
     audio_dtype,
     image_dtype,
@@ -173,33 +176,32 @@ class DataStore:
             return semantic_dtype
 
         sample_values = self._data_source.get_column_values(col, slice(10))
-        sample_dtypes = [_guess_value_dtype(value) for value in sample_values]
-
-        try:
-            mode_dtype = statistics.mode(sample_dtypes)
-        except statistics.StatisticsError:
+        sample_dtypes: List[DType] = []
+        for value in sample_values:
+            guessed_dtype = _guess_value_dtype(value)
+            if guessed_dtype is not None:
+                sample_dtypes.append(guessed_dtype)
+        if not sample_dtypes:
             return semantic_dtype
 
-        return mode_dtype or semantic_dtype
+        mode_dtype = statistics.mode(sample_dtypes)
+        # For windows and embeddings, at least sample values must be aligned.
+        if is_window_dtype(mode_dtype) and any(
+            not is_window_dtype(dtype) for dtype in sample_dtypes
+        ):
+            return array_dtype
+        if is_embedding_dtype(mode_dtype) and any(
+            (not is_embedding_dtype(dtype)) or dtype.length != mode_dtype.length
+            for dtype in sample_dtypes
+        ):
+            return array_dtype
+
+        return mode_dtype
 
 
 def _intermediate_to_semantic_dtype(intermediate_dtype: DType) -> DType:
     if is_array_dtype(intermediate_dtype):
-        if intermediate_dtype.shape is None:
-            return intermediate_dtype
-        if intermediate_dtype.shape == (2,):
-            return window_dtype
-        if intermediate_dtype.ndim == 1 and intermediate_dtype.shape[0] is not None:
-            return EmbeddingDType(intermediate_dtype.shape[0])
-        if intermediate_dtype.ndim == 1 and intermediate_dtype.shape[0] is None:
-            return sequence_1d_dtype
-        if intermediate_dtype.ndim == 2 and (
-            intermediate_dtype.shape[0] == 2 or intermediate_dtype.shape[1] == 2
-        ):
-            return sequence_1d_dtype
-        if intermediate_dtype.ndim == 3 and intermediate_dtype.shape[-1] in (1, 3, 4):
-            return image_dtype
-        return intermediate_dtype
+        return _guess_array_dtype(intermediate_dtype)
     if is_file_dtype(intermediate_dtype):
         return str_dtype
     if is_mixed_dtype(intermediate_dtype):
@@ -262,5 +264,21 @@ def _guess_value_dtype(value: Any) -> Optional[DType]:
         except (TypeError, ValueError):
             pass
         else:
-            return ArrayDType(value.shape)
+            return _guess_array_dtype(ArrayDType(value.shape))
     return None
+
+
+def _guess_array_dtype(dtype: ArrayDType) -> DType:
+    if dtype.shape is None:
+        return dtype
+    if dtype.shape == (2,):
+        return window_dtype
+    if dtype.ndim == 1 and dtype.shape[0] is not None:
+        return EmbeddingDType(dtype.shape[0])
+    if dtype.ndim == 1 and dtype.shape[0] is None:
+        return sequence_1d_dtype
+    if dtype.ndim == 2 and (dtype.shape[0] == 2 or dtype.shape[1] == 2):
+        return sequence_1d_dtype
+    if dtype.ndim == 3 and dtype.shape[-1] in (1, 3, 4):
+        return image_dtype
+    return dtype

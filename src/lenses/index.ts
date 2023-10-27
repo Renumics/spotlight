@@ -10,6 +10,7 @@ import SequenceLens from './SequenceLens';
 import SpectrogramLens from './SpectrogramLens';
 import TextLens from './TextLens';
 import VideoLens from './VideoLens';
+import RougeScoreLens from './RougeScoreLens';
 import BLEUScoreLens from './BLEUScoreLens';
 
 export const ALL_LENSES = [
@@ -25,5 +26,6 @@ export const ALL_LENSES = [
     HtmlLens,
     MarkdownLens,
     ScalarLens,
+    RougeScoreLens,
     BLEUScoreLens,
 ];

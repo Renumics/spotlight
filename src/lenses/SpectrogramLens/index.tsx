@@ -10,7 +10,6 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import chroma from 'chroma-js';
 import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
@@ -209,7 +208,8 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
 
             let drawData = [];
-            let colorScale: chroma.Scale<chroma.Color>;
+            let min = 0;
+            let max = 0;
 
             if (ampScale === 'decibel') {
                 let ref = 0;
@@ -223,9 +223,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 //const top_db = 80;
                 const amin = 1e-5;
 
-                let log_spec_max = 0;
-                let log_spec_min = 0;
-
                 // Convert amplitudes to decibels
                 for (let i = 0; i < frequenciesData.length; i++) {
                     const col = [];
@@ -234,23 +231,33 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         const amplitude = frequenciesData[i][j];
                         col[j] = amplitudeToDb(amplitude, ref, amin);
 
-                        if (col[j] > log_spec_max) {
-                            log_spec_max = col[j];
+                        if (col[j] > max) {
+                            max = col[j];
                         }
 
-                        if (col[j] < log_spec_min) {
-                            log_spec_min = col[j];
+                        if (col[j] < min) {
+                            min = col[j];
                         }
                     }
 
                     drawData[i] = col;
                 }
-                colorScale = colorPalette.scale().domain([log_spec_min, log_spec_max]);
             } else {
                 // ampScale === 'linear'
-                colorScale = colorPalette.scale().domain([0, 256]);
+                for (let i = 0; i < frequenciesData.length; i++) {
+                    const maxI = Math.max(...frequenciesData[i]);
+                    const minI = Math.min(...frequenciesData[i]);
+
+                    if (maxI > max) {
+                        max = maxI;
+                    }
+                    if (minI < min) {
+                        min = minI;
+                    }
+                }
                 drawData = frequenciesData;
             }
+            const colorScale = colorPalette.scale().domain([min, max]);
 
             for (let y = 0; y < height; y++) {
                 let value = 0;

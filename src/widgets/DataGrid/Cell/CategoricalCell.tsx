@@ -22,7 +22,7 @@ const CategoricalCell: FunctionComponent<Props> = ({ value, column }) => {
         (d: Dataset) =>
             d.colorTransferFunctions[column.key]?.[
                 tableView !== 'full' ? 'filtered' : 'full'
-            ][0],
+            ],
         [column.key, tableView]
     );
 

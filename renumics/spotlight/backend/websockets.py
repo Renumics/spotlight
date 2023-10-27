@@ -3,11 +3,20 @@ This module provides interfaces for websockets.
 """
 
 import asyncio
-import functools
-import orjson
-from typing import Any, List, Optional, Set, Callable
+from typing import (
+    Any,
+    Coroutine,
+    Dict,
+    Optional,
+    Set,
+    Callable,
+    Tuple,
+    Type,
+    cast,
+)
 
 import numpy as np
+import orjson
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 from pydantic import BaseModel
@@ -17,7 +26,7 @@ from renumics.spotlight.data_store import DataStore
 
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
-from .exceptions import GenerationIDMismatch
+from .exceptions import GenerationIDMismatch, Problem
 
 
 class Message(BaseModel):
@@ -47,86 +56,12 @@ class ResetLayoutMessage(Message):
     data: Any = None
 
 
-class ReductionMessage(Message):
-    """
-    Common data reduction message model.
-    """
-
+class TaskData(BaseModel):
+    task: str
     widget_id: str
-    uid: str
-    generation_id: int
-
-
-class ReductionRequestData(BaseModel):
-    """
-    Base data reduction request payload.
-    """
-
-    indices: List[int]
-    columns: List[str]
-
-
-class UMapRequestData(ReductionRequestData):
-    """
-    U-Map request payload.
-    """
-
-    n_neighbors: int
-    metric: str
-    min_dist: float
-
-
-class PCARequestData(ReductionRequestData):
-    """
-    PCA request payload.
-    """
-
-    normalization: str
-
-
-class UMapRequest(ReductionMessage):
-    """
-    U-Map request model.
-    """
-
-    data: UMapRequestData
-
-
-class PCARequest(ReductionMessage):
-    """
-    PCA request model.
-    """
-
-    data: PCARequestData
-
-
-class ReductionResponseData(BaseModel):
-    """
-    Data reduction response payload.
-    """
-
-    indices: List[int]
-    points: np.ndarray
-
-    class Config:
-        arbitrary_types_allowed = True
-
-
-class ReductionResponse(ReductionMessage):
-    """
-    Data reduction response model.
-    """
-
-    data: ReductionResponseData
-
-
-MESSAGE_BY_TYPE = {
-    "umap": UMapRequest,
-    "umap_result": ReductionResponse,
-    "pca": PCARequest,
-    "pca_result": ReductionResponse,
-    "refresh": RefreshMessage,
-}
+    task_id: str
+    generation_id: Optional[int]
+    args: Any
 
 
 class UnknownMessageType(Exception):
@@ -135,27 +70,32 @@ class UnknownMessageType(Exception):
     """
 
 
-def parse_message(raw_message: str) -> Message:
+class SerializationError(Exception):
     """
-    Parse a websocket message from a raw text.
-    """
-    json_message = orjson.loads(raw_message)
-    message_type = json_message["type"]
-    message_class = MESSAGE_BY_TYPE.get(message_type)
-    if message_class is None:
-        raise UnknownMessageType(f"Message type {message_type} is unknown.")
-    return message_class(**json_message)
-
-
-@functools.singledispatch
-async def handle_message(request: Message, connection: "WebsocketConnection") -> None:
-    """
-    Handle incoming messages.
-
-    New message types should be registered by decorating with `@handle_message.register`.
+    Failed to serialize the WS message
     """
 
-    raise NotImplementedError
+
+PayloadType = Type[BaseModel]
+MessageHandler = Callable[[Any, "WebsocketConnection"], Coroutine[Any, Any, Any]]
+MessageHandlerSpec = Tuple[PayloadType, MessageHandler]
+MESSAGE_HANDLERS: Dict[str, MessageHandlerSpec] = {}
+
+
+def register_message_handler(
+    message_type: str, handler_spec: MessageHandlerSpec
+) -> None:
+    MESSAGE_HANDLERS[message_type] = handler_spec
+
+
+def message_handler(
+    message_type: str, payload_type: Type[BaseModel]
+) -> Callable[[MessageHandler], MessageHandler]:
+    def decorator(handler: MessageHandler) -> MessageHandler:
+        register_message_handler(message_type, (payload_type, handler))
+        return handler
+
+    return decorator
 
 
 class WebsocketConnection:
@@ -174,11 +114,15 @@ class WebsocketConnection:
         """
         Send a message async.
         """
+
         try:
-            message_data = message.dict()
-            await self.websocket.send_text(
-                orjson.dumps(message_data, option=orjson.OPT_SERIALIZE_NUMPY).decode()
-            )
+            json_text = orjson.dumps(
+                message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
+            ).decode()
+        except TypeError as e:
+            raise SerializationError(str(e))
+        try:
+            await self.websocket.send_text(json_text)
         except WebSocketDisconnect:
             self._on_disconnect()
         except RuntimeError:
@@ -204,12 +148,17 @@ class WebsocketConnection:
         try:
             while True:
                 try:
-                    message = parse_message(await self.websocket.receive_text())
+                    raw_message = await self.websocket.receive_text()
+                    message = Message(**orjson.loads(raw_message))
                 except UnknownMessageType as e:
                     logger.warning(str(e))
                 else:
                     logger.info(f"WS message with type {message.type} received.")
-                    asyncio.create_task(handle_message(message, self))
+                    if handler_spec := MESSAGE_HANDLERS.get(message.type):
+                        payload_type, handler = handler_spec
+                        asyncio.create_task(handler(payload_type(**message.data), self))
+                    else:
+                        logger.error(f"Unknown message received: {message.type}")
         except WebSocketDisconnect:
             self._on_disconnect()
 
@@ -300,73 +249,80 @@ class WebsocketManager:
             callback(len(self.connections))
 
 
-@handle_message.register
-async def _(request: UMapRequest, connection: "WebsocketConnection") -> None:
+TASK_FUNCS = {"umap": compute_umap, "pca": compute_pca}
+
+
+@message_handler("task", TaskData)
+async def _(data: TaskData, connection: WebsocketConnection) -> None:
     data_store: Optional[DataStore] = connection.websocket.app.data_store
     if data_store is None:
         return None
-    try:
-        data_store.check_generation_id(request.generation_id)
-    except GenerationIDMismatch:
-        return
+
+    if data.generation_id:
+        try:
+            data_store.check_generation_id(data.generation_id)
+        except GenerationIDMismatch:
+            return
 
     try:
-        points, valid_indices = await connection.task_manager.run_async(
-            compute_umap,
-            (
-                data_store,
-                request.data.columns,
-                request.data.indices,
-                request.data.n_neighbors,
-                request.data.metric,
-                request.data.min_dist,
-            ),
-            name=request.widget_id,
+        task_func = TASK_FUNCS[data.task]
+        result = await connection.task_manager.run_async(
+            task_func,  # type: ignore
+            args=(data_store,),
+            kwargs=data.args,
+            name=data.widget_id,
             tag=id(connection),
         )
+        points = cast(np.ndarray, result[0])
+        valid_indices = cast(np.ndarray, result[1])
     except TaskCancelled:
-        ...
+        pass
+    except Problem as e:
+        msg = Message(
+            type="task.error",
+            data={
+                "task_id": data.task_id,
+                "error": {
+                    "type": type(e).__name__,
+                    "title": e.title,
+                    "detail": e.detail,
+                },
+            },
+        )
+        await connection.send_async(msg)
+    except Exception as e:
+        msg = Message(
+            type="task.error",
+            data={
+                "task_id": data.task_id,
+                "error": {
+                    "type": type(e).__name__,
+                    "title": type(e).__name__,
+                    "detail": type(e).__doc__,
+                },
+            },
+        )
+        await connection.send_async(msg)
     else:
-        response = ReductionResponse(
-            type="umap_result",
-            widget_id=request.widget_id,
-            uid=request.uid,
-            generation_id=request.generation_id,
-            data=ReductionResponseData(indices=valid_indices, points=points),
+        msg = Message(
+            type="task.result",
+            data={
+                "task_id": data.task_id,
+                "result": {"points": points, "indices": valid_indices},
+            },
         )
-        await connection.send_async(response)
-
-
-@handle_message.register
-async def _(request: PCARequest, connection: "WebsocketConnection") -> None:
-    data_store: Optional[DataStore] = connection.websocket.app.data_store
-    if data_store is None:
-        return None
-    try:
-        data_store.check_generation_id(request.generation_id)
-    except GenerationIDMismatch:
-        return
-
-    try:
-        points, valid_indices = await connection.task_manager.run_async(
-            compute_pca,
-            (
-                data_store,
-                request.data.columns,
-                request.data.indices,
-                request.data.normalization,
-            ),
-            name=request.widget_id,
-            tag=id(connection),
-        )
-    except TaskCancelled:
-        ...
-    else:
-        response = ReductionResponse(
-            type="pca_result",
-            widget_id=request.widget_id,
-            uid=request.uid,
-            generation_id=request.generation_id,
-            data=ReductionResponseData(indices=valid_indices, points=points),
-        )
-        await connection.send_async(response)
+        try:
+            await connection.send_async(msg)
+        except SerializationError as e:
+            error_msg = Message(
+                type="task.error",
+                data={
+                    "task_id": data.task_id,
+                    "error": {
+                        "type": type(e).__name__,
+                        "title": "Serialization Error",
+                        "detail": str(e),
+                    },
+                },
+            )
+            await connection.send_async(error_msg)
