@@ -137,16 +137,8 @@ const HelpMenu = (): JSX.Element => {
     );
 };
 
-const useRobustColorScalesSelector = (c: ColorsState) => ({
-    useRobustColorScales: c.useRobustColorScales,
-    setUseRobustColorScales: c.setUseRobustColorScales,
-});
-
 const ColorMenu = () => {
     const colors = useColors();
-    const { useRobustColorScales, setUseRobustColorScales } = useColors(
-        useRobustColorScalesSelector
-    );
 
     const content = (
         <div tw="flex flex-col w-72 pb-1">
@@ -167,11 +159,25 @@ const ColorMenu = () => {
                         onChangeColorPalette={colors.setCategoricalPalette}
                     />
                 </Menu.Item>
-                <Menu.Title>Robust Coloring</Menu.Title>
+
+                <Menu.Title>Continuous Ints</Menu.Title>
                 <Menu.Switch
-                    value={useRobustColorScales}
-                    onChange={setUseRobustColorScales}
+                    value={colors.continuousInts}
+                    onChange={colors.setContinuousInts}
                 >
+                    Enable
+                </Menu.Switch>
+
+                <Menu.Title>Continuous Categories</Menu.Title>
+                <Menu.Switch
+                    value={colors.continuousCategories}
+                    onChange={colors.setContinuousCategories}
+                >
+                    Enable
+                </Menu.Switch>
+
+                <Menu.Title>Robust Coloring</Menu.Title>
+                <Menu.Switch value={colors.robust} onChange={colors.setRobust}>
                     Enable
                 </Menu.Switch>
             </Menu>

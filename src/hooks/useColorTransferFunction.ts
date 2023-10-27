@@ -109,36 +109,40 @@ export const createConstantTransferFunction = (
     return tf as ConstantTransferFunction;
 };
 
-const createColorTransferFunction = (
+export const createColorTransferFunction = (
     data: ColumnData | undefined,
     dType: DataType | undefined,
+    robust: boolean = false,
+    continuousInts = false,
+    continuousCategories = false,
     classBreaks?: number[]
 ): TransferFunction => {
-    const robustColoring = useColors.getState().useRobustColorScales;
-
     if (dType === undefined) return createConstantTransferFunction(unknownDataType);
     if (data === undefined) return createConstantTransferFunction(dType);
 
-    if (['int', 'bool', 'Category', 'str'].includes(dType.kind)) {
-        const uniqValues = _.uniq(data);
+    if (['bool', 'str'].includes(dType.kind)) {
+        return createCategoricalTransferFunction(_.uniq(data), dType);
+    }
 
+    if (dType.kind === 'int' && !continuousInts) {
+        const uniqValues = _.uniq(data);
         const tooManyInts =
             dType.kind === 'int' && uniqValues.length > MAX_VALUES_FOR_INT_CATEGORY;
 
         if (!tooManyInts) {
-            const transferFunction = createCategoricalTransferFunction(
-                uniqValues,
-                dType
-            );
-            return transferFunction;
+            return createCategoricalTransferFunction(uniqValues, dType);
         }
     }
 
-    if (['int', 'float'].includes(dType.kind)) {
+    if (dType.kind === 'Category' && !continuousCategories) {
+        return createCategoricalTransferFunction(_.uniq(data), dType);
+    }
+
+    if (['int', 'float', 'Category'].includes(dType.kind)) {
         const stats = makeStats(dType, data);
         return createContinuousTransferFunction(
-            (robustColoring ? stats?.p5 : stats?.min) ?? 0,
-            (robustColoring ? stats?.p95 : stats?.max) ?? 1,
+            (robust ? stats?.p5 : stats?.min) ?? 0,
+            (robust ? stats?.p95 : stats?.max) ?? 1,
             dType,
             classBreaks
         );
@@ -148,7 +152,19 @@ const createColorTransferFunction = (
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const useColorTransferFunction = (data: any[], dtype: DataType) =>
-    useMemo(() => createColorTransferFunction(data, dtype), [dtype, data]);
+export const useColorTransferFunction = (data: any[], dtype: DataType) => {
+    const colors = useColors();
+    return useMemo(
+        () =>
+            createColorTransferFunction(
+                data,
+                dtype,
+                colors.robust,
+                colors.continuousInts,
+                colors.continuousCategories
+            ),
+        [dtype, data]
+    );
+};
 
 export default useColorTransferFunction;

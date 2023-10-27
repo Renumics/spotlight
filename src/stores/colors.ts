@@ -17,11 +17,15 @@ export interface ColorsState {
     constantPalette: ConstantPalette;
     categoricalPalette: CategoricalPalette;
     continuousPalette: ContinuousPalette;
-    useRobustColorScales: boolean;
+    robust: boolean;
+    continuousInts: boolean;
+    continuousCategories: boolean;
     setConstantPalette: (palette?: ConstantPalette) => void;
     setCategoricalPalette: (palette?: CategoricalPalette) => void;
     setContinuousPalette: (palette?: ContinuousPalette) => void;
-    setUseRobustColorScales: (useRobust: boolean) => void;
+    setRobust: (robust: boolean) => void;
+    setContinuousInts: (continuous: boolean) => void;
+    setContinuousCategories: (continuous: boolean) => void;
 }
 
 export const useColors = create<ColorsState>()(
@@ -30,35 +34,26 @@ export const useColors = create<ColorsState>()(
             constantPalette: defaultConstantPalette,
             categoricalPalette: defaultCategoricalPalette,
             continuousPalette: defaultContinuousPalette,
-            useRobustColorScales: false,
+            robust: false,
+            continuousInts: false,
+            continuousCategories: false,
             setConstantPalette: (palette) => {
-                set((state) => {
-                    return {
-                        ...state,
-                        constantPalette: palette ?? defaultConstantPalette,
-                    };
-                });
+                set({ constantPalette: palette ?? defaultConstantPalette });
             },
             setCategoricalPalette: (palette) => {
-                set((state) => {
-                    return {
-                        ...state,
-                        categoricalPalette: palette ?? defaultCategoricalPalette,
-                    };
-                });
+                set({ categoricalPalette: palette ?? defaultCategoricalPalette });
             },
             setContinuousPalette: (palette) => {
-                set((state) => {
-                    return {
-                        ...state,
-                        continuousPalette: palette ?? defaultContinuousPalette,
-                    };
-                });
+                set({ continuousPalette: palette ?? defaultContinuousPalette });
             },
-            setUseRobustColorScales: (useRobustColorScales: boolean) => {
-                set((state) => {
-                    return { ...state, useRobustColorScales };
-                });
+            setRobust: (robust: boolean) => {
+                set({ robust });
+            },
+            setContinuousInts: (continuousInts: boolean) => {
+                set({ continuousInts });
+            },
+            setContinuousCategories: (continuousCategories: boolean) => {
+                set({ continuousCategories });
             },
         }),
         {
