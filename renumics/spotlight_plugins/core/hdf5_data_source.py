@@ -12,6 +12,7 @@ from renumics.spotlight.dataset import Dataset
 
 from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
+    H5DatasetOutdated,
     NoTableFileFound,
     CouldNotOpenTableFile,
 )
@@ -50,10 +51,7 @@ class H5Dataset(Dataset):
 
         if self._is_ref_column(column):
             if not is_string_dtype:
-                raise RuntimeError(
-                    "Only new-style string h5 references supported. Update "
-                    "your dataset using `dataset.rebuild()`."
-                )
+                raise H5DatasetOutdated()
             assert is_string_dtype, "Only new-style string h5 references supported."
             normalized_values = np.empty(len(raw_values), dtype=object)
             normalized_values[:] = [
