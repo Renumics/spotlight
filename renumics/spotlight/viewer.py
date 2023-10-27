@@ -360,8 +360,8 @@ def show(
     viewer = None
     if port != "auto":
         # reuse viewer with the same port if specified
-        for index, viewer in enumerate(_VIEWERS):
-            if viewer.port == port:
+        for index, viewer_ in enumerate(_VIEWERS):
+            if viewer_.port == port:
                 viewer = _VIEWERS[index]
                 break
     if not viewer:
