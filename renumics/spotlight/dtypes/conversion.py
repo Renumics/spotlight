@@ -245,7 +245,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> Optional[datetime.datetime
 
 @convert("datetime")
 def _(value: np.datetime64, _: dtypes.DType) -> Optional[datetime.datetime]:
-    return value.tolist()
+    return value.astype("datetime64[us]").tolist()
 
 
 @convert("Category")
