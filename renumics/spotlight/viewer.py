@@ -1,51 +1,5 @@
 """
 This module allows user to start Spotlight from a python script/notebook.
-
-Example:
-    >>> import time
-    >>> from renumics import spotlight
-    >>> with spotlight.Dataset("docs/example.h5", "w") as dataset:
-    ...     pass  # Create empty dataset
-    >>> spotlight.viewers()
-    []
-    >>> spotlight.show("docs/example.h5", "127.0.0.1", port=5001, no_browser=True, wait=False)
-    Spotlight running on http://127.0.0.1:5001/
-    http://127.0.0.1:5001/
-    >>> spotlight.viewers()
-    [http://127.0.0.1:5001/]
-    >>> spotlight.close()
-    >>> spotlight.viewers()
-    []
-
-Example:
-    >>> import time
-    >>> from renumics import spotlight
-    >>> with spotlight.Dataset("docs/example.h5", "w") as dataset:
-    ...     pass  # Create empty dataset
-    >>> viewer = spotlight.show(
-    ...     "docs/example.h5",
-    ...     "127.0.0.1", port=5001,
-    ...     no_browser=True,
-    ...     wait=False
-    ... )
-    Spotlight running on http://127.0.0.1:5001/
-    >>> viewer
-    http://127.0.0.1:5001/
-    >>> spotlight.close()
-
-Example:
-    >>> import time
-    >>> import pandas as pd
-    >>> from renumics import spotlight
-    >>> df = pd.DataFrame({"a":[0, 1, 2], "b":["x", "y", "z"]})
-    >>> viewer = spotlight.show(df, "127.0.0.1", port=5001, no_browser=True, wait=False)
-    Spotlight running on http://127.0.0.1:5001/
-    >>> viewer
-    http://127.0.0.1:5001/
-    >>> viewer.df["a"].to_list()
-    [0, 1, 2]
-    >>> spotlight.close()
-
 """
 
 from pathlib import Path
