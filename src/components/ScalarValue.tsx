@@ -41,7 +41,7 @@ const ScalarValue: FunctionComponent<Props> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const colorTransferFunctionSelector = useCallback(
         (d: Dataset) =>
-            d.colorTransferFunctions[column.key]?.[filtered ? 'filtered' : 'full'][0],
+            d.colorTransferFunctions[column.key]?.[filtered ? 'filtered' : 'full'],
         [column.key, filtered]
     );
 
