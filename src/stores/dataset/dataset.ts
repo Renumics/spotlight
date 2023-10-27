@@ -430,7 +430,7 @@ export const useDataset = create(
                 const newTransferFunctions = makeColumnsColorTransferFunctions(
                     get().columns.filter(({ key }) => columnsToCompute.includes(key)),
                     get().columnData,
-                    get().isIndexFiltered
+                    get().filteredIndices
                 );
 
                 set({

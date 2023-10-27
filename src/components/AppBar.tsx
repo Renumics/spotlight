@@ -19,7 +19,6 @@ import MainWalkthrough, {
     Handle as MainWalkthroughRef,
 } from './walkthrough/MainWalkthrough';
 import { useColors } from '../stores/colors';
-import type { ColorsState } from '../stores/colors';
 import ColorPaletteSelect from './ui/ColorPaletteSelect';
 import { categoricalPalettes, continuousPalettes } from '../palettes';
 

@@ -2,7 +2,6 @@ import {
     createColorTransferFunction,
     TransferFunction,
 } from '../../hooks/useColorTransferFunction';
-import _ from 'lodash';
 import { DataColumn, TableData } from '../../types';
 import { useColors } from '../colors';
 
@@ -14,7 +13,7 @@ type ColumnsTransferFunctions = Record<
 export const makeColumnsColorTransferFunctions = (
     columns: DataColumn[],
     data: TableData,
-    filteredMask: boolean[]
+    filteredIndices: Int32Array
 ): ColumnsTransferFunctions => {
     const colors = useColors.getState();
 
@@ -28,7 +27,7 @@ export const makeColumnsColorTransferFunctions = (
                 colors.continuousCategories
             ),
             filtered: createColorTransferFunction(
-                data[column.key].filter((_, i) => filteredMask[i]),
+                filteredIndices.map((i) => data[column.key][i]),
                 column.type,
                 colors.robust,
                 colors.continuousInts,

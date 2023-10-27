@@ -112,7 +112,7 @@ export const createConstantTransferFunction = (
 export const createColorTransferFunction = (
     data: ColumnData | undefined,
     dType: DataType | undefined,
-    robust: boolean = false,
+    robust = false,
     continuousInts = false,
     continuousCategories = false,
     classBreaks?: number[]
@@ -163,7 +163,7 @@ export const useColorTransferFunction = (data: any[], dtype: DataType) => {
                 colors.continuousInts,
                 colors.continuousCategories
             ),
-        [dtype, data]
+        [dtype, data, colors.robust, colors.continuousInts, colors.continuousCategories]
     );
 };
 
