@@ -6,8 +6,8 @@ import { DataType } from '../datatypes';
 import { ALL_LENSES } from '../lenses';
 import { ALL_WIDGETS } from '../widgets';
 
-export function isLensCompatible(
-    view: Lens,
+export function isLensCompatible<T>(
+    view: Lens<T>,
     types: DataType[],
     canEdit: boolean
 ): boolean {
@@ -65,7 +65,8 @@ export function registerWidget(widget: Widget) {
 }
 ALL_WIDGETS.forEach(registerWidget);
 
-export function registerLens(lens: Lens) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function registerLens(lens: Lens<any>) {
     useComponentsStore.setState((state) => {
         const lensesByKey = { ...state.lensesByKey, [lens.key]: lens };
         return {
