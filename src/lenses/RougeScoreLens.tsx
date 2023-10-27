@@ -3,7 +3,7 @@ import 'twin.macro';
 import rouge from 'rouge';
 import { formatNumber } from '../dataformat';
 
-const RougeScoreLens: Lens<string> = ({ values }) => {
+const RougeScoreLens: Lens = ({ values }) => {
     const rouge1 = rouge.n(values[0], values[1], 1);
     const rouge2 = rouge.n(values[0], values[1], 2);
     return (
