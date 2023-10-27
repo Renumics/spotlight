@@ -19,6 +19,15 @@ Serving a `pandas.DataFrame`:
     >>> spotlight.close()
     >>> spotlight.viewers()
     []
+
+Serving a CSV file:
+    >>> import pandas as pd
+    >>> from renumics import spotlight
+    >>> from renumics.spotlight import dtypes
+    >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+    >>> viewer = spotlight.show(df, dtype={"image": dtypes.image_dtype}, port=5000, no_browser=True, wait=False)
+    Spotlight running on http://127.0.0.1:5000/
+    >>> spotlight.close()
 """
 
 from .__version__ import __version__  # noqa: F401
