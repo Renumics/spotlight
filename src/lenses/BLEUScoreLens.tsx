@@ -33,7 +33,8 @@ function CalcBLEU(reference: string, candidate: string, maxN: number) {
             }
         }
 
-        precision[n - 1] = totalNgramMatches / candidateTokens.length;
+        let totalPredictedNgrams = candidateTokens.length - n + 1;
+        precision[n - 1] = totalNgramMatches / totalPredictedNgrams;
     }
 
     // Calculate brevity penalty
