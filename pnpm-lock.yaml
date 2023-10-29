@@ -29,6 +29,9 @@ dependencies:
   '@uiw/react-json-view':
     specifier: 2.0.0-alpha.7
     version: 2.0.0-alpha.7(@babel/runtime@7.23.2)(react-dom@18.2.0)(react@18.2.0)
+  bleu-score:
+    specifier: ^1.0.4
+    version: 1.0.4
   chroma-js:
     specifier: ^2.4.2
     version: 2.4.2
@@ -2776,6 +2779,10 @@ packages:
   /binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
     engines: {node: '>=8'}
+
+  /bleu-score@1.0.4:
+    resolution: {integrity: sha512-GiBQK6KFuQhfAPBIfcorw15Ggn5pD2dNkptxxNAs9TtHHXlA5XalzMfGQVRVhEhIz4DeYoOqIXPzJytT83/N4A==}
+    dev: false
 
   /bn.js@4.12.0:
     resolution: {integrity: sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==}
