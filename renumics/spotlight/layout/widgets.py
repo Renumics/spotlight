@@ -188,6 +188,7 @@ class ConfusionMatrixConfig(WidgetConfig):
 
     x_column: Optional[str] = Field(None, alias="xColumn")
     y_column: Optional[str] = Field(None, alias="yColumn")
+    filter: bool = Field(False, alias="filter")
 
 
 class ConfusionMatrix(Widget):
