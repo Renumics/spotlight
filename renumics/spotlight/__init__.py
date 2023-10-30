@@ -17,8 +17,6 @@ Serving a `pandas.DataFrame`:
     >>> spotlight.viewers()
     [http://127.0.0.1:5000/]
     >>> spotlight.close()
-    >>> spotlight.viewers()
-    []
 
 Serving a CSV file:
     >>> import pandas as pd
