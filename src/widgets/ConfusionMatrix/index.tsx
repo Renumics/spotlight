@@ -3,8 +3,10 @@ import WidgetContainer from '../../components/ui/WidgetContainer';
 import WidgetContent from '../../components/ui/WidgetContent';
 import WidgetMenu from '../../components/ui/WidgetMenu';
 import type { Widget } from '../types';
-import { useDataset, useWidgetConfig } from '../../lib';
+import { Button, useDataset, useWidgetConfig } from '../../lib';
 import GridIcon from '../../icons/Grid';
+import FilterIcon from '../../icons/Filter';
+import FilterOffIcon from '../../icons/FilterOff';
 import Matrix from './Matrix';
 import { useCallback } from 'react';
 import type { Cell } from './types';
@@ -25,7 +27,10 @@ const ConfusionMatrix: Widget = () => {
     const xColumn = compatibleColumns.filter((c) => c.key === xKey)[0];
     const yColumn = compatibleColumns.filter((c) => c.key === yKey)[0];
 
-    const data = useData(xColumn, yColumn);
+    const [filtered, setFiltered] = useWidgetConfig('filter', true);
+    const data = useData(xColumn, yColumn, filtered);
+
+    const toggleFilter = () => setFiltered((value) => !value);
 
     const handleHoverCell = useCallback((cell?: Cell) => {
         if (!cell) return;
@@ -58,6 +63,13 @@ const ConfusionMatrix: Widget = () => {
                         variant="inset"
                     />
                 </div>
+                <div tw="flex-grow" />
+                <Button
+                    onClick={toggleFilter}
+                    tooltip={filtered ? 'show unfiltered' : 'hide unfiltered'}
+                >
+                    {filtered ? <FilterOffIcon /> : <FilterIcon />}
+                </Button>
             </WidgetMenu>
             <WidgetContent tw="bg-white overflow-hidden">
                 <Matrix
