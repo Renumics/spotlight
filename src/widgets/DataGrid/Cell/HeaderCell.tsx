@@ -13,6 +13,8 @@ import { useColumn } from '../context/columnContext';
 import { useSortByColumn } from '../context/sortingContext';
 import RelevanceIndicator from '../RelevanceIndicator';
 import { ResizingContext } from '../context/resizeContext';
+import Draggable from '../../../systems/dnd/Draggable';
+import { ColumnDragData } from '../../../systems/dnd/types';
 
 interface SortingIndicatorProps {
     sorting?: Sorting;
@@ -133,6 +135,8 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
         [columnIndex, startResizing]
     );
 
+    const dragData: ColumnDragData = { kind: 'column', column: column };
+
     return (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <div
@@ -142,7 +146,7 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
             data-columnindex={columnIndex}
             data-rowindex={-1}
         >
-            <div tw="flex-grow flex-shrink truncate">
+            <Draggable data={dragData} tw="flex-grow flex-shrink truncate">
                 <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
                     <div tw="truncate max-w-full block h-full self-center">
                         {column.editable && (
@@ -151,7 +155,8 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
                         {column.name}
                     </div>
                 </Tooltip>
-            </div>
+            </Draggable>
+            <div tw="flex-grow" />
             <div tw="flex items-center">
                 <RelevanceIndicator column={column} />
                 <SortingIndicator sorting={columnSorting} />
