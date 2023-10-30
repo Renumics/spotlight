@@ -77,7 +77,7 @@ const redrawTimeline = (
     const drawerWidth = waveform?.drawer.getWidth();
     const offsetLeft = waveform?.drawer.getScrollX();
     const offsetRight = offsetLeft + drawerWidth;
-    const secPerPx = duration / (waveform?.drawer.wrapper.scrollWidth ?? 0);
+    const secPerPx = duration / (waveform?.drawer.wrapper.scrollWidth ?? 1);
 
     const lowerTime = offsetLeft * secPerPx;
     const upperTime = offsetRight * secPerPx;
