@@ -8,7 +8,7 @@ export const useColumns = () => {
     return useDataset((d) => d.columns);
 };
 
-const useColumnValues = (key?: string, filtered: boolean = true) => {
+const useColumnValues = (key?: string, filtered = true) => {
     const indices = useDataset((d) => (filtered ? d.filteredIndices : d.indices));
     const columnData = useDataset((d) => d.columnData);
 
@@ -31,6 +31,7 @@ const useUniqueValues = (column?: DataColumn, data?: ColumnData) => {
                 case 'str':
                     return _.sortedUniq(_.sortBy(data, _.identity));
                 case 'Category':
+                    // eslint-disable-next-line no-case-declarations
                     const uniqValues = _.uniq(data);
                     return Object.values(column.type.categories).filter((cat) =>
                         uniqValues.includes(cat)
@@ -46,7 +47,7 @@ const useUniqueValues = (column?: DataColumn, data?: ColumnData) => {
 export function useData(
     xColumn?: DataColumn,
     yColumn?: DataColumn,
-    filtered: boolean = true
+    filtered = true
 ): MatrixData {
     const xValues = useColumnValues(xColumn?.key, filtered);
     const yValues = useColumnValues(yColumn?.key, filtered);
