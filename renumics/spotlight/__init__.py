@@ -60,7 +60,6 @@ Serving multiple datasets:
     >>> import datasets
     >>> import pandas as pd
     >>> from renumics import spotlight
-    >>> from renumics.spotlight import dtypes
     >>> spotlight.viewers()
     []
     >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
@@ -77,6 +76,18 @@ Serving multiple datasets:
     >>> spotlight.close()
     >>> spotlight.viewers()
     []
+
+Reuse the dataset `Viewer`:
+    >>> import datasets
+    >>> import pandas as pd
+    >>> from renumics import spotlight
+    >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+    >>> viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
+    Spotlight running on http://127.0.0.1:5000/
+    >>> ds = datasets.load_dataset("mnist", split="test")
+    >>> viewer.show(ds, no_browser=True, wait=False)
+    Spotlight running on http://127.0.0.1:5000/
+    >>> spotlight.close()
 """
 
 from .__version__ import __version__  # noqa: F401
