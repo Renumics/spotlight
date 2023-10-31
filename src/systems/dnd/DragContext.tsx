@@ -22,8 +22,7 @@ export default function DragContext({ children }: Props): JSX.Element {
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                delay: 300,
-                tolerance: 1,
+                distance: 12,
             },
         })
     );
