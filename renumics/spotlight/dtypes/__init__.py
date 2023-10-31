@@ -3,7 +3,7 @@ Spotlight data types.
 
 The most dtypes are non-customazable and can be used through simple importing
 the respective module variables (e.g. [`float_dtype`](#float_dtype),
-[`image_dtype`](image_dtype)).
+[`image_dtype`](#image_dtype)).
 
 Some dtypes are customazable and only their default versions can be defined
 through the respective module variables (e.g. [`category_dtype`](#category_dtype),
