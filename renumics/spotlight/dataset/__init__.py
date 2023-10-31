@@ -947,7 +947,7 @@ class Dataset:
 
         Example:
             Find a similar example usage in
-            :func:`renumics.spotlight.dataset.Dataset.append_bool_column`.
+            `renumics.spotlight.dataset.Dataset.append_bool_column`.
         """
         self._append_column(
             name,
@@ -995,7 +995,7 @@ class Dataset:
 
         Example:
             Find a similar example usage in
-            :func:`renumics.spotlight.dataset.Dataset.append_bool_column`.
+            `renumics.spotlight.dataset.Dataset.append_bool_column`.
         """
         self._append_column(
             name,
@@ -1043,7 +1043,7 @@ class Dataset:
 
         Example:
             Find a similar example usage in
-            :func:`renumics.spotlight.dataset.Dataset.append_bool_column`.
+            `renumics.spotlight.dataset.Dataset.append_bool_column`.
         """
         self._append_column(
             name,
@@ -1199,7 +1199,7 @@ class Dataset:
             editable: Whether column is editable in Spotlight.
 
         Example:
-            Find an example usage in  :class:`renumics.spotlight.dtypes'.Category`.
+            Find an example usage in  `renumics.spotlight.dtypes.Category`.
         """
         self._append_column(
             name,
@@ -1248,7 +1248,7 @@ class Dataset:
             dtype: A valid float numpy dtype. Default is "float32".
 
         Example:
-            Find an example usage in  :class:`renumics.spotlight.dtypes'.Embedding`.
+            Find an example usage in `renumics.spotlight.dtypes.Embedding`.
         """
         np_dtype = np.dtype(dtype)
         if np_dtype.str[1] != "f":
@@ -1303,7 +1303,7 @@ class Dataset:
             y_label: Optional y-axis label. If `None`, column name is taken.
 
         Example:
-            Find an example usage in  :class:`renumics.spotlight.dtypes'.Sequence1D`.
+            Find an example usage in  `renumics.spotlight.dtypes.Sequence1D`.
         """
         if x_label is None:
             x_label = "x"
@@ -1368,7 +1368,7 @@ class Dataset:
                 load it on demand.
 
         Example:
-            Find an example usage in  :class:`renumics.spotlight.dtypes'.Mesh`.
+            Find an example usage in `renumics.spotlight.dtypes.Mesh`.
         """
         self._append_column(
             name,
@@ -1429,7 +1429,7 @@ class Dataset:
                 load it on demand.
 
         Example:
-            Find an example usage in  :class:`renumics.spotlight.dtypes'.Image`.
+            Find an example usage in `renumics.spotlight.dtypes.Image`.
         """
         self._append_column(
             name,
@@ -1497,7 +1497,7 @@ class Dataset:
                 slows down the execution.
 
         Example:
-            Find an example usage in :class:`renumics.spotlight.media.Audio`.
+            Find an example usage in `renumics.spotlight.media.Audio`.
         """
         attrs = {}
         if lossy is None and external is False:
@@ -1613,7 +1613,7 @@ class Dataset:
             editable: Whether column is editable in Spotlight.
 
         Example:
-            Find an example usage in :class:`renumics.spotlight.dtypes'.Window`.
+            Find an example usage in `renumics.spotlight.dtypes.Window`.
         """
         self._append_column(
             name,

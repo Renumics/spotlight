@@ -2,31 +2,17 @@
 Spotlight data types.
 
 The most dtypes are non-customazable and can be used through simple importing
-the respective module variables (e.g. `float_dtype`, `image_dtype`).
+the respective module variables (e.g. [`float_dtype`](#float_dtype),
+[`image_dtype`](image_dtype)).
 
 Some dtypes are customazable and only their default versions can be defined
-through the respective module variables (e.g. `category_dtype`,
-`embedding_dtype`). For more info, see the module classes.
+through the respective module variables (e.g. [`category_dtype`](#category_dtype),
+[`embedding_dtype`](#embedding_dtype)). For more info, see the module classes.
 
 In the most usage cases string or object aliases can be used instead of the
 default dtypes. For more info, see the module classes.
 
-The main usage of the dtypes is customizing the `spotlight.show`.
-
-Example:
-    >>> import pandas as pd
-    >>> from renumics import spotlight
-    >>> from renumics.spotlight import dtypes
-    >>> df = pd.DataFrame({"int": range(4), "str": ["one", "four"] * 2})
-    >>> viewer = spotlight.show(
-    ...     df,
-    ...     dtype={"int": dtypes.float_dtype, "str": "category"},
-    ...     port=5000,
-    ...     no_browser=True,
-    ...     wait=False,
-    ... )
-    Spotlight running on http://127.0.0.1:5000/
-    >>> spotlight.close()
+The main usage of the dtypes is customizing the [`spotlight.show`](../#show()).
 """
 
 
@@ -317,103 +303,103 @@ def register_dtype(dtype: DType, aliases: Optional[list] = None) -> None:
 
 bool_dtype = DType("bool")
 """
-Bool dtype. Aliases: "bool", `bool`.
+Bool dtype. Aliases: `"bool"`, `bool`.
 """
 register_dtype(bool_dtype, [bool])
 
 int_dtype = DType("int")
 """
-Integer dtype. Aliases: "int", `int`.
+Integer dtype. Aliases: `"int"`, `int`.
 """
 register_dtype(int_dtype, [int])
 
 float_dtype = DType("float")
 """
-Float dtype. Aliases: "float", `float`.
+Float dtype. Aliases: `"float"`, `float`.
 """
 register_dtype(float_dtype, [float])
 
 bytes_dtype = DType("bytes")
 """
-Bytes dtype. Aliases: "bytes", `bytes`.
+Bytes dtype. Aliases: `"bytes"`, `bytes`.
 """
 register_dtype(bytes_dtype, [bytes])
 
 str_dtype = DType("str")
 """
-String dtype. Aliases: "str", `str`.
+String dtype. Aliases: `"str"`, `str`.
 """
 register_dtype(str_dtype, [str])
 
 datetime_dtype = DType("datetime")
 """
-Datetime dtype. Aliases: "datetime", `datetime.datetime`.
+Datetime dtype. Aliases: `"datetime"`, `datetime.datetime`.
 """
 register_dtype(datetime_dtype, [datetime])
 
 category_dtype = CategoryDType()
 """
-Categorical dtype with arbitraty categories. Aliases: "Category".
+Categorical dtype with arbitraty categories. Aliases: `"Category"`.
 """
 register_dtype(category_dtype, [Category])
 
 window_dtype = DType("Window")
 """
-Window dtype. Aliases: "Window".
+Window dtype. Aliases: `"Window"`.
 """
 register_dtype(window_dtype, [Window])
 
 embedding_dtype = EmbeddingDType()
 """
-Embedding dtype. Aliases: "Embedding", `renumics.spotlight.media.Embedding`.
+Embedding dtype. Aliases: `"Embedding"`, `renumics.spotlight.media.Embedding`.
 """
 register_dtype(embedding_dtype, [Embedding])
 
 array_dtype = ArrayDType()
 """
-numpy array dtype. Aliases: "array", `np.ndarray`.
+numpy array dtype. Aliases: `"array"`, `np.ndarray`.
 """
 register_dtype(array_dtype, [np.ndarray])
 
 image_dtype = DType("Image")
 """
-Image dtype. Aliases: "Image", `renumics.spotlight.media.Image`.
+Image dtype. Aliases: `"Image"`, `renumics.spotlight.media.Image`.
 """
 register_dtype(image_dtype, [Image])
 
 audio_dtype = DType("Audio")
 """
-Audio dtype. Aliases: "Audio", `renumics.spotlight.media.Audio`.
+Audio dtype. Aliases: `"Audio"`, `renumics.spotlight.media.Audio`.
 """
 register_dtype(audio_dtype, [Audio])
 
 mesh_dtype = DType("Mesh")
 """
-Mesh dtype. Aliases: "Mesh", `renumics.spotlight.media.Mesh`.
+Mesh dtype. Aliases: `"Mesh"`, `renumics.spotlight.media.Mesh`.
 """
 register_dtype(mesh_dtype, [Mesh])
 
 sequence_1d_dtype = Sequence1DDType()
 """
-1D-sequence dtype with arbitraty axis labels. Aliases: "Sequence1D",
+1D-sequence dtype with arbitraty axis labels. Aliases: `"Sequence1D"`,
 `renumics.spotlight.media.Sequence1D`.
 """
 register_dtype(sequence_1d_dtype, [Sequence1D])
 
 video_dtype = DType("Video")
 """
-Video dtype. Aliases: "video", `renumics.spotlight.media.Video`.
+Video dtype. Aliases: `"video"`, `renumics.spotlight.media.Video`.
 """
 register_dtype(video_dtype, [Video])
 
 mixed_dtype = DType("mixed")
 """
-Unknown or mixed dtype. Aliases: "mixed".
+Unknown or mixed dtype. Aliases: `"mixed"`.
 """
 
 file_dtype = DType("file")
 """
-File Dtype (bytes or str(path)). Aliases: "file".
+File Dtype (bytes or str(path)). Aliases: `"file"`.
 """
 
 
