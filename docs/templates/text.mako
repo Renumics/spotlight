@@ -61,20 +61,6 @@ ${cls.docstring | to_markdown}
   subclasses = cls.subclasses()
 %>
 
-% if mro:
-${h4('Ancestors (in MRO)')}
-% for c in mro:
-* ${c.refname}
-% endfor
-% endif
-
-% if subclasses:
-${h4('Descendants')}
-% for c in subclasses:
-* ${c.refname}
-% endfor
-% endif
-
 % if static_methods:
 ${h4('Static methods')}
 % for f in static_methods:
