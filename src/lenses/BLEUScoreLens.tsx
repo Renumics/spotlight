@@ -3,9 +3,13 @@ import { bleu } from 'bleu-score';
 
 const BLEUScoreLens: Lens = ({ values }) => {
     const N = 4;
+
+    const reference: string = values[0] as string;
+    const candidate: string = values[1] as string;
+
     const bleuScores: number[] = Array(N).fill(0);
     for (let n = 1; n <= N; n++) {
-        bleuScores[n - 1] = bleu(values[0], values[1], n);
+        bleuScores[n - 1] = bleu(reference, candidate, n);
     }
 
     return (
