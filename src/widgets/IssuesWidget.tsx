@@ -12,6 +12,7 @@ import Markdown from '../components/ui/Markdown';
 import CheckMark from '../icons/Check';
 import Tooltip from '../components/ui/Tooltip';
 import Info from '../components/ui/Info';
+import ColumnBadge from '../components/ui/ColumnBadge';
 
 const icons = {
     low: tw(WarningIcon)`text-blue-600 h-5 w-5 mx-0.5`,
@@ -99,17 +100,17 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
                     >
                         {issue.title}
                     </div>
+                    {issue.columns?.length}
                     <div tw="flex">
                         {issue.columns?.map((column) => (
-                            <div
-                                key={column}
+                            <ColumnBadge
+                                key={column.key}
+                                columnKey={column.key}
                                 css={[
                                     tw`border rounded px-1 mx-0.5 text-xs`,
                                     elementColors[issue.severity],
                                 ]}
-                            >
-                                {column}
-                            </div>
+                            />
                         ))}
                     </div>
                 </div>

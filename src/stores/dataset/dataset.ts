@@ -261,8 +261,19 @@ export const useDataset = create(
                 for (const issue of analysis.issues) {
                     issue.rows.forEach(rowsWithIssues.add, rowsWithIssues);
                 }
+                const issues = analysis.issues.map((apiIssue) => {
+                    const columns = _.compact(
+                        apiIssue.columns
+                            ? apiIssue.columns.map((c) => get().columnsByKey[c])
+                            : []
+                    );
+                    return {
+                        ...apiIssue,
+                        columns,
+                    };
+                });
                 set({
-                    issues: analysis.issues as DataIssue[],
+                    issues: issues as DataIssue[],
                     rowsWithIssues: Int32Array.from(rowsWithIssues),
                     isAnalysisRunning: analysis.running,
                 });
@@ -550,3 +561,10 @@ websocketService.registerMessageHandler('refresh', () => {
 websocketService.registerMessageHandler('issuesUpdated', () => {
     useDataset.getState().fetchIssues();
 });
+
+useDataset.subscribe(
+    (state) => state.columns,
+    (columns) => {
+        if (columns) useDataset.getState().fetchIssues();
+    }
+);

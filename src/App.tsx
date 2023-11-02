@@ -19,7 +19,6 @@ const Wrapper = tw.div`bg-gray-200 text-midnight-600 w-screen h-screen relative 
 
 // fetch the dataset once on app init
 useDataset.getState().fetch();
-useDataset.getState().fetchIssues();
 
 const loadingSelector = (d: Dataset) => d.loading;
 
