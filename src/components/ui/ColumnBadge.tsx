@@ -2,8 +2,9 @@ import { DataColumn } from '../../types';
 import EditIcon from '../../icons/Edit';
 import 'twin.macro';
 import DataTypeIcon from '../DataTypeIcon';
-import { ColumnDragData, Draggable } from '../../systems/dnd';
-import { useDataset } from '../../lib';
+import { ColumnDragData } from '../../systems/dnd/types';
+import Draggable from '../../systems/dnd/Draggable';
+import { useDataset } from '../../stores/dataset';
 
 interface InternalProps {
     column: DataColumn;
