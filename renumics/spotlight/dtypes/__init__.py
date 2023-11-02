@@ -74,8 +74,8 @@ class CategoryDType(DType):
     Categorical dtype with predefined categories.
 
     Category names and codes are assured to be unique. Empty categories mean to
-    be defined later (in this case, equivalent to the `category_dtype` module
-    variable).
+    be defined later (in this case, equivalent to the
+    [`category_dtype`](#category_dtype) module variable).
 
     Using with category names:
         >>> from renumics.spotlight import dtypes
@@ -89,9 +89,9 @@ class CategoryDType(DType):
 
     Example of usage with category mapping:
         >>> from renumics.spotlight import dtypes
-        >>> dtype = dtypes.CategoryDType({"one": 1, "four": 4})
+        >>> dtype = dtypes.CategoryDType({"four": 4, "two": 2})
         >>> dtype.categories
-        {'one': 1, 'four': 4}
+        {'four': 4, 'two': 2}
 
     Example of usage with empty categories:
         >>> from renumics.spotlight import dtypes
