@@ -91,7 +91,7 @@ class CategoryDType(DType):
         >>> from renumics.spotlight import dtypes
         >>> dtype = dtypes.CategoryDType({"four": 4, "two": 2})
         >>> dtype.categories
-        {'four': 4, 'two': 2}
+        {'two': 2, 'four': 4}
 
     Example of usage with empty categories:
         >>> from renumics.spotlight import dtypes
