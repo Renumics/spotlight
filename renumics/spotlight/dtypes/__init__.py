@@ -349,6 +349,11 @@ Window dtype. Aliases: `"Window"`.
 """
 register_dtype(window_dtype, [Window])
 
+bounding_box_dtype = DType("BoundingBox")
+"""
+Bounding box dtype. Aliases: `"BoundingBox"`.
+"""
+
 embedding_dtype = EmbeddingDType()
 """
 Embedding dtype. Aliases: `"Embedding"`, `renumics.spotlight.media.Embedding`.
