@@ -146,10 +146,10 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
             data-rowindex={-1}
         >
             <div tw="flex flex-row flex-grow flex-shrink overflow-hidden">
-                <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
+                <Tooltip tw="overflow-hidden flex-shrink" content={tooltipContent}>
                     <ColumnBadge columnKey={column.key} />
                 </Tooltip>
-                <div tw="flex flex-grow items-center">
+                <div tw="flex flex-grow items-center justify-end">
                     <RelevanceIndicator column={column} />
                     <SortingIndicator sorting={columnSorting} />
                 </div>

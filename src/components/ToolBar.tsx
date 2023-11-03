@@ -161,7 +161,6 @@ const ToolBar: FunctionComponent<Props> = ({
     return (
         <StyledDiv>
             <FilterBar />
-            <Spacer />
             <span tw="flex items-center">
                 <Dropdown content={dropdownContent} tooltip="Layout">
                     <LayoutIcon />

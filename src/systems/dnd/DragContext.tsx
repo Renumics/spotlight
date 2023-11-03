@@ -47,7 +47,7 @@ export default function DragContext({ children }: Props): JSX.Element {
             sensors={sensors}
         >
             {children}
-            <DragOverlay style={{ width: 'auto' }} tw="shadow-lg">
+            <DragOverlay style={{ width: 'auto' }} tw="shadow-lg touch-none">
                 {activeData ? <OverlayFactory data={activeData} /> : null}
             </DragOverlay>
         </DndContext>
