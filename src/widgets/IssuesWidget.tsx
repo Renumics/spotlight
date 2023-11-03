@@ -33,9 +33,9 @@ const iconColors = {
 };
 
 const elementColors = {
-    low: tw`border-blue-600 hover:bg-blue-300`,
-    medium: tw`border-yellow-600 hover:bg-yellow-300`,
-    high: tw`border-red-600 hover:bg-red-300`,
+    low: tw`border-blue-400 bg-blue-200 hover:(bg-blue-300 border-blue-600)`,
+    medium: tw`border-yellow-400 bg-yellow-200 hover:(bg-yellow-300 border-yellow-600)`,
+    high: tw`border-red-400 bg-red-200 hover:(bg-red-300 border-red-600)`,
 };
 
 interface IssueProps {
@@ -100,16 +100,12 @@ const Issue = ({ issue }: IssueProps): JSX.Element => {
                     >
                         {issue.title}
                     </div>
-                    {issue.columns?.length}
                     <div tw="flex">
                         {issue.columns?.map((column) => (
                             <ColumnBadge
                                 key={column.key}
                                 columnKey={column.key}
-                                css={[
-                                    tw`border rounded px-1 mx-0.5 text-xs`,
-                                    elementColors[issue.severity],
-                                ]}
+                                css={[elementColors[issue.severity]]}
                             />
                         ))}
                     </div>
