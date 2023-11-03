@@ -37,6 +37,7 @@ __all__ = [
     "datetime_dtype",
     "category_dtype",
     "window_dtype",
+    "bounding_box_dtype",
     "embedding_dtype",
     "array_dtype",
     "image_dtype",
