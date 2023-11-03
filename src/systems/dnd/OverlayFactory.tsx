@@ -13,12 +13,7 @@ export default function OverlayFactory({ data }: Props): JSX.Element {
     }
     if (data.kind === 'cell') {
         return (
-            <CellBadge
-                columnKey={data.column.key}
-                row={data.row}
-                draggable={false}
-                tw="p-1"
-            />
+            <CellBadge columnKey={data.column.key} row={data.row} draggable={false} />
         );
     }
     return <></>;

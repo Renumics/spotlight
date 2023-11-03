@@ -6,7 +6,7 @@ import { ColumnDragData } from '../../systems/dnd/types';
 import Draggable from '../../systems/dnd/Draggable';
 import { useDataset } from '../../stores/dataset';
 import { type CSSProp } from 'styled-components';
-import dataformat from '../../dataformat';
+import ScalarValue from '../ScalarValue';
 
 interface InternalProps {
     column: DataColumn;
@@ -26,20 +26,25 @@ interface Props {
 const StaticCellBadge = ({ column, row, className }: InternalProps): JSX.Element => {
     const tableData = useDataset((d) => d.columnData);
     const value = tableData[column.key][row];
-    const formattedValue = dataformat.format(value, column.type);
 
     return (
         <div
-            tw="flex flex-col rounded border text-xs text-midnight-500 bg-gray-100 p-0.5 hover:border-gray-600 transition space-x-0.5"
+            tw="flex flex-col rounded border divide-y divide-gray-400 text-xs text-midnight-500 bg-gray-100 hover:border-gray-600 transition"
             className={className}
         >
-            <div tw="flex flex-row">
-                <DataTypeIcon type={column.type} />
-                {column.editable && <EditIcon />}
-                <span>{column.name}</span>
+            <div tw="flex flex-row divide-x">
+                <div tw="flex flex-row p-1 space-x-0.5">
+                    <DataTypeIcon type={column.type} />
+                    {column.editable && <EditIcon />}
+                    <span>{column.name}</span>
+                </div>
+                <div tw="flex justify-center items-center p-0.5 divide-gray-400">
+                    {row}
+                </div>
             </div>
-            <span>Row {row}</span>
-            <span>{formattedValue}</span>
+            <div tw="p-1">
+                <ScalarValue column={column} value={value} />
+            </div>
         </div>
     );
 };
