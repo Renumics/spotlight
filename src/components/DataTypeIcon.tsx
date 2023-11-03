@@ -11,6 +11,7 @@ import SequenceIcon from '../icons/Sequence';
 import TextIcon from '../icons/Text';
 import VideoIcon from '../icons/Video';
 import WindowIcon from '../icons/Window';
+import BoundingBoxIcon from '../icons/BoundingBox';
 import { DataType } from '../datatypes';
 
 const ICONS: Record<DataType['kind'], JSX.Element> = {
@@ -27,6 +28,7 @@ const ICONS: Record<DataType['kind'], JSX.Element> = {
     Audio: <AudioIcon />,
     Video: <VideoIcon />,
     Window: <WindowIcon />,
+    BoundingBox: <BoundingBoxIcon />,
     Category: <CategoricalIcon />,
     Unknown: <QuestionIcon />,
 };

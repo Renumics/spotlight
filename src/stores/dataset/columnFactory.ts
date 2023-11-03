@@ -21,6 +21,7 @@ function makeDatatype(column: Column): DataType {
         case 'str':
         case 'array':
         case 'Embedding':
+        case 'BoundingBox':
             return {
                 kind,
                 binary: false,

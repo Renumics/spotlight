@@ -14,6 +14,7 @@ export const datakinds = [
     'Video',
     'Category',
     'Window',
+    'BoundingBox',
     'Unknown',
 ] as const;
 export type DataKind = typeof datakinds[number];
@@ -37,6 +38,7 @@ export type BooleanDataType = BaseDataType<'bool'>;
 export type DateTimeDataType = BaseDataType<'datetime'>;
 export type ArrayDataType = BaseDataType<'array', true>;
 export type WindowDataType = BaseDataType<'Window'>;
+export type BoundingBoxDataType = BaseDataType<'BoundingBox', true>;
 export type StringDataType = BaseDataType<'str', true>;
 export type EmbeddingDataType = BaseDataType<'Embedding', true>;
 export type SequenceDataType = BaseDataType<'Sequence1D', true, true>;
@@ -65,6 +67,7 @@ export type DataType =
     | AudioDataType
     | VideoDataType
     | WindowDataType
+    | BoundingBoxDataType
     | CategoricalDataType;
 
 // type guards
@@ -88,6 +91,8 @@ export const isAudio = (type: DataType): type is AudioDataType => type.kind === 
 export const isVideo = (type: DataType): type is VideoDataType => type.kind === 'Video';
 export const isWindow = (type: DataType): type is WindowDataType =>
     type.kind === 'Window';
+export const isBoundingBox = (type: DataType): type is BoundingBoxDataType =>
+    type.kind === 'BoundingBox';
 export const isCategorical = (type: DataType): type is CategoricalDataType =>
     type.kind === 'Category';
 export const isUnknown = (type: DataType): type is UnknownDataType =>

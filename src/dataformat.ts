@@ -34,6 +34,8 @@ export function formatKind(kind: DataKind, plural = false): string {
             return plural ? 'Videos' : 'Video';
         case 'Window':
             return plural ? 'Windows' : 'Window';
+        case 'BoundingBox':
+            return plural ? 'BoundingBoxes' : 'BoundingBox';
         case 'Category':
             return plural ? 'Categoricals' : 'Categorical';
         case 'Unknown':
@@ -89,6 +91,7 @@ export function format(value: any, type: DataType, full = false): string {
                 trimMantissa: false,
                 ...(!full && { mantissa: 4 }),
             })}]`;
+        case 'BoundingBox':
         case 'Audio':
         case 'Image':
         case 'Mesh':
