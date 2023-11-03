@@ -23,7 +23,6 @@ overwrite these column types. Supply your custom mapping as `dtype` parameter to
 [`renumics.spotlight.dtypes`](./dtypes).
 
 ```python
-from renumics.spotlight import dtypes
 viewer = spotlight.show(df, dtype={"int": "float", "str": "category"})
 ```
 

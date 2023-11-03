@@ -37,6 +37,7 @@ __all__ = [
     "datetime_dtype",
     "category_dtype",
     "window_dtype",
+    "bounding_box_dtype",
     "embedding_dtype",
     "array_dtype",
     "image_dtype",
@@ -345,9 +346,28 @@ register_dtype(category_dtype, [Category])
 
 window_dtype = DType("Window")
 """
-Window dtype. Aliases: `"Window"`.
+A single window. Aliases: `"Window"`.
+
+A single window is represented by an array-like with two timestamps in seconds
+as float values.
+
+Single NaN, infinity and out-of-bound values will be clipped by the audio/time
+series bounds. In case of both non-valid values no window will be showed.
+Descending values will be visually highlighted.
 """
 register_dtype(window_dtype, [Window])
+
+bounding_box_dtype = DType("BoundingBox")
+"""
+Single or multiple bounding boxes. Aliases: `"BoundingBox"`.
+
+A single bounding box is represented by an array-like with its relative
+coordinates [x_min, y_min, x_max, y_max] (float values scaled onto 0 to 1).
+Top-left image corner is assumed to be (0, 0).
+
+Multiple bounding boxes for the same image are represented by an array-like of
+floats with shape (n, 4) (preferred) or (4, n).
+"""
 
 embedding_dtype = EmbeddingDType()
 """
