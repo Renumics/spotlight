@@ -1,5 +1,5 @@
 import 'twin.macro';
-import { Lens, isCategoricalColumn } from '../types';
+import { Lens } from '../types';
 import JsonView from '@uiw/react-json-view';
 import { isCategorical, isSequence } from '../datatypes';
 import { useMemo } from 'react';
