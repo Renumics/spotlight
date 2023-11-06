@@ -348,6 +348,7 @@ class SpotlightApp(FastAPI):
                 plugin.update(self, config)
         except Exception as e:
             self._connection.send({"kind": "update_complete", "error": e})
+            logger.exception(e)
 
         self._connection.send({"kind": "update_complete"})
 
