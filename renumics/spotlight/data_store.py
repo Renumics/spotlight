@@ -158,7 +158,6 @@ class DataStore:
 
         sample_values = self._data_source.get_column_values(col, slice(10))
         sample_dtype = _guess_dtype_from_values(sample_values)
-
         return sample_dtype or spotlight_dtypes.str_dtype
 
 
@@ -252,8 +251,6 @@ def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
         return spotlight_dtypes.image_dtype
     if isinstance(value, trimesh.Trimesh):
         return spotlight_dtypes.mesh_dtype
-    if isinstance(value, np.ndarray):
-        return spotlight_dtypes.ArrayDType(value.shape)
 
     if isinstance(value, bytes) or is_pathtype(value):
         mimetype: Optional[str] = None
@@ -279,18 +276,22 @@ def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
                 return spotlight_dtypes.video_dtype
         return spotlight_dtypes.str_dtype
     if is_iterable(value):
+        if isinstance(value, np.ndarray) and value.dtype.str in "fiu":
+            # Array is float-compatible.
+            return _guess_array_dtype(spotlight_dtypes.ArrayDType(value.shape))
         try:
             value = np.asarray(value, dtype=float)
         except (TypeError, ValueError):
-            inner_dtype = _guess_dtype_from_values(value)
-            if (
-                inner_dtype is not None
-                and spotlight_dtypes.SequenceDType.is_supported_inner_dtype(inner_dtype)
-            ):
-                return spotlight_dtypes.SequenceDType(inner_dtype)
-            return None
+            pass
         else:
             return _guess_array_dtype(spotlight_dtypes.ArrayDType(value.shape))
+        inner_dtype = _guess_dtype_from_values(value)
+        if (
+            inner_dtype is not None
+            and spotlight_dtypes.SequenceDType.is_supported_inner_dtype(inner_dtype)
+        ):
+            return spotlight_dtypes.SequenceDType(inner_dtype)
+        return None
     return None
 
 
