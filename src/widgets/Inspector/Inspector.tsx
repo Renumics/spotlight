@@ -11,7 +11,7 @@ import Droppable from '../../systems/dnd/Droppable';
 import { isLensCompatible, useComponentsStore } from '../../stores/components';
 import { DragData } from '../../systems/dnd/types';
 
-const DropZone = ({ children }: any) => {
+const DropZone = () => {
     const addView = useStore((state) => state.addView);
 
     const handleDrop = ({ column }: DragData) => {
@@ -31,9 +31,10 @@ const DropZone = ({ children }: any) => {
     };
 
     return (
-        <Droppable tw="w-full h-full" onDrop={handleDrop}>
-            {children}
-        </Droppable>
+        <Droppable
+            tw="absolute w-full h-full z-10 pointer-events-none"
+            onDrop={handleDrop}
+        />
     );
 };
 
@@ -51,17 +52,16 @@ const Inspector: Widget = () => {
                     visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
                 />
                 <WidgetContent>
-                    <DropZone>
-                        <AutoSizer>
-                            {({ width, height }) => (
-                                <DetailsGrid
-                                    width={width}
-                                    height={height}
-                                    visibleColumnsCount={visibleColumnsCount}
-                                />
-                            )}
-                        </AutoSizer>
-                    </DropZone>
+                    <DropZone />
+                    <AutoSizer>
+                        {({ width, height }) => (
+                            <DetailsGrid
+                                width={width}
+                                height={height}
+                                visibleColumnsCount={visibleColumnsCount}
+                            />
+                        )}
+                    </AutoSizer>
                 </WidgetContent>
             </WidgetContainer>
         </StoreProvider>

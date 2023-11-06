@@ -13,6 +13,7 @@ interface Props {
     rowIndex: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CELL_COMPONENTS: Record<string, any> = {
     int: NumberCell,
     float: NumberCell,

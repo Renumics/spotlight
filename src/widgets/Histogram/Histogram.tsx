@@ -114,7 +114,10 @@ const Histogram: Widget = () => {
 
     return (
         <WidgetContainer>
-            <Droppable onDrop={handleDrop} tw="absolute w-full h-full" />
+            <Droppable
+                onDrop={handleDrop}
+                tw="absolute w-full h-full pointer-events-none"
+            />
             <WidgetMenu>
                 <div tw="flex-grow text-xs px-2 py-0.5 font-bold">{columnKey}</div>
                 <Button

@@ -17,8 +17,6 @@ import ConfirmationDialog from './ui/ConfirmationDialog';
 import Dropdown, { DropdownContext } from './ui/Dropdown';
 import Menu from './ui/Menu';
 
-const Spacer = tw.div`flex-grow`;
-
 const StyledDiv = styled.div`
     ${tw`w-full z-10 flex items-center bg-gray-200 pr-0.5`}
 `;

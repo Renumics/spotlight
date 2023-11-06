@@ -1,4 +1,3 @@
-import EditIcon from '../../../icons/Edit';
 import Tag from '../../../components/ui/Tag';
 import Tooltip from '../../../components/ui/Tooltip';
 import dataformat from '../../../dataformat';
@@ -13,8 +12,6 @@ import { useColumn } from '../context/columnContext';
 import { useSortByColumn } from '../context/sortingContext';
 import RelevanceIndicator from '../RelevanceIndicator';
 import { ResizingContext } from '../context/resizeContext';
-import Draggable from '../../../systems/dnd/Draggable';
-import { ColumnDragData } from '../../../systems/dnd/types';
 import ColumnBadge from '../../../components/ui/ColumnBadge';
 
 interface SortingIndicatorProps {
