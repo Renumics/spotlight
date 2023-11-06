@@ -301,29 +301,24 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
         raise ConversionError("Cannot interpret string as a window")
 
 
-def _validate_bounding_box(value: np.ndarray) -> np.ndarray:
+def _sanitize_bounding_box(value: np.ndarray) -> np.ndarray:
     """
     Convert a bounding box to float64 array of shape (n, 4), if possible.
     """
     value = value.astype(np.float64)
     if value.ndim == 1 and len(value) == 4:
-        return value[np.newaxis]
-    if value.ndim == 2:
-        if value.shape[1] == 4:
-            return value
-        if value.shape[0] == 4:
-            return value.T
+        return value
     raise ConversionError(f"Cannot interpret bounding box with shape {value.shape}")
 
 
 @convert("BoundingBox", simple=False)
 def _(value: list, _: dtypes.DType) -> np.ndarray:
-    return _validate_bounding_box(np.array(value, dtype=np.float64))
+    return _sanitize_bounding_box(np.array(value, dtype=np.float64))
 
 
 @convert("BoundingBox", simple=False)
 def _(value: np.ndarray, _: dtypes.DType) -> np.ndarray:
-    return _validate_bounding_box(value)
+    return _sanitize_bounding_box(value)
 
 
 @convert("BoundingBox", simple=False)
@@ -332,7 +327,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
         obj = ast.literal_eval(value)
     except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
         raise ConversionError("Cannot interpret string as an array")
-    return _validate_bounding_box(np.array(obj, dtype=np.float64))
+    return _sanitize_bounding_box(np.array(obj, dtype=np.float64))
 
 
 @convert("Embedding", simple=False)
@@ -453,9 +448,17 @@ def _(value: trimesh.Trimesh, _: dtypes.DType) -> bytes:
     return media.Mesh.from_trimesh(value).encode().tolist()
 
 
+@convert("Sequence", simple=False)
+def _(
+    value: Union[list, np.ndarray], dtype: dtypes.SequenceDType
+) -> List[ConvertedValue]:
+    return [convert_to_dtype(x, dtype.dtype, simple=False) for x in value]
+
+
 @convert("BoundingBox", simple=True)
 @convert("Embedding", simple=True)
 @convert("Sequence1D", simple=True)
+@convert("Sequence", simple=True)
 def _(_: Union[np.ndarray, list, str, np.str_], _dtype: dtypes.DType) -> str:
     return "[...]"
 

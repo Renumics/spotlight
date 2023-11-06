@@ -40,6 +40,7 @@ from renumics.spotlight.dtypes import (
     window_dtype,
     sequence_1d_dtype,
     bounding_box_dtype,
+    bounding_boxes_dtype,
 )
 
 from renumics.spotlight.typing import is_iterable, is_pathtype
@@ -282,8 +283,8 @@ def _guess_array_dtype(dtype: ArrayDType) -> DType:
         return sequence_1d_dtype
     if dtype.ndim == 2 and (dtype.shape[0] == 2 or dtype.shape[1] == 2):
         return sequence_1d_dtype
-    if dtype.ndim == 2 and (dtype.shape[0] == 4 or dtype.shape[1] == 4):
-        return bounding_box_dtype
+    if dtype.ndim == 2 and dtype.shape[1] == 4:
+        return bounding_boxes_dtype
     if dtype.ndim == 3 and dtype.shape[-1] in (1, 3, 4):
         return image_dtype
     return dtype

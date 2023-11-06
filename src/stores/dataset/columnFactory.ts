@@ -4,7 +4,7 @@ import { Column } from '../../client';
 import { DataColumn } from '../../types';
 
 function makeDatatype(column: Column): DataType {
-    const kind = column.role as DataType['kind'];
+    const kind = column.dtype.name as DataType['kind'];
 
     switch (kind) {
         case 'int':
@@ -45,8 +45,8 @@ function makeDatatype(column: Column): DataType {
                 binary: false,
                 lazy: false,
                 optional: column.optional,
-                categories: column.categories ?? {},
-                invertedCategories: _.invert(column.categories ?? {}),
+                categories: column.dtype.categories ?? {},
+                invertedCategories: _.invert(column.dtype.categories ?? {}),
             };
     }
     return {

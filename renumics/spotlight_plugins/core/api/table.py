@@ -2,18 +2,53 @@
 table api endpoints
 """
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
+from typing_extensions import Literal
 
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
-from renumics.spotlight import dtypes
+
+
+class BaseDType(BaseModel, extra=Extra.forbid):
+    name: str
+
+
+class BoundingBox(BaseDType):
+    name: Literal["BoundingBox"] = "BoundingBox"
+
+
+class CategoryDType(BaseDType):
+    name: Literal["Category"] = "Category"
+    categories: Dict[str, int]
+
+
+class ArrayDType(BaseDType):
+    name: Literal["array"] = "array"
+    shape: Optional[Tuple[Optional[int], ...]]
+
+
+class EmbeddingDType(BaseDType):
+    name: Literal["Embedding"] = "Embedding"
+    length: Optional[int]
+
+
+class Sequence1DDType(BaseDType):
+    name: Literal["Sequence1D"] = "Sequence1D"
+    x_label: str
+    y_label: str
+
+
+class SequenceDType(BaseDType):
+    name: Literal["Sequence"] = "Sequence"
+    dtype: Union[BoundingBox, CategoryDType]
+    length: Optional[str]
 
 
 class Column(BaseModel):
@@ -25,11 +60,18 @@ class Column(BaseModel):
     editable: bool
     optional: bool
     hidden: bool
-    role: str
+    dtype: Union[
+        BaseDType,
+        BoundingBox,
+        CategoryDType,
+        ArrayDType,
+        EmbeddingDType,
+        Sequence1DDType,
+        SequenceDType,
+    ]
     values: List[Any]
     description: Optional[str]
     tags: Optional[List[str]]
-    categories: Optional[Dict[str, int]]
 
 
 class Table(BaseModel):
@@ -81,8 +123,7 @@ def get_table(request: Request) -> ORJSONResponse:
             editable=meta.editable,
             optional=meta.nullable,
             hidden=meta.hidden,
-            role=dtype.name,
-            categories=dtype.categories if dtypes.is_category_dtype(dtype) else None,
+            dtype=dtype.dict(),
             description=meta.description,
             tags=meta.tags,
         )

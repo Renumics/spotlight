@@ -13,6 +13,9 @@
  */
 
 import { exists, mapValues } from '../runtime';
+import type { Dtype } from './Dtype';
+import { DtypeFromJSON, DtypeFromJSONTyped, DtypeToJSON } from './Dtype';
+
 /**
  * a single table column
  * @export
@@ -45,10 +48,10 @@ export interface Column {
     hidden: boolean;
     /**
      *
-     * @type {string}
+     * @type {Dtype}
      * @memberof Column
      */
-    role: string;
+    dtype: Dtype;
     /**
      *
      * @type {Array<any>}
@@ -67,12 +70,6 @@ export interface Column {
      * @memberof Column
      */
     tags?: Array<string>;
-    /**
-     *
-     * @type {{ [key: string]: number; }}
-     * @memberof Column
-     */
-    categories?: { [key: string]: number };
 }
 
 /**
@@ -84,7 +81,7 @@ export function instanceOfColumn(value: object): boolean {
     isInstance = isInstance && 'editable' in value;
     isInstance = isInstance && 'optional' in value;
     isInstance = isInstance && 'hidden' in value;
-    isInstance = isInstance && 'role' in value;
+    isInstance = isInstance && 'dtype' in value;
     isInstance = isInstance && 'values' in value;
 
     return isInstance;
@@ -103,11 +100,10 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
         editable: json['editable'],
         optional: json['optional'],
         hidden: json['hidden'],
-        role: json['role'],
+        dtype: DtypeFromJSON(json['dtype']),
         values: json['values'],
         description: !exists(json, 'description') ? undefined : json['description'],
         tags: !exists(json, 'tags') ? undefined : json['tags'],
-        categories: !exists(json, 'categories') ? undefined : json['categories'],
     };
 }
 
@@ -123,10 +119,9 @@ export function ColumnToJSON(value?: Column | null): any {
         editable: value.editable,
         optional: value.optional,
         hidden: value.hidden,
-        role: value.role,
+        dtype: DtypeToJSON(value.dtype),
         values: value.values,
         description: value.description,
         tags: value.tags,
-        categories: value.categories,
     };
 }
