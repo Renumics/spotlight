@@ -12,6 +12,7 @@ function makeDatatype(column: Column): DataType {
         case 'bool':
         case 'Window':
         case 'datetime':
+        case 'BoundingBox':
             return {
                 kind,
                 binary: false,
@@ -21,7 +22,6 @@ function makeDatatype(column: Column): DataType {
         case 'str':
         case 'array':
         case 'Embedding':
-        case 'BoundingBox':
             return {
                 kind,
                 binary: false,
@@ -47,6 +47,15 @@ function makeDatatype(column: Column): DataType {
                 optional: column.optional,
                 categories: column.dtype.categories ?? {},
                 invertedCategories: _.invert(column.dtype.categories ?? {}),
+            };
+        case 'Sequence':
+            return {
+                kind,
+                binary: false,
+                lazy: true,
+                optional: column.optional,
+                dtype: column.dtype.dtype,
+                length: column.dtype.length,
             };
     }
     return {

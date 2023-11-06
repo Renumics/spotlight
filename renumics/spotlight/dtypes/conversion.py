@@ -311,17 +311,17 @@ def _sanitize_bounding_box(value: np.ndarray) -> np.ndarray:
     raise ConversionError(f"Cannot interpret bounding box with shape {value.shape}")
 
 
-@convert("BoundingBox", simple=False)
+@convert("BoundingBox")
 def _(value: list, _: dtypes.DType) -> np.ndarray:
     return _sanitize_bounding_box(np.array(value, dtype=np.float64))
 
 
-@convert("BoundingBox", simple=False)
+@convert("BoundingBox")
 def _(value: np.ndarray, _: dtypes.DType) -> np.ndarray:
     return _sanitize_bounding_box(value)
 
 
-@convert("BoundingBox", simple=False)
+@convert("BoundingBox")
 def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
@@ -455,7 +455,6 @@ def _(
     return [convert_to_dtype(x, dtype.dtype, simple=False) for x in value]
 
 
-@convert("BoundingBox", simple=True)
 @convert("Embedding", simple=True)
 @convert("Sequence1D", simple=True)
 @convert("Sequence", simple=True)
