@@ -13,9 +13,6 @@
  */
 
 import { exists, mapValues } from '../runtime';
-import type { Dtype } from './Dtype';
-import { DtypeFromJSON, DtypeFromJSONTyped, DtypeToJSON } from './Dtype';
-
 /**
  * a single table column
  * @export
@@ -48,10 +45,10 @@ export interface Column {
     hidden: boolean;
     /**
      *
-     * @type {Dtype}
+     * @type {any}
      * @memberof Column
      */
-    dtype: Dtype;
+    dtype?: any | null;
     /**
      *
      * @type {Array<any>}
@@ -81,7 +78,6 @@ export function instanceOfColumn(value: object): boolean {
     isInstance = isInstance && 'editable' in value;
     isInstance = isInstance && 'optional' in value;
     isInstance = isInstance && 'hidden' in value;
-    isInstance = isInstance && 'dtype' in value;
     isInstance = isInstance && 'values' in value;
 
     return isInstance;
@@ -100,7 +96,7 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
         editable: json['editable'],
         optional: json['optional'],
         hidden: json['hidden'],
-        dtype: DtypeFromJSON(json['dtype']),
+        dtype: !exists(json, 'dtype') ? undefined : json['dtype'],
         values: json['values'],
         description: !exists(json, 'description') ? undefined : json['description'],
         tags: !exists(json, 'tags') ? undefined : json['tags'],
@@ -119,7 +115,7 @@ export function ColumnToJSON(value?: Column | null): any {
         editable: value.editable,
         optional: value.optional,
         hidden: value.hidden,
-        dtype: DtypeToJSON(value.dtype),
+        dtype: value.dtype,
         values: value.values,
         description: value.description,
         tags: value.tags,

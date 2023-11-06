@@ -2,53 +2,17 @@
 table api endpoints
 """
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-from typing_extensions import Literal
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel
 
 from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
-
-
-class BaseDType(BaseModel, extra=Extra.forbid):
-    name: str
-
-
-class BoundingBox(BaseDType):
-    name: Literal["BoundingBox"] = "BoundingBox"
-
-
-class CategoryDType(BaseDType):
-    name: Literal["Category"] = "Category"
-    categories: Dict[str, int]
-
-
-class ArrayDType(BaseDType):
-    name: Literal["array"] = "array"
-    shape: Optional[Tuple[Optional[int], ...]]
-
-
-class EmbeddingDType(BaseDType):
-    name: Literal["Embedding"] = "Embedding"
-    length: Optional[int]
-
-
-class Sequence1DDType(BaseDType):
-    name: Literal["Sequence1D"] = "Sequence1D"
-    x_label: str
-    y_label: str
-
-
-class SequenceDType(BaseDType):
-    name: Literal["Sequence"] = "Sequence"
-    dtype: Union[BoundingBox, CategoryDType]
-    length: Optional[str]
 
 
 class Column(BaseModel):
@@ -60,15 +24,7 @@ class Column(BaseModel):
     editable: bool
     optional: bool
     hidden: bool
-    dtype: Union[
-        BaseDType,
-        BoundingBox,
-        CategoryDType,
-        ArrayDType,
-        EmbeddingDType,
-        Sequence1DDType,
-        SequenceDType,
-    ]
+    dtype: Any
     values: List[Any]
     description: Optional[str]
     tags: Optional[List[str]]
