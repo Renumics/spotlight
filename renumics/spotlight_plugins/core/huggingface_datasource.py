@@ -123,7 +123,7 @@ class HuggingfaceDataSource(DataSource):
                 return_array = np.empty(len(values), dtype=object)
                 return_array[:] = values
                 return return_array
-            if spotlight_dtypes.is_embedding_dtype(intermediate_dtype):
+            if spotlight_dtypes.is_sequence_dtype(intermediate_dtype):
                 return raw_values.to_numpy()
             return np.array([str(value) for value in raw_values])
 
