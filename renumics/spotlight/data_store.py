@@ -1,8 +1,10 @@
+import datetime
 import hashlib
 import io
 import os
 import statistics
-from typing import Any, List, Optional, Set, Union, cast
+from typing import Any, Iterable, List, Optional, Set, Union, cast
+
 import numpy as np
 import filetype
 import requests
@@ -10,39 +12,12 @@ import trimesh
 import PIL.Image
 import validators
 
+import renumics.spotlight.dtypes as spotlight_dtypes
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
 from renumics.spotlight.io import audio
-from renumics.spotlight.dtypes import (
-    ArrayDType,
-    CategoryDType,
-    DType,
-    DTypeMap,
-    EmbeddingDType,
-    array_dtype,
-    is_array_dtype,
-    is_audio_dtype,
-    is_category_dtype,
-    is_embedding_dtype,
-    is_file_dtype,
-    is_str_dtype,
-    is_mixed_dtype,
-    is_bytes_dtype,
-    is_window_dtype,
-    str_dtype,
-    audio_dtype,
-    image_dtype,
-    video_dtype,
-    mesh_dtype,
-    embedding_dtype,
-    window_dtype,
-    sequence_1d_dtype,
-    bounding_box_dtype,
-    bounding_boxes_dtype,
-)
-
 from renumics.spotlight.typing import is_iterable, is_pathtype
 from renumics.spotlight.media.mesh import Mesh
 from renumics.spotlight.media.video import Video
@@ -54,10 +29,12 @@ from renumics.spotlight.media.embedding import Embedding
 
 class DataStore:
     _data_source: DataSource
-    _user_dtypes: DTypeMap
-    _dtypes: DTypeMap
+    _user_dtypes: spotlight_dtypes.DTypeMap
+    _dtypes: spotlight_dtypes.DTypeMap
 
-    def __init__(self, data_source: DataSource, user_dtypes: DTypeMap) -> None:
+    def __init__(
+        self, data_source: DataSource, user_dtypes: spotlight_dtypes.DTypeMap
+    ) -> None:
         self._data_source = data_source
         self._user_dtypes = user_dtypes
         self._update_dtypes()
@@ -86,7 +63,7 @@ class DataStore:
         return self._data_source
 
     @property
-    def dtypes(self) -> DTypeMap:
+    def dtypes(self) -> spotlight_dtypes.DTypeMap:
         return self._dtypes
 
     def check_generation_id(self, generation_id: int) -> None:
@@ -119,7 +96,7 @@ class DataStore:
         """
         return the waveform of an audio cell
         """
-        assert is_audio_dtype(self._dtypes[column_name])
+        assert spotlight_dtypes.is_audio_dtype(self._dtypes[column_name])
 
         blob = self.get_converted_value(column_name, index, simple=False)
         if blob is None:
@@ -156,86 +133,127 @@ class DataStore:
         # determine categories for _automatic_ CategoryDtypes
         for column_name, dtype in dtypes.items():
             if (
-                is_category_dtype(dtype)
+                spotlight_dtypes.is_category_dtype(dtype)
                 and dtype.categories is None
-                and is_str_dtype(guessed_dtypes[column_name])
+                and spotlight_dtypes.is_str_dtype(guessed_dtypes[column_name])
             ):
                 normalized_values = self._data_source.get_column_values(column_name)
                 converted_values = [
-                    convert_to_dtype(value, str_dtype, simple=True, check=True)
+                    convert_to_dtype(
+                        value, spotlight_dtypes.str_dtype, simple=True, check=True
+                    )
                     for value in normalized_values
                 ]
                 category_names = sorted(cast(Set[str], set(converted_values)))
-                dtypes[column_name] = CategoryDType(category_names)
+                dtypes[column_name] = spotlight_dtypes.CategoryDType(category_names)
 
         self._dtypes = dtypes
 
-    def _guess_dtype(self, col: str) -> DType:
+    def _guess_dtype(self, col: str) -> spotlight_dtypes.DType:
         intermediate_dtype = self._data_source.intermediate_dtypes[col]
-        semantic_dtype = _intermediate_to_semantic_dtype(intermediate_dtype)
+        semantic_dtype = _guess_dtype_from_intermediate(intermediate_dtype)
 
-        if is_array_dtype(intermediate_dtype):
+        if semantic_dtype is not None:
             return semantic_dtype
 
         sample_values = self._data_source.get_column_values(col, slice(10))
-        sample_dtypes: List[DType] = []
-        for value in sample_values:
-            guessed_dtype = _guess_value_dtype(value)
-            if guessed_dtype is not None:
-                sample_dtypes.append(guessed_dtype)
-        if not sample_dtypes:
-            return semantic_dtype
+        sample_dtype = _guess_dtype_from_values(sample_values)
 
-        mode_dtype = statistics.mode(sample_dtypes)
-        # For windows and embeddings, at least sample values must be aligned.
-        if is_window_dtype(mode_dtype) and any(
-            not is_window_dtype(dtype) for dtype in sample_dtypes
-        ):
-            return array_dtype
-        if is_embedding_dtype(mode_dtype) and any(
-            (not is_embedding_dtype(dtype)) or dtype.length != mode_dtype.length
-            for dtype in sample_dtypes
-        ):
-            return array_dtype
-
-        return mode_dtype
+        return sample_dtype or spotlight_dtypes.str_dtype
 
 
-def _intermediate_to_semantic_dtype(intermediate_dtype: DType) -> DType:
-    if is_array_dtype(intermediate_dtype):
-        return _guess_array_dtype(intermediate_dtype)
-    if is_file_dtype(intermediate_dtype):
-        return str_dtype
-    if is_mixed_dtype(intermediate_dtype):
-        return str_dtype
-    if is_bytes_dtype(intermediate_dtype):
-        return str_dtype
-    else:
+def _guess_dtype_from_values(values: Iterable) -> Optional[spotlight_dtypes.DType]:
+    dtypes: List[spotlight_dtypes.DType] = []
+    for value in values:
+        guessed_dtype = _guess_value_dtype(value)
+        if guessed_dtype is not None:
+            dtypes.append(guessed_dtype)
+    if not dtypes:
+        return None
+
+    mode_dtype = statistics.mode(dtypes)
+
+    if (
+        spotlight_dtypes.is_window_dtype(mode_dtype)
+        or spotlight_dtypes.is_bounding_box_dtype(mode_dtype)
+        or spotlight_dtypes.is_embedding_dtype(mode_dtype)
+    ):
+        if any(dtype != mode_dtype for dtype in dtypes):
+            return spotlight_dtypes.array_dtype
+    return mode_dtype
+
+
+def _guess_dtype_from_intermediate(
+    intermediate_dtype: spotlight_dtypes.DType,
+) -> Optional[spotlight_dtypes.DType]:
+    if spotlight_dtypes.is_bool_dtype(intermediate_dtype):
         return intermediate_dtype
+    if spotlight_dtypes.is_int_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_float_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_datetime_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_category_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_window_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_bounding_box_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_bounding_boxes_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_embedding_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_sequence_1d_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_audio_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_image_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_mesh_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_video_dtype(intermediate_dtype):
+        return intermediate_dtype
+    if spotlight_dtypes.is_array_dtype(intermediate_dtype):
+        return _guess_array_dtype(intermediate_dtype)
+    if spotlight_dtypes.is_sequence_dtype(intermediate_dtype):
+        inner_dtype = intermediate_dtype.dtype
+        if spotlight_dtypes.SequenceDType.is_supported_inner_dtype(inner_dtype):
+            return intermediate_dtype
+        return spotlight_dtypes.str_dtype
+    return None
 
 
-def _guess_value_dtype(value: Any) -> Optional[DType]:
+def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
     """
     Infer dtype for value
     """
+    if isinstance(value, bool):
+        return spotlight_dtypes.bool_dtype
+    if isinstance(value, int):
+        return spotlight_dtypes.int_dtype
+    if isinstance(value, float):
+        return spotlight_dtypes.float_dtype
+    if isinstance(value, (datetime.datetime, np.datetime64)):
+        return spotlight_dtypes.datetime_dtype
     if isinstance(value, Embedding):
-        return embedding_dtype
+        return spotlight_dtypes.embedding_dtype
     if isinstance(value, Sequence1D):
-        return sequence_1d_dtype
+        return spotlight_dtypes.sequence_1d_dtype
     if isinstance(value, Image):
-        return image_dtype
+        return spotlight_dtypes.image_dtype
     if isinstance(value, Audio):
-        return audio_dtype
+        return spotlight_dtypes.audio_dtype
     if isinstance(value, Video):
-        return video_dtype
+        return spotlight_dtypes.video_dtype
     if isinstance(value, Mesh):
-        return mesh_dtype
+        return spotlight_dtypes.mesh_dtype
     if isinstance(value, PIL.Image.Image):
-        return image_dtype
+        return spotlight_dtypes.image_dtype
     if isinstance(value, trimesh.Trimesh):
-        return mesh_dtype
+        return spotlight_dtypes.mesh_dtype
     if isinstance(value, np.ndarray):
-        return ArrayDType(value.shape)
+        return spotlight_dtypes.ArrayDType(value.shape)
 
     if isinstance(value, bytes) or is_pathtype(value):
         mimetype: Optional[str] = None
@@ -254,37 +272,43 @@ def _guess_value_dtype(value: Any) -> Optional[DType]:
         if mimetype is not None:
             mime_group = mimetype.split("/")[0]
             if mime_group == "image":
-                return image_dtype
+                return spotlight_dtypes.image_dtype
             if mime_group == "audio":
-                return audio_dtype
+                return spotlight_dtypes.audio_dtype
             if mime_group == "video":
-                return video_dtype
-        return str_dtype
+                return spotlight_dtypes.video_dtype
+        return spotlight_dtypes.str_dtype
     if is_iterable(value):
         try:
             value = np.asarray(value, dtype=float)
         except (TypeError, ValueError):
-            pass
+            inner_dtype = _guess_dtype_from_values(value)
+            if (
+                inner_dtype is not None
+                and spotlight_dtypes.SequenceDType.is_supported_inner_dtype(inner_dtype)
+            ):
+                return spotlight_dtypes.SequenceDType(inner_dtype)
+            return None
         else:
-            return _guess_array_dtype(ArrayDType(value.shape))
+            return _guess_array_dtype(spotlight_dtypes.ArrayDType(value.shape))
     return None
 
 
-def _guess_array_dtype(dtype: ArrayDType) -> DType:
+def _guess_array_dtype(dtype: spotlight_dtypes.ArrayDType) -> spotlight_dtypes.DType:
     if dtype.shape is None:
         return dtype
     if dtype.shape == (2,):
-        return window_dtype
+        return spotlight_dtypes.window_dtype
     if dtype.shape == (4,):
-        return bounding_box_dtype
+        return spotlight_dtypes.bounding_box_dtype
     if dtype.ndim == 1 and dtype.shape[0] is not None:
-        return EmbeddingDType(dtype.shape[0])
+        return spotlight_dtypes.EmbeddingDType(dtype.shape[0])
     if dtype.ndim == 1 and dtype.shape[0] is None:
-        return sequence_1d_dtype
+        return spotlight_dtypes.sequence_1d_dtype
     if dtype.ndim == 2 and (dtype.shape[0] == 2 or dtype.shape[1] == 2):
-        return sequence_1d_dtype
+        return spotlight_dtypes.sequence_1d_dtype
     if dtype.ndim == 2 and dtype.shape[1] == 4:
-        return bounding_boxes_dtype
+        return spotlight_dtypes.bounding_boxes_dtype
     if dtype.ndim == 3 and dtype.shape[-1] in (1, 3, 4):
-        return image_dtype
+        return spotlight_dtypes.image_dtype
     return dtype

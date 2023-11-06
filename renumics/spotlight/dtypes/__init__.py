@@ -335,6 +335,15 @@ class SequenceDType(DType):
     def dict(self) -> dict:
         return {"name": self._name, "dtype": self.dtype.dict(), "length": self.length}
 
+    @staticmethod
+    def is_supported_inner_dtype(dtype: DType) -> bool:
+        return (
+            is_str_dtype(dtype)
+            or is_category_dtype(dtype)
+            or is_window_dtype(dtype)
+            or is_bounding_box_dtype(dtype)
+        )
+
 
 ALIASES: Dict[Any, DType] = {}
 
@@ -518,6 +527,14 @@ def is_window_dtype(dtype: DType) -> bool:
     return dtype.name == "Window"
 
 
+def is_bounding_box_dtype(dtype: DType) -> bool:
+    return dtype.name == "BoundingBox"
+
+
+def is_bounding_boxes_dtype(dtype: DType) -> bool:
+    return is_sequence_dtype(dtype) and is_bounding_box_dtype(dtype.dtype)
+
+
 def is_embedding_dtype(dtype: DType) -> TypeGuard[EmbeddingDType]:
     return dtype.name == "Embedding"
 
@@ -544,6 +561,10 @@ def is_video_dtype(dtype: DType) -> bool:
 
 def is_bytes_dtype(dtype: DType) -> bool:
     return dtype.name == "bytes"
+
+
+def is_sequence_dtype(dtype: DType) -> TypeGuard[SequenceDType]:
+    return dtype.name == "Sequence"
 
 
 def is_mixed_dtype(dtype: DType) -> bool:
