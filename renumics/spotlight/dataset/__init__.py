@@ -2597,9 +2597,15 @@ class Dataset:
         elif self._length == 0:
             return
         elif attrs.get("optional", False):
-            encoded_values = column.attrs.get(
+            default_value = column.attrs.get(
                 "default", "" if h5py.check_string_dtype(column.dtype) else None
             )
+            if isinstance(default_value, np.ndarray):
+                encoded_values = np.broadcast_to(
+                    default_value, (indices_length, *default_value.shape)
+                )
+            else:
+                encoded_values = default_value
         else:
             raise exceptions.InvalidDTypeError(
                 f'Dataset has been initialized and values for non-optional column "{column_name}" '
