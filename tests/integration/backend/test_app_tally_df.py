@@ -76,5 +76,7 @@ def test_read_table(viewer_tally_df: spotlight.Viewer) -> None:
     assert response.status_code == 200
     assert len(response.text) > 1000
     json_data = json.loads(response.text)
-    assert _column_by_name(json_data["columns"], "even_text")["role"] == "str"
-    assert _column_by_name(json_data["columns"], "encoded")["role"] == "Embedding"
+    assert _column_by_name(json_data["columns"], "even_text")["dtype"]["name"] == "str"
+    assert (
+        _column_by_name(json_data["columns"], "encoded")["dtype"]["name"] == "Embedding"
+    )
