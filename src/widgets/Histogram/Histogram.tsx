@@ -24,8 +24,7 @@ import useHistogram from './useHistogram';
 import XAxis from './XAxis';
 import Info from '../../components/ui/Info';
 import { WidgetContainer, WidgetContent, WidgetMenu } from '../../lib';
-import { CellDragData, ColumnDragData, DragData, Droppable } from '../../systems/dnd';
-import { Column } from '../../client';
+import { CellDragData, ColumnDragData, Droppable } from '../../systems/dnd';
 
 const columnsSelector = (d: Dataset) => d.columns;
 
