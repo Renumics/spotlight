@@ -1,4 +1,5 @@
 import * as React from 'react';
+import _ from 'lodash';
 import { useCallback, useEffect, useMemo } from 'react';
 import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -38,7 +39,7 @@ const ErrorFallback = ({
     );
 };
 
-const ViewFactory: React.FunctionComponent<Props> = ({
+const LensFactory: React.FunctionComponent<Props> = ({
     view,
     columns,
     rowIndex,
@@ -98,10 +99,12 @@ const ViewFactory: React.FunctionComponent<Props> = ({
 
     const context = { syncKey };
 
+    const allValuesAreNull = values.every(_.isNull);
+
     return (
         <LensContext.Provider value={context}>
             <ErrorBoundary fallbackRender={fallbackRenderer}>
-                {values[0] == null ? (
+                {allValuesAreNull ? (
                     <None />
                 ) : (
                     <LensComponent
@@ -120,4 +123,4 @@ const ViewFactory: React.FunctionComponent<Props> = ({
     );
 };
 
-export default ViewFactory;
+export default LensFactory;
