@@ -2,7 +2,7 @@
 table api endpoints
 """
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
@@ -13,7 +13,6 @@ from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
-from renumics.spotlight import dtypes
 
 
 class Column(BaseModel):
@@ -25,11 +24,10 @@ class Column(BaseModel):
     editable: bool
     optional: bool
     hidden: bool
-    role: str
+    dtype: Any
     values: List[Any]
     description: Optional[str]
     tags: Optional[List[str]]
-    categories: Optional[Dict[str, int]]
 
 
 class Table(BaseModel):
@@ -81,8 +79,7 @@ def get_table(request: Request) -> ORJSONResponse:
             editable=meta.editable,
             optional=meta.nullable,
             hidden=meta.hidden,
-            role=dtype.name,
-            categories=dtype.categories if dtypes.is_category_dtype(dtype) else None,
+            dtype=dtype.dict(),
             description=meta.description,
             tags=meta.tags,
         )

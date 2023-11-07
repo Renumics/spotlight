@@ -3,8 +3,11 @@ import _ from 'lodash';
 import { Column } from '../../client';
 import { DataColumn } from '../../types';
 
-function makeDatatype(column: Column): DataType {
-    const kind = column.role as DataType['kind'];
+function makeDatatype(
+    dtype: NonNullable<Column['dtype']>,
+    optional: boolean
+): DataType {
+    const kind = dtype.name;
 
     switch (kind) {
         case 'int':
@@ -12,21 +15,21 @@ function makeDatatype(column: Column): DataType {
         case 'bool':
         case 'Window':
         case 'datetime':
-            return {
-                kind,
-                binary: false,
-                lazy: false,
-                optional: column.optional,
-            };
-        case 'str':
-        case 'array':
-        case 'Embedding':
         case 'BoundingBox':
             return {
                 kind,
                 binary: false,
+                lazy: false,
+                optional: optional,
+            };
+        case 'str':
+        case 'array':
+        case 'Embedding':
+            return {
+                kind,
+                binary: false,
                 lazy: true,
-                optional: column.optional,
+                optional: optional,
             };
         case 'Image':
         case 'Video':
@@ -37,23 +40,32 @@ function makeDatatype(column: Column): DataType {
                 kind,
                 binary: true,
                 lazy: true,
-                optional: column.optional,
+                optional: optional,
             };
         case 'Category':
             return {
                 kind,
                 binary: false,
                 lazy: false,
-                optional: column.optional,
-                categories: column.categories ?? {},
-                invertedCategories: _.invert(column.categories ?? {}),
+                optional: optional,
+                categories: dtype.categories ?? {},
+                invertedCategories: _.invert(dtype.categories ?? {}),
+            };
+        case 'Sequence':
+            return {
+                kind,
+                binary: false,
+                lazy: true,
+                optional: optional,
+                dtype: makeDatatype(dtype.dtype, true),
+                length: dtype.length,
             };
     }
     return {
         kind: 'Unknown',
         lazy: false,
         binary: false,
-        optional: column.optional,
+        optional: optional,
     };
 }
 
@@ -62,7 +74,7 @@ export function makeColumn(column: Column, index: number): DataColumn {
         index,
         key: column.name,
         name: column.name,
-        type: makeDatatype(column),
+        type: makeDatatype(column.dtype, column.optional),
         editable: column.editable,
         optional: column.optional,
         hidden: column.hidden,

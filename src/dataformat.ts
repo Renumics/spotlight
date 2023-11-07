@@ -38,6 +38,8 @@ export function formatKind(kind: DataKind, plural = false): string {
             return plural ? 'BoundingBoxes' : 'BoundingBox';
         case 'Category':
             return plural ? 'Categoricals' : 'Categorical';
+        case 'Sequence':
+            return plural ? 'Sequences' : 'Sequence';
         case 'Unknown':
             return 'Unknown';
     }
@@ -51,6 +53,22 @@ export function formatType(type: DataType, plural = false): string {
 // can the format function produce a more meaningful representation than '<type>'?
 export function canFormat(type: DataType): boolean {
     return ['str', 'int', 'float', 'bool', 'datetime', 'Category'].includes(type.kind);
+}
+
+function formatNumericalArray(value: number[], full: boolean): string {
+    return (
+        '[' +
+        value
+            .map((x) =>
+                formatNumber(x, {
+                    optionalMantissa: false,
+                    trimMantissa: false,
+                    ...(!full && { mantissa: 4 }),
+                })
+            )
+            .join(', ') +
+        ']'
+    );
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
@@ -82,21 +100,14 @@ export function format(value: any, type: DataType, full = false): string {
             }
             return moment(value).format('llll');
         case 'Window':
-            return `[${formatNumber(value[0], {
-                optionalMantissa: false,
-                trimMantissa: false,
-                ...(!full && { mantissa: 4 }),
-            })}, ${formatNumber(value[1], {
-                optionalMantissa: false,
-                trimMantissa: false,
-                ...(!full && { mantissa: 4 }),
-            })}]`;
         case 'BoundingBox':
+            return formatNumericalArray(value, full);
         case 'Audio':
         case 'Image':
         case 'Mesh':
         case 'Video':
         case 'Sequence1D':
+        case 'Sequence':
             return value;
         default:
             return `<${formatType(type)}>`;

@@ -15,6 +15,7 @@ export const datakinds = [
     'Category',
     'Window',
     'BoundingBox',
+    'Sequence',
     'Unknown',
 ] as const;
 export type DataKind = typeof datakinds[number];
@@ -38,16 +39,19 @@ export type BooleanDataType = BaseDataType<'bool'>;
 export type DateTimeDataType = BaseDataType<'datetime'>;
 export type ArrayDataType = BaseDataType<'array', true>;
 export type WindowDataType = BaseDataType<'Window'>;
-export type BoundingBoxDataType = BaseDataType<'BoundingBox', true>;
+export type BoundingBoxDataType = BaseDataType<'BoundingBox'>;
 export type StringDataType = BaseDataType<'str', true>;
 export type EmbeddingDataType = BaseDataType<'Embedding', true>;
-export type SequenceDataType = BaseDataType<'Sequence1D', true, true>;
+export type Sequence1DDataType = BaseDataType<'Sequence1D', true, true>;
 export type MeshDataType = BaseDataType<'Mesh', true, true>;
 export type ImageDataType = BaseDataType<'Image', true, true>;
 export type AudioDataType = BaseDataType<'Audio', true, true>;
 export type VideoDataType = BaseDataType<'Video', true, true>;
+export interface SequenceDataType extends BaseDataType<'Sequence', true> {
+    dtype: DataType;
+    length?: number;
+}
 export interface CategoricalDataType extends BaseDataType<'Category'> {
-    kind: 'Category';
     categories: Record<string, number>;
     invertedCategories: Record<number, string>;
 }
@@ -61,14 +65,15 @@ export type DataType =
     | ArrayDataType
     | DateTimeDataType
     | MeshDataType
-    | SequenceDataType
+    | Sequence1DDataType
     | EmbeddingDataType
     | ImageDataType
     | AudioDataType
     | VideoDataType
     | WindowDataType
     | BoundingBoxDataType
-    | CategoricalDataType;
+    | CategoricalDataType
+    | SequenceDataType;
 
 // type guards
 export const isInteger = (type: DataType): type is IntegerDataType =>
@@ -81,12 +86,11 @@ export const isArray = (type: DataType): type is ArrayDataType => type.kind === 
 export const isDateTime = (type: DataType): type is DateTimeDataType =>
     type.kind === 'datetime';
 export const isMesh = (type: DataType): type is MeshDataType => type.kind === 'Mesh';
-export const isSequence = (type: DataType): type is SequenceDataType =>
+export const isSequence1D = (type: DataType): type is Sequence1DDataType =>
     type.kind === 'Sequence1D';
 export const isEmbedding = (type: DataType): type is EmbeddingDataType =>
     type.kind === 'Embedding';
-export const isImage = (type: DataType): type is ImageDataType =>
-    type.kind === 'Sequence1D';
+export const isImage = (type: DataType): type is ImageDataType => type.kind === 'Image';
 export const isAudio = (type: DataType): type is AudioDataType => type.kind === 'Audio';
 export const isVideo = (type: DataType): type is VideoDataType => type.kind === 'Video';
 export const isWindow = (type: DataType): type is WindowDataType =>
@@ -95,6 +99,8 @@ export const isBoundingBox = (type: DataType): type is BoundingBoxDataType =>
     type.kind === 'BoundingBox';
 export const isCategorical = (type: DataType): type is CategoricalDataType =>
     type.kind === 'Category';
+export const isSequence = (type: DataType): type is SequenceDataType =>
+    type.kind === 'Sequence';
 export const isUnknown = (type: DataType): type is UnknownDataType =>
     type.kind === 'Unknown';
 

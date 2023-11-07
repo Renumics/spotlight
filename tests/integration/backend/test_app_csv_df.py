@@ -23,8 +23,11 @@ def test_read_table(viewer_csv_df: spotlight.Viewer) -> None:
     assert response.status_code == 200
     assert len(response.text) > 1000
     json_data = json.loads((response.text))
-    assert _column_by_name(json_data["columns"], "bool")["role"] == "bool"
-    assert _column_by_name(json_data["columns"], "float")["role"] == "float"
-    assert _column_by_name(json_data["columns"], "audio")["role"] == "Audio"
-    assert _column_by_name(json_data["columns"], "embedding")["role"] == "Embedding"
-    assert _column_by_name(json_data["columns"], "video")["role"] == "Video"
+    assert _column_by_name(json_data["columns"], "bool")["dtype"]["name"] == "bool"
+    assert _column_by_name(json_data["columns"], "float")["dtype"]["name"] == "float"
+    assert _column_by_name(json_data["columns"], "audio")["dtype"]["name"] == "Audio"
+    assert (
+        _column_by_name(json_data["columns"], "embedding")["dtype"]["name"]
+        == "Embedding"
+    )
+    assert _column_by_name(json_data["columns"], "video")["dtype"]["name"] == "Video"
