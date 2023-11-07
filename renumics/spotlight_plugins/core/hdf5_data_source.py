@@ -17,7 +17,12 @@ from renumics.spotlight.backend.exceptions import (
     CouldNotOpenTableFile,
 )
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-from renumics.spotlight.dtypes import DTypeMap, create_dtype, is_embedding_dtype
+from renumics.spotlight.dtypes import (
+    DTypeMap,
+    create_dtype,
+    is_embedding_dtype,
+    is_window_dtype,
+)
 
 
 class H5Dataset(Dataset):
@@ -63,6 +68,14 @@ class H5Dataset(Dataset):
             normalized_values = np.empty(len(raw_values), dtype=object)
             normalized_values[:] = [None if len(x) == 0 else x for x in raw_values]
             return normalized_values
+
+        if is_window_dtype(self._get_dtype(column)):
+            normalized_values = np.empty(len(raw_values), dtype=object)
+            normalized_values[:] = [
+                None if np.isnan(x).all() else x for x in raw_values
+            ]
+            return normalized_values
+
         return raw_values
 
     def _resolve_refs(self, refs: np.ndarray, column_name: str) -> np.ndarray:
