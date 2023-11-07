@@ -92,7 +92,7 @@ export function convertValue(value: any, type: DataType) {
         return NaN;
     }
 
-    if (value === null) return null;
+    if (value === null || value === undefined) return null;
 
     if (type.kind === 'datetime') {
         return new Date(Date.parse(value));
