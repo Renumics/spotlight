@@ -98,7 +98,7 @@ export function convertValue(value: any, type: DataType) {
         return new Date(Date.parse(value));
     }
 
-    if (type.kind === 'Window') {
+    if (type.kind === 'Window' && value !== null) {
         value[0] = value[0] === null ? NaN : value[0];
         value[1] = value[1] === null ? NaN : value[1];
         return value;
