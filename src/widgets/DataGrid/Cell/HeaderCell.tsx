@@ -1,4 +1,3 @@
-import EditIcon from '../../../icons/Edit';
 import Tag from '../../../components/ui/Tag';
 import Tooltip from '../../../components/ui/Tooltip';
 import dataformat from '../../../dataformat';
@@ -13,6 +12,7 @@ import { useColumn } from '../context/columnContext';
 import { useSortByColumn } from '../context/sortingContext';
 import RelevanceIndicator from '../RelevanceIndicator';
 import { ResizingContext } from '../context/resizeContext';
+import ColumnBadge from '../../../components/ui/ColumnBadge';
 
 interface SortingIndicatorProps {
     sorting?: Sorting;
@@ -136,25 +136,20 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
     return (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <div
-            tw="border-r-0 border-b pl-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
+            tw="border-r-0 border-b pl-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row items-center"
             style={style}
             onClick={onToggleSorting}
             data-columnindex={columnIndex}
             data-rowindex={-1}
         >
-            <div tw="flex-grow flex-shrink truncate">
-                <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
-                    <div tw="truncate max-w-full block h-full self-center">
-                        {column.editable && (
-                            <EditIcon tw="text-gray-400 cursor-not-allowed" />
-                        )}{' '}
-                        {column.name}
-                    </div>
+            <div tw="flex flex-row flex-grow flex-shrink overflow-hidden">
+                <Tooltip tw="overflow-hidden flex-shrink" content={tooltipContent}>
+                    <ColumnBadge columnKey={column.key} />
                 </Tooltip>
-            </div>
-            <div tw="flex items-center">
-                <RelevanceIndicator column={column} />
-                <SortingIndicator sorting={columnSorting} />
+                <div tw="flex flex-grow items-center justify-end">
+                    <RelevanceIndicator column={column} />
+                    <SortingIndicator sorting={columnSorting} />
+                </div>
             </div>
             <button
                 onClick={stopPropagation}

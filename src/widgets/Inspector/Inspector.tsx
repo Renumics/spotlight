@@ -5,8 +5,38 @@ import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
 import DetailsGrid, { COLUMN_COUNT_OPTIONS } from './DetailsGrid';
 import MenuBar from './MenuBar';
-import { StoreProvider } from './store';
+import { StoreProvider, useStore } from './store';
 import { WidgetContainer, WidgetContent } from '../../lib';
+import Droppable from '../../systems/dnd/Droppable';
+import { isLensCompatible, useComponentsStore } from '../../stores/components';
+import { DragData } from '../../systems/dnd/types';
+
+const DropZone = () => {
+    const addView = useStore((state) => state.addView);
+
+    const handleDrop = ({ column }: DragData) => {
+        const lens = useComponentsStore
+            .getState()
+            .lenses.filter(
+                (lens) =>
+                    isLensCompatible(lens, [column.type], column.editable) &&
+                    (lens.isSatisfied?.([column]) ?? true)
+            )[0];
+        addView({
+            view: lens.key,
+            columns: [column.key],
+            name: 'view',
+            key: crypto.randomUUID(),
+        });
+    };
+
+    return (
+        <Droppable
+            tw="absolute w-full h-full z-10 pointer-events-none"
+            onDrop={handleDrop}
+        />
+    );
+};
 
 const Inspector: Widget = () => {
     const [visibleColumnsCount, setVisibleColumnsCount] = useWidgetConfig(
@@ -21,8 +51,8 @@ const Inspector: Widget = () => {
                     setVisibleColumnsCount={setVisibleColumnsCount}
                     visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
                 />
-
                 <WidgetContent>
+                    <DropZone />
                     <AutoSizer>
                         {({ width, height }) => (
                             <DetailsGrid

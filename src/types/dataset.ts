@@ -131,6 +131,6 @@ export interface DataIssue {
     severity: 'low' | 'medium' | 'high';
     title: string;
     rows: IndexArray;
-    columns?: string[];
+    columns?: DataColumn[];
     description?: string;
 }
