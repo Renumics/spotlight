@@ -10,7 +10,7 @@ import {
 import React, { useState } from 'react';
 import 'twin.macro';
 import OverlayFactory from './OverlayFactory';
-import { DragData } from './types';
+import { DragData, DropData } from './types';
 
 interface Props {
     children: React.ReactNode;
@@ -34,8 +34,9 @@ export default function DragContext({ children }: Props): JSX.Element {
 
     const handleDragEnd = (event: DragEndEvent) => {
         const data = event.active.data.current as DragData;
-        if (event.over?.data.current) {
-            event.over.data.current.onDrop(data);
+        const target = event.over?.data.current as DropData;
+        if (target && target.accepts(data)) {
+            target.onDrop(data);
         }
         setActiveData(undefined);
     };

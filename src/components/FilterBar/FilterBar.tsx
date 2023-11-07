@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import tw, { styled } from 'twin.macro';
 import FilterList from './FilterList';
-import { CellDragData, ColumnDragData, Droppable } from '../../systems/dnd';
+import { CellDragData, ColumnDragData, DragData, Droppable } from '../../systems/dnd';
 import {
     PredicateFilter,
     getApplicablePredicates,
@@ -25,11 +25,13 @@ const Filters: FunctionComponent = () => {
     const handleDrop = (data: ColumnDragData | CellDragData) => {
         const applicablePredicates = getApplicablePredicates(data.column.type.kind);
         const predicate =
-            applicablePredicates['unequal'] ?? Object.values(applicablePredicates)[0];
+            applicablePredicates[data.kind === 'cell' ? 'equal' : 'unequal'] ??
+            Object.values(applicablePredicates)[0];
+
         const referenceValue =
-            data.kind === 'column'
-                ? getNullValue(data.column.type.kind)
-                : useDataset.getState().columnData[data.column.key][data.row];
+            data.kind === 'cell'
+                ? useDataset.getState().columnData[data.column.key][data.row]
+                : getNullValue(data.column.type.kind);
 
         if (predicate) {
             useDataset
@@ -38,8 +40,13 @@ const Filters: FunctionComponent = () => {
         }
     };
 
+    const accepts = (data: DragData) => {
+        if (!['column', 'cell'].includes(data.kind)) return false;
+        return Object.values(getApplicablePredicates(data.column.type.kind)).length > 0;
+    };
+
     return (
-        <Droppable onDrop={handleDrop} tw="flex-grow">
+        <Droppable accepts={accepts} onDrop={handleDrop} tw="flex-grow">
             <StyledDiv data-tour="filterBar">
                 <FilterList />
             </StyledDiv>

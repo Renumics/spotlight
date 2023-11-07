@@ -24,7 +24,8 @@ import useHistogram from './useHistogram';
 import XAxis from './XAxis';
 import Info from '../../components/ui/Info';
 import { WidgetContainer, WidgetContent, WidgetMenu } from '../../lib';
-import { DragData, Droppable } from '../../systems/dnd';
+import { CellDragData, ColumnDragData, DragData, Droppable } from '../../systems/dnd';
+import { Column } from '../../client';
 
 const columnsSelector = (d: Dataset) => d.columns;
 
@@ -106,7 +107,14 @@ const Histogram: Widget = () => {
 
     const toggleHideUnfiltered = () => setFilter((state) => !state);
 
-    const handleDrop = (data: DragData) => {
+    const accepts = (data: ColumnDragData | CellDragData) => {
+        return (
+            ['cell', 'column'].includes(data.kind) &&
+            validTypes.includes(data.column.type.kind)
+        );
+    };
+
+    const handleDrop = (data: ColumnDragData | CellDragData) => {
         if (columnKeys.includes(data.column.key)) {
             setColumnKey(data.column.key);
         }
@@ -115,6 +123,7 @@ const Histogram: Widget = () => {
     return (
         <WidgetContainer>
             <Droppable
+                accepts={accepts}
                 onDrop={handleDrop}
                 tw="absolute w-full h-full pointer-events-none"
             />

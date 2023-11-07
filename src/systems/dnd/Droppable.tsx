@@ -5,10 +5,12 @@ import tw from 'twin.macro';
 
 interface Props<Data extends DragData> {
     onDrop: (data: Data) => void;
-    accepts?: (data: Data) => boolean;
+    accepts?: (data: DragData) => boolean;
     children?: ReactNode;
     className?: string;
 }
+
+const acceptsAll = () => true;
 
 export default function Droppable<Data extends DragData>({
     onDrop,
@@ -17,11 +19,15 @@ export default function Droppable<Data extends DragData>({
     children,
 }: Props<Data>): JSX.Element {
     const id = useId();
+
+    const dropData = {
+        onDrop,
+        accepts: accepts ?? acceptsAll,
+    };
+
     const { setNodeRef, isOver, active } = useDroppable({
         id,
-        data: {
-            onDrop,
-        },
+        data: dropData,
     });
 
     const data = active?.data.current;
@@ -36,7 +42,7 @@ export default function Droppable<Data extends DragData>({
             ref={setNodeRef}
             css={[
                 isActive && tw`ring-2 ring-blue-500/25 ring-inset`,
-                isOver && tw`ring-green-500/50 ring-2`,
+                isActive && isOver && tw`ring-green-500/50 ring-2`,
             ]}
         >
             {children}

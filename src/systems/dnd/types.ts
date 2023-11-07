@@ -15,5 +15,6 @@ export type DragData = ColumnDragData | CellDragData;
 export type DragKind = DragData['kind'];
 
 export interface DropData {
-    accepts: DragKind[];
+    accepts: (data: DragData) => boolean;
+    onDrop: (data: DragData) => void;
 }
