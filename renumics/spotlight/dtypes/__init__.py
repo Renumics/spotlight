@@ -1,3 +1,21 @@
+"""
+Spotlight data types.
+
+The most dtypes are non-customazable and can be used through simple importing
+the respective module variables (e.g. [`float_dtype`](#float_dtype),
+[`image_dtype`](#image_dtype)).
+
+Some dtypes are customazable and only their default versions can be defined
+through the respective module variables (e.g. [`category_dtype`](#category_dtype),
+[`embedding_dtype`](#embedding_dtype)). For more info, see the module classes.
+
+In the most usage cases string or object aliases can be used instead of the
+default dtypes. For more info, see the module classes.
+
+The main usage of the dtypes is customizing the [`spotlight.show`](../#show()).
+"""
+
+
 from datetime import datetime
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
@@ -19,6 +37,7 @@ __all__ = [
     "datetime_dtype",
     "category_dtype",
     "window_dtype",
+    "bounding_box_dtype",
     "embedding_dtype",
     "array_dtype",
     "image_dtype",
@@ -54,6 +73,32 @@ class DType:
 class CategoryDType(DType):
     """
     Categorical dtype with predefined categories.
+
+    Category names and codes are assured to be unique. Empty categories mean to
+    be defined later (in this case, equivalent to the
+    [`category_dtype`](#category_dtype) module variable).
+
+    Using with category names:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.CategoryDType(["cat", "dog"])
+        >>> str(dtype)
+        'Category'
+        >>> dtype.categories
+        {'cat': 0, 'dog': 1}
+        >>> dtype.inverted_categories
+        {0: 'cat', 1: 'dog'}
+
+    Example of usage with category mapping:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.CategoryDType({"four": 4, "two": 2})
+        >>> dtype.categories
+        {'two': 2, 'four': 4}
+
+    Example of usage with empty categories:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.CategoryDType()
+        >>> dtype == dtypes.category_dtype
+        True
     """
 
     _categories: Optional[Dict[str, int]]
@@ -99,16 +144,44 @@ class CategoryDType(DType):
 
     @property
     def categories(self) -> Optional[Dict[str, int]]:
+        """
+        Category mapping (string category -> integer code).
+        """
         return self._categories
 
     @property
     def inverted_categories(self) -> Optional[Dict[int, str]]:
+        """
+        Inverted Category mapping (integer code -> string category).
+        """
         return self._inverted_categories
 
 
 class ArrayDType(DType):
     """
     Array dtype with optional shape.
+
+    Attributes:
+        shape: Array dimensions. Can be fully or partially defined. No shape
+            means to be defined later.
+
+    Example of usage with defined shape:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.ArrayDType((10, None, 4))
+        >>> str(dtype)
+        'array'
+        >>> dtype.shape
+        (10, None, 4)
+        >>> dtype.ndim
+        3
+
+    Example of usage with empty shape:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.ArrayDType()
+        >>> dtype.ndim
+        0
+        >>> dtype == dtypes.array_dtype
+        True
     """
 
     shape: Optional[Tuple[Optional[int], ...]]
@@ -127,6 +200,9 @@ class ArrayDType(DType):
 
     @property
     def ndim(self) -> int:
+        """
+        Number of array dimensions.
+        """
         if self.shape is None:
             return 0
         return len(self.shape)
@@ -135,6 +211,23 @@ class ArrayDType(DType):
 class EmbeddingDType(DType):
     """
     Embedding dtype with optional length.
+
+    Attributes:
+        length: Embedding length. No length means to be defined later.
+
+    Example of usage with defined length:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.EmbeddingDType(8)
+        >>> str(dtype)
+        'Embedding'
+        >>> dtype.length
+        8
+
+    Example of usage with empty length:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.EmbeddingDType()
+        >>> dtype == dtypes.embedding_dtype
+        True
     """
 
     length: Optional[int]
@@ -156,7 +249,27 @@ class EmbeddingDType(DType):
 
 class Sequence1DDType(DType):
     """
-    1D-sequence dtype with predefined axis labels.
+    1D-sequence dtype with optional axis names.
+
+    Attributes:
+        x_label: Optional name of the x axis.
+        y_label: Optional name of the y axis.
+
+    Example of usage with defined labels:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.Sequence1DDType("time", "acceleration")
+        >>> str(dtype)
+        'Sequence1D'
+        >>> dtype.x_label
+        'time'
+        >>> dtype.y_label
+        'acceleration'
+
+    Example of usage with empty labels:
+        >>> from renumics.spotlight import dtypes
+        >>> dtype = dtypes.Sequence1DDType()
+        >>> dtype == dtypes.sequence_1d_dtype
+        True
     """
 
     x_label: str
@@ -190,56 +303,124 @@ def register_dtype(dtype: DType, aliases: Optional[list] = None) -> None:
 
 
 bool_dtype = DType("bool")
-"""Bool dtype"""
+"""
+Bool dtype. Aliases: `"bool"`, `bool`.
+"""
 register_dtype(bool_dtype, [bool])
+
 int_dtype = DType("int")
-"""Integer dtype"""
+"""
+Integer dtype. Aliases: `"int"`, `int`.
+"""
 register_dtype(int_dtype, [int])
+
 float_dtype = DType("float")
-"""Float dtype"""
+"""
+Float dtype. Aliases: `"float"`, `float`.
+"""
 register_dtype(float_dtype, [float])
+
 bytes_dtype = DType("bytes")
-"""Bytes dtype"""
+"""
+Bytes dtype. Aliases: `"bytes"`, `bytes`.
+"""
 register_dtype(bytes_dtype, [bytes])
+
 str_dtype = DType("str")
-"""String dtype"""
+"""
+String dtype. Aliases: `"str"`, `str`.
+"""
 register_dtype(str_dtype, [str])
+
 datetime_dtype = DType("datetime")
-"""Datetime dtype"""
+"""
+Datetime dtype. Aliases: `"datetime"`, `datetime.datetime`.
+"""
 register_dtype(datetime_dtype, [datetime])
+
 category_dtype = CategoryDType()
-"""Categorical dtype with arbitraty categories"""
+"""
+Categorical dtype with arbitraty categories. Aliases: `"Category"`.
+"""
 register_dtype(category_dtype, [Category])
+
 window_dtype = DType("Window")
-"""Window dtype"""
+"""
+A single window. Aliases: `"Window"`.
+
+A single window is represented by an array-like with two timestamps in seconds
+as float values.
+
+Single NaN, infinity and out-of-bound values will be clipped by the audio/time
+series bounds. In case of both non-valid values no window will be showed.
+Descending values will be visually highlighted.
+"""
 register_dtype(window_dtype, [Window])
+
+bounding_box_dtype = DType("BoundingBox")
+"""
+Single or multiple bounding boxes. Aliases: `"BoundingBox"`.
+
+A single bounding box is represented by an array-like with its relative
+coordinates [x_min, y_min, x_max, y_max] (float values scaled onto 0 to 1).
+Top-left image corner is assumed to be (0, 0).
+
+Multiple bounding boxes for the same image are represented by an array-like of
+floats with shape (n, 4) (preferred) or (4, n).
+"""
+
 embedding_dtype = EmbeddingDType()
-"""Embedding dtype"""
+"""
+Embedding dtype. Aliases: `"Embedding"`, `renumics.spotlight.media.Embedding`.
+"""
 register_dtype(embedding_dtype, [Embedding])
+
 array_dtype = ArrayDType()
-"""numpy array dtype"""
+"""
+numpy array dtype. Aliases: `"array"`, `np.ndarray`.
+"""
 register_dtype(array_dtype, [np.ndarray])
+
 image_dtype = DType("Image")
-"""Image dtype"""
+"""
+Image dtype. Aliases: `"Image"`, `renumics.spotlight.media.Image`.
+"""
 register_dtype(image_dtype, [Image])
+
 audio_dtype = DType("Audio")
-"""Audio dtype"""
+"""
+Audio dtype. Aliases: `"Audio"`, `renumics.spotlight.media.Audio`.
+"""
 register_dtype(audio_dtype, [Audio])
+
 mesh_dtype = DType("Mesh")
-"""Mesh dtype"""
+"""
+Mesh dtype. Aliases: `"Mesh"`, `renumics.spotlight.media.Mesh`.
+"""
 register_dtype(mesh_dtype, [Mesh])
+
 sequence_1d_dtype = Sequence1DDType()
-"""1D-sequence dtype with arbitraty axis labels"""
+"""
+1D-sequence dtype with arbitraty axis labels. Aliases: `"Sequence1D"`,
+`renumics.spotlight.media.Sequence1D`.
+"""
 register_dtype(sequence_1d_dtype, [Sequence1D])
+
 video_dtype = DType("Video")
-"""Video dtype"""
+"""
+Video dtype. Aliases: `"video"`, `renumics.spotlight.media.Video`.
+"""
 register_dtype(video_dtype, [Video])
 
 mixed_dtype = DType("mixed")
-"""Unknown or mixed dtype"""
+"""
+Unknown or mixed dtype. Aliases: `"mixed"`.
+"""
 
 file_dtype = DType("file")
-"""File Dtype (bytes or str(path))"""
+"""
+File Dtype (bytes or str(path)). Aliases: `"file"`.
+"""
 
 
 DTypeMap = Dict[str, DType]
