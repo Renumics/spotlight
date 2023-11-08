@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import { Problem } from '../types';
 import api from '../api';
