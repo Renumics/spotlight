@@ -5,7 +5,7 @@ import api from '../api';
 import { shallow } from 'zustand/shallow';
 import { usePrevious } from '../hooks';
 
-async function fetchValue(row: number, column: string, raw = true) {
+async function fetchValue(row: number, column: string, raw: boolean) {
     const response = await api.table.getCellRaw({
         row,
         column,

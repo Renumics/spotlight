@@ -25,6 +25,7 @@ function makeDatatype(
         case 'str':
         case 'array':
         case 'Embedding':
+        case 'Sequence1D':
             return {
                 kind,
                 binary: false,
@@ -35,7 +36,6 @@ function makeDatatype(
         case 'Video':
         case 'Audio':
         case 'Mesh':
-        case 'Sequence1D':
             return {
                 kind,
                 binary: true,
