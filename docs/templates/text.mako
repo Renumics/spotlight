@@ -99,7 +99,15 @@ id: ${shortname}
 title: ${shortname}
 ---
 
+export const CleanToC = () => {
+  toc.forEach((entry) => {
+    entry.value = entry.value.replace(/ *\([^)]*\) */g, "()")
+  })
+  return null
+}
+
 ${module.docstring}
+
 
 % if variables:
 Variables
@@ -127,3 +135,5 @@ ${class_(c)}
 
 % endfor
 % endif
+
+<CleanToC/>
