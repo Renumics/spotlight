@@ -172,7 +172,7 @@ docs: ## Generate API docs
 		-regex "build/docs/api/renumics/spotlight/($$DOCS_WHITELIST)" -delete
 	find build/docs/api/renumics/spotlight -type d -empty -delete
 
-DOCS_REPOSITORY ?= "../spotlight-docs"
+DOCS_REPOSITORY ?= ../spotlight-docs
 .PHONY: dist-docs
 dist-docs: ## Copy API docs to docs repository
 dist-docs: docs
