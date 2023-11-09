@@ -10,7 +10,7 @@ from typing_extensions import Literal
 from .lenses import Lens
 
 
-class WidgetConfig(BaseModel, allow_population_by_field_name=True):
+class WidgetConfig(BaseModel, populate_by_name=True):
 
     """
     Base Spotlight widget configuration model.
