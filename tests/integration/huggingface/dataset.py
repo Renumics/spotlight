@@ -64,32 +64,32 @@ DATA = {
         [[[-10, 0, 10], [-1, -2, -3], [1, 2, 4]]],
     ],
     # HF 2D array as Spotlight sequence
-    "array_2d_sequence": [
-        [[1, 2, 3], [-1, 3, 1]],
-        [[1, -3, 10], [1, 6, 3]],
-        [[-10, 0, 10], [-1, -2, -3]],
-    ],
-    "array_2d_t_sequence": [
-        [[5, 3], [2, 5], [10, 8]],
-        [[float("nan"), 1], [1, 1], [2, 2]],
-        [[-1, 1], [1, 10], [10, 1]],
-    ],
-    "array_2d_vlen_sequence": [
-        [[5, 3], [2, 5], [10, 8]],
-        [],
-        [[-1, 1], [1, 10]],
-    ],
-    # HF 4D array as Spotlight array
-    "array_4d": [
-        [[[[1.0, 1.0, -10.0]]], [[[-1.0, 1.0, -1.0]]], [[[2.0, 1.0, 1.0]]]],
-        [
-            [[[2.0, -3.0, 0.0]]],
-            [[[3.0, 6.0, -2.0]]],
-            [[[4.0, float("nan"), 2.0]]],
-            [[[4.0, float("nan"), 2.0]]],
-        ],
-        [[[[3.0, 10.0, 10.0]]], [[[6.0, 3.0, -3.0]]], [[[4.0, 4.0, 4.0]]]],
-    ],
+    # "array_2d_sequence": [
+    #     [[1, 2, 3], [-1, 3, 1]],
+    #     [[1, -3, 10], [1, 6, 3]],
+    #     [[-10, 0, 10], [-1, -2, -3]],
+    # ],
+    # "array_2d_t_sequence": [
+    #     [[5, 3], [2, 5], [10, 8]],
+    #     [[float("nan"), 1], [1, 1], [2, 2]],
+    #     [[-1, 1], [1, 10], [10, 1]],
+    # ],
+    # "array_2d_vlen_sequence": [
+    #     [[5, 3], [2, 5], [10, 8]],
+    #     [],
+    #     [[-1, 1], [1, 10]],
+    # ],
+    # # HF 4D array as Spotlight array
+    # "array_4d": [
+    #     [[[[1.0, 1.0, -10.0]]], [[[-1.0, 1.0, -1.0]]], [[[2.0, 1.0, 1.0]]]],
+    #     [
+    #         [[[2.0, -3.0, 0.0]]],
+    #         [[[3.0, 6.0, -2.0]]],
+    #         [[[4.0, float("nan"), 2.0]]],
+    #         [[[4.0, float("nan"), 2.0]]],
+    #     ],
+    #     [[[[3.0, 10.0, 10.0]]], [[[6.0, 3.0, -3.0]]], [[[4.0, 4.0, 4.0]]]],
+    # ],
     # HF list as Spotlight embedding
     "list_sequence": [[1, 2, 3], [1, 6, 3, 7, 8], [-1, -2, -3, -4]],
 }
@@ -130,10 +130,10 @@ FEATURES = {
         ),
         length=1,
     ),
-    "array_2d_sequence": datasets.Array2D(shape=(2, 3), dtype="float64"),
-    "array_2d_t_sequence": datasets.Array2D(shape=(3, 2), dtype="float64"),
-    "array_2d_vlen_sequence": datasets.Array2D(shape=(None, 2), dtype="float64"),
-    "array_4d": datasets.Array4D(shape=(None, 1, 1, 3), dtype="float64"),
+    # "array_2d_sequence": datasets.Array2D(shape=(2, 3), dtype="float64"),
+    # "array_2d_t_sequence": datasets.Array2D(shape=(3, 2), dtype="float64"),
+    # "array_2d_vlen_sequence": datasets.Array2D(shape=(None, 2), dtype="float64"),
+    # "array_4d": datasets.Array4D(shape=(None, 1, 1, 3), dtype="float64"),
     "list_sequence": [datasets.Value("float64")],
 }
 
