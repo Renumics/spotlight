@@ -45,9 +45,9 @@ python = ">=3.8, <3.12"
 numpy = "*"
 tqdm = "*"
 loguru = "*"
-fastapi = ">=0.65.2,<0.99"
+fastapi = ">=0.65.2"
 orjson = "*"
-pydantic = "<2.0.0"
+pydantic = "*"
 uvicorn = ">=0.22"
 aiofiles = "*"
 click = "*"
@@ -92,6 +92,7 @@ httpx = "^0.23.0"
 datasets = { extras = ["audio"], version = "^2.12.0" }
 
 pycatch22 = { version = "!=0.4.4", optional = true }
+pydantic-settings = "^2.0.3"
 
 [tool.poetry.extras]
 descriptors = ["pycatch22"]
@@ -107,7 +108,6 @@ ipython = "^8.10.0"
 jupyter = "^1.0.0"
 watchdog = "^2.1.7"
 argh = "^0.26.2"
-check-wheel-contents = "^0.3.4"
 typed-ast = "^1.5.3"
 packaging = "^21.3"
 nbmake = "^1.3.0"
