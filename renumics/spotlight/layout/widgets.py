@@ -4,7 +4,7 @@ Implementation of widget models and interfaces for widget creation.
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Field
 from typing_extensions import Literal
 
 from .lenses import Lens
@@ -17,7 +17,7 @@ class WidgetConfig(BaseModel, populate_by_name=True):
     """
 
 
-class Widget(BaseModel, extra=Extra.forbid):
+class Widget(BaseModel, extra="forbid"):
     """
     Spotlight widget model.
     """
