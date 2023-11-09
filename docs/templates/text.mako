@@ -45,7 +45,7 @@ ${func.docstring | to_markdown }
 </%def>
 
 <%def name="variable(var)" buffered="True">
-${h4(f"`{var.name}` {{#{var.name}}}")}
+${h3(f"`{var.name}` {{#{var.name}}}")}
 ${var.docstring | to_markdown}
 </%def>
 
