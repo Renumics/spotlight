@@ -66,7 +66,7 @@ const ImageLens: Lens = ({ url }) => {
     );
 };
 
-ImageLens.key = 'ImageView';
+ImageLens.kind = 'ImageView';
 ImageLens.dataTypes = ['Image'];
 ImageLens.displayName = 'Image';
 ImageLens.defaultHeight = 256;

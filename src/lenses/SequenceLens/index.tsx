@@ -224,7 +224,7 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
     );
 };
 
-SequenceView.key = 'SequenceView';
+SequenceView.kind = 'SequenceView';
 SequenceView.dataTypes = ['Sequence1D', 'Window'];
 SequenceView.multi = true;
 SequenceView.defaultHeight = 192;

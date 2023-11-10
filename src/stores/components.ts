@@ -68,7 +68,7 @@ ALL_WIDGETS.forEach(registerWidget);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function registerLens(lens: Lens<any>) {
     useComponentsStore.setState((state) => {
-        const lensesByKey = { ...state.lensesByKey, [lens.key]: lens };
+        const lensesByKey = { ...state.lensesByKey, [lens.kind]: lens };
         return {
             lensesByKey,
             lensKeys: Object.keys(lensesByKey),

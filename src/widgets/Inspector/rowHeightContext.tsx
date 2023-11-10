@@ -26,7 +26,7 @@ type RowHeightProviderProps = {
     children?: ReactNode;
 };
 
-const viewsSelector = (state: State) => state.views;
+const viewsSelector = (state: State) => state.lenses;
 
 let resizingLoopInterval: ReturnType<typeof setInterval> | undefined = undefined;
 
@@ -52,7 +52,7 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
             if (!viewConfig) return DEFAULT_HEIGHT;
             return (
                 rowHeights[viewConfig.key] ??
-                lenses[viewConfig.view]?.defaultHeight ??
+                lenses[viewConfig.kind]?.defaultHeight ??
                 DEFAULT_HEIGHT
             );
         },
@@ -61,13 +61,13 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
 
     const startResize = useCallback(
         (index: number, screenY: number) => {
-            const viewConfig = visibleLenses[index];
-            resizedRow.current = viewConfig.key;
+            const lensSpec = visibleLenses[index];
+            resizedRow.current = lensSpec.key;
             startScreenY.current = screenY;
             lastScreenY.current = screenY;
             startHeight.current =
-                rowHeights[viewConfig.key] ??
-                lenses[viewConfig.view]?.defaultHeight ??
+                rowHeights[lensSpec.key] ??
+                lenses[lensSpec.kind]?.defaultHeight ??
                 DEFAULT_HEIGHT;
             currentHeight.current = startHeight.current;
             setIsResizing(true);
@@ -77,13 +77,13 @@ const RowHeightProvider: FunctionComponent<RowHeightProviderProps> = ({
 
     const resizeView = useCallback(
         (rowKey: string, newHeight: number) => {
-            const viewConfig = visibleLenses.find(({ key }) => key === rowKey);
-            if (viewConfig !== undefined) {
-                const maxHeight = lenses[viewConfig.view]?.maxHeight;
+            const lensSpec = visibleLenses.find(({ key }) => key === rowKey);
+            if (lensSpec !== undefined) {
+                const maxHeight = lenses[lensSpec.kind]?.maxHeight;
                 if (maxHeight !== undefined) {
                     newHeight = Math.min(maxHeight, newHeight);
                 }
-                const minHeight = lenses[viewConfig.view]?.minHeight || 12;
+                const minHeight = lenses[lensSpec.kind]?.minHeight || 12;
                 if (minHeight !== undefined) {
                     newHeight = Math.max(minHeight, newHeight);
                 }

@@ -177,7 +177,7 @@ const VideoView: Lens = ({ url }: LensProps) => {
     );
 };
 
-VideoView.key = 'VideoView';
+VideoView.kind = 'VideoView';
 VideoView.defaultHeight = 256;
 VideoView.displayName = 'Video Player';
 VideoView.dataTypes = ['Video'];

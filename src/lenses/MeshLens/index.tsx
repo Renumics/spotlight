@@ -144,7 +144,7 @@ const MeshLens: Lens = ({ values, syncKey }) => {
     );
 };
 
-MeshLens.key = 'MeshView';
+MeshLens.kind = 'MeshView';
 MeshLens.displayName = '3D Viewer';
 MeshLens.dataTypes = ['Mesh'];
 MeshLens.defaultHeight = 256;

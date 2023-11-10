@@ -475,7 +475,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     );
 };
 
-SpectrogramLens.key = 'SpectrogramView';
+SpectrogramLens.kind = 'SpectrogramView';
 SpectrogramLens.defaultHeight = 120;
 SpectrogramLens.displayName = 'Spectrogram';
 SpectrogramLens.dataTypes = ['Audio', 'Window'];

@@ -38,7 +38,7 @@ const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
     );
 };
 
-AudioLens.key = 'AudioView';
+AudioLens.kind = 'AudioView';
 AudioLens.defaultHeight = 120;
 AudioLens.displayName = 'Audio Player';
 AudioLens.dataTypes = ['Audio', 'Window'];

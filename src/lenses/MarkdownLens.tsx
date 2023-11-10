@@ -5,7 +5,7 @@ const MarkdownLens: Lens = ({ value }) => {
     return <Markdown content={value as string} />;
 };
 
-MarkdownLens.key = 'MarkdownLens';
+MarkdownLens.kind = 'MarkdownLens';
 MarkdownLens.dataTypes = ['str'];
 MarkdownLens.defaultHeight = 128;
 MarkdownLens.minHeight = 22;

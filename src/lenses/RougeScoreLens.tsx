@@ -18,7 +18,7 @@ const RougeScoreLens: Lens<string> = ({ values }) => {
     );
 };
 
-RougeScoreLens.key = 'RougeScoreView';
+RougeScoreLens.kind = 'RougeScoreView';
 RougeScoreLens.dataTypes = ['str'];
 RougeScoreLens.defaultHeight = 50;
 RougeScoreLens.minHeight = 50;

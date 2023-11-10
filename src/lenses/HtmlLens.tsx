@@ -6,7 +6,7 @@ const HtmlLens: Lens = ({ value }) => {
     return <Html html={value as string} />;
 };
 
-HtmlLens.key = 'HtmlLens';
+HtmlLens.kind = 'HtmlLens';
 HtmlLens.dataTypes = ['str'];
 HtmlLens.defaultHeight = 48;
 HtmlLens.minHeight = 22;

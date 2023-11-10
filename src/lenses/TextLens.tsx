@@ -9,7 +9,7 @@ const TextLens: Lens<string> = ({ value }) => {
     );
 };
 
-TextLens.key = 'TextLens';
+TextLens.kind = 'TextLens';
 TextLens.dataTypes = ['str'];
 TextLens.defaultHeight = 48;
 TextLens.minHeight = 22;

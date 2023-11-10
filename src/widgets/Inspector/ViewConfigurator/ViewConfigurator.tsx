@@ -19,7 +19,7 @@ import { DataKind } from '../../../datatypes';
 import { X } from '../../../icons';
 import { isLensCompatible, useComponentsStore } from '../../../stores/components';
 import { Dataset, useDataset } from '../../../stores/dataset';
-import { DataColumn, LensKey } from '../../../types';
+import { DataColumn, LensKind } from '../../../types';
 import { useStore } from '../store';
 import ColumnList from './ColumnList';
 import ColumnListItem from './ColumnListItem';
@@ -38,13 +38,13 @@ const ViewConfigurator = (): JSX.Element => {
     const searchRef = useRef<HTMLInputElement>(null);
     const { hide, visible } = useContext(DropdownContext);
     const allColumns = useDataset(columnsSelector);
-    const addView = useStore((state) => state.addView);
+    const addLens = useStore((state) => state.addLens);
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
 
     const [columns, setColumns] = useState<string[]>([]);
 
-    const [view, setView] = useState<LensKey | null>();
+    const [lens, setLens] = useState<LensKind | null>();
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -67,28 +67,28 @@ const ViewConfigurator = (): JSX.Element => {
         [columns, filteredColumns]
     );
 
-    const compatibleViews = useMemo(() => {
+    const compatibleLenses = useMemo(() => {
         const columnTypes = selectedColumns.map((c) => c.type);
         const allEditable = selectedColumns.every((c) => c.editable);
         return Object.values(lenses)
             .filter((lens) => isLensCompatible(lens, columnTypes, allEditable))
-            .map((lens) => lens.key);
+            .map((lens) => lens.kind);
     }, [selectedColumns, lenses]);
 
-    const isViewCompatible = view && compatibleViews.includes(view);
-    const compatibleView = useMemo(
-        () => (isViewCompatible ? view : compatibleViews[0]),
-        [compatibleViews, isViewCompatible, view]
+    const isViewCompatible = lens && compatibleLenses.includes(lens);
+    const compatibleLens = useMemo(
+        () => (isViewCompatible ? lens : compatibleLenses[0]),
+        [compatibleLenses, isViewCompatible, lens]
     );
     const isViewSatisfied =
-        lenses[compatibleView]?.isSatisfied?.(selectedColumns) ?? true;
+        lenses[compatibleLens]?.isSatisfied?.(selectedColumns) ?? true;
 
     const [compatibleColumns, allCompatibleColumns] = useMemo(() => {
         if (!columns.length) return [filteredColumns, filteredColumns];
 
         const dtypes = new Set<DataKind>();
         const allAllowedColumns = new Set<DataColumn>();
-        compatibleViews.forEach((lensKey: LensKey) => {
+        compatibleLenses.forEach((lensKey: LensKind) => {
             const view = lenses[lensKey];
             const cols = view.filterAllowedColumns?.(allColumns, selectedColumns);
             if (cols) {
@@ -110,24 +110,24 @@ const ViewConfigurator = (): JSX.Element => {
         filteredColumns,
         selectedColumns,
         columns,
-        compatibleViews,
+        compatibleLenses,
         allColumns,
         lenses,
     ]);
 
     const handleAdd = useCallback(() => {
-        if (!compatibleView || !columns.length) return;
-        addView({
-            view: compatibleView,
+        if (!compatibleLens || !columns.length) return;
+        addLens({
+            kind: compatibleLens,
             columns,
             name: 'view',
             key: uuidv4(),
         });
         setColumns([]);
-        setView(undefined);
+        setLens(undefined);
         setSearchTerm('');
         hide();
-    }, [addView, columns, hide, compatibleView]);
+    }, [addLens, columns, hide, compatibleLens]);
 
     const deselectColumn = useCallback((key: string) => {
         setColumns((columns) => columns.filter((k) => k !== key));
@@ -205,19 +205,19 @@ const ViewConfigurator = (): JSX.Element => {
             <Menu.Title tw="px-1 py-0">Views</Menu.Title>
             <div tw="p-1">
                 <Select
-                    options={compatibleViews}
-                    onChange={setView}
-                    value={compatibleView}
+                    options={compatibleLenses}
+                    onChange={setLens}
+                    value={compatibleLens}
                     label={(viewKey) =>
                         viewKey ? lenses[viewKey].displayName ?? viewKey : ''
                     }
-                    isDisabled={!compatibleViews.length}
+                    isDisabled={!compatibleLenses.length}
                 />
             </div>
             <div tw="flex flex-row justify-end p-1">
                 <Button
                     tw="bg-green-600 text-white p-1 rounded w-auto disabled:bg-gray-200 disabled:hover:bg-gray-200 disabled:text-gray-500 disabled:hover:text-gray-500 hover:bg-green-200 hover:text-white"
-                    disabled={!compatibleView || !isViewSatisfied || !columns.length}
+                    disabled={!compatibleLens || !isViewSatisfied || !columns.length}
                     onClick={handleAdd}
                 >
                     Add View

@@ -9,7 +9,7 @@ const SafeHtmlLens: Lens<string> = ({ value }) => {
     return <Html html={safe_html} />;
 };
 
-SafeHtmlLens.key = 'SafeHtmlLens';
+SafeHtmlLens.kind = 'SafeHtmlLens';
 SafeHtmlLens.dataTypes = ['str'];
 SafeHtmlLens.defaultHeight = 48;
 SafeHtmlLens.minHeight = 22;

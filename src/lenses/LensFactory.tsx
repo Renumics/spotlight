@@ -6,14 +6,15 @@ import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
-import { DataColumn, LensKey } from '../types';
+import { DataColumn, LensSpec } from '../types';
 import LensContext from './LensContext';
 import useCellValues from './useCellValue';
 import None from './None';
 import { isLensCompatible, useComponentsStore } from '../stores/components';
+import { Dataset, useDataset } from '../lib';
 
 interface Props {
-    view: LensKey;
+    spec: LensSpec;
     columns: DataColumn[];
     rowIndex: number;
     syncKey: string;
@@ -39,18 +40,24 @@ const ErrorFallback = ({
     );
 };
 
+const columnsSelector = (d: Dataset) => d.columnsByKey;
+
 const LensFactory: React.FunctionComponent<Props> = ({
-    view,
-    columns,
+    spec,
     rowIndex,
     syncKey,
     deferLoading = false,
 }) => {
-    const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
-    const [values, problem] = useCellValues(rowIndex, columnKeys, deferLoading);
+    const allColumns = useDataset(columnsSelector);
+    const columns = useMemo(
+        () => spec.columns.map((colKey: string) => allColumns[colKey]),
+        [allColumns, spec.columns]
+    );
+
+    const [values, problem] = useCellValues(rowIndex, spec.columns, deferLoading);
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
-    const LensComponent = lenses[view];
+    const LensComponent = lenses[spec.kind];
 
     const urls = useMemoWithPrevious(
         (previousUrls: (string | undefined)[] | undefined) => {
@@ -93,9 +100,9 @@ const LensFactory: React.FunctionComponent<Props> = ({
 
     if (problem) return <Info>Failed to load value!</Info>;
     if (!values || !urls) return <LoadingIndicator delay={100} />;
-    if (!LensComponent) return <Info>View not found ({view})!</Info>;
+    if (!LensComponent) return <Info>Lens not found ({spec.kind})!</Info>;
     if (!isLensCompatible(LensComponent, types, allEditable))
-        return <Info>Incompatible View ({view})</Info>;
+        return <Info>Incompatible Lens ({spec.kind})</Info>;
 
     const context = { syncKey };
 

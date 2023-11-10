@@ -10,7 +10,7 @@ const ScalarView: Lens = ({ value, column }) => {
     );
 };
 
-ScalarView.key = 'ScalarView';
+ScalarView.kind = 'ScalarView';
 ScalarView.dataTypes = ['int', 'float', 'bool', 'str', 'datetime', 'Category'];
 ScalarView.defaultHeight = 22;
 ScalarView.minHeight = 22;

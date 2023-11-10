@@ -31,7 +31,7 @@ const ArrayLens: Lens = ({ value, column }) => {
     );
 };
 
-ArrayLens.key = 'ArrayLens';
+ArrayLens.kind = 'ArrayLens';
 ArrayLens.dataTypes = ['array', 'Embedding', 'Window', 'BoundingBox', 'Sequence'];
 ArrayLens.defaultHeight = 128;
 ArrayLens.minHeight = 22;

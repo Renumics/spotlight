@@ -48,12 +48,12 @@ const Cell: FunctionComponent<Props> = ({
     columnIndex: dataRowIndex,
     rowIndex: dataColumnIndex,
 }) => {
-    const view = useStore((state) => state.views[dataColumnIndex]);
+    const lensSpec = useStore((state) => state.lenses[dataColumnIndex]);
     const rowIndices = useDataset(selectedIndicesSelector);
     const allColumns = useDataset(columnsSelector);
     const columns = useMemo(
-        () => allColumns.filter((c) => view.columns.includes(c.key)),
-        [view, allColumns]
+        () => allColumns.filter((c) => lensSpec.columns.includes(c.key)),
+        [lensSpec, allColumns]
     );
 
     const originalIndex = rowIndices[dataRowIndex];
@@ -87,14 +87,14 @@ const Cell: FunctionComponent<Props> = ({
         >
             {columns.length ? (
                 <LensFactory
-                    view={view.view}
+                    spec={lensSpec}
                     rowIndex={originalIndex}
                     columns={columns}
-                    syncKey={view.key}
+                    syncKey={lensSpec.key}
                     deferLoading={isScrolling}
                 />
             ) : (
-                <div>{`Columns Not Found`}</div>
+                <div>Columns Not Found</div>
             )}
         </StyledDiv>
     );

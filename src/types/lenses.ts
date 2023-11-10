@@ -1,7 +1,7 @@
 import type { DataColumn } from './dataset';
 import type { DataType } from '../datatypes';
 
-export type LensKey = string;
+export type LensKind = string;
 
 export interface LensProps<T = unknown> {
     value: T;
@@ -16,7 +16,7 @@ export interface LensProps<T = unknown> {
 
 interface LensAttributes {
     displayName: string;
-    key: LensKey;
+    kind: LensKind;
     dataTypes: DataType['kind'][];
     multi?: boolean;
     isEditor?: boolean;
@@ -31,3 +31,10 @@ interface LensAttributes {
 }
 
 export type Lens<T = unknown> = React.FunctionComponent<LensProps<T>> & LensAttributes;
+
+export interface LensSpec {
+    kind: LensKind;
+    key: string;
+    name: string;
+    columns: string[];
+}
