@@ -74,7 +74,7 @@
         "react-select": "^5.7.0",
         "react-slider": "^2.0.4",
         "react-toastify": "^9.1.1",
-        "react-virtualized-auto-sizer": "^1.0.7",
+        "react-virtualized-auto-sizer": "^1.0.20",
         "react-window": "^1.8.8",
         "recharts": "^2.4.3",
         "rouge": "^1.0.3",

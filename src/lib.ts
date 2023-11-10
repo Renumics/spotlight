@@ -27,6 +27,8 @@ export { default as Dot } from './components/ui/Dot';
 export { default as Menu } from './components/ui/Menu';
 export { default as Spinner } from './components/ui/Spinner';
 export { default as Tooltip } from './components/ui/Tooltip';
+export { default as ColumnBadge } from './components/ui/ColumnBadge';
+export { default as CellBadge } from './components/ui/CellBadge';
 
 export { default as ColumnSelector } from './components/ColumnSelector';
 
