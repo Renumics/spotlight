@@ -1,8 +1,6 @@
 import application from '../application';
 import { ConfigApi, Configuration } from '../client';
 
-type ConfigValue = number | string | boolean | Record<string, unknown>;
-
 export class ConfigService {
     api: ConfigApi;
 
