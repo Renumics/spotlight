@@ -38,7 +38,7 @@ async def _() -> List[Plugin]:
             name=p.name,
             priority=p.priority,
             dev=p.dev,
-            entrypoint=f"api/plugins/{p.name}/main.js"
+            entrypoint=f"../api/plugins/{p.name}/main.js"
             if p.frontend_entrypoint
             else None,
         )
