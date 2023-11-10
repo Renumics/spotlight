@@ -716,6 +716,25 @@ files = [
 ]
 
 [[package]]
+name = "check-wheel-contents"
+version = "0.6.0"
+description = "Check your wheels have the right contents"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "check-wheel-contents-0.6.0.tar.gz", hash = "sha256:64419c4e150e1de6f2d0bce7d4c7668eebfac127f0274014dd1a56ba07525364"},
+    {file = "check_wheel_contents-0.6.0-py3-none-any.whl", hash = "sha256:f3430c5ae633026e15902e3153fa14a6bac2a8ae7bbc7044117712be667821da"},
+]
+
+[package.dependencies]
+attrs = ">=18.1"
+click = ">=7.0"
+packaging = "*"
+pydantic = ">=2.0,<3.0"
+tomli = {version = ">=1.2,<3.0", markers = "python_version < \"3.11\""}
+wheel-filename = ">=1.1,<2.0"
+
+[[package]]
 name = "cleanlab"
 version = "2.5.0"
 description = "The standard package for data-centric AI, machine learning with label errors, and automatically finding and fixing dataset issues in Python."
@@ -6713,6 +6732,17 @@ files = [
 ]
 
 [[package]]
+name = "wheel-filename"
+version = "1.4.1"
+description = "Parse wheel filenames"
+optional = false
+python-versions = "~=3.6"
+files = [
+    {file = "wheel-filename-1.4.1.tar.gz", hash = "sha256:e2e1eb0780910a0148358252aad6394cc674250686c56c39aa379493438370b3"},
+    {file = "wheel_filename-1.4.1-py3-none-any.whl", hash = "sha256:a53d8ece58822eb27b3a8841c6b4bebf357f19ff0dd83ce9179756f64a4bc0df"},
+]
+
+[[package]]
 name = "widgetsnbextension"
 version = "4.0.9"
 description = "Jupyter interactive widgets for Jupyter Notebook"
@@ -7067,4 +7097,4 @@ descriptors = ["pycatch22"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <3.12"
-content-hash = "1e9a495a230dc4b025a3aee547aa4b25034d779051da0e69d2a370b817d4c9ec"
+content-hash = "5166142c4bc37ea4aad48230979c7ae7cafd8b3e2abd7e93e9b7d62fc422cdca"

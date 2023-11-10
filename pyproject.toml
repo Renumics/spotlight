@@ -125,6 +125,7 @@ types-toml = "^0.10.8.6"
 types-pillow = "^10.0.0.1"
 pandas-stubs = "^2.0.2.230605"
 ruff = "^0.0.281"
+check-wheel-contents = "^0.6.0"
 
 [tool.poetry.group.playbook.dependencies]
 datasets = "^2.12.0"
