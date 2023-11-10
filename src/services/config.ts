@@ -24,7 +24,7 @@ export class ConfigService {
     async set<T>(name: string, value: T) {
         await this.api.setValue({
             name,
-            setConfigRequest: { value: value as ConfigValue | undefined },
+            setConfigRequest: { value: value ?? null },
         });
     }
     async setItem<T>(name: string, value: T) {
