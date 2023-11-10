@@ -48,7 +48,8 @@ const Cell: FunctionComponent<Props> = ({
     columnIndex: dataRowIndex,
     rowIndex: dataColumnIndex,
 }) => {
-    const lensSpec = useStore((state) => state.lenses[dataColumnIndex]);
+    const lenses = useStore((state) => state.lenses);
+    const lensSpec = lenses[dataColumnIndex];
     const rowIndices = useDataset(selectedIndicesSelector);
     const allColumns = useDataset(columnsSelector);
     const columns = useMemo(
@@ -78,6 +79,8 @@ const Cell: FunctionComponent<Props> = ({
         [dataRowIndex, dehighlightRowAt, rowIndices]
     );
 
+    const changeLense = useStore((state) => state.changeLens);
+
     return (
         <StyledDiv
             style={style}
@@ -90,8 +93,8 @@ const Cell: FunctionComponent<Props> = ({
                     spec={lensSpec}
                     rowIndex={originalIndex}
                     columns={columns}
-                    syncKey={lensSpec.key}
                     deferLoading={isScrolling}
+                    onChange={changeLense}
                 />
             ) : (
                 <div>Columns Not Found</div>

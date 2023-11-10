@@ -17,8 +17,8 @@ interface Props {
     spec: LensSpec;
     columns: DataColumn[];
     rowIndex: number;
-    syncKey: string;
     deferLoading?: boolean;
+    onChange?: (spec: LensSpec) => void;
 }
 
 const Info = tw.div`w-full h-full flex items-center justify-center text-gray-800 italic text-sm p-2 text-center`;
@@ -45,7 +45,6 @@ const columnsSelector = (d: Dataset) => d.columnsByKey;
 const LensFactory: React.FunctionComponent<Props> = ({
     spec,
     rowIndex,
-    syncKey,
     deferLoading = false,
 }) => {
     const allColumns = useDataset(columnsSelector);
@@ -104,7 +103,7 @@ const LensFactory: React.FunctionComponent<Props> = ({
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible Lens ({spec.kind})</Info>;
 
-    const context = { syncKey };
+    const context = { syncKey: spec.key };
 
     const allValuesAreNull = values.every(_.isNull);
 
@@ -122,7 +121,8 @@ const LensFactory: React.FunctionComponent<Props> = ({
                         column={columns[0]}
                         columns={columns}
                         rowIndex={rowIndex}
-                        syncKey={syncKey}
+                        syncKey={spec.key}
+                        settings={spec.settings ?? { foo: 5 }}
                     />
                 )}
             </ErrorBoundary>

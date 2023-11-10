@@ -20,6 +20,7 @@ export interface State {
     addLens: (view: LensSpec) => void;
     removeLens: (view: LensSpec) => void;
     moveLens: (source: number, target: number) => void;
+    changeLens: (view: LensSpec) => void;
 }
 
 export const StoreContext = createContext<StoreApi<State> | null>(null);
@@ -51,6 +52,18 @@ const createInspectorStore = (
             newLenses.splice(target, 0, draggedLens);
             set({ lenses: newLenses });
         },
+        changeLens: (spec: LensSpec) => {
+            set((prev) => {
+                const lenses = prev.lenses.map((prevSpec) => {
+                    if (prevSpec.key != spec.key) {
+                        return prevSpec;
+                    }
+                    return spec;
+                });
+                storeLenses(lenses);
+                return { lenses };
+            });
+        },
     }));
 
 interface ProviderProps {
@@ -79,6 +92,7 @@ const StoreProvider = ({ children }: ProviderProps): JSX.Element => {
                     key: shortUUID.generate().toString(),
                     name: column.name,
                     columns: [column.key],
+                    settings: { foo: 5 },
                 };
                 return spec;
             })

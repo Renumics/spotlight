@@ -3,7 +3,7 @@ import type { DataType } from '../datatypes';
 
 export type LensKind = string;
 
-export interface LensProps<T = unknown> {
+export interface LensProps<T = unknown, S = unknown> {
     value: T;
     values: T[];
     column: DataColumn;
@@ -12,9 +12,14 @@ export interface LensProps<T = unknown> {
     url?: string;
     urls: (string | undefined)[];
     syncKey?: string;
+    settings?: S;
 }
 
-interface LensAttributes {
+interface MenuProps<S> {
+    settings?: S;
+}
+
+interface LensAttributes<S> {
     displayName: string;
     kind: LensKind;
     dataTypes: DataType['kind'][];
@@ -28,13 +33,16 @@ interface LensAttributes {
         selectedColumns: DataColumn[]
     ) => DataColumn[];
     isSatisfied?: (columns: DataColumn[]) => boolean;
+    menu?: (props: MenuProps<S>) => JSX.Element;
 }
 
-export type Lens<T = unknown> = React.FunctionComponent<LensProps<T>> & LensAttributes;
+export type Lens<T = unknown, S = unknown> = React.FunctionComponent<LensProps<T, S>> &
+    LensAttributes<S>;
 
-export interface LensSpec {
+export interface LensSpec<S = unknown> {
     kind: LensKind;
     key: string;
     name: string;
     columns: string[];
+    settings?: S;
 }
