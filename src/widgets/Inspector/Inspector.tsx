@@ -1,6 +1,6 @@
 import 'twin.macro';
 import DetailsIcon from '../../icons/ClipboardList';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
 import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
 import DetailsGrid, { COLUMN_COUNT_OPTIONS } from './DetailsGrid';
@@ -54,7 +54,7 @@ const Inspector: Widget = () => {
                 <WidgetContent>
                     <DropZone />
                     <AutoSizer>
-                        {({ width, height }) => (
+                        {({ width, height }: Size) => (
                             <DetailsGrid
                                 width={width}
                                 height={height}

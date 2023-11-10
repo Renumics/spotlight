@@ -2,7 +2,7 @@ import 'twin.macro';
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
 import { useCallback, useMemo, useRef } from 'react';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
 import { DataColumn, TableView } from '../../types';
@@ -87,7 +87,7 @@ const DataGrid: Widget = () => {
                             <MenuBar />
                             <WidgetContent>
                                 <AutoSizer>
-                                    {({ width, height }) => (
+                                    {({ width, height }: Size) => (
                                         <div tw="bg-white" style={{ width, height }}>
                                             <GridContextMenu>
                                                 <div tw="bg-gray-100 w-full">
