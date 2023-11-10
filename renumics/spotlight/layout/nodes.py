@@ -4,11 +4,7 @@ Implementation of layout models and interfaces for layout creation.
 
 from typing import Any, List, Optional, Union
 
-from pydantic import (
-    BaseModel,
-    Field,
-    validator,
-)
+from pydantic import BaseModel, Field, validator
 from typing_extensions import Literal
 
 from .widgets import Widget

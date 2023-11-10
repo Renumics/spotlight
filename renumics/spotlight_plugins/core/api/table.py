@@ -65,7 +65,7 @@ def get_table(request: Request) -> ORJSONResponse:
                 filename="",
                 columns=[],
                 generation_id=-1,
-            ).dict()
+            ).model_dump()
         )
 
     columns = []
@@ -91,7 +91,7 @@ def get_table(request: Request) -> ORJSONResponse:
             filename=data_store.name,
             columns=columns,
             generation_id=data_store.generation_id,
-        ).dict()
+        ).model_dump()
     )
 
 

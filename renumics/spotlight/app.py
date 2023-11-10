@@ -414,7 +414,7 @@ class SpotlightApp(FastAPI):
         dataset_uid = self._data_store.uid
         layout = await self.config.get(
             CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=user_id
-        ) or self.layout.dict(by_alias=True)
+        ) or self.layout.model_dump(by_alias=True)
         return cast(Optional[Dict], layout)
 
     def _update_issues(self) -> None:
