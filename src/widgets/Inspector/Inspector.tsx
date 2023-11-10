@@ -51,7 +51,7 @@ const Inspector: Widget = () => {
                     setVisibleColumnsCount={setVisibleColumnsCount}
                     visibleColumnsCountOptions={COLUMN_COUNT_OPTIONS}
                 />
-                <WidgetContent>
+                <WidgetContent tw="relative">
                     <DropZone />
                     <AutoSizer>
                         {({ width, height }: Size) => (
