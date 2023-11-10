@@ -30,6 +30,9 @@ export { default as Tooltip } from './components/ui/Tooltip';
 export { default as ColumnBadge } from './components/ui/ColumnBadge';
 export { default as CellBadge } from './components/ui/CellBadge';
 
+export type { DragData, ColumnDragData, CellDragData } from './systems/dnd/types';
+export { Draggable } from './systems/dnd';
+
 export { default as ColumnSelector } from './components/ColumnSelector';
 
 export { default as LoadingIndicator } from './components/LoadingIndicator';
