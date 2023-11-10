@@ -13,13 +13,13 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError, Plugin } from '../models';
+import type { HTTPValidationError, Plugin } from '../models/index';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
     PluginFromJSON,
     PluginToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface GetEntrypointRequest {
     name: string;

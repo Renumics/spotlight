@@ -13,13 +13,13 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError, Table } from '../models';
+import type { HTTPValidationError, Table } from '../models/index';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
     TableFromJSON,
     TableToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface GetCellRequest {
     column: string;

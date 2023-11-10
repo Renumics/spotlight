@@ -27,7 +27,7 @@ export interface SetConfigRequest {
      * @type {Value}
      * @memberof SetConfigRequest
      */
-    value?: Value;
+    value: Value | null;
 }
 
 /**
@@ -35,6 +35,7 @@ export interface SetConfigRequest {
  */
 export function instanceOfSetConfigRequest(value: object): boolean {
     let isInstance = true;
+    isInstance = isInstance && 'value' in value;
 
     return isInstance;
 }
@@ -51,7 +52,7 @@ export function SetConfigRequestFromJSONTyped(
         return json;
     }
     return {
-        value: !exists(json, 'value') ? undefined : ValueFromJSON(json['value']),
+        value: ValueFromJSON(json['value']),
     };
 }
 
