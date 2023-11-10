@@ -2,7 +2,7 @@ import 'twin.macro';
 import TableIcon from '../../icons/Table';
 import { Widget } from '../types';
 import { useCallback, useMemo, useRef } from 'react';
-import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
+import AutoSizer, { type Size } from 'react-virtualized-auto-sizer';
 import { VariableSizeGrid as Grid } from 'react-window';
 import { Dataset, Sorting, useDataset } from '../../stores/dataset';
 import { DataColumn, TableView } from '../../types';

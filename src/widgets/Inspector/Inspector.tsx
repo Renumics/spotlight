@@ -1,6 +1,6 @@
 import 'twin.macro';
 import DetailsIcon from '../../icons/ClipboardList';
-import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
+import AutoSizer, { type Size } from 'react-virtualized-auto-sizer';
 import { Widget } from '../types';
 import useWidgetConfig from '../useWidgetConfig';
 import DetailsGrid, { COLUMN_COUNT_OPTIONS } from './DetailsGrid';
