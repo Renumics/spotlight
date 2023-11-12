@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
+import { bleu } from 'bleu-score';
 
 export const METRICS: Record<string, Metric> = {
     sum: {
@@ -95,6 +96,24 @@ export const METRICS: Record<string, Metric> = {
                 (tp * tn - fp * fn) /
                 Math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
             );
+        },
+    },
+    bleu_score: {
+        signature: {
+            X: ['str'],
+            Y: ['str'],
+        },
+        compute: ([actualValues, assignedValues]) => {
+            const scores = [];
+            
+            for (let i = 0; i < actualValues.length; i++) {
+                const references = actualValues[i];
+                const candidate = assignedValues[i];
+                scores.push(bleu(candidate, references));
+            }
+            
+            const mean_bleu_score = _.mean(scores);
+            return mean_bleu_score;
         },
     },
 };
