@@ -100,8 +100,8 @@ export const METRICS: Record<string, Metric> = {
     },
     bleu_score: {
         signature: {
-            X: ['string'],
-            Y: ['string'],
+            X: ['str'],
+            Y: ['str'],
         },
         compute: ([actualValues, assignedValues]) => {
             const scores = [];
@@ -109,7 +109,7 @@ export const METRICS: Record<string, Metric> = {
             for (let i = 0; i < actualValues.length; i++) {
                 const references = actualValues[i];
                 const candidate = assignedValues[i];
-                scores.push(bleu(candidate, references));
+                scores.push(bleu(references, candidate));
             }
             
             const mean_bleu_score = _.mean(scores);
