@@ -100,8 +100,8 @@ export const METRICS: Record<string, Metric> = {
     },
     bleu_score: {
         signature: {
-            X: ['str'],
-            Y: ['str'],
+            X: ['string'],
+            Y: ['string'],
         },
         compute: ([actualValues, assignedValues]) => {
             const scores = [];
