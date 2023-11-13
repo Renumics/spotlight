@@ -13,13 +13,13 @@
  */
 
 import * as runtime from '../runtime';
-import type { Folder, HTTPValidationError } from '../models';
+import type { Folder, HTTPValidationError } from '../models/index';
 import {
     FolderFromJSON,
     FolderToJSON,
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface GetFolderRequest {
     path: string;

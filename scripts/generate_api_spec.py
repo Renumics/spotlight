@@ -27,6 +27,7 @@ def generate_api_spec(output_path: str) -> None:
     """
     os.environ["SPOTLIGHT_DEV"] = "True"
     app = SpotlightApp()
+    app.openapi_version = "3.0.2"
 
     with open(output_path, "w", encoding="utf8") as out_f:
         json.dump(app.openapi(), out_f, indent=4)
