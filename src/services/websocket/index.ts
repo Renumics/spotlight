@@ -10,9 +10,9 @@ export class WebsocketService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     messageHandlers: Map<string, MessageHandler>;
 
-    constructor(host: string, port: string) {
+    constructor(host: string, port: string, basePath: string) {
         this.messageHandlers = new Map();
-        this.connection = new Connection(host, port);
+        this.connection = new Connection(host, port, basePath);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this.connection.onmessage = (message: any) => {
             const messageHandler = this.messageHandlers.get(message.type);
@@ -35,7 +35,8 @@ export class WebsocketService {
 
 const websocketService = new WebsocketService(
     globalThis.location.hostname,
-    globalThis.location.port
+    globalThis.location.port,
+    globalThis.location.pathname
 );
 
 websocketService.registerMessageHandler('error', (problem: Problem) => {
