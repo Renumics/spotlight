@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo } from 'react';
 import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
-import LoadingIndicator from '../components/LoadingIndicator';
-import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
-import { DataColumn, LensSpec } from '../types';
+import LoadingIndicator from '../../components/LoadingIndicator';
+import useMemoWithPrevious from '../../hooks/useMemoWithPrevious';
+import { DataColumn, LensSpec } from '../../types';
 import LensContext from './LensContext';
 import useCellValues from './useCellValue';
-import None from './None';
-import { isLensCompatible, useComponentsStore } from '../stores/components';
-import { Dataset, useDataset } from '../lib';
+import None from '../../lenses/None';
+import { isLensCompatible, useComponentsStore } from '../../stores/components';
+import { Dataset, useDataset } from '../../lib';
 
 interface Props {
     spec: LensSpec;
@@ -103,7 +103,7 @@ const LensFactory: React.FunctionComponent<Props> = ({
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible Lens ({spec.kind})</Info>;
 
-    const context = { syncKey: spec.key };
+    const context = { groupKey: spec.key, settings: {}, changeSettings: () => null };
 
     const allValuesAreNull = values.every(_.isNull);
 

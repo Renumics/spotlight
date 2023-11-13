@@ -1,29 +1,57 @@
 import 'twin.macro';
 import ScalarValue from '../components/ScalarValue';
 import { Lens } from '../types';
+import { useId, useState } from 'react';
 
-const defaultSettings = { foo: 10 };
+const LensGroup = () => {
+    // TODO: setup context for settings etc
+    const id = useId();
+    const settings = useState({});
 
-/*
- * TODO: build new hook for lens settings
- *  takes in name, default value, and an optional menu item
- *
-const menus = {}
-function useSetting(name: str, value: unknown) {
-    //const lensId = useLensId()
-    const lensId = 5
+    return <></>;
+};
 
-    // return existing menu or build from scratch
+interface SettingSpec<T = unknown> {
+    key: string;
+    name: string;
+    type: string;
 }
-*/
+
+// TODO: store in LensContext
+const lensSettings: Record<string, Record<string, SettingSpec>> = {};
+
+function useSetting<T>(key: string, value: T) {
+    const lensId = 5;
+
+    if (!lensSettings[lensId]) {
+        lensSettings[lensId] = {};
+    }
+
+    lensSettings[lensId][key] = {
+        key: key,
+        name: key,
+        type: value?.constructor.name ?? 'unknown',
+    };
+}
+
+// render menu for the lens group
+const LensMenu = () => {
+    //TODO: implement
+    // const { settings } = useLensGroupContext()
+};
 
 const ScalarLens: Lens<number> = ({ value, column }) => {
     // TODO: implement lens settings like this?
     //       const foo = useSetting('foo', 5)
 
+    // const {foo, bar} = useSettings({
+    //   foo: {value: 5, render: () => {}, key: 'notfoo'},
+    //   bar: 'foobar'
+    // })
+
     return (
         <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
-            <ScalarValue value={value + foo} column={column} />
+            <ScalarValue value={value} column={column} />
         </div>
     );
 };

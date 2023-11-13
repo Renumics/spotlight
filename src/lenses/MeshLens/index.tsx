@@ -9,7 +9,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { ColorsState, useColors } from '../../stores/colors';
 import tw from 'twin.macro';
 import { Lens } from '../../types';
-import useSetting from '../useSetting';
+import useSetting from '../../systems/lenses/useSetting';
 import MenuBar from './MenuBar';
 
 const Container = tw.div`relative flex flex-col items-center justify-center w-full h-full`;

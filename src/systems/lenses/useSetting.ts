@@ -1,6 +1,6 @@
 import localForage from 'localforage';
 import { useCallback, useContext } from 'react';
-import { Dataset, useDataset } from '../stores/dataset';
+import { Dataset, useDataset } from '../../stores/dataset';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import LensContext from './LensContext';
@@ -21,12 +21,12 @@ const datasetIdSelector = (d: Dataset) => d.uid;
 type Setter<T> = (value: T | ((previous: T) => T)) => void;
 
 function useSetting<T>(name: string, defaultValue: T, global = false): [T, Setter<T>] {
-    const { syncKey } = useContext(LensContext);
+    const { groupKey } = useContext(LensContext);
     const datasetId = useDataset(datasetIdSelector);
 
     const storageKey = global
         ? `${datasetId}.global.${name}`
-        : `${datasetId}.${syncKey}.${name}`;
+        : `${datasetId}.${groupKey}.${name}`;
 
     const selector = useCallback(
         (state: SettingsStore) => state[storageKey],

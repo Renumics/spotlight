@@ -1,4 +1,4 @@
-import LensFactory from '../../lenses/LensFactory';
+import LensFactory from '../../systems/lenses/LensFactory';
 import { FunctionComponent, memo, useCallback, useMemo } from 'react';
 import { areEqual } from 'react-window';
 import type { GridChildComponentProps as CellProps } from 'react-window';

@@ -8,7 +8,7 @@ import tw, { styled, theme } from 'twin.macro';
 import { default as WaveSurfer, default as WebAudio } from 'wavesurfer.js';
 import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
-import useSetting from '../useSetting';
+import useSetting from '../../systems/lenses/useSetting';
 import MenuBar from './MenuBar';
 import { fixWindow, freqType, unitType, amplitudeToDb, hzToMel } from './Spectrogram';
 
