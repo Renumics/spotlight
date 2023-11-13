@@ -1,4 +1,5 @@
 import XIcon from '../../../icons/X';
+import SettingsIcon from '../../../icons/Settings';
 import Button from '../../../components/ui/Button';
 import Tooltip from '../../../components/ui/Tooltip';
 import { CSSProperties, FunctionComponent, useCallback, useContext } from 'react';
@@ -10,9 +11,11 @@ import tw, { styled } from 'twin.macro';
 import { shallow } from 'zustand/shallow';
 import { RowHeightContext } from '../rowHeightContext';
 import { State as StoreState, useStore } from '../store';
+import { Dropdown } from '../../../lib';
+import MenuFactory from '../../../systems/lenses/MenuFactory';
 
 const RowItemWrapper = styled.div(({ isDropped = false }: { isDropped?: boolean }) => [
-    tw`flex flex-col items-center border-b border-r border-gray-400 bg-gray-100`,
+    tw`flex flex-col items-center border-b border-r border-gray-400 bg-gray-100 overflow-hidden`,
     isDropped && tw`border-none shadow`,
 ]);
 
@@ -148,6 +151,16 @@ const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
             <Button onClick={onRemoveView}>
                 <XIcon />
             </Button>
+            <Dropdown
+                content={
+                    <MenuFactory
+                        settings={{ foo: { value: 5 } }}
+                        onChange={() => null}
+                    />
+                }
+            >
+                <SettingsIcon />
+            </Dropdown>
             <ViewNameWrapper>
                 <Tooltip content={longViewName} followCursor={true}>
                     <ViewName>{viewName}</ViewName>

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dataset, useDataset } from '../stores/dataset';
-import { Problem } from '../types';
-import api from '../api';
+import { Dataset, useDataset } from '../../stores/dataset';
+import { Problem } from '../../types';
+import api from '../../api';
 import { shallow } from 'zustand/shallow';
-import { usePrevious } from '../hooks';
+import { usePrevious } from '../../hooks';
 
 async function fetchValue(row: number, column: string, raw: boolean) {
     const response = await api.table.getCellRaw({

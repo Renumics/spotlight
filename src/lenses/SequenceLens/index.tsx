@@ -5,7 +5,7 @@ import { useColors } from '../../stores/colors';
 import tw, { styled } from 'twin.macro';
 import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
 import { isSequence1DColumn } from '../../types';
-import useSetting from '../useSetting';
+import useSetting from '../../systems/lenses/useSetting';
 import MenuBar from './MenuBar';
 
 const Container = styled.div`

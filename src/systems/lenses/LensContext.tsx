@@ -1,14 +1,9 @@
 import { createContext } from 'react';
-
-interface Setting<T = unknown> {
-    value: T;
-}
-
-type Settings = Record<string, Setting>;
+import { Settings } from './types';
 
 interface State {
     groupKey: string;
-    settings: Record<string, Setting>;
+    settings: Settings;
     changeSettings: (settings: Settings) => void;
 }
 
