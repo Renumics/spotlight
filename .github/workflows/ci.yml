@@ -1,5 +1,9 @@
 name: CI
 
+# We only need `push` triggering event internal, otherwise the workflow will run
+# twice. But for forks, we need to run workflow on both `push` and `pull_request`.
+# So in case of `pull_request` we check that HEAD is not 'Renumics/spotlight'.
+
 on:
     - push
     - pull_request
@@ -8,7 +12,6 @@ on:
 # and not in the local actions. Otherwise, no action file found.
 # Checkout with `fetch-depth: 0` is needed by `poetry-dynamic-versioning` to get
 # the right package version.
-# `MATRIX` environment variable is set by the local `generate-matrix` action.
 
 jobs:
     # Prepare stage
@@ -90,6 +93,8 @@ jobs:
         needs:
             - check-pr
         runs-on: ubuntu-latest
+        # `MATRIX` environment variable is set by the local `generate-matrix`
+        # action, so use it as check.
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
