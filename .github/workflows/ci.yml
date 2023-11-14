@@ -17,6 +17,7 @@ jobs:
     # Prepare stage
     prepare-python:
         name: '🐍 Prepare Python'
+        if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -31,6 +32,7 @@ jobs:
             pip-cache-dir: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
     prepare-node:
         name: '⬢ Prepare Node.js'
+        if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -42,6 +44,7 @@ jobs:
     # Check stage
     check-pr:
         name: '🔍 Check if pull request'
+        if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         permissions:
             pull-requests: read
         runs-on: ubuntu-latest
