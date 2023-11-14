@@ -1,5 +1,9 @@
 name: CI
 
+# We only need `push` triggering event internal, otherwise the workflow will run
+# twice. But for forks, we need to run workflow on both `push` and `pull_request`.
+# So in case of `pull_request` we check that HEAD is not 'Renumics/spotlight'.
+
 on:
     - push
     - pull_request
@@ -8,12 +12,12 @@ on:
 # and not in the local actions. Otherwise, no action file found.
 # Checkout with `fetch-depth: 0` is needed by `poetry-dynamic-versioning` to get
 # the right package version.
-# `MATRIX` environment variable is set by the local `generate-matrix` action.
 
 jobs:
     # Prepare stage
     prepare-python:
         name: '🐍 Prepare Python'
+        if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -28,6 +32,7 @@ jobs:
             pip-cache-dir: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
     prepare-node:
         name: '⬢ Prepare Node.js'
+        if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -39,6 +44,7 @@ jobs:
     # Check stage
     check-pr:
         name: '🔍 Check if pull request'
+        if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         permissions:
             pull-requests: read
         runs-on: ubuntu-latest
@@ -90,6 +96,8 @@ jobs:
         needs:
             - check-pr
         runs-on: ubuntu-latest
+        # `MATRIX` environment variable is set by the local `generate-matrix`
+        # action, so use it as check.
         steps:
             - name: Checkout code
               uses: actions/checkout@v3
@@ -434,7 +442,7 @@ jobs:
     # Release stage
     release:
         name: '🚀 Release Spotlight'
-        if: startsWith(github.ref, 'refs/tags/v') && github.repository_owner == 'Renumics'
+        if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'Renumics/spotlight'
         needs:
             - prepare-python
             - prepare-node
