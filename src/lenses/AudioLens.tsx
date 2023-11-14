@@ -23,6 +23,8 @@ const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
 
     const [repeat, setRepeat] = useSetting('repeat', false);
 
+    const [autoplay, setAutoplay] = useSetting('autoplay', false);
+
     useEffect(() => {
         fetchWaveform(rowIndex, columns[audioIndex].key).then((waveform) => {
             setWaveform(waveform);
@@ -39,6 +41,8 @@ const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
             showControls={true}
             repeat={repeat}
             onChangeRepeat={setRepeat}
+            autoplay={autoplay}
+            onChangeAutoplay={setAutoplay}
         />
     );
 };

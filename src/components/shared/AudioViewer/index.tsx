@@ -16,14 +16,15 @@ import { notifyProblem } from '../../../notify';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js';
 import CursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.min.js';
+import AutoplayIcon from '../../../icons/Autoplay';
 
 // Maximum zoom level for waveform
 const MAX_ZOOM = 2500;
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 
-const Toolbar = tw.div`flex flex-row items-center justify-center p-px`;
-const ToolbarButton = tw(Button)`rounded-none py-0`;
+const Toolbar = tw.div`flex flex-row items-stretch justify-center border-t border-gray-300 bg-gray-100 divide-x divide-gray-300`;
+const ToolbarButton = tw(Button)`rounded-none py-px`;
 
 const EmptyNote = styled.p`
     color: ${theme`colors.gray.500`};
@@ -145,6 +146,8 @@ interface Props {
     showControls?: boolean;
     repeat?: boolean;
     onChangeRepeat?: (enabled: boolean) => void;
+    autoplay?: boolean;
+    onChangeAutoplay?: (enabled: boolean) => void;
     onEditWindow?: (window: [number, number]) => void;
     onDeleteWindow?: () => void;
     onRegionEnter?: (windowIndex: number) => void;
@@ -161,6 +164,8 @@ const AudioViewer = ({
     showControls,
     repeat,
     onChangeRepeat,
+    autoplay = false,
+    onChangeAutoplay,
     onEditWindow,
     onDeleteWindow,
     onRegionEnter,
@@ -181,6 +186,9 @@ const AudioViewer = ({
     repeat = repeat ?? _repeat;
     onChangeRepeat = onChangeRepeat ?? _setRepeat;
     const toggleRepeat = () => onChangeRepeat?.(!repeat);
+
+    const canToggleAutoplay = onChangeAutoplay !== undefined;
+    const toggleAutoplay = () => onChangeAutoplay?.(!autoplay);
 
     const redrawWaveform = (height: number) => {
         waveform.current?.setHeight(height);
@@ -332,7 +340,11 @@ const AudioViewer = ({
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (waveform.current?.backend as any).media.loop = repeat;
-    }, [repeat]);
+        if (isReady && autoplay && !waveform.current?.isPlaying()) {
+            switchActiveWidget();
+            waveform.current?.play();
+        }
+    }, [isReady, autoplay, repeat]);
 
     useEffect(() => {
         if (!waveform.current?.isReady) return;
@@ -554,6 +566,22 @@ const AudioViewer = ({
                     </ToolbarButton>
                     <div tw="flex-grow" />
                     <ToolbarButton
+                        tooltip="Repeat"
+                        checked={repeat}
+                        onClick={toggleRepeat}
+                    >
+                        <RepeatIcon />
+                    </ToolbarButton>
+                    <ToolbarButton
+                        tooltip="Autoplay"
+                        checked={autoplay}
+                        disabled={!canToggleAutoplay}
+                        onClick={toggleAutoplay}
+                    >
+                        <AutoplayIcon />
+                    </ToolbarButton>
+
+                    <ToolbarButton
                         tooltip="Zoom to window"
                         onClick={zoomToWindow}
                         disabled={url === undefined}
@@ -566,13 +594,6 @@ const AudioViewer = ({
                         disabled={url === undefined}
                     >
                         <MaximizeIcon />
-                    </ToolbarButton>
-                    <ToolbarButton
-                        tooltip="Repeat"
-                        checked={repeat}
-                        onClick={toggleRepeat}
-                    >
-                        <RepeatIcon />
                     </ToolbarButton>
                 </Toolbar>
             )}
