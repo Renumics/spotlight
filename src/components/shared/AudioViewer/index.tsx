@@ -1,6 +1,7 @@
 import useResizeObserver from '@react-hook/resize-observer';
-import Maximize from '../../../icons/Maximize';
+import MaximizeIcon from '../../../icons/Maximize';
 import ResetIcon from '../../../icons/Reset';
+import RepeatIcon from '../../../icons/Repeat';
 import Button from '../../ui/Button';
 import * as d3 from 'd3';
 import { useEffect, useLayoutEffect, useRef, useState, WheelEvent } from 'react';
@@ -20,7 +21,10 @@ import CursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.min.js';
 const MAX_ZOOM = 2500;
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
-const Toolbar = tw.div`flex flex-row items-baseline justify-center p-px`;
+
+const Toolbar = tw.div`flex flex-row items-center justify-center p-px`;
+const ToolbarButton = tw(Button)`rounded-none py-0`;
+
 const EmptyNote = styled.p`
     color: ${theme`colors.gray.500`};
     ${tw`flex h-full items-center justify-center`}
@@ -139,6 +143,8 @@ interface Props {
     editable: boolean;
     optional: boolean;
     showControls?: boolean;
+    repeat?: boolean;
+    onChangeRepeat?: (enabled: boolean) => void;
     onEditWindow?: (window: [number, number]) => void;
     onDeleteWindow?: () => void;
     onRegionEnter?: (windowIndex: number) => void;
@@ -153,6 +159,8 @@ const AudioViewer = ({
     editable,
     optional,
     showControls,
+    repeat,
+    onChangeRepeat,
     onEditWindow,
     onDeleteWindow,
     onRegionEnter,
@@ -168,6 +176,11 @@ const AudioViewer = ({
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isReady, setIsReady] = useState(false);
+
+    const [_repeat, _setRepeat] = useState(false);
+    repeat = repeat ?? _repeat;
+    onChangeRepeat = onChangeRepeat ?? _setRepeat;
+    const toggleRepeat = () => onChangeRepeat?.(!repeat);
 
     const redrawWaveform = (height: number) => {
         waveform.current?.setHeight(height);
@@ -315,6 +328,11 @@ const AudioViewer = ({
         onRegionEnter,
         onRegionLeave,
     ]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (waveform.current?.backend as any).media.loop = repeat;
+    }, [repeat]);
 
     useEffect(() => {
         if (!waveform.current?.isReady) return;
@@ -510,49 +528,52 @@ const AudioViewer = ({
             {showControls && (
                 <Toolbar>
                     {windows !== undefined && (
-                        <Button
+                        <ToolbarButton
                             tooltip="Play Region"
-                            tw="max-h-full rounded-none py-0"
                             onClick={playRegion}
                             disabled={
                                 !windows[0] || windows.length > 1 || url === undefined
                             }
                         >
                             <BsPlayCircleFill />
-                        </Button>
+                        </ToolbarButton>
                     )}
-                    <Button
+                    <ToolbarButton
                         tooltip="Play/Pause"
-                        tw="max-h-full rounded-none py-0"
                         onClick={playPause}
                         disabled={url === undefined}
                     >
                         {isPlaying ? <BsPauseCircle /> : <BsPlayCircle />}
-                    </Button>
-                    <Button
+                    </ToolbarButton>
+                    <ToolbarButton
                         tooltip="Stop"
-                        tw="max-h-full rounded-none py-0"
                         onClick={stopPlaying}
                         disabled={url === undefined}
                     >
                         <BsStopCircle />
-                    </Button>
-                    <Button
+                    </ToolbarButton>
+                    <div tw="flex-grow" />
+                    <ToolbarButton
                         tooltip="Zoom to window"
-                        tw="max-h-full rounded-none py-0"
                         onClick={zoomToWindow}
                         disabled={url === undefined}
                     >
                         <ResetIcon />
-                    </Button>
-                    <Button
+                    </ToolbarButton>
+                    <ToolbarButton
                         tooltip="Fit screen"
-                        tw="max-h-full rounded-none py-0"
                         onClick={fitToScreen}
                         disabled={url === undefined}
                     >
-                        <Maximize />
-                    </Button>
+                        <MaximizeIcon />
+                    </ToolbarButton>
+                    <ToolbarButton
+                        tooltip="Repeat"
+                        checked={repeat}
+                        onClick={toggleRepeat}
+                    >
+                        <RepeatIcon />
+                    </ToolbarButton>
                 </Toolbar>
             )}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}

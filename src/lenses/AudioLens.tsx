@@ -4,6 +4,7 @@ import { Lens } from '../types';
 import AudioViewer from '../components/shared/AudioViewer';
 import { useDataset } from '../stores/dataset';
 import api from '../api';
+import useSetting from './useSetting';
 
 async function fetchWaveform(row: number, column: string): Promise<number[]> {
     const generationId = useDataset.getState().generationID;
@@ -20,6 +21,8 @@ const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
 
     const [waveform, setWaveform] = useState<number[]>();
 
+    const [repeat, setRepeat] = useSetting('repeat', false);
+
     useEffect(() => {
         fetchWaveform(rowIndex, columns[audioIndex].key).then((waveform) => {
             setWaveform(waveform);
@@ -34,6 +37,8 @@ const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
             editable={false}
             optional={optional}
             showControls={true}
+            repeat={repeat}
+            onChangeRepeat={setRepeat}
         />
     );
 };
