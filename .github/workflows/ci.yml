@@ -442,7 +442,7 @@ jobs:
     # Release stage
     release:
         name: '🚀 Release Spotlight'
-        if: startsWith(github.ref, 'refs/tags/v') && github.repository_owner == 'Renumics'
+        if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'Renumics/spotlight'
         needs:
             - prepare-python
             - prepare-node
