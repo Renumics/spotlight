@@ -19,13 +19,13 @@ const RowItemWrapper = styled.div(({ isDropped = false }: { isDropped?: boolean 
     isDropped && tw`border-none shadow`,
 ]);
 
-const ViewNameWrapper = styled.div`
+const LensNameWrapper = styled.div`
     ${tw`flex-grow flex pb-1 w-full h-full text-xs overflow-hidden`}
     > div {
         ${tw`flex flex-row h-full w-full items-stretch place-content-around`}
     }
 `;
-const ViewName = styled.span`
+const LensName = styled.span`
     writing-mode: vertical-rl;
     ${tw`transform -rotate-180 truncate`}
 `;
@@ -115,35 +115,35 @@ type ItemProps = {
 const removeViewSelector = (state: StoreState) => state.removeLens;
 
 const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
-    const viewSelector = useCallback(
+    const lensSelector = useCallback(
         (state: StoreState) => state.lenses[index],
         [index]
     );
-    const view = useStore(viewSelector);
+    const lensSpec = useStore(lensSelector);
     const removeView = useStore(removeViewSelector);
 
     const columnNamesSelector = useCallback(
         (d: Dataset) =>
             d.columns
-                .filter(({ key }) => view.columns.includes(key))
+                .filter(({ key }) => lensSpec.columns.includes(key))
                 .map(({ name }) => name)
                 .join(),
-        [view.columns]
+        [lensSpec.columns]
     );
     const columnNames = useDataset(columnNamesSelector, shallow);
 
-    const viewName =
-        (!view?.name || view?.name === 'view') && columnNames
+    const lensName =
+        (!lensSpec?.name || lensSpec?.name === 'view') && columnNames
             ? columnNames
-            : view?.name;
-    const longViewName =
-        viewName === columnNames || !viewName || !columnNames
-            ? viewName
-            : `${viewName} (${columnNames})`;
+            : lensSpec?.name;
+    const longLensName =
+        lensName === columnNames || !lensName || !columnNames
+            ? lensName
+            : `${lensName} (${columnNames})`;
 
     const onRemoveView = useCallback(
-        () => view && removeView(view),
-        [removeView, view]
+        () => lensSpec && removeView(lensSpec),
+        [removeView, lensSpec]
     );
 
     return (
@@ -161,11 +161,11 @@ const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
             >
                 <SettingsIcon />
             </Dropdown>
-            <ViewNameWrapper>
-                <Tooltip content={longViewName} followCursor={true}>
-                    <ViewName>{viewName}</ViewName>
+            <LensNameWrapper>
+                <Tooltip content={longLensName} followCursor={true}>
+                    <LensName>{lensName}</LensName>
                 </Tooltip>
-            </ViewNameWrapper>
+            </LensNameWrapper>
         </>
     );
 };
