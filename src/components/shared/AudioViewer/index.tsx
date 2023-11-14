@@ -61,9 +61,6 @@ const redrawTimeline = (
     // Don't draw timeline for empty files
     if (duration === 0) return;
 
-    // How many ticks can we fit in the container
-    const numTicks = Math.floor(width / 60);
-
     // Date constructor expects milliseconds
     const durationMillis = 1000 * duration;
     const durationDate = new Date(durationMillis);
@@ -74,17 +71,21 @@ const redrawTimeline = (
     const hasMinutes = !!durationDate.getMinutes();
     const hasSeconds = !!durationDate.getSeconds();
 
-    const drawerWidth = waveform?.drawer.getWidth();
-    const offsetLeft = waveform?.drawer.getScrollX();
-    const offsetRight = offsetLeft + drawerWidth;
-    const secPerPx = duration / (waveform?.drawer.wrapper.scrollWidth ?? 0);
+    const scrollWidth = waveform?.drawer.wrapper.scrollWidth ?? 1;
+    const scrollLeft = waveform?.drawer.wrapper.scrollLeft ?? 1;
 
-    const lowerTime = offsetLeft * secPerPx;
+    const offsetRight = scrollLeft + scrollWidth;
+    const secPerPx = duration / (waveform?.drawer.wrapper.scrollWidth ?? 1);
+
+    const lowerTime = scrollLeft * secPerPx;
     const upperTime = offsetRight * secPerPx;
 
     const domain = [lowerTime, upperTime];
-    const range = [0, width];
+    const range = [0, scrollWidth];
     const timeline = d3.scaleLinear(domain, range);
+
+    // How many ticks can we fit in the container
+    const numTicks = Math.floor(scrollWidth / 70);
 
     const axis = d3
         .axisBottom(timeline)
@@ -98,8 +99,6 @@ const redrawTimeline = (
             if (val === 0) {
                 return '0ms';
             }
-
-            // Seconds to milliseconds
             const date = new Date(val * 1000);
 
             let formatString = '%Lms';
