@@ -339,18 +339,13 @@ const AudioViewer = ({
     ]);
 
     useEffect(() => {
-        console.log([isReady, autoplay, waveform.current]);
-        if (isReady && autoplay) {
-            console.log('autoplay');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (waveform.current?.backend as any).media.loop = repeat;
+        if (isReady && autoplay && !waveform.current?.isPlaying()) {
             switchActiveWidget();
             waveform.current?.play();
         }
-    }, [isReady, autoplay]);
-
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (waveform.current?.backend as any).media.loop = repeat;
-    }, [repeat]);
+    }, [isReady, autoplay, repeat]);
 
     useEffect(() => {
         if (!waveform.current?.isReady) return;
@@ -572,20 +567,6 @@ const AudioViewer = ({
                     </ToolbarButton>
                     <div tw="flex-grow" />
                     <ToolbarButton
-                        tooltip="Zoom to window"
-                        onClick={zoomToWindow}
-                        disabled={url === undefined}
-                    >
-                        <ResetIcon />
-                    </ToolbarButton>
-                    <ToolbarButton
-                        tooltip="Fit screen"
-                        onClick={fitToScreen}
-                        disabled={url === undefined}
-                    >
-                        <MaximizeIcon />
-                    </ToolbarButton>
-                    <ToolbarButton
                         tooltip="Repeat"
                         checked={repeat}
                         onClick={toggleRepeat}
@@ -599,6 +580,21 @@ const AudioViewer = ({
                         onClick={toggleAutoplay}
                     >
                         <AutoplayIcon />
+                    </ToolbarButton>
+
+                    <ToolbarButton
+                        tooltip="Zoom to window"
+                        onClick={zoomToWindow}
+                        disabled={url === undefined}
+                    >
+                        <ResetIcon />
+                    </ToolbarButton>
+                    <ToolbarButton
+                        tooltip="Fit screen"
+                        onClick={fitToScreen}
+                        disabled={url === undefined}
+                    >
+                        <MaximizeIcon />
                     </ToolbarButton>
                 </Toolbar>
             )}
