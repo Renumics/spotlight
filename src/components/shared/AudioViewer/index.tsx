@@ -555,7 +555,7 @@ const AudioViewer = ({
                     >
                         <BsStopCircle />
                     </ToolbarButton>
-                    <div tw="flex-grow"/>
+                    <div tw="flex-grow" />
                     <ToolbarButton
                         tooltip="Zoom to window"
                         onClick={zoomToWindow}
