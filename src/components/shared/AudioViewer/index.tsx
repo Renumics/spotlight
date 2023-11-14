@@ -300,9 +300,6 @@ const AudioViewer = ({
             redrawWaveform(height);
 
             setIsReady(true);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            //(waveform.current?.backend as any).media.loop = repeat;
         });
 
         // In case this widget was paused from the outside
@@ -334,6 +331,7 @@ const AudioViewer = ({
     ]);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (waveform.current?.backend as any).media.loop = repeat;
     }, [repeat]);
 
