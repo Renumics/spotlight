@@ -117,7 +117,7 @@ class WebsocketConnection:
 
         try:
             json_text = orjson.dumps(
-                message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
+                message.model_dump(), option=orjson.OPT_SERIALIZE_NUMPY
             ).decode()
         except TypeError as e:
             raise SerializationError(str(e))

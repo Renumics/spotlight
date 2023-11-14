@@ -13,25 +13,25 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError, SetLayoutRequest } from '../models';
+import type { HTTPValidationError, SetLayoutRequest } from '../models/index';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
     SetLayoutRequestFromJSON,
     SetLayoutRequestToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface GetLayoutRequest {
-    browserId?: string;
+    browserId?: string | null;
 }
 
 export interface ResetLayoutRequest {
-    browserId?: string;
+    browserId?: string | null;
 }
 
 export interface SetLayoutOperationRequest {
     setLayoutRequest: SetLayoutRequest;
-    browserId?: string;
+    browserId?: string | null;
 }
 
 /**

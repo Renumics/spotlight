@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import { Problem } from '../types';
 import api from '../api';
 import { shallow } from 'zustand/shallow';
+import { usePrevious } from '../hooks';
 
-async function fetchValue(row: number, column: string, raw = true) {
+async function fetchValue(row: number, column: string, raw: boolean) {
     const response = await api.table.getCellRaw({
         row,
         column,
@@ -15,10 +16,6 @@ async function fetchValue(row: number, column: string, raw = true) {
     } else {
         return response.value();
     }
-}
-
-async function keepValue(value: unknown) {
-    return value;
 }
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -45,68 +42,62 @@ function useCellValues(
 
     const cellEntries = useDataset(cellsSelector, shallow);
     const columns = useDataset(columnsSelector, shallow);
+    const generationId = useDataset((d) => d.generationID);
+    const previousGenerationId = usePrevious(generationId);
 
-    const needsFetch = useMemo(
-        () => cellEntries.some((entry, i) => entry !== null && columns[i]?.type?.lazy),
-        [cellEntries, columns]
-    );
-
-    const [fetchedValues, setFetchedValues] = useState<unknown[] | undefined>();
+    const [values, setValues] = useState<unknown[] | undefined>();
     const [problem, setProblem] = useState<Problem>();
-    const hasFetchedValues = !!fetchedValues;
+
+    // store all values in promises
+    const promisesRef = useRef<Record<string, Promise<unknown>>>({});
 
     useEffect(() => {
         let cancelled = false;
-        if (!needsFetch) return;
+        const promises = promisesRef.current;
 
-        // Keep previously fetched values for any lazy datatype
-        if (hasFetchedValues) {
-            setFetchedValues((previous) =>
-                cellEntries.map((entry, i) =>
-                    entry !== null && columns[i]?.type?.lazy ? previous?.[i] : entry
-                )
-            );
-            return;
+        if (generationId !== previousGenerationId) {
+            for (let i = 0; i < columns.length; i++) {
+                const columnKey = columnKeys[i];
+                const column = columns[i];
+
+                if (!column) {
+                    promises[columnKey] = Promise.resolve(null);
+                } else if (!column.type.lazy) {
+                    promises[columnKey] = Promise.resolve(cellEntries[i]);
+                } else {
+                    // only refresh lazy string columns (for now)
+                    if (column.type.kind === 'str' || !promises[columnKey]) {
+                        promises[columnKey] = delay(deferLoading ? 250 : 0).then(() => {
+                            return fetchValue(
+                                rowIndex,
+                                columnKeys[i],
+                                column.type.binary
+                            );
+                        });
+                    }
+                }
+            }
+            Promise.all(Object.values(promises))
+                .then((values) => {
+                    if (!cancelled) setValues(values);
+                })
+                .catch((error) => {
+                    if (!cancelled) setProblem(error);
+                });
         }
-
-        const fetchers = cellEntries.map((entry, i) => {
-            const column = columns[i];
-
-            return entry !== null && column?.type?.lazy
-                ? delay(deferLoading ? 250 : 0).then(() => {
-                      if (!cancelled) {
-                          return fetchValue(
-                              rowIndex,
-                              columnKeys[i],
-                              column.type.binary
-                          );
-                      }
-                  })
-                : keepValue(entry);
-        });
-
-        Promise.all(fetchers)
-            .then((values) => {
-                if (!cancelled) setFetchedValues(values);
-            })
-            .catch((error) => {
-                if (!cancelled) setProblem(error);
-            });
 
         return () => {
             cancelled = true;
         };
     }, [
         cellEntries,
-        rowIndex,
         columnKeys,
-        needsFetch,
         columns,
-        hasFetchedValues,
         deferLoading,
+        generationId,
+        previousGenerationId,
+        rowIndex,
     ]);
-
-    const values = needsFetch ? fetchedValues : cellEntries;
 
     return [values, problem];
 }

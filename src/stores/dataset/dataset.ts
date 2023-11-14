@@ -92,13 +92,13 @@ export function convertValue(value: any, type: DataType) {
         return NaN;
     }
 
-    if (value === null) return null;
+    if (value === null || value === undefined) return null;
 
     if (type.kind === 'datetime') {
         return new Date(Date.parse(value));
     }
 
-    if (type.kind === 'Window') {
+    if (type.kind === 'Window' && value !== null) {
         value[0] = value[0] === null ? NaN : value[0];
         value[1] = value[1] === null ? NaN : value[1];
         return value;
@@ -261,8 +261,19 @@ export const useDataset = create(
                 for (const issue of analysis.issues) {
                     issue.rows.forEach(rowsWithIssues.add, rowsWithIssues);
                 }
+                const issues = analysis.issues.map((apiIssue) => {
+                    const columns = _.compact(
+                        apiIssue.columns
+                            ? apiIssue.columns.map((c) => get().columnsByKey[c])
+                            : []
+                    );
+                    return {
+                        ...apiIssue,
+                        columns,
+                    };
+                });
                 set({
-                    issues: analysis.issues as DataIssue[],
+                    issues: issues as DataIssue[],
                     rowsWithIssues: Int32Array.from(rowsWithIssues),
                     isAnalysisRunning: analysis.running,
                 });
@@ -550,3 +561,10 @@ websocketService.registerMessageHandler('refresh', () => {
 websocketService.registerMessageHandler('issuesUpdated', () => {
     useDataset.getState().fetchIssues();
 });
+
+useDataset.subscribe(
+    (state) => state.columns,
+    (columns) => {
+        if (columns) useDataset.getState().fetchIssues();
+    }
+);

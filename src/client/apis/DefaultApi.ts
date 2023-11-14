@@ -13,11 +13,14 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError } from '../models';
-import { HTTPValidationErrorFromJSON, HTTPValidationErrorToJSON } from '../models';
+import type { HTTPValidationError } from '../models/index';
+import {
+    HTTPValidationErrorFromJSON,
+    HTTPValidationErrorToJSON,
+} from '../models/index';
 
 export interface GetRequest {
-    browserId?: string;
+    browserId?: string | null;
 }
 
 /**

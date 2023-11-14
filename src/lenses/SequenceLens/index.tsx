@@ -17,11 +17,11 @@ const ViewerWrapper = styled.div`
 
 const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-xs text-center`;
 
-const SequenceView: Lens = ({ values, columns, syncKey }) => {
+const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
     const [sequences, window] = useMemo(
         () => [
-            values.filter((value, index) => isSequence1DColumn(columns[index])),
-            values.find((value, index) => columns[index].type.kind === 'Window') as
+            values.filter((_value, index) => isSequence1DColumn(columns[index])),
+            values.find((_value, index) => columns[index].type.kind === 'Window') as
                 | [number, number]
                 | undefined,
         ],
@@ -29,15 +29,10 @@ const SequenceView: Lens = ({ values, columns, syncKey }) => {
     );
 
     const chartData = useMemo(() => {
-        const decoder = new TextDecoder();
         return sequences
             .filter((v) => v !== null)
-            .map((buffer, i) => {
+            .map((vals, i) => {
                 const column = columns[i] as Sequence1DColumn;
-                const vals = JSON.parse(decoder.decode(buffer as ArrayBuffer)) as [
-                    number,
-                    number
-                ][];
                 return {
                     values: vals,
                     xLabel: column.xLabel,

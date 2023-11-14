@@ -83,7 +83,11 @@ const FileBrowser = ({
                 <FileBrowserWalkthrough ref={fileBrowserWalkthroughRef} />
             </Header>
             <Content>
-                <AddressBar path={path} setPath={setPath} parent={folder?.parent} />
+                <AddressBar
+                    path={path}
+                    setPath={setPath}
+                    parent={folder?.parent ?? undefined}
+                />
                 <FileList
                     setPath={setPath}
                     folder={folder}

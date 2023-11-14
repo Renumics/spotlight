@@ -12,12 +12,12 @@ import { Dataset, useDataset } from './stores/dataset';
 import tw from 'twin.macro';
 import 'styled-components';
 import usePluginStore from './stores/pluginStore';
+import DragContext from './systems/dnd/DragContext';
 
 const Wrapper = tw.div`bg-gray-200 text-midnight-600 w-screen h-screen relative overflow-hidden`;
 
 // fetch the dataset once on app init
 useDataset.getState().fetch();
-useDataset.getState().fetchIssues();
 
 const loadingSelector = (d: Dataset) => d.loading;
 
@@ -41,7 +41,7 @@ const App = (): JSX.Element => {
     }, [filename]);
 
     return (
-        <>
+        <DragContext>
             <Wrapper>
                 <WebGLDetector />
                 {!loading && (
@@ -74,7 +74,7 @@ const App = (): JSX.Element => {
                 )}
                 <ToastContainer position="bottom-right" />
             </Wrapper>
-        </>
+        </DragContext>
     );
 };
 

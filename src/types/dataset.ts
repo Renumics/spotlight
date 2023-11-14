@@ -67,12 +67,12 @@ export const isDateColumn = (col: DataColumn): col is DateColumn =>
     datatypes.isDateTime(col.type);
 
 export interface Sequence1DColumn extends DataColumn {
-    type: datatypes.SequenceDataType;
+    type: datatypes.Sequence1DDataType;
     yLabel?: string;
     xLabel?: string;
 }
 export const isSequence1DColumn = (col: DataColumn): col is Sequence1DColumn =>
-    datatypes.isSequence(col.type);
+    datatypes.isSequence1D(col.type);
 
 export interface MeshColumn extends DataColumn {
     type: datatypes.MeshDataType;
@@ -131,6 +131,6 @@ export interface DataIssue {
     severity: 'low' | 'medium' | 'high';
     title: string;
     rows: IndexArray;
-    columns?: string[];
+    columns?: DataColumn[];
     description?: string;
 }

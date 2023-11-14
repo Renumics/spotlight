@@ -16,7 +16,7 @@
     ##   -----=
     ## replace them with a simple h4:
     ##   #### Title
-    text = re.sub(r'([^\n]+)\n-+=', r'#### \g<1>\n', text)
+    text = re.sub(r'([^\n]+)\n-+=', r'<h4> \g<1></h4>\n', text)
 
     ## A ton of the current examples is in python repl form
     ## and declares `python-repl` as the language
@@ -33,6 +33,13 @@
 </%def>
 <%def name="h4(s)">#### ${s}
 </%def>
+<%def name="h5(s)">#### ${s}
+</%def>
+
+<%def name="variable(var)" buffered="True">
+${h3(f"`{var.name}` {{#{var.name}}}")}
+${var.docstring | to_markdown}
+</%def>
 
 <%def name="function(func)" buffered="True">
 ${h3(f"`{func.name}({', '.join(func.params(annotate=False))})` {{#{func.qualname}()}}")}
@@ -44,8 +51,8 @@ ${h4(f"`{func.name}({', '.join(func.params(annotate=False))})` {{#{func.qualname
 ${func.docstring | to_markdown }
 </%def>
 
-<%def name="variable(var)" buffered="True">
-`${var.name}`
+<%def name="instance_variable(var)" buffered="True">
+${h4(f"`{var.name}` {{#{var.name}}}")}
 ${var.docstring | to_markdown}
 </%def>
 
@@ -61,36 +68,22 @@ ${cls.docstring | to_markdown}
   subclasses = cls.subclasses()
 %>
 
-% if mro:
-${h4('Ancestors (in MRO)')}
-% for c in mro:
-* ${c.refname}
-% endfor
-% endif
-
-% if subclasses:
-${h4('Descendants')}
-% for c in subclasses:
-* ${c.refname}
-% endfor
-% endif
-
 % if static_methods:
-${h4('Static methods')}
+<h4>Static methods</h4>
 % for f in static_methods:
 ${method(f)}
 % endfor
 % endif
 
 % if inst_vars:
-${h4('Instance variables')}
+<h4>Instance variables</h4>
 % for v in inst_vars:
-${variable(v)}
+${instance_variable(v)}
 % endfor
 % endif
 
 % if methods:
-${h4('Methods')}
+<h4>Methods</h4>
 % for m in methods:
 ${method(m)}
 % endfor
@@ -111,13 +104,22 @@ ${method(m)}
 ---
 id: ${shortname}
 title: ${shortname}
+toc_max_heading_level: 5
 ---
+
+export const CleanToC = () => {
+  toc.forEach((entry) => {
+    entry.value = entry.value.replace(/ *\([^)]*\) */g, "()")
+  })
+  return null
+}
 
 ${module.docstring}
 
+
 % if variables:
-Variables
----------
+<%text>## Variables</%text>
+
 % for v in variables:
 ${variable(v)}
 
@@ -125,8 +127,8 @@ ${variable(v)}
 % endif
 
 % if functions:
-Functions
----------
+<%text>## Functions</%text>
+
 % for f in functions:
 ${function(f)}
 
@@ -134,10 +136,12 @@ ${function(f)}
 % endif
 
 % if classes:
-Classes
--------
+<%text>## Classes</%text>
+
 % for c in classes:
 ${class_(c)}
 
 % endfor
 % endif
+
+<CleanToC/>

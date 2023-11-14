@@ -50,15 +50,15 @@ class Window:
 
     """
     A pair of two timestamps in seconds which can be later projected onto
-    continuous data (only :class:`Audio <renumics.spotlight.dtypes.Audio>`
+    continuous data (only `renumics.spotlight.dtypes.Audio`
     is currently supported).
 
     Dummy class for window column creation
-    (see :func:`Dataset.append_column <renumics.spotlight.dataset.Dataset.append_column>`),
+    (see `renumics.spotlight.dataset.Dataset.append_column`),
     should not be explicitly used as input data.
 
     To create a window column, use
-    :func:`Dataset.append_window_column <renumics.spotlight.dataset.Dataset.append_window_column>`
+    `renumics.spotlight.dataset.Dataset.append_window_column`
     method.
 
     Examples:

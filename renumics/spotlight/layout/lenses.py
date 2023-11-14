@@ -10,7 +10,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
 
-class Lens(BaseModel, allow_population_by_field_name=True):
+class Lens(BaseModel, populate_by_name=True):
     """
     Inspector lens configuration model.
 
