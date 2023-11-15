@@ -2,7 +2,7 @@ import ArrayLens from './ArrayLens';
 import AudioLens from './AudioLens';
 import HtmlLens from './HtmlLens';
 import ImageLens from './ImageLens';
-import OverlayLens from './OverlayLens';
+import BoundingBoxLens from './BoundingBoxLens';
 import MarkdownLens from './MarkdownLens';
 import MeshLens from './MeshLens';
 import SafeHtmlLens from './SafeHtmlLens';
@@ -19,7 +19,7 @@ export const ALL_LENSES = [
     SpectrogramLens,
     VideoLens,
     ImageLens,
-    OverlayLens,
+    BoundingBoxLens,
     MeshLens,
     SequenceLens,
     TextLens,
