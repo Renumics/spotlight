@@ -4,7 +4,6 @@ This module allows user customize layout to start Spotlight from a python script
 A Spotlight layout consists of multiple widgets, grouped into tabs and splits.
 """
 
-import json
 import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
@@ -154,7 +153,7 @@ def parse(layout_: _LayoutLike) -> Layout:
             raise InvalidLayout() from e
 
     if (isinstance(layout_, (os.PathLike, str))) and os.path.isfile(layout_):
-        obj = json.loads(Path(layout_).read_text())
+        obj = Path(layout_).read_text()
         return Layout.model_validate_json(obj)
 
     layout_ = cast(_NodeLike, layout_)
