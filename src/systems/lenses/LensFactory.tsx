@@ -103,7 +103,7 @@ const LensFactory: React.FunctionComponent<Props> = ({
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible Lens ({spec.kind})</Info>;
 
-    const context = { groupKey: spec.key, settings: {}, changeSettings: () => null };
+    const context = { groupKey: spec.key };
 
     const allValuesAreNull = values.every(_.isNull);
 
@@ -121,8 +121,8 @@ const LensFactory: React.FunctionComponent<Props> = ({
                         column={columns[0]}
                         columns={columns}
                         rowIndex={rowIndex}
-                        syncKey={spec.key}
-                        settings={spec.settings ?? { foo: 5 }}
+                        groupKey={spec.key}
+                        settings={spec.settings ?? { foo: { value: 5 } }}
                     />
                 )}
             </ErrorBoundary>

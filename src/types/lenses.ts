@@ -1,9 +1,10 @@
 import type { DataColumn } from './dataset';
 import type { DataType } from '../datatypes';
+import { Settings } from '../systems/lenses/types';
 
 export type LensKind = string;
 
-export interface LensProps<T = unknown, S = unknown> {
+export interface LensProps<T, S extends Settings = Settings> {
     value: T;
     values: T[];
     column: DataColumn;
@@ -11,15 +12,11 @@ export interface LensProps<T = unknown, S = unknown> {
     rowIndex: number;
     url?: string;
     urls: (string | undefined)[];
-    syncKey?: string;
-    settings?: S;
+    groupKey: string;
+    settings: S;
 }
 
-interface MenuProps<S> {
-    settings?: S;
-}
-
-interface LensAttributes<S> {
+interface LensAttributes<S extends Settings = Settings> {
     displayName: string;
     kind: LensKind;
     dataTypes: DataType['kind'][];
@@ -33,13 +30,15 @@ interface LensAttributes<S> {
         selectedColumns: DataColumn[]
     ) => DataColumn[];
     isSatisfied?: (columns: DataColumn[]) => boolean;
-    menu?: (props: MenuProps<S>) => JSX.Element;
+    settings?: S;
 }
 
-export type Lens<T = unknown, S = unknown> = React.FunctionComponent<LensProps<T, S>> &
+export type Lens<T = unknown, S extends Settings = Settings> = React.FunctionComponent<
+    LensProps<T, S>
+> &
     LensAttributes<S>;
 
-export interface LensSpec<S = unknown> {
+export interface LensSpec<S extends Settings = Settings> {
     kind: LensKind;
     key: string;
     name: string;
