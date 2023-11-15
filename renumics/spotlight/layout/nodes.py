@@ -4,7 +4,7 @@ Implementation of layout models and interfaces for layout creation.
 
 from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, SerializeAsAny, validator
 from typing_extensions import Literal
 
 from .widgets import Widget
@@ -18,7 +18,7 @@ class Tab(BaseModel, extra="forbid"):
     Tab with widgets.
     """
 
-    children: List[Widget] = Field(default_factory=list)
+    children: List[SerializeAsAny[Widget]] = Field(default_factory=list)
     weight: Union[float, int] = 1
     kind: Literal["tab"] = "tab"
 
