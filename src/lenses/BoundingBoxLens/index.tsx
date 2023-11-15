@@ -86,8 +86,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
                     .select<SVGSVGElement>('g')
                     .append('text')
                     .text(invertedCategories[categories[i]])
-                    .attr('x', boxes[i][0] * w)
-                    .attr('y', boxes[i][1] * h - 3)
+                    .attr('x', x)
+                    .attr('y', y - 3)
                     .attr('fontsize', 12)
                     .attr('fill', 'red');
             }
