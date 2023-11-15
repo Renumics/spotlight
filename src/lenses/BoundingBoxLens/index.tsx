@@ -2,6 +2,7 @@ import useResizeObserver from '@react-hook/resize-observer';
 import { useRef, useEffect } from 'react';
 import tw, { styled } from 'twin.macro';
 import { Lens } from '../../types';
+import { CategoricalDataType, SequenceDataType } from '../../datatypes';
 import { ColorsState, useColors } from '../../stores/colors';
 import * as d3 from 'd3';
 
@@ -19,13 +20,25 @@ const StyledContainer = styled.div`
     }
 `;
 
-const BoundingBoxLens: Lens = ({ urls, values }) => {
+const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const container = useRef<HTMLDivElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
     const imgRef = useRef<HTMLImageElement>(null);
 
-    const boxes = values[1] as [[number, number, number, number]];
-    const categories = values[2] as [number];
+    const bboxIndex = columns.findIndex(
+        (col) => col.type.kind === 'Sequence' && col.type.dtype.kind === 'BoundingBox'
+    );
+    const categoryIndex = columns.findIndex(
+        (col) => col.type.kind === 'Sequence' && col.type.dtype.kind === 'Category'
+    );
+    const imageIndex = columns.findIndex((col) => col.type.kind === 'Image');
+
+    const boxes = values[bboxIndex] as [[number, number, number, number]] | undefined;
+    const url = urls[imageIndex];
+    const categories = values[categoryIndex] as [number] | undefined;
+    const invertedCategories = (
+        (columns[categoryIndex].type as SequenceDataType).dtype as CategoricalDataType
+    ).invertedCategories;
 
     const colorPaletteSelector = (c: ColorsState) => c.continuousPalette;
     const colorPalette = useColors(colorPaletteSelector);
@@ -37,6 +50,7 @@ const BoundingBoxLens: Lens = ({ urls, values }) => {
         if (!svgRef.current) return;
         if (!container.current) return;
         if (!imgRef.current) return;
+        if (!boxes) return;
 
         // Remove previous svg elements to prevent stacking
         d3.select(svgRef.current).select<SVGSVGElement>('g').selectAll('rect').remove();
@@ -71,7 +85,7 @@ const BoundingBoxLens: Lens = ({ urls, values }) => {
                 d3.select(svgRef.current)
                     .select<SVGSVGElement>('g')
                     .append('text')
-                    .text(categories[i].toString())
+                    .text(invertedCategories[categories[i]])
                     .attr('x', boxes[i][0] * w)
                     .attr('y', boxes[i][1] * h - 3)
                     .attr('fontsize', 12)
@@ -83,7 +97,7 @@ const BoundingBoxLens: Lens = ({ urls, values }) => {
     return (
         <div tw="h-full w-full">
             <StyledContainer ref={container}>
-                <img ref={imgRef} src={urls[0]} alt="Not found." />
+                <img ref={imgRef} src={url} alt="Not found." />
                 <svg ref={svgRef}>
                     <g />
                 </svg>
