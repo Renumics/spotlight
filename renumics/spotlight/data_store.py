@@ -300,18 +300,26 @@ def _guess_array_dtype(
 ) -> Optional[spotlight_dtypes.DType]:
     if dtype.shape is None:
         return None
-    if dtype.shape == (2,):
-        return spotlight_dtypes.window_dtype
-    if dtype.shape == (4,):
-        return spotlight_dtypes.bounding_box_dtype
-    if dtype.ndim == 1 and dtype.shape[0] is not None:
-        return spotlight_dtypes.EmbeddingDType(dtype.shape[0])
-    if dtype.ndim == 1 and dtype.shape[0] is None:
+    if dtype.ndim == 1:
+        length = dtype.shape[0]
+        if length == 2:
+            return spotlight_dtypes.window_dtype
+        if length == 4:
+            return spotlight_dtypes.bounding_box_dtype
+        if length is not None:
+            return spotlight_dtypes.EmbeddingDType(length)
         return spotlight_dtypes.sequence_1d_dtype
-    if dtype.ndim == 2 and (dtype.shape[0] == 2 or dtype.shape[1] == 2):
-        return spotlight_dtypes.sequence_1d_dtype
-    if dtype.ndim == 2 and dtype.shape[1] == 4:
-        return spotlight_dtypes.bounding_boxes_dtype
+    if dtype.ndim == 2:
+        if dtype.shape[1] == 2:  # (n, 2)
+            return spotlight_dtypes.SequenceDType(
+                spotlight_dtypes.window_dtype, dtype.shape[0]
+            )
+        if dtype.shape[1] == 4:  # (n, 4)
+            return spotlight_dtypes.SequenceDType(
+                spotlight_dtypes.bounding_box_dtype, dtype.shape[0]
+            )
+        if dtype.shape[0] == 2:  # (2, n)
+            return spotlight_dtypes.sequence_1d_dtype
     if dtype.ndim == 3 and dtype.shape[-1] in (1, 3, 4):
         return spotlight_dtypes.image_dtype
     if all(dim is None for dim in dtype.shape):
