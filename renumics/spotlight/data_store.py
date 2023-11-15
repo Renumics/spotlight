@@ -295,9 +295,11 @@ def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
     return None
 
 
-def _guess_array_dtype(dtype: spotlight_dtypes.ArrayDType) -> spotlight_dtypes.DType:
+def _guess_array_dtype(
+    dtype: spotlight_dtypes.ArrayDType,
+) -> Optional[spotlight_dtypes.DType]:
     if dtype.shape is None:
-        return dtype
+        return None
     if dtype.shape == (2,):
         return spotlight_dtypes.window_dtype
     if dtype.shape == (4,):
@@ -312,4 +314,6 @@ def _guess_array_dtype(dtype: spotlight_dtypes.ArrayDType) -> spotlight_dtypes.D
         return spotlight_dtypes.bounding_boxes_dtype
     if dtype.ndim == 3 and dtype.shape[-1] in (1, 3, 4):
         return spotlight_dtypes.image_dtype
+    if all(dim is None for dim in dtype.shape):
+        return None
     return dtype

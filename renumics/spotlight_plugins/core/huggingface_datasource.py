@@ -227,14 +227,11 @@ def _get_intermediate_dtype(feature: _FeatureType) -> spotlight_dtypes.DType:
                 inner_dtype, None if feature.length == -1 else feature.length
             )
         if spotlight_dtypes.is_array_dtype(inner_dtype):
-            if inner_dtype.shape is None:
-                return spotlight_dtypes.str_dtype
+            assert inner_dtype.shape is not None
             shape = (
                 None if feature.length == -1 else feature.length,
                 *inner_dtype.shape,
             )
-            if shape.count(None) > 1:
-                return spotlight_dtypes.str_dtype
             return spotlight_dtypes.ArrayDType(shape)
         return spotlight_dtypes.str_dtype
     elif isinstance(feature, list):
@@ -248,11 +245,8 @@ def _get_intermediate_dtype(feature: _FeatureType) -> spotlight_dtypes.DType:
         ) or spotlight_dtypes.is_category_dtype(inner_dtype):
             return spotlight_dtypes.SequenceDType(inner_dtype)
         if spotlight_dtypes.is_array_dtype(inner_dtype):
-            if inner_dtype.shape is None:
-                return spotlight_dtypes.str_dtype
+            assert inner_dtype.shape is not None
             shape = (None, *inner_dtype.shape)
-            if shape.count(None) > 1:
-                return spotlight_dtypes.str_dtype
             return spotlight_dtypes.ArrayDType(shape)
         return spotlight_dtypes.str_dtype
     elif isinstance(
