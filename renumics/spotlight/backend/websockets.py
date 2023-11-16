@@ -278,6 +278,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
     except TaskCancelled:
         pass
     except Problem as e:
+        logger.exception(e)
         msg = Message(
             type="task.error",
             data={
@@ -291,6 +292,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         )
         await connection.send_async(msg)
     except Exception as e:
+        logger.exception(e)
         msg = Message(
             type="task.error",
             data={
