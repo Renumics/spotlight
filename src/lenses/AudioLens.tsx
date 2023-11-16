@@ -5,7 +5,6 @@ import AudioViewer from '../components/shared/AudioViewer';
 import { useDataset } from '../stores/dataset';
 import api from '../api';
 import useSetting from './useSetting';
-import useWhyDidYouUpdate from '../hooks/useWhyDidYouUpdate';
 
 async function fetchWaveform(row: number, column: string): Promise<number[]> {
     const generationId = useDataset.getState().generationID;

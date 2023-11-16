@@ -6,7 +6,6 @@ import { Dataset, useDataset } from '../../stores/dataset';
 import tw, { styled } from 'twin.macro';
 import { shallow } from 'zustand/shallow';
 import { useStore } from './store';
-import { Settings } from 'http2';
 import { LensSettings } from '../../types';
 
 type Props = CellProps;
