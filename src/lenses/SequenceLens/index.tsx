@@ -47,17 +47,8 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
 
     const categoricalPalette = useColors((c) => c.categoricalPalette);
 
-    const [isXSyncedGlobally, setIsXSyncedGlobally] = useSetting(
-        'isXSyncedGlobally',
-        false,
-        true
-    );
     const [yAxisMultiple, setYAxisMultiple] = useSetting('yAxisMultiple', false);
-    const [xExtents, setXExtents] = useSetting<Vec2>(
-        'xExtents',
-        [-Infinity, Infinity],
-        isXSyncedGlobally
-    );
+    const [xExtents, setXExtents] = useSetting<Vec2>('xExtents', [-Infinity, Infinity]);
 
     const [isXSynchronized, setIsXSynchronized] = useSetting('isXSynchronized', false);
     const [syncedYDomains, setSyncedYDomains] = useSetting<{
@@ -213,12 +204,10 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
                 groupY={yAxisMultiple}
                 isXSynchronized={isXSynchronized}
                 isYSynchronized={isYSynchronized}
-                isXSyncedGlobally={isXSyncedGlobally}
                 onChangeGroupY={setYAxisMultiple}
                 onReset={resetPlot}
                 onChangeIsXSynchronized={onChangeIsXSynchronized}
                 onChangeIsYSynchronized={handleChangeIsYSynchronized}
-                onChangeIsXSyncedGlobally={setIsXSyncedGlobally}
             />
         </Container>
     );

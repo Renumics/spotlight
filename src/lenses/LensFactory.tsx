@@ -6,7 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
-import { DataColumn, LensKey } from '../types';
+import { DataColumn, LensKey, LensSettings, Setter } from '../types';
 import LensContext from './LensContext';
 import useCellValues from './useCellValue';
 import None from './None';
@@ -18,6 +18,8 @@ interface Props {
     rowIndex: number;
     syncKey: string;
     deferLoading?: boolean;
+    settings: LensSettings;
+    onChangeSettings: Setter<LensSettings>;
 }
 
 const Info = tw.div`w-full h-full flex items-center justify-center text-gray-800 italic text-sm p-2 text-center`;
@@ -45,6 +47,8 @@ const LensFactory: React.FunctionComponent<Props> = ({
     rowIndex,
     syncKey,
     deferLoading = false,
+    settings,
+    onChangeSettings,
 }) => {
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
     const [values, problem] = useCellValues(rowIndex, columnKeys, deferLoading);
@@ -97,7 +101,7 @@ const LensFactory: React.FunctionComponent<Props> = ({
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible View ({view})</Info>;
 
-    const context = { syncKey };
+    const context = { settings, onChangeSettings };
 
     const allValuesAreNull = values.every(_.isNull);
 

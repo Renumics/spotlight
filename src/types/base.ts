@@ -12,3 +12,5 @@ export type TypedArray =
     | Uint8ClampedArray
     | Float32Array
     | Float64Array;
+
+export type Setter<T> = (value: T | ((previous: T) => T)) => void;
