@@ -119,8 +119,9 @@ class Hdf5DataSource(DataSource):
             for ref in raw_values:
                 if not ref:
                     yield None
-                value = self._table._resolve_ref(ref, column_name)[()]
-                yield value.tolist() if isinstance(value, np.void) else value
+                else:
+                    value = self._table._resolve_ref(ref, column_name)[()]
+                    yield value.tolist() if isinstance(value, np.void) else value
         elif is_embedding_dtype(self._table._get_dtype(column)):
             for x in raw_values:
                 yield None if len(x) == 0 else x
