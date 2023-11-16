@@ -3,13 +3,12 @@ access h5 table data
 """
 from hashlib import sha1
 from pathlib import Path
-from typing import List, Union, cast
+from typing import Iterable, List, Union, cast
 
 import h5py
 import numpy as np
 
 from renumics.spotlight.dataset import Dataset
-
 from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.backend.exceptions import (
     H5DatasetOutdated,
@@ -23,67 +22,6 @@ from renumics.spotlight.dtypes import (
     is_embedding_dtype,
     is_window_dtype,
 )
-
-
-class H5Dataset(Dataset):
-    """
-    A `spotlight.Dataset` class extension for better usage in Spotlight backend.
-    """
-
-    def get_generation_id(self) -> int:
-        """
-        Get the dataset's generation if set.
-        """
-        return int(self._h5_file.attrs.get("spotlight_generation_id", 0))
-
-    def read_column(
-        self,
-        column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
-    ) -> np.ndarray:
-        """
-        Get a decoded dataset column.
-        """
-        self._assert_column_exists(column_name, internal=True)
-
-        column = cast(h5py.Dataset, self._h5_file[column_name])
-        is_string_dtype = h5py.check_string_dtype(column.dtype)
-
-        raw_values = column[indices]
-
-        if is_string_dtype:
-            raw_values = np.array([x.decode("utf-8") for x in raw_values])
-
-        if self._is_ref_column(column):
-            if not is_string_dtype:
-                raise H5DatasetOutdated()
-            assert is_string_dtype, "Only new-style string h5 references supported."
-            normalized_values = np.empty(len(raw_values), dtype=object)
-            normalized_values[:] = [
-                value.tolist() if isinstance(value, np.void) else value
-                for value in self._resolve_refs(raw_values, column_name)
-            ]
-            return normalized_values
-        if is_embedding_dtype(self._get_dtype(column)):
-            normalized_values = np.empty(len(raw_values), dtype=object)
-            normalized_values[:] = [None if len(x) == 0 else x for x in raw_values]
-            return normalized_values
-
-        if is_window_dtype(self._get_dtype(column)):
-            normalized_values = np.empty(len(raw_values), dtype=object)
-            normalized_values[:] = [
-                None if np.isnan(x).all() else x for x in raw_values
-            ]
-            return normalized_values
-
-        return raw_values
-
-    def _resolve_refs(self, refs: np.ndarray, column_name: str) -> np.ndarray:
-        raw_values = np.empty(len(refs), dtype=object)
-        raw_values[:] = [
-            self._resolve_ref(ref, column_name)[()] if ref else None for ref in refs
-        ]
-        return raw_values
 
 
 @datasource(".h5")
@@ -106,7 +44,7 @@ class Hdf5DataSource(DataSource):
         self._open()
 
     def _open(self) -> None:
-        self._table = H5Dataset(self._path, "r")
+        self._table = Dataset(self._path, "r")
         try:
             self._table.open()
         except FileNotFoundError as e:
@@ -142,7 +80,7 @@ class Hdf5DataSource(DataSource):
         }
 
     def get_generation_id(self) -> int:
-        return self._table.get_generation_id()
+        return int(self._table._h5_file.attrs.get("spotlight_generation_id", 0))
 
     def get_uid(self) -> str:
         return sha1(str(self._path.absolute()).encode("utf-8")).hexdigest()
@@ -164,5 +102,30 @@ class Hdf5DataSource(DataSource):
         self,
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
-    ) -> np.ndarray:
-        return self._table.read_column(column_name, indices=indices)
+    ) -> Iterable:
+        self._table._assert_column_exists(column_name, internal=True)
+
+        column = cast(h5py.Dataset, self._table._h5_file[column_name])
+        is_string_dtype = h5py.check_string_dtype(column.dtype)
+
+        raw_values = column[indices]
+
+        if is_string_dtype:
+            raw_values = np.array([x.decode("utf-8") for x in raw_values])
+
+        if self._table._is_ref_column(column):
+            if not is_string_dtype:
+                raise H5DatasetOutdated()
+            for ref in raw_values:
+                if not ref:
+                    yield None
+                value = self._table._resolve_ref(ref, column_name)[()]
+                yield value.tolist() if isinstance(value, np.void) else value
+        elif is_embedding_dtype(self._table._get_dtype(column)):
+            for x in raw_values:
+                yield None if len(x) == 0 else x
+        elif is_window_dtype(self._table._get_dtype(column)):
+            for x in raw_values:
+                yield None if np.isnan(x).all() else x
+        else:
+            yield from raw_values
