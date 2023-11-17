@@ -82,16 +82,17 @@ const Cell: FunctionComponent<Props> = ({
     const changeLens = useStore((state) => state.changeLens);
     const handleChangeSettings = useCallback(
         (settings: LensSettings | ((prev: LensSettings) => LensSettings)) => {
-            if (typeof settings === 'function') {
-                changeLens({
-                    ...lens,
-                    settings: { ...lens.settings, ...settings(lens.settings) },
-                });
-            } else {
-                changeLens({ ...lens, settings: { ...lens.settings, ...settings } });
-            }
+            changeLens(lens.key, (prevConfig) => {
+                if (typeof settings === 'function') {
+                    settings = settings(prevConfig.settings);
+                }
+                return {
+                    ...prevConfig,
+                    settings: { ...prevConfig.settings, ...settings },
+                };
+            });
         },
-        [lens, changeLens]
+        [changeLens, lens.key]
     );
 
     return (

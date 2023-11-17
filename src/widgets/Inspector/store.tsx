@@ -14,13 +14,17 @@ import { useDataset } from '../../stores/dataset';
 import { isLensCompatible, useComponentsStore } from '../../stores/components';
 import useWidgetConfig from '../useWidgetConfig';
 import { LensConfig } from './types';
+import { Setter } from '../../types';
 
 export interface State {
     lenses: LensConfig[];
     addLens: (view: LensConfig) => void;
     removeLens: (view: LensConfig) => void;
     moveLens: (source: number, target: number) => void;
-    changeLens: (lens: LensConfig) => void;
+    changeLens: (
+        key: string,
+        lens: LensConfig | ((prev: LensConfig) => LensConfig)
+    ) => void;
 }
 
 export const StoreContext = createContext<StoreApi<State> | null>(null);
@@ -55,11 +59,14 @@ const createInspectorStore = (
 
             set({ lenses: newLenses });
         },
-        changeLens: (lens: LensConfig) => {
+        changeLens: (key, lens) => {
             set((prev) => {
-                const index = prev.lenses.findIndex(
-                    (prevLens) => prevLens.key === lens.key
-                );
+                const index = prev.lenses.findIndex((prevLens) => prevLens.key === key);
+
+                if (typeof lens === 'function') {
+                    lens = lens(prev.lenses[index]);
+                }
+
                 const lenses = prev.lenses.slice();
                 lenses.splice(index, 1, lens);
                 storeLenses(lenses);

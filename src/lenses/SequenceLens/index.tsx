@@ -7,6 +7,7 @@ import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
 import { isSequence1DColumn } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
+import useWhyDidYouUpdate from '../../hooks/useWhyDidYouUpdate';
 
 const Container = styled.div`
     ${tw`h-full flex flex-col relative items-center w-full`}
@@ -55,22 +56,6 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
         [key: string]: [number, number];
     }>('syncedYDomains', {});
 
-    const syncYDomain = useCallback(
-        (key: string, domain: [number, number]) => {
-            setSyncedYDomains((domains) => ({
-                ...domains,
-                [key]: domain,
-            }));
-        },
-        [setSyncedYDomains]
-    );
-    const unsyncYDomain = useCallback(
-        (key: string) => {
-            setSyncedYDomains((domains) => _.omit(domains, key));
-        },
-        [setSyncedYDomains]
-    );
-
     // calculate y domains from sliced data
     const calculatedYDomains: [number, number][] = useMemo(
         () =>
@@ -97,35 +82,33 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
 
     const handleChangeIsYSynchronized = useCallback(
         (isSynchronized: boolean) => {
-            chartData.forEach(({ name }, index) => {
-                const key = `${syncKey}_${name}`;
-
-                if (isSynchronized) {
-                    syncYDomain(key, calculatedYDomains[index]);
-                } else {
-                    unsyncYDomain(key);
-                }
-            });
+            if (isSynchronized) {
+                const domains: Record<string, [number, number]> = {};
+                chartData.forEach(({ name }, index) => {
+                    domains[name] = calculatedYDomains[index];
+                });
+                setSyncedYDomains(domains);
+            } else {
+                setSyncedYDomains({});
+            }
         },
-        [chartData, calculatedYDomains, syncYDomain, unsyncYDomain, syncKey]
+        [chartData, calculatedYDomains, setSyncedYDomains]
     );
 
     const isYSynchronized = useMemo(
         () =>
             _.every(chartData, ({ name }) => {
-                const key = `${syncKey}_${name}`;
-                return syncedYDomains[key];
+                return syncedYDomains[name];
             }),
-        [syncedYDomains, syncKey, chartData]
+        [syncedYDomains, chartData]
     );
-
     const yDomains = useMemo(
         () =>
             chartData.map(({ name }, index) => {
-                const key = `${syncKey}_${name}`;
+                const key = `${name}`;
                 return syncedYDomains[key] ?? calculatedYDomains[index];
             }),
-        [syncedYDomains, calculatedYDomains, chartData, syncKey]
+        [syncedYDomains, calculatedYDomains, chartData]
     );
 
     const chartColors = useMemo(
