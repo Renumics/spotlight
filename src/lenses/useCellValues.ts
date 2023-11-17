@@ -51,8 +51,16 @@ function useCellValues(
     // store all values in promises
     const promisesRef = useRef<Record<string, Promise<unknown>>>({});
 
+    const cancelledRef = useRef<boolean>(false);
     useEffect(() => {
-        let cancelled = false;
+        // reset cancelled for StrictMode in dev
+        cancelledRef.current = false;
+        return () => {
+            cancelledRef.current = true;
+        };
+    }, []);
+
+    useEffect(() => {
         const promises = promisesRef.current;
 
         if (generationId !== previousGenerationId) {
@@ -68,27 +76,27 @@ function useCellValues(
                     // only refresh lazy string columns (for now)
                     if (column.type.kind === 'str' || !promises[columnKey]) {
                         promises[columnKey] = delay(deferLoading ? 250 : 0).then(() => {
-                            return fetchValue(
-                                rowIndex,
-                                columnKeys[i],
-                                column.type.binary
-                            );
+                            if (!cancelledRef.current)
+                                return fetchValue(
+                                    rowIndex,
+                                    columnKeys[i],
+                                    column.type.binary
+                                );
                         });
                     }
                 }
             }
             Promise.all(Object.values(promises))
                 .then((values) => {
-                    if (!cancelled) setValues(values);
+                    if (!cancelledRef.current) setValues(values);
                 })
                 .catch((error) => {
-                    if (!cancelled) setProblem(error);
+                    if (!cancelledRef.current) {
+                        console.error(error);
+                        setProblem(error);
+                    }
                 });
         }
-
-        return () => {
-            cancelled = true;
-        };
     }, [
         cellEntries,
         columnKeys,
