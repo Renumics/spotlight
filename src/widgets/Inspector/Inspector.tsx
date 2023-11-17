@@ -12,7 +12,7 @@ import { isLensCompatible, useComponentsStore } from '../../stores/components';
 import { DragData } from '../../systems/dnd/types';
 
 const DropZone = () => {
-    const addView = useStore((state) => state.addView);
+    const addView = useStore((state) => state.addLens);
 
     const handleDrop = ({ column }: DragData) => {
         const lens = useComponentsStore
@@ -27,6 +27,7 @@ const DropZone = () => {
             columns: [column.key],
             name: 'view',
             key: crypto.randomUUID(),
+            settings: {},
         });
     };
 

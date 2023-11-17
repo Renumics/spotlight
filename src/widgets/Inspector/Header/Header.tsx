@@ -49,7 +49,7 @@ export type Ref = {
     resetAfterIndex: (index: number) => void;
 };
 
-const moveViewsSelector = (state: StoreState) => state.moveView;
+const moveViewsSelector = (state: StoreState) => state.moveLens;
 
 const renderClone = (
     provided: DraggableProvided,

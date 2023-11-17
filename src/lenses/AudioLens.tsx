@@ -1,5 +1,5 @@
 import { isAudio } from '../datatypes';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Lens } from '../types';
 import AudioViewer from '../components/shared/AudioViewer';
 import { useDataset } from '../stores/dataset';
@@ -31,9 +31,11 @@ const AudioLens: Lens = ({ rowIndex, columns, urls, values }) => {
         });
     }, [rowIndex, columns, audioIndex]);
 
+    const windows = useMemo(() => (window ? [window] : []), [window]);
+
     return (
         <AudioViewer
-            windows={window ? [window] : []}
+            windows={windows}
             url={url}
             peaks={waveform}
             editable={false}

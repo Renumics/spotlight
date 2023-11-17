@@ -26,7 +26,7 @@ type RowHeightProviderProps = {
     children?: ReactNode;
 };
 
-const viewsSelector = (state: State) => state.views;
+const viewsSelector = (state: State) => state.lenses;
 
 let resizingLoopInterval: ReturnType<typeof setInterval> | undefined = undefined;
 

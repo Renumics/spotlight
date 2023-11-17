@@ -1,12 +1,15 @@
 import { createContext } from 'react';
+import { LensSettings, Setter } from '../types';
 
-interface ViewContextType {
-    syncKey: string;
+interface LensContextType {
+    settings: LensSettings;
+    onChangeSettings: Setter<LensSettings>;
 }
 
-const defaultViewContext: ViewContextType = {
-    syncKey: '',
+const defaultLensContext: LensContextType = {
+    settings: {},
+    onChangeSettings: () => null,
 };
 
-const ViewContext = createContext(defaultViewContext);
-export default ViewContext;
+const LensContext = createContext(defaultLensContext);
+export default LensContext;

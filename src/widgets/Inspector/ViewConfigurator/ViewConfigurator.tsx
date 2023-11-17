@@ -38,7 +38,7 @@ const ViewConfigurator = (): JSX.Element => {
     const searchRef = useRef<HTMLInputElement>(null);
     const { hide, visible } = useContext(DropdownContext);
     const allColumns = useDataset(columnsSelector);
-    const addView = useStore((state) => state.addView);
+    const addView = useStore((state) => state.addLens);
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
 
@@ -122,6 +122,7 @@ const ViewConfigurator = (): JSX.Element => {
             columns,
             name: 'view',
             key: uuidv4(),
+            settings: {},
         });
         setColumns([]);
         setView(undefined);
