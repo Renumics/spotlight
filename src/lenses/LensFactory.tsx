@@ -8,7 +8,7 @@ import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
 import { DataColumn, LensKey, LensSettings, Setter } from '../types';
 import LensContext from './LensContext';
-import useCellValues from './useCellValue';
+import useCellValues from './useCellValues';
 import None from './None';
 import { isLensCompatible, useComponentsStore } from '../stores/components';
 
@@ -95,7 +95,9 @@ const LensFactory: React.FunctionComponent<Props> = ({
     const types = columns.map((c) => c.type);
     const allEditable = columns.every((c) => c.editable);
 
-    if (problem) return <Info>Failed to load value!</Info>;
+    if (problem) {
+        return <Info>Failed to load value!</Info>;
+    }
     if (!values || !urls) return <LoadingIndicator delay={100} />;
     if (!LensComponent) return <Info>View not found ({view})!</Info>;
     if (!isLensCompatible(LensComponent, types, allEditable))
