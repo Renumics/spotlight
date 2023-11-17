@@ -7,7 +7,6 @@ import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
 import { isSequence1DColumn } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import useWhyDidYouUpdate from '../../hooks/useWhyDidYouUpdate';
 
 const Container = styled.div`
     ${tw`h-full flex flex-col relative items-center w-full`}

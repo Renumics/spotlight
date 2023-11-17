@@ -14,7 +14,6 @@ import { useDataset } from '../../stores/dataset';
 import { isLensCompatible, useComponentsStore } from '../../stores/components';
 import useWidgetConfig from '../useWidgetConfig';
 import { LensConfig } from './types';
-import { Setter } from '../../types';
 
 export interface State {
     lenses: LensConfig[];
