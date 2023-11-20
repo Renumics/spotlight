@@ -23,10 +23,7 @@ const palettesSelector = (c: ColorsState) => ({
 const MeshLens: Lens = ({ values, syncKey }) => {
     const meshData = values[0] as ArrayBuffer;
 
-    const [colorAttributeName, setColorAttributeName] = useSetting(
-        'colorAtributeName',
-        ''
-    );
+    const [colorAttribute, setColorAttribute] = useSetting('colorAttribute', '');
     const [isSynchronized, setIsSynchronized] = useSetting('isSynchronized', true);
     const [showWireframe, setShowWireframe] = useSetting('showWireframe', false);
     const [transparency, setTransparency] = useSetting('transparency', 0);
@@ -50,12 +47,12 @@ const MeshLens: Lens = ({ values, syncKey }) => {
     const palettes = useColors(palettesSelector);
 
     const colorPalette = useMemo(() => {
-        const attribute = meshAttributes.find((a) => a.name === colorAttributeName);
+        const attribute = meshAttributes.find((a) => a.name === colorAttribute);
 
         if (attribute?.type?.kind === 'int') return palettes.categoricalPalette;
         if (attribute?.type?.kind === 'float') return palettes.continuousPalette;
         return palettes.constantPalette;
-    }, [meshAttributes, palettes, colorAttributeName]);
+    }, [meshAttributes, palettes, colorAttribute]);
 
     const handleSelectMorphStyle = useCallback(
         (m: MorphStyle) => {
@@ -85,9 +82,9 @@ const MeshLens: Lens = ({ values, syncKey }) => {
 
     const handleSelectColor = useCallback(
         (attributeName: string) => {
-            setColorAttributeName(attributeName);
+            setColorAttribute(attributeName);
         },
-        [setColorAttributeName]
+        [setColorAttribute]
     );
 
     const handleToggleSync = useCallback(
@@ -104,7 +101,7 @@ const MeshLens: Lens = ({ values, syncKey }) => {
                 <GltfViewer
                     ref={viewer}
                     data={meshData}
-                    color={colorAttributeName}
+                    color={colorAttribute}
                     colorPalette={colorPalette}
                     showWireframe={showWireframe}
                     onChange={handleViewerChange}
@@ -129,7 +126,7 @@ const MeshLens: Lens = ({ values, syncKey }) => {
                 morphStyle={morphStyle}
                 morphScale={Math.log(morphScale) * 10}
                 transparency={transparency}
-                colorAttributeName={colorAttributeName}
+                colorAttributeName={colorAttribute}
                 showWireframe={showWireframe}
                 onChangeShowWireframe={setShowWireframe}
                 onReset={resetCamera}
