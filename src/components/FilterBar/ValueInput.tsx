@@ -1,6 +1,6 @@
 import Checkbox from '../ui/Checkbox';
 import Select from '../ui/Select';
-import { parse, useFormatter } from '../../dataformat';
+import { parse, useDataformat } from '../../dataformat';
 import { CategoricalDataType, DataType } from '../../datatypes';
 import { ChangeEvent, KeyboardEvent, useCallback } from 'react';
 import 'twin.macro';
@@ -68,7 +68,7 @@ const DefaultInput = ({
         [onEnter, type]
     );
 
-    const dataformat = useFormatter();
+    const dataformat = useDataformat();
     const defaultValue =
         value === undefined ? undefined : dataformat.format(value, type);
 

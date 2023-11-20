@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { useFormatter } from '../../../dataformat';
+import { useDataformat } from '../../../dataformat';
 import { FunctionComponent, useContext, useEffect } from 'react';
 import { theme } from 'twin.macro';
 import PlotContext from './PlotContext';
@@ -23,7 +23,7 @@ function findOrCreateGroup<P extends SVGElement>(parentElement: P) {
 const XAxis: FunctionComponent<Props> = ({ caption }) => {
     const { transform, svgRef, width, height, xScale } = useContext(PlotContext);
 
-    const formatter = useFormatter();
+    const formatter = useDataformat();
 
     useEffect(() => {
         if (!transform || !svgRef.current) return;

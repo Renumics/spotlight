@@ -1,6 +1,6 @@
 import Lightbulb from '../../icons/Lightbulb';
 import Tooltip from '../../components/ui/Tooltip';
-import { useFormatter } from '../../dataformat';
+import { useDataformat } from '../../dataformat';
 import { FunctionComponent, useCallback } from 'react';
 import { Dataset, useDataset } from '../../stores/dataset';
 import { theme } from 'twin.macro';
@@ -30,7 +30,7 @@ const RelevanceIndicator: FunctionComponent<Props> = ({ column }) => {
         relevanceMagnitude = 'Low';
     }
 
-    const formatter = useFormatter();
+    const formatter = useDataformat();
 
     const tooltipContent = `${relevanceMagnitude} Relevance (${formatter.formatFloat(
         columnRelevance ?? 0

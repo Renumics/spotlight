@@ -1,6 +1,6 @@
 import Tag from '../../../components/ui/Tag';
 import Tooltip from '../../../components/ui/Tooltip';
-import { useFormatter } from '../../../dataformat';
+import { useDataformat } from '../../../dataformat';
 import { useColorTransferFunction } from '../../../hooks/useColorTransferFunction';
 import * as React from 'react';
 import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
@@ -84,7 +84,7 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
         [columnSorting, resetSorting, sortBy]
     );
 
-    const formatter = useFormatter();
+    const formatter = useDataformat();
 
     const tooltipContent = useMemo(
         () => (

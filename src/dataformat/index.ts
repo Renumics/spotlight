@@ -77,7 +77,7 @@ export class Formatter {
 
         const formatOptions = {
             average: false,
-            exponential: this.notation === 'scientific' && lg > 1,
+            exponential: this.notation === 'scientific' && lg > 4,
             trimMantissa: false,
             optionalMantissa: true,
             ...(!full && { mantissa: 4 }),
@@ -91,7 +91,7 @@ export class Formatter {
 let sharedFormatter = new Formatter({ notation: 'scientific' });
 const notationSelector = (settings: AppSettings) => settings.numberNotation;
 
-export function useFormatter() {
+export function useDataformat() {
     const notation = useAppSettings(notationSelector);
     if (sharedFormatter.notation != notation) {
         sharedFormatter = new Formatter({ notation: notation });

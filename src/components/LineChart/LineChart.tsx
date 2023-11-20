@@ -1,4 +1,4 @@
-import { useFormatter } from '../../dataformat';
+import { useDataformat } from '../../dataformat';
 import _ from 'lodash';
 import * as React from 'react';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
@@ -89,7 +89,7 @@ const TooltipContent: React.FunctionComponent<{
             : undefined;
     }, [chartData]);
 
-    const dataformat = useFormatter();
+    const dataformat = useDataformat();
 
     return (
         <Bubble>
@@ -245,7 +245,7 @@ const LineChart: React.ForwardRefRenderFunction<Handle, LineChartProps> = (
         if (e.buttons === 1) setRefAreaRight(chartState.activeLabel);
     }, []);
 
-    const dataformat = useFormatter();
+    const dataformat = useDataformat();
 
     const formatter = useCallback(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

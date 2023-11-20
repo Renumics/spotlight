@@ -1,13 +1,13 @@
 import { Lens } from '../types';
 import 'twin.macro';
 import rouge from 'rouge';
-import { useFormatter } from '../dataformat';
+import { useDataformat } from '../dataformat';
 
 const RougeScoreLens: Lens<string> = ({ values }) => {
     const rouge1 = rouge.n(values[0], values[1], 1);
     const rouge2 = rouge.n(values[0], values[1], 2);
 
-    const formatter = useFormatter();
+    const formatter = useDataformat();
 
     return (
         <div>

@@ -1,6 +1,6 @@
 import { Color } from 'chroma-js';
 import * as d3 from 'd3';
-import { useFormatter } from '../../../../dataformat';
+import { useDataformat } from '../../../../dataformat';
 import { ContinuousTransferFunction } from '../../../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -68,7 +68,7 @@ export const ContinuousLegend = ({
         });
     }, [domain, gradientID, steps]);
 
-    const dataformat = useFormatter();
+    const dataformat = useDataformat();
 
     return (
         <ContinuousLegendWrapper arrange={arrange} align={align}>
@@ -128,7 +128,7 @@ export const ContinuousTransferFunctionLegend = ({
         return valSteps.map((v) => transferFunction(v));
     }, [domain, transferFunction]);
 
-    const dataformat = useFormatter();
+    const dataformat = useDataformat();
 
     const classBreaksColorMap = useMemo(() => {
         if (transferFunction.classBreaks === undefined) return undefined;

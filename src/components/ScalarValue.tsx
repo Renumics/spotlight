@@ -1,6 +1,6 @@
 import Dot from './ui/Dot';
 import Tooltip from './ui/Tooltip';
-import { useFormatter } from '../dataformat';
+import { useDataformat } from '../dataformat';
 import { isNumerical } from '../datatypes';
 import { FunctionComponent, memo, useCallback } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
@@ -30,7 +30,7 @@ const ScalarValue: FunctionComponent<Props> = ({
 }) => {
     const isNumber = isNumerical(column.type);
 
-    const dataformat = useFormatter();
+    const dataformat = useDataformat();
     const formattedValue = dataformat.format(value, column.type);
     const fullValue = dataformat.format(value, column.type, true);
 

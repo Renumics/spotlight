@@ -1,7 +1,7 @@
 import Tooltip from '../../../components/ui/Tooltip';
 import { FunctionComponent } from 'react';
 import { DataColumn } from '../../../types';
-import { useFormatter } from '../../../dataformat';
+import { useDataformat } from '../../../dataformat';
 
 interface Props {
     column: DataColumn;
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const DefaultCell: FunctionComponent<Props> = ({ value, column }) => {
-    const formatter = useFormatter();
+    const formatter = useDataformat();
     const formattedValue = formatter.format(value, column?.type);
     const preciseValue = formatter.format(value, column?.type, true);
 
