@@ -1,18 +1,21 @@
 import { Lens } from '../types';
 import 'twin.macro';
 import rouge from 'rouge';
-import { formatNumber } from '../dataformat';
+import { useFormatter } from '../dataformat';
 
 const RougeScoreLens: Lens<string> = ({ values }) => {
     const rouge1 = rouge.n(values[0], values[1], 1);
     const rouge2 = rouge.n(values[0], values[1], 2);
+
+    const formatter = useFormatter();
+
     return (
         <div>
             <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
-                Rouge 1: {formatNumber(rouge1)}
+                Rouge 1: {formatter.formatFloat(rouge1)}
             </div>
             <div tw="text-sm truncate px-1 py-0.5 flex items-center h-full">
-                Rouge 2: {formatNumber(rouge2)}
+                Rouge 2: {formatter.formatFloat(rouge2)}
             </div>
         </div>
     );

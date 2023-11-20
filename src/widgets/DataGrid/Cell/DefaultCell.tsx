@@ -1,7 +1,7 @@
 import Tooltip from '../../../components/ui/Tooltip';
-import dataformat from '../../../dataformat';
-import { FunctionComponent, useMemo } from 'react';
+import { FunctionComponent } from 'react';
 import { DataColumn } from '../../../types';
+import { useFormatter } from '../../../dataformat';
 
 interface Props {
     column: DataColumn;
@@ -10,15 +10,9 @@ interface Props {
 }
 
 const DefaultCell: FunctionComponent<Props> = ({ value, column }) => {
-    const formattedValue = useMemo(
-        () => dataformat.format(value, column?.type),
-        [value, column?.type]
-    );
-
-    const preciseValue = useMemo(
-        () => dataformat.format(value, column?.type, true),
-        [value, column?.type]
-    );
+    const formatter = useFormatter();
+    const formattedValue = formatter.format(value, column?.type);
+    const preciseValue = formatter.format(value, column?.type, true);
 
     return (
         <Tooltip content={preciseValue}>

@@ -4,6 +4,7 @@ import GithubIcon from '../icons/Github';
 import HelpIcon from '../icons/Help';
 import OpenFolderIcon from '../icons/OpenFolder';
 import ColorPaletteIcon from '../icons/ColorPalette';
+import NumberIcon from '../icons/Number';
 import Button from './ui/Button';
 import Dialog from './ui/Dialog';
 import Dropdown, { DropdownContext } from './ui/Dropdown';
@@ -21,6 +22,8 @@ import MainWalkthrough, {
 import { useColors } from '../stores/colors';
 import ColorPaletteSelect from './ui/ColorPaletteSelect';
 import { categoricalPalettes, continuousPalettes } from '../palettes';
+import Select from './ui/Select';
+import { Notation, notations, useAppSettings } from '../stores/appSettings';
 
 const NavBar = tw.nav`py-0.5 px-1 bg-gray-200 flex items-center w-full top-0 z-10 border-b border-gray-400`;
 
@@ -190,6 +193,34 @@ const ColorMenu = () => {
     );
 };
 
+const NumberMenu = () => {
+    const notation = useAppSettings((s) => s.numberNotation);
+    const onChangeNotation = (value?: Notation) => {
+        if (value) useAppSettings.getState().setNumberNotation(value);
+    };
+
+    const content = (
+        <div tw="flex flex-col w-72 pb-1">
+            <Menu>
+                <Menu.Title>Notation</Menu.Title>
+                <Menu.Item>
+                    <Select
+                        options={notations}
+                        value={notation}
+                        onChange={onChangeNotation}
+                    />
+                </Menu.Item>
+            </Menu>
+        </div>
+    );
+
+    return (
+        <Dropdown content={content} tooltip="Numbers">
+            <NumberIcon />
+        </Dropdown>
+    );
+};
+
 const UpgradeButton = (): JSX.Element => {
     return (
         <a href="https://renumics.com/product/pricing" target="_blank" rel="noreferrer">
@@ -220,6 +251,7 @@ const AppBar = (): JSX.Element => {
             <FileBar tw="flex-grow" />
             <div tw="flex items-center">
                 <ColorMenu />
+                <NumberMenu />
                 <HelpMenu />
                 <GitHubButton />
                 {appBarItems.map((item, i) => (

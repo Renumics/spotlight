@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 import tw, { styled } from 'twin.macro';
-import dataformat from '../../dataformat';
+import { useFormatter } from '../../dataformat';
 import { Filter, PredicateFilter, SetFilter } from '../../types';
 import SelectionIcon from '../../icons/Selection';
 
@@ -18,12 +18,15 @@ const FilterIconSpan = styled.span`
 
 const PredicateFilterText: FunctionComponent<{ filter: PredicateFilter }> = ({
     filter,
-}) => (
-    <>
-        {filter.column.name} {filter.predicate.shorthand}{' '}
-        {dataformat.format(filter.referenceValue, filter.type)}
-    </>
-);
+}) => {
+    const formatter = useFormatter();
+    return (
+        <>
+            {filter.column.name} {filter.predicate.shorthand}{' '}
+            {formatter.format(filter.referenceValue, filter.type)}
+        </>
+    );
+};
 
 const SetFilterText: FunctionComponent<{ filter: SetFilter }> = ({ filter }) => (
     <>

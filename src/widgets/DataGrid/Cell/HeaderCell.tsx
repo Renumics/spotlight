@@ -1,6 +1,6 @@
 import Tag from '../../../components/ui/Tag';
 import Tooltip from '../../../components/ui/Tooltip';
-import dataformat from '../../../dataformat';
+import { useFormatter } from '../../../dataformat';
 import { useColorTransferFunction } from '../../../hooks/useColorTransferFunction';
 import * as React from 'react';
 import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
@@ -84,6 +84,8 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
         [columnSorting, resetSorting, sortBy]
     );
 
+    const formatter = useFormatter();
+
     const tooltipContent = useMemo(
         () => (
             <div tw="flex flex-col max-w-xl">
@@ -103,14 +105,10 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
                 </div>
                 {stats && (
                     <div tw="flex flex-row flex-wrap justify-center w-full">
+                        <Tag tag={`min: ${formatter.format(stats.min, column.type)}`} />
+                        <Tag tag={`max: ${formatter.format(stats.max, column.type)}`} />
                         <Tag
-                            tag={`min: ${dataformat.format(stats.min, column.type)}`}
-                        />
-                        <Tag
-                            tag={`max: ${dataformat.format(stats.max, column.type)}`}
-                        />
-                        <Tag
-                            tag={`mean: ${dataformat.format(stats.mean, {
+                            tag={`mean: ${formatter.format(stats.mean, {
                                 kind: 'float',
                                 optional: false,
                                 lazy: false,
@@ -122,7 +120,7 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
                 <div tw="flex-grow break-all flex">{column.description}</div>
             </div>
         ),
-        [column, stats, tagColorTransferFunction]
+        [column, stats, tagColorTransferFunction, formatter]
     );
 
     const onStartResize: React.MouseEventHandler<HTMLButtonElement> = useCallback(

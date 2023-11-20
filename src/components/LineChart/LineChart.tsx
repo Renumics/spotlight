@@ -1,4 +1,4 @@
-import { formatNumber } from '../../dataformat';
+import { useFormatter } from '../../dataformat';
 import _ from 'lodash';
 import * as React from 'react';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
@@ -89,10 +89,12 @@ const TooltipContent: React.FunctionComponent<{
             : undefined;
     }, [chartData]);
 
+    const dataformat = useFormatter();
+
     return (
         <Bubble>
             <div>
-                {formatNumber(label ?? 0)} {xLabel}
+                {dataformat.formatFloat(label ?? 0)} {xLabel}
             </div>
             {payload.map((p, index) => {
                 if (!p.data?.[1]) return null;
@@ -100,10 +102,7 @@ const TooltipContent: React.FunctionComponent<{
                     <div key={index} tw="flex" style={{ color: p.color }}>
                         <div tw="flex-grow mr-2">{p.name}</div>
                         <div>
-                            {formatNumber(p.data[1], {
-                                mantissa: 10,
-                            })}{' '}
-                            {p.yLabel}
+                            {dataformat.formatFloat(p.data[1])} {p.yLabel}
                         </div>
                     </div>
                 );
@@ -246,14 +245,19 @@ const LineChart: React.ForwardRefRenderFunction<Handle, LineChartProps> = (
         if (e.buttons === 1) setRefAreaRight(chartState.activeLabel);
     }, []);
 
+    const dataformat = useFormatter();
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formatter = useCallback((value: any) => {
-        if (typeof value === 'number') {
-            return formatNumber(value);
-        } else {
-            return value.toString();
-        }
-    }, []);
+    const formatter = useCallback(
+        (value: any) => {
+            if (typeof value === 'number') {
+                return dataformat.formatFloat(value);
+            } else {
+                return value.toString();
+            }
+        },
+        [dataformat]
+    );
 
     const xDomain = useMemo(() => ['dataMin', 'dataMax'], []);
     const allowEscapeViewBox = useMemo(() => ({ x: false, y: false }), []);
@@ -269,8 +273,8 @@ const LineChart: React.ForwardRefRenderFunction<Handle, LineChartProps> = (
         return (
             <Info>
                 <span>
-                    No Data in Range ({formatNumber(xExtents[0])},{' '}
-                    {formatNumber(xExtents[1])})
+                    No Data in Range ({dataformat.formatFloat(xExtents[0])},{' '}
+                    {dataformat.formatFloat(xExtents[1])})
                 </span>
             </Info>
         );
