@@ -232,3 +232,12 @@ def spectrogram(
         name=name,
         settings={"freqScale": frequency_scale, "ampScale": amplitude_scale},
     )
+
+
+def rouge_score(column: str, reference_column: str, name: Optional[str] = None) -> Lens:
+    """
+    Add ROUGE score viewer to Spotlight inspector widget.
+
+    Supports a pair of string columns.
+    """
+    return Lens(type="RougeScoreView", columns=[column, reference_column], name=name)
