@@ -14,7 +14,7 @@ import Button from '../../../components/ui/Button';
 import { DropdownContext } from '../../../components/ui/Dropdown';
 import Menu from '../../../components/ui/Menu';
 import Select from '../../../components/ui/Select';
-import dataformat from '../../../dataformat';
+import { formatType } from '../../../dataformat';
 import { DataKind } from '../../../datatypes';
 import { X } from '../../../icons';
 import { isLensCompatible, useComponentsStore } from '../../../stores/components';
@@ -56,8 +56,8 @@ const ViewConfigurator = (): JSX.Element => {
             (c) =>
                 regex.test(c.name) ||
                 regex.test(c.type.kind) ||
-                regex.test(dataformat.formatType(c.type)) ||
-                regex.test(dataformat.formatType(c.type, true)) ||
+                regex.test(formatType(c.type)) ||
+                regex.test(formatType(c.type, true)) ||
                 c.tags?.some((tag) => regex.test(tag))
         );
     }, [allColumns, searchTerm]);
