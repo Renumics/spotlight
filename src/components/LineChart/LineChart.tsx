@@ -247,8 +247,8 @@ const LineChart: React.ForwardRefRenderFunction<Handle, LineChartProps> = (
 
     const dataformat = useFormatter();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formatter = useCallback(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (value: any) => {
             if (typeof value === 'number') {
                 return dataformat.formatFloat(value);
