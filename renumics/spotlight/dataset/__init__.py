@@ -151,7 +151,7 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
         np.floating,
     ),
     "Window": (np.ndarray, list, tuple),
-    "Embedding": (spotlight_dtypes.Embedding, np.ndarray, list, tuple),
+    "Embedding": (spotlight_dtypes.Embedding, np.ndarray, list, tuple, range),
     "Sequence1D": (spotlight_dtypes.Sequence1D, np.ndarray, list, tuple),
     "Audio": (spotlight_dtypes.Audio, bytes, str, os.PathLike),
     "Image": (spotlight_dtypes.Image, bytes, str, os.PathLike, np.ndarray, list, tuple),
