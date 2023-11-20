@@ -240,4 +240,4 @@ def rouge_score(column: str, reference_column: str, name: Optional[str] = None) 
 
     Supports a pair of string columns.
     """
-    return Lens(type="RougeScoreView", columns=[column, reference_column], name=name)
+    return Lens(type="RougeScore", columns=[column, reference_column], name=name)
