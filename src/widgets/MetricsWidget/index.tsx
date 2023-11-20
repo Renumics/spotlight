@@ -6,7 +6,7 @@ import {
     WidgetContent,
     WidgetMenu,
     useDataset,
-    useFormatter,
+    useDataformat,
     useWidgetConfig,
 } from '../../lib';
 import { Widget } from '../types';
@@ -133,7 +133,7 @@ const MetricsWidget: Widget = () => {
         setColumn,
     } = useConfiguredMetric();
 
-    const formatter = useFormatter();
+    const formatter = useDataformat();
 
     return (
         <WidgetContainer>

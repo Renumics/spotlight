@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { DataColumn, useDataset, useFormatter } from '../../lib';
+import { DataColumn, useDataset, useDataformat } from '../../lib';
 import { useMemo } from 'react';
 import { ColumnData } from '../../types';
 import type { MatrixData, Bucket } from './types';
@@ -71,7 +71,7 @@ export function useData(
         return buckets;
     }, [uniqueXValues, uniqueYValues, xValues, yValues, indices]);
 
-    const formatter = useFormatter();
+    const formatter = useDataformat();
 
     const xNames = useMemo(
         () =>
