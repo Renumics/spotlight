@@ -13,8 +13,14 @@ export default function Draggable({ data, children }: Props) {
         id,
         data,
     });
+
+    // remove tabIndex from attributes
+    // as it prevents the keyboard controls of our table from working correctly
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { tabIndex, ...neededAttributes } = attributes;
+
     return (
-        <div ref={setNodeRef} {...listeners} {...attributes}>
+        <div ref={setNodeRef} {...listeners} {...neededAttributes}>
             {children}
         </div>
     );
