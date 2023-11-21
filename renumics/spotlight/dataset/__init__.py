@@ -3194,7 +3194,7 @@ class Dataset:
             value = np.asarray(value, dtype=column.dtype)
             if value.shape == (2,):
                 return value
-            raise exceptions.InvalidDTypeError(
+            raise exceptions.InvalidShapeError(
                 f"Windows should consist of 2 values, but window of shape "
                 f"{value.shape} received for column '{column_name}'."
             )
@@ -3202,7 +3202,7 @@ class Dataset:
             value = np.asarray(value, dtype=column.dtype)
             if value.shape == (4,):
                 return value
-            raise exceptions.InvalidDTypeError(
+            raise exceptions.InvalidShapeError(
                 f"Bounding boxes should consist of 4 values, but bounding box "
                 f"of shape {value.shape} received for column '{column_name}'."
             )
