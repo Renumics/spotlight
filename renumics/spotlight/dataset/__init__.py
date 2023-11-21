@@ -22,6 +22,7 @@ from typing import (
     cast,
 )
 
+import PIL.Image
 import h5py
 import numpy as np
 import pandas as pd
@@ -152,7 +153,16 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
     "Embedding": (spotlight_dtypes.Embedding, np.ndarray, list, tuple, range),
     "Sequence1D": (spotlight_dtypes.Sequence1D, np.ndarray, list, tuple, range),
     "Audio": (spotlight_dtypes.Audio, bytes, str, os.PathLike),
-    "Image": (spotlight_dtypes.Image, bytes, str, os.PathLike, np.ndarray, list, tuple),
+    "Image": (
+        spotlight_dtypes.Image,
+        bytes,
+        str,
+        os.PathLike,
+        np.ndarray,
+        list,
+        tuple,
+        PIL.Image.Image,
+    ),
     "Mesh": (spotlight_dtypes.Mesh, trimesh.Trimesh, str, os.PathLike),
     "Video": (spotlight_dtypes.Video, bytes, str, os.PathLike),
 }
