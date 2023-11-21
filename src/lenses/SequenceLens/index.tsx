@@ -7,6 +7,7 @@ import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
 import { isSequence1DColumn } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
+import { useSharedState } from '../useSharedState';
 
 const Container = styled.div`
     ${tw`h-full flex flex-col relative items-center w-full`}
@@ -48,10 +49,16 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
     const categoricalPalette = useColors((c) => c.categoricalPalette);
 
     const [yAxisMultiple, setYAxisMultiple] = useSetting('yAxisMultiple', false);
-    const [xExtents, setXExtents] = useSetting<Vec2>('xExtents', [-Infinity, Infinity]);
+    const [xExtents, setXExtents] = useSharedState<Vec2>('xExtents', [
+        -Infinity,
+        Infinity,
+    ]);
 
-    const [isXSynchronized, setIsXSynchronized] = useSetting('isXSynchronized', false);
-    const [syncedYDomains, setSyncedYDomains] = useSetting<{
+    const [isXSynchronized, setIsXSynchronized] = useSharedState(
+        'isXSynchronized',
+        false
+    );
+    const [syncedYDomains, setSyncedYDomains] = useSharedState<{
         [key: string]: [number, number];
     }>('syncedYDomains', {});
 

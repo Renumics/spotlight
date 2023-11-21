@@ -1,6 +1,5 @@
-import * as React from 'react';
 import _ from 'lodash';
-import { useCallback, useEffect, useMemo } from 'react';
+import { FunctionComponent, useCallback, useEffect, useMemo, useState } from 'react';
 import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
@@ -41,7 +40,7 @@ const ErrorFallback = ({
     );
 };
 
-const LensFactory: React.FunctionComponent<Props> = ({
+const LensFactory: FunctionComponent<Props> = ({
     view,
     columns,
     rowIndex,
@@ -55,6 +54,8 @@ const LensFactory: React.FunctionComponent<Props> = ({
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
     const LensComponent = lenses[view];
+
+    const [sharedState, setSharedState] = useState<Record<string, unknown>>({});
 
     const urls = useMemoWithPrevious(
         (previousUrls: (string | undefined)[] | undefined) => {
@@ -103,7 +104,7 @@ const LensFactory: React.FunctionComponent<Props> = ({
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible View ({view})</Info>;
 
-    const context = { settings, onChangeSettings };
+    const context = { settings, onChangeSettings, sharedState, setSharedState };
 
     const allValuesAreNull = values.every(_.isNull);
 
