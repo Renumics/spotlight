@@ -4,13 +4,29 @@ Implementation of layout models and interfaces for layout creation.
 
 from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Field, SerializeAsAny, validator
+from pydantic import BaseModel, Field, SerializeAsAny, field_validator
 from typing_extensions import Literal
 
 from .widgets import Widget
 
 
 Orientation = Optional[Literal["horizontal", "vertical"]]
+
+
+def _validate_widget(value: Any) -> Widget:
+    """
+    Narrow the widget object's class based on its type.
+    """
+    if isinstance(value, dict):
+        try:
+            widget_type = value["type"]
+        except KeyError:
+            pass
+        else:
+            for subclass in Widget.__subclasses__():
+                if subclass.model_fields["type"].default == widget_type:
+                    return subclass(**value)
+    return value
 
 
 class Tab(BaseModel, extra="forbid"):
@@ -22,21 +38,14 @@ class Tab(BaseModel, extra="forbid"):
     weight: Union[float, int] = 1
     kind: Literal["tab"] = "tab"
 
-    @validator("children", pre=True, each_item=True)
+    @field_validator("children", mode="before")
     @classmethod
-    def validate_widget(cls, value: Any) -> Widget:
+    def validate_children(cls, value: Any) -> Any:
         """
-        Narrow the widget object's class based on its type.
+        Narrow the tabs children.
         """
-        if isinstance(value, dict):
-            try:
-                widget_type = value["type"]
-            except KeyError:
-                pass
-            else:
-                for subclass in Widget.__subclasses__():
-                    if subclass.model_fields["type"].default == widget_type:
-                        return subclass(**value)
+        if isinstance(value, list):
+            return [_validate_widget(x) for x in value]
         return value
 
 
