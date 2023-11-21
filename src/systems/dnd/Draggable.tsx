@@ -14,7 +14,7 @@ export default function Draggable({ data, children }: Props) {
         data,
     });
     return (
-        <div ref={setNodeRef} {...listeners} {...attributes}>
+        <div ref={setNodeRef} {...listeners} {...attributes} tabIndex={-1}>
             {children}
         </div>
     );

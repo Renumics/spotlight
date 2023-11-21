@@ -1,4 +1,4 @@
-import { KeyboardEvent, PropsWithChildren, useCallback } from 'react';
+import { KeyboardEvent, PropsWithChildren, useCallback, useRef } from 'react';
 import { Dataset, useDataset } from '../../stores/dataset';
 import 'twin.macro';
 import useSort from './hooks/useSort';
@@ -16,6 +16,8 @@ const KeyboardControls = ({
     const selectRows = useDataset(selectRowsSelector);
     const { getSortedIndex, getOriginalIndex } = useSort();
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const handleKeyDown = useCallback(
         (e: KeyboardEvent<HTMLDivElement>) => {
             const selectedIndices = useDataset.getState().selectedIndices;
@@ -25,6 +27,11 @@ const KeyboardControls = ({
             const step = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
 
             if (step === 0) return;
+
+            e.preventDefault();
+            if (e.target != containerRef.current) {
+                containerRef.current?.focus();
+            }
 
             const sortedIndex = getSortedIndex(lastSelectedIndex);
             const nextSortedIndex = sortedIndex + step;
@@ -40,7 +47,12 @@ const KeyboardControls = ({
 
     return (
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions,jsx-a11y/no-noninteractive-tabindex
-        <div tw="outline-none" tabIndex={0} onKeyDown={handleKeyDown}>
+        <div
+            tw="outline-none"
+            ref={containerRef}
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
+        >
             {children}
         </div>
     );
