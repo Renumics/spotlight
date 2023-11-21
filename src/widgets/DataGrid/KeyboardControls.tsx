@@ -46,11 +46,11 @@ const KeyboardControls = ({
     );
 
     return (
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions,jsx-a11y/no-noninteractive-tabindex
+        /* eslint-disable jsx-a11y/no-static-element-interactions,jsx-a11y/no-noninteractive-tabindex */
         <div
             tw="outline-none"
-            ref={containerRef}
             tabIndex={0}
+            ref={containerRef}
             onKeyDown={handleKeyDown}
         >
             {children}
