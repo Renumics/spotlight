@@ -16,12 +16,7 @@ from renumics.spotlight.backend.exceptions import (
     CouldNotOpenTableFile,
 )
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-from renumics.spotlight.dtypes import (
-    DTypeMap,
-    create_dtype,
-    is_embedding_dtype,
-    is_window_dtype,
-)
+from renumics.spotlight import dtypes
 
 
 @datasource(".h5")
@@ -66,16 +61,16 @@ class Hdf5DataSource(DataSource):
         return column_names
 
     @property
-    def intermediate_dtypes(self) -> DTypeMap:
+    def intermediate_dtypes(self) -> dtypes.DTypeMap:
         return self.semantic_dtypes
 
     def __len__(self) -> int:
         return len(self._table)
 
     @property
-    def semantic_dtypes(self) -> DTypeMap:
+    def semantic_dtypes(self) -> dtypes.DTypeMap:
         return {
-            column_name: create_dtype(self._table.get_dtype(column_name))
+            column_name: dtypes.create_dtype(self._table.get_dtype(column_name))
             for column_name in self.column_names
         }
 
@@ -106,6 +101,7 @@ class Hdf5DataSource(DataSource):
         self._table._assert_column_exists(column_name, internal=True)
 
         column = cast(h5py.Dataset, self._table._h5_file[column_name])
+        dtype = self._table._get_dtype(column)
         is_string_dtype = h5py.check_string_dtype(column.dtype)
 
         raw_values = column[indices]
@@ -122,11 +118,11 @@ class Hdf5DataSource(DataSource):
                 else:
                     value = self._table._resolve_ref(ref, column_name)[()]
                     yield value.tolist() if isinstance(value, np.void) else value
-        elif is_embedding_dtype(self._table._get_dtype(column)):
-            for x in raw_values:
-                yield None if len(x) == 0 else x
-        elif is_window_dtype(self._table._get_dtype(column)):
+        elif dtypes.is_window_dtype(dtype) or dtypes.is_bounding_box_dtype(dtype):
             for x in raw_values:
                 yield None if np.isnan(x).all() else x
+        elif dtypes.is_embedding_dtype(dtype):
+            for x in raw_values:
+                yield None if len(x) == 0 else x
         else:
             yield from raw_values
