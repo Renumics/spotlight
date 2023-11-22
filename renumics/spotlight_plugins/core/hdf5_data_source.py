@@ -110,14 +110,17 @@ class Hdf5DataSource(DataSource):
             raw_values = np.array([x.decode("utf-8") for x in raw_values])
 
         if self._table._is_ref_column(column):
-            if not is_string_dtype:
+            if column.attrs.get("external", False):
+                yield from raw_values
+            elif is_string_dtype:
+                for ref in raw_values:
+                    if not ref:
+                        yield None
+                    else:
+                        value = self._table._resolve_ref(ref, column_name)[()]
+                        yield value.tolist() if isinstance(value, np.void) else value
+            else:
                 raise H5DatasetOutdated()
-            for ref in raw_values:
-                if not ref:
-                    yield None
-                else:
-                    value = self._table._resolve_ref(ref, column_name)[()]
-                    yield value.tolist() if isinstance(value, np.void) else value
         elif dtypes.is_window_dtype(dtype) or dtypes.is_bounding_box_dtype(dtype):
             for x in raw_values:
                 yield None if np.isnan(x).all() else x
