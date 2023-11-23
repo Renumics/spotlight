@@ -1,10 +1,21 @@
 import useResizeObserver from '@react-hook/resize-observer';
 import { useRef, useEffect, useCallback } from 'react';
 import { Lens } from '../../types';
+import tw, { styled } from 'twin.macro';
 import { CategoricalDataType, SequenceDataType } from '../../datatypes';
 import { ColorsState, useColors } from '../../stores/colors';
 import { Dataset, useDataset } from '../../stores/dataset';
 import * as d3 from 'd3';
+
+const Container = styled.div`
+    ${tw`relative h-full w-full overflow-hidden`}
+    img {
+        ${tw`absolute top-0 left-0 h-full w-full object-contain`}
+    }
+    svg {
+        ${tw`absolute top-0 left-0 h-full w-full`}
+    }
+`;
 
 const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const container = useRef<HTMLDivElement>(null);
@@ -157,17 +168,12 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
 
     return (
         <div tw="relative w-full h-full max-w-full block">
-            <div ref={container} tw="relative h-full w-full overflow-hidden">
-                <img
-                    ref={imgRef}
-                    src={url}
-                    alt="URL not found!"
-                    tw="absolute h-full w-full top-0 left-0 object-contain"
-                />
-                <svg ref={svgRef} tw="absolute top-0 left-0 w-full h-full">
+            <Container ref={container}>
+                <img ref={imgRef} src={url} alt="URL not found!" />
+                <svg ref={svgRef}>
                     <g />
                 </svg>
-            </div>
+            </Container>
         </div>
     );
 };
