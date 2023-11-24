@@ -430,6 +430,7 @@ Multiple bounding boxes.
 Multiple bounding boxes for the same image are represented by an array-like of
 floats with shape (n, 4) (preferred) or (4, n).
 """
+register_dtype(bounding_boxes_dtype, [])
 
 embedding_dtype = EmbeddingDType()
 """
