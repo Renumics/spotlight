@@ -1,5 +1,5 @@
 import useResizeObserver from '@react-hook/resize-observer';
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { Lens } from '../../types';
 import tw, { styled } from 'twin.macro';
 import { CategoricalDataType, SequenceDataType } from '../../datatypes';
@@ -82,15 +82,16 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const colorPalette = useColors(colorPaletteSelector);
     const colorTransferFunction = useDataset(colorTransferFunctionSelector);
 
+    useResizeObserver(container.current, () => drawBoundingBoxes());
+
     const drawBoundingBoxes = () => {
         if (!svgRef.current) return;
         if (!container.current) return;
         if (!imgRef.current) return;
         if (!boxes) return;
 
-        // Remove previous svg elements to prevent stacking
-        d3.select(svgRef.current).select<SVGSVGElement>('g').selectAll('rect').remove();
-        d3.select(svgRef.current).select<SVGSVGElement>('g').selectAll('text').remove();
+        // Remove previous svg elements
+        d3.select(svgRef.current).select<SVGSVGElement>('g').remove();
 
         let colorFunc: (i: number) => string;
 
@@ -106,6 +107,7 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
         }
 
         const image = imgRef.current;
+
         // Natural dimensions of the image
         const naturalWidth = image.naturalWidth;
         const naturalHeight = image.naturalHeight;
@@ -114,7 +116,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
         // Dimensions of the parent element
         const parentWidth = container.current.offsetWidth;
         const parentHeight = container.current.offsetHeight;
-        const parentAspectRatio = parentWidth / parentHeight; // Natural dimensions of the image
+
+        const parentAspectRatio = parentWidth / parentHeight;
 
         let renderedWidth, renderedHeight;
 
@@ -127,6 +130,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
         }
         const offsetWidth = (parentWidth - renderedWidth) / 2;
         const offsetHeight = (parentHeight - renderedHeight) / 2;
+
+        d3.select(svgRef.current).append<SVGSVGElement>('g');
 
         for (let i = 0; i < boxes.length; i++) {
             const box = boxes[i];
@@ -163,18 +168,18 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
         }
     };
 
-    useResizeObserver(container.current, () => drawBoundingBoxes());
-    useEffect(() => drawBoundingBoxes());
-
     return (
-        <div tw="relative w-full h-full max-w-full block">
-            <Container ref={container}>
-                <img ref={imgRef} src={url} alt="URL not found!" />
-                <svg ref={svgRef}>
-                    <g />
-                </svg>
-            </Container>
-        </div>
+        <Container ref={container}>
+            <img
+                ref={imgRef}
+                src={url}
+                alt="URL not found!"
+                onLoad={drawBoundingBoxes}
+            />
+            <svg ref={svgRef}>
+                <g />
+            </svg>
+        </Container>
     );
 };
 
