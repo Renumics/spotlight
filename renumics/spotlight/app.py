@@ -31,6 +31,7 @@ from renumics.spotlight.backend.websockets import (
     ResetLayoutMessage,
     WebsocketManager,
 )
+from renumics.spotlight.embeddings import create_embedders, embed
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
@@ -80,6 +81,15 @@ class IssuesUpdatedMessage(Message):
     """
 
     type: Literal["issuesUpdated"] = "issuesUpdated"
+    data: Any = None
+
+
+class EmbeddingsUpdatedMessage(Message):
+    """
+    Notify about updated embeddings.
+    """
+
+    type: Literal["columnsUpdated"] = "columnsUpdated"
     data: Any = None
 
 
@@ -334,6 +344,7 @@ class SpotlightApp(FastAPI):
                 self._data_store = DataStore(data_source, self._user_dtypes)
                 self._broadcast(RefreshMessage())
                 self._update_issues()
+                self._update_embeddings()
             if config.layout is not None:
                 if self._data_store is not None:
                     dataset_uid = self._data_store.uid
@@ -450,6 +461,34 @@ class SpotlightApp(FastAPI):
             self._broadcast(IssuesUpdatedMessage())
 
         task.future.add_done_callback(_on_issues_ready)
+
+    def _update_embeddings(self) -> None:
+        """
+        Update embeddings, update them in the data store and notify client about.
+        """
+        self._broadcast(EmbeddingsUpdatedMessage())
+
+        if self._data_store is None:
+            return
+
+        embedders = create_embedders(self._data_store, self._data_store.column_names)
+
+        self._data_store.embeddings = {column: None for column in embedders}
+
+        task = self.task_manager.create_task(
+            embed, (embedders,), name="update_embeddings"
+        )
+
+        def _on_embeddings_ready(future: Future) -> None:
+            if self._data_store is None:
+                return
+            try:
+                self._data_store.embeddings = future.result()
+            except CancelledError:
+                return
+            self._broadcast(EmbeddingsUpdatedMessage())
+
+        task.future.add_done_callback(_on_embeddings_ready)
 
     def _broadcast(self, message: Message) -> None:
         """

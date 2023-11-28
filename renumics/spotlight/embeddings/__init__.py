@@ -7,6 +7,8 @@ import pkgutil
 from typing import Any, Dict, List
 
 import numpy as np
+from renumics.spotlight.embeddings.exceptions import CannotEmbed
+from renumics.spotlight.embeddings.typing import Embedder
 
 from renumics.spotlight.logging import logger
 
@@ -18,20 +20,30 @@ for module_info in pkgutil.iter_modules(embedders_namespace.__path__):
     importlib.import_module(embedders_namespace.__name__ + "." + module_info.name)
 
 
-def embed_columns(data_store: Any, columns: List[str]) -> Dict[str, np.ndarray]:
+def create_embedders(data_store: Any, columns: List[str]) -> Dict[str, Embedder]:
     """
-    Find dataset issues in the data source
+    Create embedding functions for the given data store.
     """
 
     logger.info("Embedding started.")
 
-    all_embeddings: Dict[str, np.ndarray] = {}
+    embedders: Dict[str, Embedder] = {}
     for column in columns:
-        for embedder in registered_embedders:
-            if (embeddings := embedder(data_store, column)) is not None:
-                all_embeddings[f"{column}.embedding"] = embeddings
-                break
+        for embedder_class in registered_embedders:
+            try:
+                embedder = embedder_class(data_store, column)
+            except CannotEmbed:
+                continue
+            embedders[f"{column}.embedding"] = embedder
+            break
 
     logger.info("Embedding done.")
 
-    return all_embeddings
+    return embedders
+
+
+def embed(embedders: Dict[str, Embedder]) -> Dict[str, np.ndarray]:
+    """
+    Run the given functions.
+    """
+    return {column: embedder() for column, embedder in embedders.items()}

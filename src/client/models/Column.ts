@@ -67,6 +67,12 @@ export interface Column {
      * @memberof Column
      */
     tags: Array<string> | null;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Column
+     */
+    computed: boolean;
 }
 
 /**
@@ -82,6 +88,7 @@ export function instanceOfColumn(value: object): boolean {
     isInstance = isInstance && 'values' in value;
     isInstance = isInstance && 'description' in value;
     isInstance = isInstance && 'tags' in value;
+    isInstance = isInstance && 'computed' in value;
 
     return isInstance;
 }
@@ -103,6 +110,7 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
         values: json['values'],
         description: json['description'],
         tags: json['tags'],
+        computed: json['computed'],
     };
 }
 
@@ -122,5 +130,6 @@ export function ColumnToJSON(value?: Column | null): any {
         values: value.values,
         description: value.description,
         tags: value.tags,
+        computed: value.computed,
     };
 }

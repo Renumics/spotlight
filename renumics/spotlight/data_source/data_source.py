@@ -27,6 +27,7 @@ class ColumnMetadata:
     hidden: bool = False
     description: Optional[str] = None
     tags: List[str] = dataclasses.field(default_factory=list)
+    computed: bool = False
 
 
 class DataSource(ABC):

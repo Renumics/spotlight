@@ -17,7 +17,6 @@ from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-from renumics.spotlight.embeddings import embed_columns
 from renumics.spotlight.io import audio
 from renumics.spotlight.typing import is_iterable, is_pathtype
 from renumics.spotlight.media.mesh import Mesh
@@ -32,7 +31,7 @@ class DataStore:
     _data_source: DataSource
     _user_dtypes: spotlight_dtypes.DTypeMap
     _dtypes: spotlight_dtypes.DTypeMap
-    _embeddings: Dict[str, np.ndarray]
+    _embeddings: Dict[str, Optional[np.ndarray]]
 
     def __init__(
         self, data_source: DataSource, user_dtypes: spotlight_dtypes.DTypeMap
@@ -41,7 +40,6 @@ class DataStore:
         self._data_source = data_source
         self._user_dtypes = user_dtypes
         self._update_dtypes()
-        self._embeddings = embed_columns(self, self._data_source.column_names)
 
     def __len__(self) -> int:
         return len(self._data_source)
@@ -71,10 +69,20 @@ class DataStore:
         return {
             **self._dtypes,
             **{
-                column: spotlight_dtypes.EmbeddingDType(length=embeddings.shape[1])
+                column: spotlight_dtypes.EmbeddingDType(
+                    length=None if embeddings is None else embeddings.shape[1]
+                )
                 for column, embeddings in self._embeddings.items()
             },
         }
+
+    @property
+    def embeddings(self) -> Dict[str, Optional[np.ndarray]]:
+        return self._embeddings
+
+    @embeddings.setter
+    def embeddings(self, new_embeddings: Dict[str, Optional[np.ndarray]]) -> None:
+        self._embeddings = new_embeddings
 
     def check_generation_id(self, generation_id: int) -> None:
         self._data_source.check_generation_id(generation_id)
@@ -82,7 +90,12 @@ class DataStore:
     def get_column_metadata(self, column_name: str) -> ColumnMetadata:
         if column_name in self._embeddings:
             return ColumnMetadata(
-                nullable=True, editable=False, hidden=True, description=None, tags=[]
+                nullable=True,
+                editable=False,
+                hidden=True,
+                description=None,
+                tags=[],
+                computed=True,
             )
         return self._data_source.get_column_metadata(column_name)
 
@@ -95,7 +108,10 @@ class DataStore:
     ) -> List[ConvertedValue]:
         dtype = self.dtypes[column_name]
         if column_name in self._embeddings:
-            normalized_values: Iterable = self._embeddings[column_name]
+            embeddings = self._embeddings[column_name]
+            if embeddings is None:
+                return [None] * len(self)
+            normalized_values: Iterable = embeddings
         else:
             normalized_values = self._data_source.get_column_values(
                 column_name, indices

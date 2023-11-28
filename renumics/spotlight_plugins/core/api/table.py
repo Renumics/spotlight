@@ -28,6 +28,7 @@ class Column(BaseModel):
     values: List[Any]
     description: Optional[str]
     tags: Optional[List[str]]
+    computed: bool
 
 
 class Table(BaseModel):
@@ -82,6 +83,7 @@ def get_table(request: Request) -> ORJSONResponse:
             dtype=dtype.dict(),
             description=meta.description,
             tags=meta.tags,
+            computed=meta.computed,
         )
         columns.append(column)
 
@@ -93,6 +95,27 @@ def get_table(request: Request) -> ORJSONResponse:
             generation_id=data_store.generation_id,
         ).model_dump()
     )
+
+
+@router.get(
+    "/{column}",
+    tags=["table"],
+    operation_id="get_column",
+)
+async def get_table_column(
+    column: str, generation_id: int, request: Request
+) -> Response:
+    """
+    table column api endpoint
+    """
+    app: SpotlightApp = request.app
+    data_store = app.data_store
+    if data_store is None:
+        return ORJSONResponse(None)
+    data_store.check_generation_id(generation_id)
+
+    values = data_store.get_converted_values(column, simple=False)
+    return ORJSONResponse(values)
 
 
 @router.get(
