@@ -101,8 +101,15 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
             if (colorTransferFunction !== undefined) {
                 colorFunc = (i: number) => colorTransferFunction(categories[i]).hex();
             } else {
-                colorFunc = (i: number) =>
-                    colorPalette.scale().colors(categories.length)[i];
+                colorFunc = (i: number) => {
+                    const dtype = (
+                        columns[categoriesColumnIndex].type as SequenceDataType
+                    ).dtype as CategoricalDataType;
+                    const index = dtype.categories[invertedCategories(categories[i])];
+                    return colorPalette
+                        .scale()
+                        .colors(Object.keys(dtype.categories).length)[index];
+                };
             }
         }
 
