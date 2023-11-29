@@ -47,7 +47,7 @@ from renumics.spotlight.typing import (
 from . import exceptions
 from .pandas import create_typed_series, infer_dtypes, is_string_mask, prepare_column
 from .typing import (
-    NoDefault,
+    NoDefaultValue,
     OutputType,
     ExternalOutputType,
     BoolColumnInputType,
@@ -249,7 +249,7 @@ def replace_none(values: np.ndarray, replacement: Any) -> np.ndarray:
         # Nothing to replace.
         return values
 
-    if replacement is NoDefault:
+    if replacement is NoDefaultValue:
         raise exceptions.InvalidValueError(
             "`None` values received as inputs for a non-optional column."
         )
@@ -2999,7 +2999,7 @@ class Dataset:
         If a column is not optional, return `NoDefault`.
         """
         if not column.attrs.get("optional", False):
-            return NoDefault
+            return NoDefaultValue
         default = column.attrs.get("default")
         if default is not None:
             return default
@@ -3017,7 +3017,7 @@ class Dataset:
         if spotlight_dtypes.is_category_dtype(dtype):
             categories = cast(Dict[Optional[str], int], (dtype.categories or {}).copy())
             default_value = self._get_default_value(column)
-            if default_value is not NoDefault:
+            if default_value is not NoDefaultValue:
                 categories[None] = default_value
             try:
                 # Map values and save as the right int type.
@@ -3179,7 +3179,7 @@ class Dataset:
             if values[column_name] is None:
                 column = self._h5_file[column_name]
                 default_value = self._get_default_value(column)
-                if default_value is not NoDefault:
+                if default_value is not NoDefaultValue:
                     values[column_name] = default_value
         # Check row consistency.
         if values.keys() == self._column_names:

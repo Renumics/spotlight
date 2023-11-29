@@ -88,7 +88,7 @@ FileColumnInputType = Union[
 ExternalColumnInputType = Optional[PathOrUrlType]
 
 
-class NoDefault:
+class NoDefaultValue:
     """
     Class representing no available default value, i.e. not optional columns.
     Used to distinguish empty default values (`None`) from their absense.
