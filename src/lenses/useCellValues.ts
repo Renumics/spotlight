@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import { Problem } from '../types';
@@ -57,7 +58,17 @@ function useCellValues(
     const cellEntries = useDataset(cellsSelector, shallow);
     const columns = useDataset(columnsSelector, shallow);
     const generationId = useDataset((d) => d.generationID);
-    const previousGenerationId = usePrevious(generationId);
+
+    const isAnyColumnComputing = useDataset((d) =>
+        _.some(
+            columnKeys,
+            (key) => d.columnsByKey[key].computed && d.columnData[key] === undefined
+        )
+    );
+
+    const previousGenerationId = usePrevious(
+        isAnyColumnComputing ? undefined : generationId
+    );
 
     const [values, setValues] = useState<unknown[] | undefined>();
     const [problem, setProblem] = useState<Problem>();
@@ -66,6 +77,7 @@ function useCellValues(
     const promisesRef = useRef<Record<string, Promise<unknown>>>({});
 
     const cancelledRef = useRef<boolean>(false);
+
     useEffect(() => {
         // reset cancelled for StrictMode in dev
         cancelledRef.current = false;
@@ -75,6 +87,8 @@ function useCellValues(
     }, []);
 
     useEffect(() => {
+        if (isAnyColumnComputing) return;
+
         const promises = promisesRef.current;
 
         if (generationId !== previousGenerationId) {
@@ -111,6 +125,7 @@ function useCellValues(
                 });
         }
     }, [
+        isAnyColumnComputing,
         cellEntries,
         columnKeys,
         columns,
