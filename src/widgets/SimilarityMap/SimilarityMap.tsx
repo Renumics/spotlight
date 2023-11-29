@@ -1,5 +1,4 @@
 import SimilaritiesIcon from '../../icons/Bubbles';
-import LoadingIndicator from '../../components/LoadingIndicator';
 import Plot, {
     MergeStrategy,
     Points,
