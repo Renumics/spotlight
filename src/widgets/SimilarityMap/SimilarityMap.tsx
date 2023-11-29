@@ -273,6 +273,13 @@ const SimilarityMap: Widget = () => {
 
     const widgetId = useMemo(() => uuidv4(), []);
 
+    const anyColumnComputing = useDataset((d) =>
+        _.some(
+            placeByColumnKeys,
+            (key) => d.columnsByKey[key]?.computed && d.columnData[key] === undefined
+        )
+    );
+
     useEffect(() => {
         setVisibleIndices([]);
         setPositions([]);
@@ -282,7 +289,11 @@ const SimilarityMap: Widget = () => {
             setIsComputing(false);
             return;
         }
+
         setIsComputing(true);
+        if (anyColumnComputing) {
+            return;
+        }
 
         const reductionPromise =
             reductionMethod === 'umap'
@@ -327,6 +338,7 @@ const SimilarityMap: Widget = () => {
         umapMetric,
         umapMinDist,
         pcaNormalization,
+        anyColumnComputing,
     ]);
 
     const getOriginalIndices = useCallback(
