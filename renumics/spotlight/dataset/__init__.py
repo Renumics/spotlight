@@ -47,7 +47,7 @@ from renumics.spotlight.typing import (
 from . import exceptions
 from .pandas import create_typed_series, infer_dtypes, is_string_mask, prepare_column
 from .typing import (
-    BoundingBoxColumnInputType,
+    NoDefault,
     OutputType,
     ExternalOutputType,
     BoolColumnInputType,
@@ -57,6 +57,8 @@ from .typing import (
     DatetimeColumnInputType,
     CategoricalColumnInputType,
     WindowColumnInputType,
+    BoundingBoxColumnInputType,
+    BoundingBoxesColumnInputType,
     ArrayColumnInputType,
     EmbeddingColumnInputType,
     AudioColumnInputType,
@@ -166,15 +168,6 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
     "Mesh": (spotlight_dtypes.Mesh, trimesh.Trimesh, str, os.PathLike),
     "Video": (spotlight_dtypes.Video, bytes, str, os.PathLike),
 }
-_ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
-    "bool": (np.bool_,),
-    "int": (np.integer,),
-    "float": (np.floating,),
-    "datetime": (np.datetime64,),
-    "Window": (np.floating,),
-    "BoundingBox": (np.floating,),
-    "Embedding": (np.floating,),
-}
 
 
 def _check_valid_value_type(value: Any, dtype: spotlight_dtypes.DType) -> bool:
@@ -187,29 +180,85 @@ def _check_valid_value_type(value: Any, dtype: spotlight_dtypes.DType) -> bool:
     return isinstance(value, allowed_types)
 
 
-def _check_valid_value_dtype(
-    value_dtype: np.dtype, dtype: spotlight_dtypes.DType
-) -> bool:
+def is_valid_np_dtype(np_dtype: np.dtype, dtype: spotlight_dtypes.DType) -> bool:
     """
-    Check if an array with the given dtype is suitable for the given column type.
-    Only types from `_ALLOWED_COLUMN_DTYPES` are checked. All other column types
-    are assumed to have no dtype equivalent.
+    Check if array or scalar with `np_dtype` can be written as is into a `dtype` column.
     """
-    allowed_dtypes = _ALLOWED_COLUMN_DTYPES.get(dtype.name, ())
+    if spotlight_dtypes.is_sequence_dtype(dtype):
+        return is_valid_np_dtype(np_dtype, dtype.dtype)
+
+    if spotlight_dtypes.is_bool_dtype(dtype):
+        valid_np_dtypes: tuple = (np.bool_,)
+    elif spotlight_dtypes.is_int_dtype(dtype):
+        valid_np_dtypes = (np.integer,)
+    elif spotlight_dtypes.is_datetime_dtype(dtype):
+        valid_np_dtypes = (np.datetime64,)
+    elif (
+        spotlight_dtypes.is_float_dtype(dtype)
+        or spotlight_dtypes.is_window_dtype(dtype)
+        or spotlight_dtypes.is_bounding_box_dtype(dtype)
+        or spotlight_dtypes.is_embedding_dtype(dtype)
+        or spotlight_dtypes.is_sequence_1d_dtype(dtype)
+    ):
+        valid_np_dtypes = (np.floating,)
+    elif spotlight_dtypes.is_array_dtype(dtype):
+        valid_np_dtypes = (np.bool_, np.integer, np.floating)
+    elif spotlight_dtypes.is_image_dtype(dtype):
+        valid_np_dtypes = (np.integer, np.floating)
+    else:
+        raise exceptions.InvalidDTypeError(
+            f"Arrays are not supported as inputs to {dtype} columns."
+        )
     return any(
-        np.issubdtype(value_dtype, allowed_dtype) for allowed_dtype in allowed_dtypes
+        np.issubdtype(np_dtype, valid_np_dtype) for valid_np_dtype in valid_np_dtypes
     )
 
 
-def _check_valid_array(
-    value: Any, dtype: spotlight_dtypes.DType
-) -> TypeGuard[np.ndarray]:
+def is_valid_array(value: Any, dtype: spotlight_dtypes.DType) -> TypeGuard[np.ndarray]:
     """
-    Check if a value is an array and its type is suitable for the given column type.
+    Check if `value` is a fully compatible array for writing as is into a `dtype` column.
     """
-    return isinstance(value, np.ndarray) and _check_valid_value_dtype(
-        value.dtype, dtype
-    )
+    return isinstance(value, np.ndarray) and is_valid_np_dtype(value.dtype, dtype)
+
+
+def has_none(values: Iterable) -> bool:
+    """
+    Check if `values` contain `None` value.
+    """
+    return any(value is None for value in values)
+
+
+def assert_no_none(values: Iterable) -> None:
+    """
+    Raise `InvalidValueError` if `values` contain `None` value.
+    """
+    if has_none(values):
+        raise exceptions.InvalidValueError("`None` values not allowed.")
+
+
+def replace_none(values: np.ndarray, replacement: Any) -> np.ndarray:
+    """
+    Replace all `None` values in `values` array with the given `replacement`.
+    """
+    if replacement is None:
+        # No-op replacement.
+        return values
+
+    none_mask = [value is None for value in values]
+    if not any(none_mask):
+        # Nothing to replace.
+        return values
+
+    if replacement is NoDefault:
+        raise exceptions.InvalidValueError(
+            "`None` values received as inputs for a non-optional column."
+        )
+
+    # The following should work for any replacements, e.g. scalars, objects and arrays.
+    default_array = np.empty(1, dtype=object)
+    default_array[0] = replacement
+    values[none_mask] = default_array
+    return values
 
 
 class Dataset:
@@ -241,6 +290,7 @@ class Dataset:
             or spotlight_dtypes.is_category_dtype(dtype)
             or spotlight_dtypes.is_window_dtype(dtype)
             or spotlight_dtypes.is_bounding_box_dtype(dtype)
+            or spotlight_dtypes.is_bounding_boxes_dtype(dtype)
         ):
             attribute_names["editable"] = bool
         if spotlight_dtypes.is_category_dtype(dtype):
@@ -271,6 +321,8 @@ class Dataset:
             return np.full(2, np.nan)
         if spotlight_dtypes.is_bounding_box_dtype(dtype):
             return np.full(4, np.nan)
+        if spotlight_dtypes.is_bounding_boxes_dtype(dtype):
+            return np.empty((4, 0))
         return None
 
     def __init__(self, filepath: PathType, mode: str):
@@ -1688,6 +1740,52 @@ class Dataset:
             editable=editable,
         )
 
+    def append_bounding_boxes_column(
+        self,
+        name: str,
+        values: Optional[
+            Union[BoundingBoxesColumnInputType, Iterable[BoundingBoxesColumnInputType]]
+        ] = None,
+        order: Optional[int] = None,
+        hidden: bool = False,
+        optional: bool = False,
+        default: BoundingBoxesColumnInputType = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        editable: bool = True,
+    ) -> None:
+        """
+        Create and optionally fill axis-aligned bounding boxes column.
+
+        Args:
+            name: Column name.
+            values: Optional column values. If a single value, the whole column
+                filled with this value.
+            order: Optional Spotlight priority order value. `None` means the
+                lowest priority.
+            hidden: Whether column is hidden in Spotlight.
+            optional: Whether column is optional. If `default` other than `None`
+                is specified, `optional` is automatically set to `True`.
+            default: Value to use by default if column is optional and no value
+                or `None` is given.
+            description: Optional column description.
+            tags: Optional tags for the column.
+            editable: Whether column is editable in Spotlight.
+        """
+        self._append_column(
+            name,
+            spotlight_dtypes.bounding_boxes_dtype,
+            values,
+            h5py.vlen_dtype(np.dtype("float32")),
+            order,
+            hidden,
+            optional,
+            default,
+            description,
+            tags,
+            editable=editable,
+        )
+
     def append_column(
         self,
         name: str,
@@ -1766,6 +1864,8 @@ class Dataset:
             append_column_fn = self.append_window_column
         elif spotlight_dtypes.is_bounding_box_dtype(dtype):
             append_column_fn = self.append_bounding_box_column
+        elif spotlight_dtypes.is_bounding_boxes_dtype(dtype):
+            append_column_fn = self.append_bounding_boxes_column
         elif spotlight_dtypes.is_embedding_dtype(dtype):
             append_column_fn = self.append_embedding_column
             if dtype.length is not None:
@@ -1947,6 +2047,8 @@ class Dataset:
             dtype
         ) or spotlight_dtypes.is_bounding_box_dtype(dtype):
             return np.isnan(raw_values).all(axis=1)
+        if spotlight_dtypes.is_bounding_boxes_dtype(dtype):
+            return np.array([len(x[0]) == 0 for x in raw_values])
         if spotlight_dtypes.is_embedding_dtype(dtype):
             return np.array([len(x) == 0 for x in raw_values])
         return np.full(len(self), False)
@@ -2538,7 +2640,9 @@ class Dataset:
         elif spotlight_dtypes.is_window_dtype(dtype):
             shape = (0, 2)
             maxshape = (None, 2)
-        elif spotlight_dtypes.is_bounding_box_dtype(dtype):
+        elif spotlight_dtypes.is_bounding_box_dtype(
+            dtype
+        ) or spotlight_dtypes.is_bounding_boxes_dtype(dtype):
             shape = (0, 4)
             maxshape = (None, 4)
         elif spotlight_dtypes.is_sequence_1d_dtype(dtype):
@@ -2672,9 +2776,7 @@ class Dataset:
         elif self._length == 0:
             return
         elif attrs.get("optional", False):
-            default_value = column.attrs.get(
-                "default", "" if h5py.check_string_dtype(column.dtype) else None
-            )
+            default_value = self._get_default_value(column)
             if isinstance(default_value, np.ndarray):
                 encoded_values = np.broadcast_to(
                     default_value, (indices_length, *default_value.shape)
@@ -2728,9 +2830,7 @@ class Dataset:
         try:
             value = self._encode_value(value, column)
             if value is None:
-                attrs = column.attrs
-                if attrs.get("optional", False):
-                    value = attrs.get("default", None)
+                value = self._get_default_value(column)
             column[index] = value
         except Exception as e:
             column[index] = old_value
@@ -2793,6 +2893,8 @@ class Dataset:
         if spotlight_dtypes.is_embedding_dtype(dtype):
             null_mask = [len(x) == 0 for x in values]
             values[null_mask] = None
+        if spotlight_dtypes.is_bounding_boxes_dtype(dtype):
+            raise NotImplementedError
         # For bool, int, float, window or bounding box columns, return the array as-is.
         return values
 
@@ -2890,15 +2992,33 @@ class Dataset:
         values = cast(Iterable[SimpleColumnInputType], values)
         return self._encode_simple_values(values, column)
 
+    def _get_default_value(self, column: h5py.Dataset) -> Any:
+        """
+        Get default value for the given H5 column.
+        Replace `None` default values with empty strings for string column.
+        If a column is not optional, return `NoDefault`.
+        """
+        if not column.attrs.get("optional", False):
+            return NoDefault
+        default = column.attrs.get("default")
+        if default is not None:
+            return default
+        # `default` is `None`, replace for known cases.
+        if h5py.check_string_dtype(column.dtype):
+            return ""
+        if spotlight_dtypes.is_category_dtype(self._get_dtype(column)):
+            return -1
+        return default
+
     def _encode_simple_values(
         self, values: Iterable[SimpleColumnInputType], column: h5py.Dataset
     ) -> np.ndarray:
         dtype = self._get_dtype(column)
         if spotlight_dtypes.is_category_dtype(dtype):
             categories = cast(Dict[Optional[str], int], (dtype.categories or {}).copy())
-            if column.attrs.get("optional", False):
-                default = column.attrs.get("default", -1)
-                categories[None] = default
+            default_value = self._get_default_value(column)
+            if default_value is not NoDefault:
+                categories[None] = default_value
             try:
                 # Map values and save as the right int type.
                 return np.array(
@@ -2920,22 +3040,19 @@ class Dataset:
                     f"{categories_str}."
                 ) from e
         if spotlight_dtypes.is_datetime_dtype(dtype):
-            if _check_valid_array(values, dtype):
+            if is_valid_array(values, dtype):
                 encoded_values = np.array(
                     [None if x is None else x.isoformat() for x in values.tolist()]
                 )
             else:
                 encoded_values = np.array(
-                    [
-                        self._encode_value(value, column) for value in values
-                    ]  # TODO: check for simple
+                    [self._encode_value(value, column) for value in values]
                 )
-            if np.issubdtype(encoded_values.dtype, str):
-                # That means, we have all strings in array, no `None`s.
-                return encoded_values
-            return self._replace_none(encoded_values, column)
+            return replace_none(encoded_values, self._get_default_value(column))
         if spotlight_dtypes.is_window_dtype(dtype):
-            encoded_values = self._asarray(values, column, dtype)
+            encoded_values = self._asarray(
+                values, self._get_default_value(column), dtype, column.dtype
+            )
             if encoded_values.ndim == 1:
                 if len(encoded_values) == 2:
                     # A single window, reshape it to an array.
@@ -2953,7 +3070,9 @@ class Dataset:
                 f"windows), but values with shape {encoded_values.shape} received."
             )
         if spotlight_dtypes.is_bounding_box_dtype(dtype):
-            encoded_values = self._asarray(values, column, dtype)
+            encoded_values = self._asarray(
+                values, self._get_default_value(column), dtype, column.dtype
+            )
             if encoded_values.ndim == 1:
                 if len(encoded_values) == 4:
                     # A single bounding box, reshape it to an array.
@@ -2970,8 +3089,13 @@ class Dataset:
                 f"one of shapes (4,) (a single bounding box) or (n, 4) (multiple "
                 f"bounding boxes), but values with shape {encoded_values.shape} received."
             )
+        if spotlight_dtypes.is_bounding_boxes_dtype(dtype):
+            values_list = [self._encode_value(value, column) for value in values]
+            encoded_values = np.empty(len(values_list), dtype=object)
+            encoded_values[:] = values_list
+            return replace_none(encoded_values, self._get_default_value(column))
         if spotlight_dtypes.is_embedding_dtype(dtype):
-            if _check_valid_array(values, dtype):
+            if is_valid_array(values, dtype):
                 # This is the only case we can handle fast and easily, otherwise
                 # embedding should go through `_encode_value` element-wise.
                 if values.ndim == 1:
@@ -2991,10 +3115,11 @@ class Dataset:
                 values_list = [self._encode_value(value, column) for value in values]
             encoded_values = np.empty(len(values_list), dtype=object)
             encoded_values[:] = values_list
-            encoded_values = self._replace_none(encoded_values, column)
-            return encoded_values
+            return replace_none(encoded_values, self._get_default_value(column))
         # column type is `bool`, `int`, `float` or `str`.
-        encoded_values = self._asarray(values, column, dtype)
+        encoded_values = self._asarray(
+            values, self._get_default_value(column), dtype, column.dtype
+        )
         if encoded_values.ndim == 1:
             return encoded_values
         column_name = self._get_column_name(column)
@@ -3010,68 +3135,31 @@ class Dataset:
         encoded_values = np.array(
             [self._encode_value(value, column) for value in values]
         )
-        encoded_values = self._replace_none(encoded_values, column)
-        if h5py.check_string_dtype(column.dtype):
-            encoded_values[encoded_values == np.array(None)] = ""
-        return encoded_values
+        return replace_none(encoded_values, self._get_default_value(column))
 
     def _asarray(
         self,
         values: Iterable[SimpleColumnInputType],
-        column: h5py.Dataset,
+        default: Any,
         dtype: spotlight_dtypes.DType,
+        np_dtype: np.dtype,
     ) -> np.ndarray:
-        if isinstance(values, np.ndarray):
-            if _check_valid_value_dtype(values.dtype, dtype):
-                return values
+        if is_valid_array(values, dtype):
+            return values
         elif not isinstance(values, (list, tuple, range)):
             # Make iterables, dicts etc. convertible to an array.
             values = list(values)
         # Array can contain `None`s, so do not infer dtype.
         encoded_values = np.array(values, dtype=object)
-        encoded_values = self._replace_none(encoded_values, column)
+        encoded_values = replace_none(encoded_values, default)
         try:
             # At the moment, `None`s are already replaced, so try optimistic
             # dtype conversion.
-            return np.array(encoded_values.tolist(), dtype=column.dtype)
-        except TypeError as e:
-            column_name = self._get_column_name(column)
+            return np.array(encoded_values.tolist(), dtype=np_dtype)
+        except (TypeError, ValueError) as e:
             raise exceptions.InvalidValueError(
-                f'Values for the column "{column_name}" of type {dtype} '
-                f"are not convertible to the dtype {column.dtype}."
+                f"Values for a column of type {dtype} are not convertible to the dtype {np_dtype}."
             ) from e
-
-    @staticmethod
-    def _replace_none(values: np.ndarray, column: h5py.Dataset) -> np.ndarray:
-        """replace all None entries with the default value for the column"""
-
-        # none_mask = values == np.array(None)
-        none_mask = [x is None for x in values]
-
-        if not any(none_mask):
-            # no nones present -> just return all the values
-            return values
-
-        if not column.attrs.get("optional", False):
-            raise exceptions.InvalidDTypeError(
-                f"`values` argument for non-optional column "
-                f'"{column.name.lstrip("/")}" contains `None` values.'
-            )
-
-        try:
-            default = column.attrs["default"]
-        except KeyError:
-            # no default value -> keep None as None
-            return values
-
-        if not isinstance(default, str):
-            default = default.tolist()
-
-        # Replace `None`s with the default value.
-        default_array = np.empty(1, dtype=object)
-        default_array[0] = default
-        values[none_mask] = default_array
-        return values
 
     def _encode_row(
         self, values: Dict[str, ColumnInputType]
@@ -3090,11 +3178,9 @@ class Dataset:
             )
             if values[column_name] is None:
                 column = self._h5_file[column_name]
-                attrs = column.attrs
-                if attrs.get("optional", False):
-                    values[column_name] = attrs.get(
-                        "default", "" if h5py.check_string_dtype(column.dtype) else None
-                    )
+                default_value = self._get_default_value(column)
+                if default_value is not NoDefault:
+                    values[column_name] = default_value
         # Check row consistency.
         if values.keys() == self._column_names:
             return values
@@ -3175,7 +3261,6 @@ class Dataset:
         Value *cannot* be `None` already.
         """
         self._assert_valid_value_type(value, dtype, column_name)
-        attrs = column.attrs
         if spotlight_dtypes.is_category_dtype(dtype):
             value = cast(str, value)
             if dtype.categories:
@@ -3206,10 +3291,12 @@ class Dataset:
                 f"Bounding boxes should consist of 4 values, but bounding box "
                 f"of shape {value.shape} received for column '{column_name}'."
             )
+        if spotlight_dtypes.is_bounding_boxes_dtype(dtype):
+            raise NotImplementedError
         if spotlight_dtypes.is_embedding_dtype(dtype):
             # `Embedding` column is not a ref column.
             if isinstance(value, spotlight_dtypes.Embedding):
-                value = value.encode(attrs.get("format", None))
+                value = value.encode()
             value = np.asarray(value, dtype=column.dtype.metadata["vlen"])
             self._assert_valid_or_set_value_shape(value.shape, column)
             return value
@@ -3586,6 +3673,8 @@ class Dataset:
             except (KeyError, IndexError):
                 return spotlight_dtypes.embedding_dtype
             return spotlight_dtypes.EmbeddingDType(length)
+        if type_name == "Sequence":
+            raise NotImplementedError
         return spotlight_dtypes.create_dtype(type_name)
 
     @staticmethod

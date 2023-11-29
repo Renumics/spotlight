@@ -47,6 +47,9 @@ BoundingBoxColumnInputType = Optional[
         np.ndarray,
     ]
 ]
+BoundingBoxesColumnInputType = Optional[
+    Union[Sequence[BoundingBoxColumnInputType], np.ndarray]
+]
 ArrayColumnInputType = Optional[Union[np.ndarray, Sequence]]
 EmbeddingColumnInputType = Optional[Union[Embedding, Array1dLike]]
 AudioColumnInputType = Optional[Union[Audio, PathOrUrlType, bytes]]
@@ -83,3 +86,10 @@ FileColumnInputType = Union[
     VideoColumnInputType,
 ]
 ExternalColumnInputType = Optional[PathOrUrlType]
+
+
+class NoDefault:
+    """
+    Class representing no available default value, i.e. not optional columns.
+    Used to distinguish empty default values (`None`) from their absense.
+    """
