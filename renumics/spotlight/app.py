@@ -84,13 +84,13 @@ class IssuesUpdatedMessage(Message):
     data: Any = None
 
 
-class EmbeddingsUpdatedMessage(Message):
+class ColumnsUpdatedMessage(Message):
     """
     Notify about updated embeddings.
     """
 
     type: Literal["columnsUpdated"] = "columnsUpdated"
-    data: Any = None
+    data: List[str]
 
 
 class SpotlightApp(FastAPI):
@@ -466,8 +466,6 @@ class SpotlightApp(FastAPI):
         """
         Update embeddings, update them in the data store and notify client about.
         """
-        self._broadcast(EmbeddingsUpdatedMessage())
-
         if self._data_store is None:
             return
 
@@ -486,7 +484,7 @@ class SpotlightApp(FastAPI):
                 self._data_store.embeddings = future.result()
             except CancelledError:
                 return
-            self._broadcast(EmbeddingsUpdatedMessage())
+            self._broadcast(ColumnsUpdatedMessage(data=list(embedders.keys())))
 
         task.future.add_done_callback(_on_embeddings_ready)
 

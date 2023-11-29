@@ -8,7 +8,11 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
 
-from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
+from renumics.spotlight.backend.exceptions import (
+    ComputedColumnNotReady,
+    FilebrowsingNotAllowed,
+    InvalidPath,
+)
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
@@ -25,7 +29,7 @@ class Column(BaseModel):
     optional: bool
     hidden: bool
     dtype: Any
-    values: List[Any]
+    values: Optional[List[Any]]
     description: Optional[str]
     tags: Optional[List[str]]
     computed: bool
@@ -72,7 +76,12 @@ def get_table(request: Request) -> ORJSONResponse:
     columns = []
     for column_name in data_store.column_names:
         dtype = data_store.dtypes[column_name]
-        values = data_store.get_converted_values(column_name, simple=True, check=False)
+        try:
+            values = data_store.get_converted_values(
+                column_name, simple=True, check=False
+            )
+        except ComputedColumnNotReady:
+            values = None
         meta = data_store.get_column_metadata(column_name)
         column = Column(
             name=column_name,
@@ -114,7 +123,7 @@ async def get_table_column(
         return ORJSONResponse(None)
     data_store.check_generation_id(generation_id)
 
-    values = data_store.get_converted_values(column, simple=False)
+    values = data_store.get_converted_values(column, simple=True, check=False)
     return ORJSONResponse(values)
 
 

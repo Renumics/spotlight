@@ -25,6 +25,7 @@ from renumics.spotlight.media.audio import Audio
 from renumics.spotlight.media.image import Image
 from renumics.spotlight.media.sequence_1d import Sequence1D
 from renumics.spotlight.media.embedding import Embedding
+from renumics.spotlight.backend.exceptions import ComputedColumnNotReady
 
 
 class DataStore:
@@ -110,7 +111,7 @@ class DataStore:
         if column_name in self._embeddings:
             embeddings = self._embeddings[column_name]
             if embeddings is None:
-                return [None] * len(self)
+                raise ComputedColumnNotReady(column_name)
             normalized_values: Iterable = embeddings
         else:
             normalized_values = self._data_source.get_column_values(

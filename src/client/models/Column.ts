@@ -54,7 +54,7 @@ export interface Column {
      * @type {Array<any>}
      * @memberof Column
      */
-    values: Array<any>;
+    values: Array<any> | null;
     /**
      *
      * @type {string}

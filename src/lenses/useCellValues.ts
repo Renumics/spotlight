@@ -6,15 +6,29 @@ import { shallow } from 'zustand/shallow';
 import { usePrevious } from '../hooks';
 
 async function fetchValue(row: number, column: string, raw: boolean) {
-    const response = await api.table.getCellRaw({
-        row,
-        column,
-        generationId: useDataset.getState().generationID,
-    });
-    if (raw) {
-        return response.raw.arrayBuffer();
-    } else {
-        return response.value();
+    try {
+        const response = await api.table.getCellRaw({
+            row,
+            column,
+            generationId: useDataset.getState().generationID,
+        });
+        if (raw) {
+            return response.raw.arrayBuffer();
+        } else {
+            return response.value();
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        if (error.response?.json) {
+            throw await error.response.json();
+        } else {
+            const problem: Problem = {
+                type: 'FailedToLoadValue',
+                title: 'Failed to load value',
+                detail: error.toString?.(),
+            };
+            throw problem;
+        }
     }
 }
 
@@ -27,7 +41,7 @@ function useCellValues(
 ): [unknown[] | undefined, Problem | undefined] {
     const cellsSelector = useCallback(
         (d: Dataset) => {
-            return columnKeys.map((key) => d.columnData[key][rowIndex]);
+            return columnKeys.map((key) => d.columnData[key]?.[rowIndex]);
         },
         [rowIndex, columnKeys]
     );
@@ -92,7 +106,6 @@ function useCellValues(
                 })
                 .catch((error) => {
                     if (!cancelledRef.current) {
-                        console.error(error);
                         setProblem(error);
                     }
                 });

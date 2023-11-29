@@ -1,4 +1,5 @@
 from typing import Any
+import time
 
 import numpy as np
 
@@ -17,4 +18,5 @@ class Dummy(Embedder):
         self._column = column
 
     def __call__(self) -> np.ndarray:
+        time.sleep(10)
         return np.random.random((len(self._data_store), 4))
