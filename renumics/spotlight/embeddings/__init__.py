@@ -26,6 +26,7 @@ def create_embedders(data_store: Any, columns: List[str]) -> Dict[str, Embedder]
     for column in columns:
         for embedder_class in registered_embedders:
             try:
+                # embedder = FunctionalEmbedder(func, preprocessor, data_store, column)
                 embedder = embedder_class(data_store, column)
             except CannotEmbed:
                 continue
