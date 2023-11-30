@@ -40,10 +40,12 @@ else:
                 return np.array([None] * len(values), dtype=np.object_)
 
             def _embed_batch(batch: List[bytes]) -> np.ndarray:
-                resampler = av.AudioResampler(format="dbl", layout="mono", rate=16000)
                 resampled_batch = []
                 for raw_data in batch:
                     with av.open(io.BytesIO(raw_data), "r") as container:
+                        resampler = av.AudioResampler(
+                            format="dbl", layout="mono", rate=16000
+                        )
                         data = []
                         for frame in container.decode(audio=0):
                             resampled_frames = resampler.resample(frame)
