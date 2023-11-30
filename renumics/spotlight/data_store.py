@@ -91,7 +91,6 @@ class DataStore:
 
     @embeddings.setter
     def embeddings(self, new_embeddings: Dict[str, Optional[np.ndarray]]) -> None:
-        print(new_embeddings)
         self._embeddings = new_embeddings
 
     def check_generation_id(self, generation_id: int) -> None:
@@ -126,14 +125,10 @@ class DataStore:
             normalized_values = self._data_source.get_column_values(
                 column_name, indices
             )
-        if column_name == "image.embedding":
-            print(normalized_values)
         converted_values = [
             convert_to_dtype(value, dtype, simple=simple, check=check)
             for value in normalized_values
         ]
-        if column_name == "image.embedding":
-            print(converted_values)
         return converted_values
 
     def get_converted_value(
