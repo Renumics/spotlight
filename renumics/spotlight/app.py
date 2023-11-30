@@ -469,6 +469,8 @@ class SpotlightApp(FastAPI):
         if self._data_store is None:
             return
 
+        logger.info("Embedding started.")
+
         embedders = create_embedders(self._data_store, self._data_store.column_names)
 
         self._data_store.embeddings = {column: None for column in embedders}
@@ -484,6 +486,7 @@ class SpotlightApp(FastAPI):
                 self._data_store.embeddings = future.result()
             except CancelledError:
                 return
+            logger.info("Embedding done.")
             self._broadcast(ColumnsUpdatedMessage(data=list(embedders.keys())))
 
         task.future.add_done_callback(_on_embeddings_ready)

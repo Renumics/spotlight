@@ -145,6 +145,7 @@ async def get_table_cell(
     data_store.check_generation_id(generation_id)
 
     value = data_store.get_converted_value(column, row, simple=False)
+    print(column, value)
 
     if isinstance(value, bytes):
         return Response(value, media_type="application/octet-stream")

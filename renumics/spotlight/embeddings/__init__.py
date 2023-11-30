@@ -7,11 +7,9 @@ import pkgutil
 from typing import Any, Dict, List
 
 import numpy as np
+
 from renumics.spotlight.embeddings.exceptions import CannotEmbed
 from renumics.spotlight.embeddings.typing import Embedder
-
-from renumics.spotlight.logging import logger
-
 from .registry import registered_embedders
 from . import embedders as embedders_namespace
 
@@ -24,9 +22,6 @@ def create_embedders(data_store: Any, columns: List[str]) -> Dict[str, Embedder]
     """
     Create embedding functions for the given data store.
     """
-
-    logger.info("Embedding started.")
-
     embedders: Dict[str, Embedder] = {}
     for column in columns:
         for embedder_class in registered_embedders:
@@ -36,9 +31,6 @@ def create_embedders(data_store: Any, columns: List[str]) -> Dict[str, Embedder]
                 continue
             embedders[f"{column}.embedding"] = embedder
             break
-
-    logger.info("Embedding done.")
-
     return embedders
 
 

@@ -67,15 +67,23 @@ class DataStore:
 
     @property
     def dtypes(self) -> spotlight_dtypes.DTypeMap:
-        return {
-            **self._dtypes,
-            **{
-                column: spotlight_dtypes.EmbeddingDType(
-                    length=None if embeddings is None else embeddings.shape[1]
-                )
-                for column, embeddings in self._embeddings.items()
-            },
-        }
+        dtypes_ = self._dtypes.copy()
+        for column, embeddings in self._embeddings.items():
+            if embeddings is None:
+                length = None
+            else:
+                try:
+                    length = len(
+                        next(
+                            embedding
+                            for embedding in embeddings
+                            if embedding is not None
+                        )
+                    )
+                except StopIteration:
+                    length = None
+            dtypes_[column] = spotlight_dtypes.EmbeddingDType(length=length)
+        return dtypes_
 
     @property
     def embeddings(self) -> Dict[str, Optional[np.ndarray]]:
@@ -83,6 +91,7 @@ class DataStore:
 
     @embeddings.setter
     def embeddings(self, new_embeddings: Dict[str, Optional[np.ndarray]]) -> None:
+        print(new_embeddings)
         self._embeddings = new_embeddings
 
     def check_generation_id(self, generation_id: int) -> None:
@@ -112,15 +121,19 @@ class DataStore:
             embeddings = self._embeddings[column_name]
             if embeddings is None:
                 raise ComputedColumnNotReady(column_name)
-            normalized_values: Iterable = embeddings
+            normalized_values: Iterable = embeddings[indices]
         else:
             normalized_values = self._data_source.get_column_values(
                 column_name, indices
             )
+        if column_name == "image.embedding":
+            print(normalized_values)
         converted_values = [
             convert_to_dtype(value, dtype, simple=simple, check=check)
             for value in normalized_values
         ]
+        if column_name == "image.embedding":
+            print(converted_values)
         return converted_values
 
     def get_converted_value(
