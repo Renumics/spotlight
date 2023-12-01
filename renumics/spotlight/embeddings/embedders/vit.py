@@ -1,6 +1,7 @@
 from typing import Iterable, List
 
 import PIL.Image
+import numpy as np
 import transformers
 
 from renumics.spotlight.embeddings.decorator import embed
@@ -13,7 +14,7 @@ except ImportError:
 else:
 
     @embed("image")
-    def vit(batches: Iterable[List[PIL.Image.Image]]):
+    def vit(batches: Iterable[List[PIL.Image.Image]]) -> Iterable[List[np.ndarray]]:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model_name = "google/vit-base-patch16-224"
         processor = transformers.AutoImageProcessor.from_pretrained(model_name)
@@ -26,4 +27,4 @@ else:
                 outputs = model(**inputs.to(device))
             embeddings = outputs.last_hidden_state[:, 0].cpu().numpy()
 
-            yield embeddings
+            yield list(embeddings)

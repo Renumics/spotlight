@@ -8,7 +8,6 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from renumics.spotlight.embeddings.exceptions import CannotEmbed
 from renumics.spotlight.embeddings.typing import Embedder
 from .registry import registered_embedders
 from . import embedders as embedders_namespace
@@ -24,14 +23,12 @@ def create_embedders(data_store: Any, columns: List[str]) -> Dict[str, Embedder]
     """
     embedders: Dict[str, Embedder] = {}
     for column in columns:
-        for embedder_class in registered_embedders:
-            try:
-                # embedder = FunctionalEmbedder(func, preprocessor, data_store, column)
-                embedder = embedder_class(data_store, column)
-            except CannotEmbed:
+        for name, (embedder_class, dtype, args, kwargs) in registered_embedders.items():
+            if data_store.dtypes[column].name != dtype.name:
                 continue
-            embedders[f"{column}.embedding"] = embedder
-            break
+
+            embedder = embedder_class(data_store, column, *args, **kwargs)
+            embedders[f"{column}.{name}.embedding"] = embedder
     return embedders
 
 

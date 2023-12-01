@@ -132,9 +132,11 @@ class DataStore:
         return converted_values
 
     def get_converted_value(
-        self, column_name: str, index: int, simple: bool = False
+        self, column_name: str, index: int, simple: bool = False, check: bool = True
     ) -> ConvertedValue:
-        return self.get_converted_values(column_name, indices=[index], simple=simple)[0]
+        return self.get_converted_values(
+            column_name, indices=[index], simple=simple, check=check
+        )[0]
 
     def get_waveform(self, column_name: str, index: int) -> Optional[np.ndarray]:
         """
