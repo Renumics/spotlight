@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 import numpy as np
 import transformers
@@ -9,11 +9,13 @@ from renumics.spotlight.logging import logger
 try:
     import torch
 except ImportError:
-    logger.warning("`Wav2Vec Embedder` requires `pytorch` to be installed.")
+    logger.warning("Wav2Vec embedder requires `pytorch` to be installed.")
 else:
 
     @embed("audio", sampling_rate=16000)
-    def wav2vec2(batches: Iterable[List[np.ndarray]]) -> Iterable[List[np.ndarray]]:
+    def wav2vec2(
+        batches: Iterable[List[np.ndarray]],
+    ) -> Iterable[List[Optional[np.ndarray]]]:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model_name = "facebook/wav2vec2-base-960h"
         processor = transformers.AutoFeatureExtractor.from_pretrained(model_name)

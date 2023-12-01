@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 import numpy as np
 import sentence_transformers
@@ -9,11 +9,11 @@ from renumics.spotlight.logging import logger
 try:
     import torch
 except ImportError:
-    logger.warning("`GTE Embedder` requires `pytorch` to be installed.")
+    logger.warning("GTE embedder requires `pytorch` to be installed.")
 else:
 
     @embed("str")
-    def gte(batches: Iterable[List[str]]) -> Iterable[List[np.ndarray]]:
+    def gte(batches: Iterable[List[str]]) -> Iterable[List[Optional[np.ndarray]]]:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = sentence_transformers.SentenceTransformer(
             "thenlper/gte-base", device=device
