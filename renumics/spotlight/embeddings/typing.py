@@ -4,16 +4,18 @@ Shared types for embeddings
 
 import itertools
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterable, List, Optional
+from typing import Callable, Iterable, List, Optional
 
 import numpy as np
 
+from renumics.spotlight.data_store import DataStore
+
 
 class Embedder(ABC):
-    data_store: Any
+    data_store: DataStore
     column: str
 
-    def __init__(self, data_store: Any, column: str) -> None:
+    def __init__(self, data_store: DataStore, column: str) -> None:
         self.data_store = data_store
         self.column = column
 
@@ -36,7 +38,7 @@ class FunctionalEmbedder(Embedder):
 
     def __init__(
         self,
-        data_store: Any,
+        data_store: DataStore,
         column: str,
         preprocess_func: PreprocessFunc,
         embed_func: EmbedFunc,

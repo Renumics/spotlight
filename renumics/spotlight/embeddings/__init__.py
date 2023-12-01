@@ -4,9 +4,10 @@ Dataset Analysis
 
 import importlib
 import pkgutil
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import numpy as np
+from renumics.spotlight.data_store import DataStore
 
 from renumics.spotlight.embeddings.typing import Embedder
 from .registry import registered_embedders
@@ -17,7 +18,7 @@ for module_info in pkgutil.iter_modules(embedders_namespace.__path__):
     importlib.import_module(embedders_namespace.__name__ + "." + module_info.name)
 
 
-def create_embedders(data_store: Any, columns: List[str]) -> Dict[str, Embedder]:
+def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Embedder]:
     """
     Create embedding functions for the given data store.
     """
