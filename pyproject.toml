@@ -93,7 +93,6 @@ datasets = { extras = ["audio"], version = "^2.12.0" }
 pydantic-settings = "^2.0.3"
 pycatch22 = { version = "!=0.4.4", optional = true }
 transformers = "^4.35.2"
-torch = { version = "^2.1.1+cpu", source = "torch-cpu" }
 sentence-transformers = "^2.2.2"
 
 [tool.poetry.extras]
@@ -128,11 +127,14 @@ types-pillow = "^10.0.0.1"
 pandas-stubs = "^2.0.2.230605"
 ruff = "^0.0.281"
 check-wheel-contents = "^0.6.0"
+torchvision = {version = "^0.16.1+cpu", source = "torch-cpu"}
+torch = {version = "^2.1.1+cpu", source = "torch-cpu"}
 
 [tool.poetry.group.playbook.dependencies]
 towhee = "^0.9.0"
 annoy = "^1.17.2"
 cleanlab = "^2.4.0"
+torch = {version = "^2.1.1+cpu", source = "torch-cpu"}
 
 [[tool.poetry.source]]
 name = "torch-cpu"
