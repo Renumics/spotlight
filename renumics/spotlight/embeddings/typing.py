@@ -6,12 +6,21 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Callable, Iterable, List, Optional
 
+import PIL.Image
 import numpy as np
 
 from renumics.spotlight.data_store import DataStore
 
 
 class Embedder(ABC):
+    """
+    Base data store embedder class.
+
+    Args:
+        data_store: Data store.
+        column: A column in the data store to embed.
+    """
+
     data_store: DataStore
     column: str
 
@@ -28,9 +37,25 @@ class Embedder(ABC):
 
 PreprocessFunc = Callable[[list], list]
 EmbedFunc = Callable[[Iterable[list]], Iterable[List[Optional[np.ndarray]]]]
+EmbedImageFunc = Callable[
+    [Iterable[List[PIL.Image.Image]]], Iterable[List[Optional[np.ndarray]]]
+]
+EmbedArrayFunc = Callable[
+    [Iterable[List[np.ndarray]]], Iterable[List[Optional[np.ndarray]]]
+]
 
 
 class FunctionalEmbedder(Embedder):
+    """
+    Wrapper for preprocessing and embedding functions.
+
+    Attrs:
+        preprocess_func: Preprocessing function. Receives a batch of data in our
+            internal format and prepares is for embedding.
+        embed_func: Embedding function. Receives an iterable with preprocessed
+            data batches and yields batches of generated embeddings.
+    """
+
     preprocess_func: PreprocessFunc
     embed_func: EmbedFunc
     batch_size: int
@@ -51,7 +76,7 @@ class FunctionalEmbedder(Embedder):
 
     def _iter_batches(self) -> Iterable[list]:
         """
-        Yield batches with data, i.e. without the `None` values.
+        Yield batches with valid data, i.e. without the `None` values.
         """
         self._occupied_indices = []
         batch = []
@@ -72,6 +97,9 @@ class FunctionalEmbedder(Embedder):
             yield self.preprocess_func(batch)
 
     def __call__(self) -> np.ndarray:
+        """
+        Embed the given column.
+        """
         embeddings = itertools.chain(*self.embed_func(self._iter_batches()))
         res = np.empty(len(self.data_store), dtype=np.object_)
         res[self._occupied_indices] = list(embeddings)

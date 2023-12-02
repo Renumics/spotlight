@@ -3,21 +3,21 @@ Manage data analyzers available for spotlights automatic dataset analysis.
 """
 from typing import Any, Dict, Tuple, Type
 
-from renumics.spotlight.dtypes import DType
-
+from renumics.spotlight import dtypes
 from .typing import Embedder
 
 registered_embedders: Dict[
-    str, Tuple[Type[Embedder], DType, tuple, Dict[str, Any]]
+    str, Tuple[Type[Embedder], dtypes.DType, tuple, Dict[str, Any]]
 ] = {}
 
 
 def register_embedder(
-    embedder: Type[Embedder], dtype: DType, name: str, *args: Any, **kwargs: Any
+    embedder: Type[Embedder], dtype: dtypes.DType, name: str, *args: Any, **kwargs: Any
 ) -> None:
     """
     Register an embedder
     """
+    print(f"{name} embedder registered.")
     registered_embedders[name] = (embedder, dtype, args, kwargs)
 
 

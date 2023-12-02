@@ -3,41 +3,17 @@ A decorator for data analysis functions
 """
 
 import functools
-from typing import (
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Literal,
-    Optional,
-    Any,
-    Union,
-    overload,
-)
+from typing import Callable, Dict, Literal, Optional, Any, Union, overload
 
-import PIL.Image
-import numpy as np
 from renumics.spotlight import dtypes
-from renumics.spotlight.media.audio import Audio
-from renumics.spotlight.media.embedding import Embedding
-
-from renumics.spotlight.media.image import Image
-from renumics.spotlight.media.sequence_1d import Sequence1D
+from renumics.spotlight.media import Audio, Embedding, Image, Sequence1D
 from .preprocessors import (
     preprocess_audio_batch,
     preprocess_batch,
     preprocess_image_batch,
 )
 from .registry import register_embedder
-from .typing import EmbedFunc, FunctionalEmbedder
-
-
-EmbedImageFunc = Callable[
-    [Iterable[List[PIL.Image.Image]]], Iterable[List[Optional[np.ndarray]]]
-]
-EmbedArrayFunc = Callable[
-    [Iterable[List[np.ndarray]]], Iterable[List[Optional[np.ndarray]]]
-]
+from .typing import EmbedArrayFunc, EmbedFunc, EmbedImageFunc, FunctionalEmbedder
 
 
 @overload
@@ -80,6 +56,46 @@ def embed(
 def embed(
     dtype: Any, *, name: Optional[str] = None, sampling_rate: Optional[int] = None
 ) -> Callable[[EmbedFunc], EmbedFunc]:
+    """
+    Decorator for marking an embedding function as an Spotlight embedder for the
+    given data type.
+
+    The decorated function receives an iterable with preprocessed data batches
+    as Python lists. Batches contain preprocessed data samples:
+        Pillow images in case of an image embedder;
+        mono channel audio PCM resampled to the given sampling rate as an double
+            array in case of an audio embedder;
+        raw data from Spotlight data store otherwise.
+    The decorated function should return iterable with batches of embeddings.
+    Embeddings must be represented by arrays of the same length, or `None` if an
+    input sample cannot be embedded).
+
+    Args:
+        dtype: Spotlight data type which can be embedded with the given
+            function. For more than one data type, use this decorator multiple
+            times.
+        name: Optional embedder name. If not given, the name of the decorated
+            function will be used.
+        sampling_rate: Optional sampling rate. Only relevant for audio
+            embedders, otherwise ignored.
+
+    Example of the [JinaAI v2 small](https://huggingface.co/jinaai/jina-embeddings-v2-small-en)
+    model:
+    ```python
+    from typing import Iterable, List, Optional
+
+    import numpy as np
+    import transformers
+    from renumics.spotlight import embed
+
+    @embed("str", name="jina-v2-small")
+    def jina_v2_small(batches: Iterable[List[str]]) -> Iterable[List[Optional[np.ndarray]]]:
+        model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True)
+        for batch in batches:
+            embeddings = model.encode(batch)
+            yield list(embeddings)
+    ```
+    """
     dtype = dtypes.create_dtype(dtype)
 
     kwargs: Dict[str, Any] = {}

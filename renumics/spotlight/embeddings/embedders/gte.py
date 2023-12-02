@@ -32,7 +32,11 @@ else:
 
         for batch in batches:
             inputs = tokenizer(
-                batch, padding=True, truncation=True, return_tensors="pt"
+                batch,
+                padding=True,
+                truncation=True,
+                max_length=512,
+                return_tensors="pt",
             )
             with torch.no_grad():
                 outputs = model(**inputs)

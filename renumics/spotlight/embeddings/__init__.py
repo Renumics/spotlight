@@ -11,6 +11,7 @@ from renumics.spotlight.data_store import DataStore
 
 from renumics.spotlight.embeddings.typing import Embedder
 from .registry import registered_embedders
+from .decorator import embed  # noqa: F401
 from . import embedders as embedders_namespace
 
 # import all modules in .embedders
@@ -22,6 +23,7 @@ def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Emb
     """
     Create embedding functions for the given data store.
     """
+    print(registered_embedders.keys())
     embedders: Dict[str, Embedder] = {}
     for column in columns:
         for name, (embedder_class, dtype, args, kwargs) in registered_embedders.items():
@@ -30,10 +32,11 @@ def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Emb
 
             embedder = embedder_class(data_store, column, *args, **kwargs)
             embedders[f"{column}.{name}.embedding"] = embedder
+    print(embedders.keys())
     return embedders
 
 
-def embed(embedders: Dict[str, Embedder]) -> Dict[str, np.ndarray]:
+def run_embedders(embedders: Dict[str, Embedder]) -> Dict[str, np.ndarray]:
     """
     Run the given functions.
     """

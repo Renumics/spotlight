@@ -31,7 +31,7 @@ from renumics.spotlight.backend.websockets import (
     ResetLayoutMessage,
     WebsocketManager,
 )
-from renumics.spotlight.embeddings import create_embedders, embed
+from renumics.spotlight.embeddings import create_embedders, run_embedders
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
@@ -476,7 +476,7 @@ class SpotlightApp(FastAPI):
         self._data_store.embeddings = {column: None for column in embedders}
 
         task = self.task_manager.create_task(
-            embed, (embedders,), name="update_embeddings"
+            run_embedders, (embedders,), name="update_embeddings"
         )
 
         def _on_embeddings_ready(future: Future) -> None:
