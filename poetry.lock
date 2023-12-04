@@ -5974,37 +5974,6 @@ url = "https://download.pytorch.org/whl/cpu"
 reference = "torch-cpu"
 
 [[package]]
-name = "torchvision"
-version = "0.16.1+cpu"
-description = "image and video datasets and models for torch deep learning"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "torchvision-0.16.1+cpu-cp310-cp310-linux_x86_64.whl", hash = "sha256:52442b5408dab35fedc6ccd75a7df38aadb6eb5d078184ac04ba7c1a9db8ae9c"},
-    {file = "torchvision-0.16.1+cpu-cp310-cp310-win_amd64.whl", hash = "sha256:d77afeed3fe309f3f73943431840d40fa61a33a52076bbb780c63e6b5f79962a"},
-    {file = "torchvision-0.16.1+cpu-cp311-cp311-linux_x86_64.whl", hash = "sha256:574b58e20ca89ebd2d8d1ff72dc6e6944734ed1327849214a349c39d5454ac4f"},
-    {file = "torchvision-0.16.1+cpu-cp311-cp311-win_amd64.whl", hash = "sha256:f6fed6f1311d34c4751d70d60408ea8526842ede66f5aad7272d6de5c4337ebc"},
-    {file = "torchvision-0.16.1+cpu-cp38-cp38-linux_x86_64.whl", hash = "sha256:53a5f20778bb300038d1846fb111e73ae5d4babc6b9cfb6a6cbeb2eefa399c0b"},
-    {file = "torchvision-0.16.1+cpu-cp38-cp38-win_amd64.whl", hash = "sha256:89b9bf0e80fc4c45f114707d61e15741ce0e9591badf29aa939863be9fd9543d"},
-    {file = "torchvision-0.16.1+cpu-cp39-cp39-linux_x86_64.whl", hash = "sha256:048b029410bc4c7ce87b1f2b621fd8b88249c68350ee773c3152faa088e9fcca"},
-    {file = "torchvision-0.16.1+cpu-cp39-cp39-win_amd64.whl", hash = "sha256:73a4b3317eae425baabefe6b61197c75b0b766f1809c5cfdad07dd6bfad255a2"},
-]
-
-[package.dependencies]
-numpy = "*"
-pillow = ">=5.3.0,<8.3.dev0 || >=8.4.dev0"
-requests = "*"
-torch = "2.1.1"
-
-[package.extras]
-scipy = ["scipy"]
-
-[package.source]
-type = "legacy"
-url = "https://download.pytorch.org/whl/cpu"
-reference = "torch-cpu"
-
-[[package]]
 name = "tornado"
 version = "6.3.3"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -7124,4 +7093,4 @@ descriptors = ["pycatch22"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <3.12"
-content-hash = "49f1495035945dd4c6e404de9ea4512302b3ab96e86e98f9a3da370469ca7a89"
+content-hash = "b94339642a6815125a017be3386f559c1818fcbe645896203b8a7c191a940a27"
