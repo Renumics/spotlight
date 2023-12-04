@@ -53,10 +53,8 @@ from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.data_source import DataSource, create_datasource
 from renumics.spotlight import layouts
-
 from renumics.spotlight.data_store import DataStore
-
-from renumics.spotlight.dtypes import DTypeMap
+from renumics.spotlight import dtypes as spotlight_dtypes
 
 CURRENT_LAYOUT_KEY = "layout.current"
 
@@ -107,7 +105,7 @@ class SpotlightApp(FastAPI):
 
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
-    _user_dtypes: DTypeMap
+    _user_dtypes: spotlight_dtypes.DTypeMap
     _data_source: Optional[DataSource]
     _data_store: Optional[DataStore]
 

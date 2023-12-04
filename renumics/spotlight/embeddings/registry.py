@@ -17,7 +17,6 @@ def register_embedder(
     """
     Register an embedder
     """
-    print(f"{name} embedder registered.")
     registered_embedders[name] = (embedder, dtype, args, kwargs)
 
 

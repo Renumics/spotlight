@@ -23,7 +23,6 @@ def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Emb
     """
     Create embedding functions for the given data store.
     """
-    print(registered_embedders.keys())
     embedders: Dict[str, Embedder] = {}
     for column in columns:
         for name, (embedder_class, dtype, args, kwargs) in registered_embedders.items():
@@ -32,7 +31,6 @@ def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Emb
 
             embedder = embedder_class(data_store, column, *args, **kwargs)
             embedders[f"{column}.{name}.embedding"] = embedder
-    print(embedders.keys())
     return embedders
 
 
