@@ -6,7 +6,7 @@ import os
 import platform
 import signal
 import sys
-from typing import Dict, Optional, Tuple, Union, List
+from typing import Dict, Optional, Tuple, Union
 
 import click
 
@@ -94,9 +94,21 @@ def cli_dtype_callback(
 )
 @click.option(
     "--analyze",
-    default=[],
+    default=(),
     multiple=True,
-    help="Automatically analyze issues for all columns.",
+    help="Columns to analyze (if no --analyze-all).",
+)
+@click.option(
+    "--embed-all",
+    is_flag=True,
+    default=False,
+    help="Automatically embed all columns.",
+)
+@click.option(
+    "--embed",
+    default=(),
+    multiple=True,
+    help="Columns to embed (if no --analyze-all).",
 )
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
@@ -109,8 +121,10 @@ def main(
     dtype: Optional[Dict[str, str]],
     no_browser: bool,
     filebrowsing: bool,
-    analyze: List[str],
+    analyze: Tuple[str],
     analyze_all: bool,
+    embed: Tuple[str],
+    embed_all: bool,
     verbose: bool,
 ) -> None:
     """
@@ -135,5 +149,6 @@ def main(
         no_browser=no_browser,
         allow_filebrowsing=filebrowsing,
         wait="forever",
-        analyze=True if analyze_all else analyze,
+        analyze=True if analyze_all else list(analyze),
+        embed=True if embed_all else list(embed),
     )

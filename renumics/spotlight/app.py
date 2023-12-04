@@ -123,7 +123,10 @@ class SpotlightApp(FastAPI):
     # data issues
     issues: Optional[List[DataIssue]] = []
     _custom_issues: List[DataIssue] = []
-    analyze_columns: Union[List[str], bool] = False
+    analyze_columns: Union[List[str], bool]
+
+    # embedding
+    embed_columns: Union[List[str], bool]
 
     def __init__(self) -> None:
         super().__init__()
@@ -138,6 +141,7 @@ class SpotlightApp(FastAPI):
         self.analyze_columns = False
         self.issues = None
         self._custom_issues = []
+        self.embed_columns = False
 
         self._dataset = None
         self._user_dtypes = {}
@@ -328,6 +332,8 @@ class SpotlightApp(FastAPI):
                 self.analyze_columns = config.analyze
             if config.custom_issues is not None:
                 self.custom_issues = config.custom_issues
+            if config.embed is not None:
+                self.embed_columns = config.embed
             if config.dataset is not None:
                 self._dataset = config.dataset
                 self._data_source = create_datasource(self._dataset)
@@ -464,12 +470,24 @@ class SpotlightApp(FastAPI):
         """
         Update embeddings, update them in the data store and notify client about.
         """
+        if not self.embed_columns:
+            return
+
         if self._data_store is None:
             return
 
         logger.info("Embedding started.")
 
-        embedders = create_embedders(self._data_store, self._data_store.column_names)
+        if self.embed_columns is True:
+            embed_columns = self._data_store.column_names
+        else:
+            embed_columns = [
+                column
+                for column in self.embed_columns
+                if column in self._data_store.column_names
+            ]
+
+        embedders = create_embedders(self._data_store, embed_columns)
 
         self._data_store.embeddings = {column: None for column in embedders}
 
