@@ -90,9 +90,9 @@ class HuggingfaceDataSource(DataSource):
                 raw_values = self._dataset.data[column_name]
             else:
                 actual_indices = list(range(len(self._dataset)))[indices]
-                raw_values = self._dataset.data[column_name].take(actual_indices)
+                raw_values = self._dataset.data.fast_gather(actual_indices)[column_name]
         else:
-            raw_values = self._dataset.data[column_name].take(indices)
+            raw_values = self._dataset.data.fast_gather(indices)[column_name]
 
         feature = self._dataset.features[column_name]
 
