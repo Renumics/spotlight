@@ -108,7 +108,7 @@ def cli_dtype_callback(
     "--embed",
     default=(),
     multiple=True,
-    help="Columns to embed (if no --analyze-all).",
+    help="Columns to embed (if no --embed-all).",
 )
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
