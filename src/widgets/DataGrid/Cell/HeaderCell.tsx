@@ -90,6 +90,7 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
         () => (
             <div tw="flex flex-col max-w-xl">
                 <div tw="font-bold break-all">{column.name}</div>
+                <div tw="font-bold">{column.type.kind}</div>
                 <div tw="text-gray-700 space-x-1.5 text-xs">
                     <span css={[!column.editable && tw`line-through`]}>editable</span>
                     <span css={[!column.optional && tw`line-through`]}>optional</span>

@@ -1,11 +1,10 @@
 import useResizeObserver from '@react-hook/resize-observer';
-import { useRef, useCallback } from 'react';
+import { useRef } from 'react';
 import { Lens } from '../../types';
 import tw, { styled } from 'twin.macro';
-import { CategoricalDataType, SequenceDataType } from '../../datatypes';
-import { ColorsState, useColors } from '../../stores/colors';
-import { Dataset, useDataset } from '../../stores/dataset';
+import { CategoricalDataType } from '../../datatypes';
 import * as d3 from 'd3';
+import { useColorTransferFunction } from '../../hooks';
 
 const Container = styled.div`
     ${tw`relative h-full w-full overflow-hidden`}
@@ -40,7 +39,6 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
 
     let boxes: [number[]] | [] = [];
     let categories: number[] | [] = [];
-    let invertedCategories = (index: number) => index.toString();
 
     // Check if single bounding box or multiple
     if (bboxColumnIndex != -1) {
@@ -51,36 +49,22 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
 
     if (categoryColumnIndex != -1) {
         categories = [values[categoryColumnIndex] as number];
-
-        invertedCategories = (index) =>
-            (columns[categoryColumnIndex].type as CategoricalDataType)
-                .invertedCategories[index];
     } else if (categoriesColumnIndex != -1) {
         categories = values[categoriesColumnIndex] as [number];
-
-        invertedCategories = (index) =>
-            (
-                (columns[categoriesColumnIndex].type as SequenceDataType)
-                    .dtype as CategoricalDataType
-            ).invertedCategories[index];
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const colorTransferFunctionSelector = useCallback(
-        (d: Dataset) => {
-            if (categoryColumnIndex != -1) {
-                return d.colorTransferFunctions[columns[categoryColumnIndex].key]?.[
-                    'full'
-                ];
-            }
-            return undefined;
-        },
-        [columns, categoryColumnIndex]
-    );
+    const categoricalColumn =
+        columns[categoryColumnIndex] ?? columns[categoriesColumnIndex];
+    const categoricalDtype = (
+        categoricalColumn?.type?.kind === 'Sequence'
+            ? categoricalColumn?.type?.dtype
+            : categoricalColumn?.type
+    ) as CategoricalDataType | undefined;
 
-    const colorPaletteSelector = (c: ColorsState) => c.continuousPalette;
-    const colorPalette = useColors(colorPaletteSelector);
-    const colorTransferFunction = useDataset(colorTransferFunctionSelector);
+    const colorTransferFunction = useColorTransferFunction(
+        categories,
+        categoricalDtype
+    );
 
     useResizeObserver(container.current, () => drawBoundingBoxes());
 
@@ -92,26 +76,6 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
 
         // Remove previous svg elements
         d3.select(svgRef.current).select<SVGSVGElement>('g').remove();
-
-        let colorFunc: (i: number) => string;
-
-        if (categories.length === 0) {
-            colorFunc = (i: number) => colorPalette.scale().colors(boxes.length)[i];
-        } else {
-            if (colorTransferFunction !== undefined) {
-                colorFunc = (i: number) => colorTransferFunction(categories[i]).hex();
-            } else {
-                colorFunc = (i: number) => {
-                    const dtype = (
-                        columns[categoriesColumnIndex].type as SequenceDataType
-                    ).dtype as CategoricalDataType;
-                    const index = dtype.categories[invertedCategories(categories[i])];
-                    return colorPalette
-                        .scale()
-                        .colors(Object.keys(dtype.categories).length)[index];
-                };
-            }
-        }
 
         const image = imgRef.current;
 
@@ -148,7 +112,7 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
             const y = box[1] * renderedHeight + offsetHeight;
             const width = (box[2] - box[0]) * renderedWidth;
             const height = (box[3] - box[1]) * renderedHeight;
-            const boxColor = colorFunc(i);
+            const boxColor = colorTransferFunction(i);
 
             d3.select(svgRef.current)
                 .select<SVGSVGElement>('g')
@@ -159,18 +123,18 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
                 .attr('height', height)
                 .attr('stroke', 'firebrick')
                 .attr('stroke-width', 2)
-                .attr('stroke', boxColor)
+                .attr('stroke', boxColor.css())
                 .attr('fill', 'none');
 
             if (categories.length > 0) {
                 d3.select(svgRef.current)
                     .select<SVGSVGElement>('g')
                     .append('text')
-                    .text(invertedCategories(categories[i]))
+                    .text(categoricalDtype?.invertedCategories[categories[i]] ?? '')
                     .attr('x', x)
                     .attr('y', y - 3)
                     .attr('fontsize', 12)
-                    .attr('fill', boxColor);
+                    .attr('fill', boxColor.css());
             }
         }
     };
