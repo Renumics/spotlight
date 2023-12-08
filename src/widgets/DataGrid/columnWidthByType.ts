@@ -16,6 +16,7 @@ const columnWidthByType: Record<DataType['kind'], number> = {
     Image: 200,
     Sequence1D: 200,
     Category: 128,
+    Sequence: 128,
     Unknown: 128,
 };
 

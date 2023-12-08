@@ -1,7 +1,6 @@
-import EditIcon from '../../../icons/Edit';
 import Tag from '../../../components/ui/Tag';
 import Tooltip from '../../../components/ui/Tooltip';
-import dataformat from '../../../dataformat';
+import { formatKind, useDataformat } from '../../../dataformat';
 import { useColorTransferFunction } from '../../../hooks/useColorTransferFunction';
 import * as React from 'react';
 import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
@@ -13,6 +12,8 @@ import { useColumn } from '../context/columnContext';
 import { useSortByColumn } from '../context/sortingContext';
 import RelevanceIndicator from '../RelevanceIndicator';
 import { ResizingContext } from '../context/resizeContext';
+import ColumnBadge from '../../../components/ui/ColumnBadge';
+import DataTypeIcon from '../../../components/DataTypeIcon';
 
 interface SortingIndicatorProps {
     sorting?: Sorting;
@@ -84,10 +85,18 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
         [columnSorting, resetSorting, sortBy]
     );
 
+    const formatter = useDataformat();
+
     const tooltipContent = useMemo(
         () => (
             <div tw="flex flex-col max-w-xl">
-                <div tw="font-bold break-all">{column.name}</div>
+                <div tw="font-bold break-all p-0.5">{column.name}</div>
+                <div tw="flex flex-row justify-center">
+                    <div tw="flex flex-row rounded-full bg-gray-300 text-xs space-x-1 px-2 py-0.5">
+                        <DataTypeIcon type={column.type} />
+                        <div>{formatKind(column.type.kind)}</div>
+                    </div>
+                </div>
                 <div tw="text-gray-700 space-x-1.5 text-xs">
                     <span css={[!column.editable && tw`line-through`]}>editable</span>
                     <span css={[!column.optional && tw`line-through`]}>optional</span>
@@ -103,14 +112,10 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
                 </div>
                 {stats && (
                     <div tw="flex flex-row flex-wrap justify-center w-full">
+                        <Tag tag={`min: ${formatter.format(stats.min, column.type)}`} />
+                        <Tag tag={`max: ${formatter.format(stats.max, column.type)}`} />
                         <Tag
-                            tag={`min: ${dataformat.format(stats.min, column.type)}`}
-                        />
-                        <Tag
-                            tag={`max: ${dataformat.format(stats.max, column.type)}`}
-                        />
-                        <Tag
-                            tag={`mean: ${dataformat.format(stats.mean, {
+                            tag={`mean: ${formatter.format(stats.mean, {
                                 kind: 'float',
                                 optional: false,
                                 lazy: false,
@@ -122,7 +127,7 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
                 <div tw="flex-grow break-all flex">{column.description}</div>
             </div>
         ),
-        [column, stats, tagColorTransferFunction]
+        [column, stats, tagColorTransferFunction, formatter]
     );
 
     const onStartResize: React.MouseEventHandler<HTMLButtonElement> = useCallback(
@@ -136,25 +141,20 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
     return (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
         <div
-            tw="border-r-0 border-b pl-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row overflow-hidden items-center"
+            tw="border-r-0 border-b pl-1 border-collapse border-solid border-gray-400 w-full h-full flex flex-row items-center"
             style={style}
             onClick={onToggleSorting}
             data-columnindex={columnIndex}
             data-rowindex={-1}
         >
-            <div tw="flex-grow flex-shrink truncate">
-                <Tooltip tw="overflow-hidden w-full" content={tooltipContent}>
-                    <div tw="truncate max-w-full block h-full self-center">
-                        {column.editable && (
-                            <EditIcon tw="text-gray-400 cursor-not-allowed" />
-                        )}{' '}
-                        {column.name}
-                    </div>
+            <div tw="flex flex-row flex-grow flex-shrink overflow-hidden">
+                <Tooltip tw="overflow-hidden flex-shrink" content={tooltipContent}>
+                    <ColumnBadge columnKey={column.key} />
                 </Tooltip>
-            </div>
-            <div tw="flex items-center">
-                <RelevanceIndicator column={column} />
-                <SortingIndicator sorting={columnSorting} />
+                <div tw="flex flex-grow items-center justify-end">
+                    <RelevanceIndicator column={column} />
+                    <SortingIndicator sorting={columnSorting} />
+                </div>
             </div>
             <button
                 onClick={stopPropagation}

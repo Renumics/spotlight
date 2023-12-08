@@ -1,6 +1,7 @@
 import useResizeObserver from '@react-hook/resize-observer';
-import Maximize from '../../../icons/Maximize';
+import MaximizeIcon from '../../../icons/Maximize';
 import ResetIcon from '../../../icons/Reset';
+import RepeatIcon from '../../../icons/Repeat';
 import Button from '../../ui/Button';
 import * as d3 from 'd3';
 import { useEffect, useLayoutEffect, useRef, useState, WheelEvent } from 'react';
@@ -15,12 +16,16 @@ import { notifyProblem } from '../../../notify';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.regions.min.js';
 import CursorPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.cursor.min.js';
+import AutoplayIcon from '../../../icons/Autoplay';
 
 // Maximum zoom level for waveform
 const MAX_ZOOM = 2500;
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
-const Toolbar = tw.div`flex flex-row items-baseline justify-center p-px`;
+
+const Toolbar = tw.div`flex flex-row items-stretch justify-center border-t border-gray-300 bg-gray-100 divide-x divide-gray-300`;
+const ToolbarButton = tw(Button)`rounded-none py-px`;
+
 const EmptyNote = styled.p`
     color: ${theme`colors.gray.500`};
     ${tw`flex h-full items-center justify-center`}
@@ -61,9 +66,6 @@ const redrawTimeline = (
     // Don't draw timeline for empty files
     if (duration === 0) return;
 
-    // How many ticks can we fit in the container
-    const numTicks = Math.floor(width / 60);
-
     // Date constructor expects milliseconds
     const durationMillis = 1000 * duration;
     const durationDate = new Date(durationMillis);
@@ -74,17 +76,21 @@ const redrawTimeline = (
     const hasMinutes = !!durationDate.getMinutes();
     const hasSeconds = !!durationDate.getSeconds();
 
-    const drawerWidth = waveform?.drawer.getWidth();
-    const offsetLeft = waveform?.drawer.getScrollX();
-    const offsetRight = offsetLeft + drawerWidth;
-    const secPerPx = duration / (waveform?.drawer.wrapper.scrollWidth ?? 0);
+    const scrollWidth = waveform?.drawer.wrapper.scrollWidth ?? 1;
+    const scrollLeft = waveform?.drawer.wrapper.scrollLeft ?? 1;
 
-    const lowerTime = offsetLeft * secPerPx;
+    const offsetRight = scrollLeft + scrollWidth;
+    const secPerPx = duration / (waveform?.drawer.wrapper.scrollWidth ?? 1);
+
+    const lowerTime = scrollLeft * secPerPx;
     const upperTime = offsetRight * secPerPx;
 
     const domain = [lowerTime, upperTime];
-    const range = [0, width];
+    const range = [0, scrollWidth];
     const timeline = d3.scaleLinear(domain, range);
+
+    // How many ticks can we fit in the container
+    const numTicks = Math.floor(scrollWidth / 70);
 
     const axis = d3
         .axisBottom(timeline)
@@ -98,8 +104,6 @@ const redrawTimeline = (
             if (val === 0) {
                 return '0ms';
             }
-
-            // Seconds to milliseconds
             const date = new Date(val * 1000);
 
             let formatString = '%Lms';
@@ -140,6 +144,10 @@ interface Props {
     editable: boolean;
     optional: boolean;
     showControls?: boolean;
+    repeat?: boolean;
+    onChangeRepeat?: (enabled: boolean) => void;
+    autoplay?: boolean;
+    onChangeAutoplay?: (enabled: boolean) => void;
     onEditWindow?: (window: [number, number]) => void;
     onDeleteWindow?: () => void;
     onRegionEnter?: (windowIndex: number) => void;
@@ -154,6 +162,10 @@ const AudioViewer = ({
     editable,
     optional,
     showControls,
+    repeat,
+    onChangeRepeat,
+    autoplay = false,
+    onChangeAutoplay,
     onEditWindow,
     onDeleteWindow,
     onRegionEnter,
@@ -169,6 +181,14 @@ const AudioViewer = ({
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isReady, setIsReady] = useState(false);
+
+    const [_repeat, _setRepeat] = useState(false);
+    repeat = repeat ?? _repeat;
+    onChangeRepeat = onChangeRepeat ?? _setRepeat;
+    const toggleRepeat = () => onChangeRepeat?.(!repeat);
+
+    const canToggleAutoplay = onChangeAutoplay !== undefined;
+    const toggleAutoplay = () => onChangeAutoplay?.(!autoplay);
 
     const redrawWaveform = (height: number) => {
         waveform.current?.setHeight(height);
@@ -316,6 +336,15 @@ const AudioViewer = ({
         onRegionEnter,
         onRegionLeave,
     ]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (waveform.current?.backend as any).media.loop = repeat;
+        if (isReady && autoplay && !waveform.current?.isPlaying()) {
+            switchActiveWidget();
+            waveform.current?.play();
+        }
+    }, [isReady, autoplay, repeat]);
 
     useEffect(() => {
         if (!waveform.current?.isReady) return;
@@ -511,49 +540,61 @@ const AudioViewer = ({
             {showControls && (
                 <Toolbar>
                     {windows !== undefined && (
-                        <Button
+                        <ToolbarButton
                             tooltip="Play Region"
-                            tw="max-h-full rounded-none py-0"
                             onClick={playRegion}
                             disabled={
                                 !windows[0] || windows.length > 1 || url === undefined
                             }
                         >
                             <BsPlayCircleFill />
-                        </Button>
+                        </ToolbarButton>
                     )}
-                    <Button
+                    <ToolbarButton
                         tooltip="Play/Pause"
-                        tw="max-h-full rounded-none py-0"
                         onClick={playPause}
                         disabled={url === undefined}
                     >
                         {isPlaying ? <BsPauseCircle /> : <BsPlayCircle />}
-                    </Button>
-                    <Button
+                    </ToolbarButton>
+                    <ToolbarButton
                         tooltip="Stop"
-                        tw="max-h-full rounded-none py-0"
                         onClick={stopPlaying}
                         disabled={url === undefined}
                     >
                         <BsStopCircle />
-                    </Button>
-                    <Button
+                    </ToolbarButton>
+                    <div tw="flex-grow" />
+                    <ToolbarButton
+                        tooltip="Repeat"
+                        checked={repeat}
+                        onClick={toggleRepeat}
+                    >
+                        <RepeatIcon />
+                    </ToolbarButton>
+                    <ToolbarButton
+                        tooltip="Autoplay"
+                        checked={autoplay}
+                        disabled={!canToggleAutoplay}
+                        onClick={toggleAutoplay}
+                    >
+                        <AutoplayIcon />
+                    </ToolbarButton>
+
+                    <ToolbarButton
                         tooltip="Zoom to window"
-                        tw="max-h-full rounded-none py-0"
                         onClick={zoomToWindow}
                         disabled={url === undefined}
                     >
                         <ResetIcon />
-                    </Button>
-                    <Button
+                    </ToolbarButton>
+                    <ToolbarButton
                         tooltip="Fit screen"
-                        tw="max-h-full rounded-none py-0"
                         onClick={fitToScreen}
                         disabled={url === undefined}
                     >
-                        <Maximize />
-                    </Button>
+                        <MaximizeIcon />
+                    </ToolbarButton>
                 </Toolbar>
             )}
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}

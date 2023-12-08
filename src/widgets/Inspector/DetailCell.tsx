@@ -6,6 +6,7 @@ import { Dataset, useDataset } from '../../stores/dataset';
 import tw, { styled } from 'twin.macro';
 import { shallow } from 'zustand/shallow';
 import { useStore } from './store';
+import { LensSettings } from '../../types';
 
 type Props = CellProps;
 
@@ -48,12 +49,12 @@ const Cell: FunctionComponent<Props> = ({
     columnIndex: dataRowIndex,
     rowIndex: dataColumnIndex,
 }) => {
-    const view = useStore((state) => state.views[dataColumnIndex]);
+    const lens = useStore((state) => state.lenses[dataColumnIndex]);
     const rowIndices = useDataset(selectedIndicesSelector);
     const allColumns = useDataset(columnsSelector);
     const columns = useMemo(
-        () => allColumns.filter((c) => view.columns.includes(c.key)),
-        [view, allColumns]
+        () => allColumns.filter((c) => lens.columns.includes(c.key)),
+        [lens.columns, allColumns]
     );
 
     const originalIndex = rowIndices[dataRowIndex];
@@ -78,6 +79,22 @@ const Cell: FunctionComponent<Props> = ({
         [dataRowIndex, dehighlightRowAt, rowIndices]
     );
 
+    const changeLens = useStore((state) => state.changeLens);
+    const handleChangeSettings = useCallback(
+        (settings: LensSettings | ((prev: LensSettings) => LensSettings)) => {
+            changeLens(lens.key, (prevConfig) => {
+                if (typeof settings === 'function') {
+                    settings = settings(prevConfig.settings);
+                }
+                return {
+                    ...prevConfig,
+                    settings: { ...prevConfig.settings, ...settings },
+                };
+            });
+        },
+        [changeLens, lens.key]
+    );
+
     return (
         <StyledDiv
             style={style}
@@ -87,11 +104,13 @@ const Cell: FunctionComponent<Props> = ({
         >
             {columns.length ? (
                 <LensFactory
-                    view={view.view}
+                    view={lens.view}
                     rowIndex={originalIndex}
                     columns={columns}
-                    syncKey={view.key}
+                    syncKey={lens.key}
                     deferLoading={isScrolling}
+                    settings={lens.settings}
+                    onChangeSettings={handleChangeSettings}
                 />
             ) : (
                 <div>{`Columns Not Found`}</div>

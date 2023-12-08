@@ -24,7 +24,7 @@ const HEADER_WIDTH = 24;
 
 const DetailsGridWrapper = tw.div`flex`;
 
-const viewsSelector = (state: StoreState) => state.views;
+const viewsSelector = (state: StoreState) => state.lenses;
 const focusedRowSelector = (d: Dataset) => d.lastFocusedRow;
 const rowCountSelector = (d: Dataset) => d.length;
 const selectedIndicesSelector = (d: Dataset) => d.selectedIndices;

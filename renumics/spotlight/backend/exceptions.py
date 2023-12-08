@@ -181,3 +181,14 @@ class H5DatasetOutdated(Problem):
             "dataset using `dataset.rebuild()`.",
             status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+class ComputedColumnNotReady(Problem):
+    """A computed column is not yet ready"""
+
+    def __init__(self, name: str) -> None:
+        super().__init__(
+            "Computed column not ready",
+            f"Computed column {name} is not yet ready.",
+            status.HTTP_404_NOT_FOUND,
+        )

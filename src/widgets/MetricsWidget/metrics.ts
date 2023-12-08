@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import levenshtein from 'fast-levenshtein';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
 import rouge from 'rouge';
@@ -114,6 +115,25 @@ export const METRICS: Record<string, Metric> = {
         },
         compute: ([referenceSummary, generatedSummary]) => {
             return rouge.n(referenceSummary, generatedSummary, { n: 2 });
+        },
+    },
+    levenshtein: {
+        signature: {
+            X: ['str'],
+            Y: ['str'],
+        },
+        compute: ([actualValues, assignedValues]) => {
+            let sum = 0;
+
+            for (let i = 0; i < actualValues.length; i++) {
+                const actual = actualValues[i];
+                const assigned = assignedValues[i];
+
+                const dist = levenshtein.get(actual as string, assigned as string);
+                sum += dist;
+            }
+
+            return sum / actualValues.length;
         },
     },
 };

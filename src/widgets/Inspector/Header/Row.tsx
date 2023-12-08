@@ -63,7 +63,7 @@ const RowResizer: FunctionComponent<RowProps> = ({ index, style }) => {
 
 const Row: FunctionComponent<RowProps> = ({ index, style }) => {
     const viewSelector = useCallback(
-        (state: StoreState) => state.views[index],
+        (state: StoreState) => state.lenses[index],
         [index]
     );
     const view = useStore(viewSelector);
@@ -109,11 +109,11 @@ type ItemProps = {
     index: number;
 };
 
-const removeViewSelector = (state: StoreState) => state.removeView;
+const removeViewSelector = (state: StoreState) => state.removeLens;
 
 const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
     const viewSelector = useCallback(
-        (state: StoreState) => state.views[index],
+        (state: StoreState) => state.lenses[index],
         [index]
     );
     const view = useStore(viewSelector);

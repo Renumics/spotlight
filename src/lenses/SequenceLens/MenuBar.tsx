@@ -12,24 +12,20 @@ interface Props {
     groupY: boolean;
     isXSynchronized: boolean;
     isYSynchronized: boolean;
-    isXSyncedGlobally: boolean;
     onChangeGroupY: (show: boolean) => void;
     onReset: () => void;
     onChangeIsXSynchronized: (isSynchronized: boolean) => void;
     onChangeIsYSynchronized: (isSynchronized: boolean) => void;
-    onChangeIsXSyncedGlobally: (isSyncedGlobally: boolean) => void;
 }
 
 const MenuBar: FunctionComponent<Props> = ({
     groupY,
     isXSynchronized,
     isYSynchronized,
-    isXSyncedGlobally,
     onChangeGroupY,
     onReset,
     onChangeIsXSynchronized,
     onChangeIsYSynchronized,
-    onChangeIsXSyncedGlobally,
 }) => {
     const settingsMenu = (
         <Menu>
@@ -43,9 +39,6 @@ const MenuBar: FunctionComponent<Props> = ({
             <Menu.Title>X-Axis</Menu.Title>
             <Menu.Switch value={isXSynchronized} onChange={onChangeIsXSynchronized}>
                 Synchronize
-            </Menu.Switch>
-            <Menu.Switch value={isXSyncedGlobally} onChange={onChangeIsXSyncedGlobally}>
-                Synchronize Globally
             </Menu.Switch>
         </Menu>
     );

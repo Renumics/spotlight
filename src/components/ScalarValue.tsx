@@ -1,8 +1,8 @@
 import Dot from './ui/Dot';
 import Tooltip from './ui/Tooltip';
-import dataformat from '../dataformat';
+import { useDataformat } from '../dataformat';
 import { isNumerical } from '../datatypes';
-import { FunctionComponent, memo, useCallback, useMemo } from 'react';
+import { FunctionComponent, memo, useCallback } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import tw, { styled } from 'twin.macro';
 import { DataColumn } from '../types';
@@ -28,15 +28,11 @@ const ScalarValue: FunctionComponent<Props> = ({
     column,
     filtered = false,
 }) => {
-    const formattedValue = useMemo(
-        () => dataformat.format(value, column.type),
-        [value, column.type]
-    );
-    const fullValue = useMemo(
-        () => dataformat.format(value, column.type, true),
-        [value, column.type]
-    );
     const isNumber = isNumerical(column.type);
+
+    const dataformat = useDataformat();
+    const formattedValue = dataformat.format(value, column.type);
+    const fullValue = dataformat.format(value, column.type, true);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const colorTransferFunctionSelector = useCallback(

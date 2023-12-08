@@ -1,6 +1,6 @@
 import { Color } from 'chroma-js';
 import * as d3 from 'd3';
-import dataformat from '../../../../dataformat';
+import { useDataformat } from '../../../../dataformat';
 import { ContinuousTransferFunction } from '../../../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -68,14 +68,16 @@ export const ContinuousLegend = ({
         });
     }, [domain, gradientID, steps]);
 
+    const dataformat = useDataformat();
+
     return (
         <ContinuousLegendWrapper arrange={arrange} align={align}>
             <ContinuousLegendAnnotationWrapper arrange={arrange}>
                 <span style={{ textAlign: align }}>
-                    {dataformat.formatNumber(domain[0])}
+                    {dataformat.formatFloat(domain[0])}
                 </span>
                 <span style={{ textAlign: align }}>
-                    {dataformat.formatNumber(domain[1])}
+                    {dataformat.formatFloat(domain[1])}
                 </span>
             </ContinuousLegendAnnotationWrapper>
             <ContinuousLegendSVGWrapper arrange={arrange} ref={svgRef}>
@@ -126,6 +128,8 @@ export const ContinuousTransferFunctionLegend = ({
         return valSteps.map((v) => transferFunction(v));
     }, [domain, transferFunction]);
 
+    const dataformat = useDataformat();
+
     const classBreaksColorMap = useMemo(() => {
         if (transferFunction.classBreaks === undefined) return undefined;
 
@@ -133,13 +137,13 @@ export const ContinuousTransferFunctionLegend = ({
             const start = transferFunction.classBreaks?.[i] || 0;
             const end = v;
             return {
-                label: `${dataformat.formatNumber(start)} - ${dataformat.formatNumber(
+                label: `${dataformat.formatFloat(start)} - ${dataformat.formatFloat(
                     end
                 )}`,
                 color: transferFunction((start + end) / 2),
             };
         });
-    }, [transferFunction]);
+    }, [transferFunction, dataformat]);
 
     if (classBreaksColorMap !== undefined) {
         return <CategoricalLegend colorMap={classBreaksColorMap} {...props} />;

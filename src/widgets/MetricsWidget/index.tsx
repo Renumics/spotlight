@@ -5,8 +5,8 @@ import {
     WidgetContainer,
     WidgetContent,
     WidgetMenu,
-    dataformat,
     useDataset,
+    useDataformat,
     useWidgetConfig,
 } from '../../lib';
 import { Widget } from '../types';
@@ -133,6 +133,8 @@ const MetricsWidget: Widget = () => {
         setColumn,
     } = useConfiguredMetric();
 
+    const formatter = useDataformat();
+
     return (
         <WidgetContainer>
             <WidgetMenu>
@@ -167,14 +169,14 @@ const MetricsWidget: Widget = () => {
                     <Tooltip content="all (filtered) rows">
                         <div tw="text-xl font-bold text-black">
                             {values.filtered !== undefined
-                                ? dataformat.formatNumber(values.filtered)
+                                ? formatter.formatFloat(values.filtered)
                                 : '-'}
                         </div>
                     </Tooltip>
                     <Tooltip content="selected rows">
                         <div tw="text-lg text-gray-800">
                             {values.selected !== undefined
-                                ? dataformat.formatNumber(values.selected)
+                                ? formatter.formatFloat(values.selected)
                                 : '-'}
                         </div>
                     </Tooltip>

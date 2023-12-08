@@ -43,11 +43,11 @@ async def reset_layout(
         dataset_uid = app.data_store.uid
         await app.config.set(
             CURRENT_LAYOUT_KEY,
-            layout.dict(by_alias=True),
+            layout.model_dump(by_alias=True),
             dataset=dataset_uid,
             user=browser_id or "",
         )
-    return layout.dict(by_alias=True)
+    return layout.model_dump(by_alias=True)
 
 
 class SetLayoutRequest(BaseModel):

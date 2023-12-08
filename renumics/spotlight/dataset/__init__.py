@@ -22,6 +22,7 @@ from typing import (
     cast,
 )
 
+import PIL.Image
 import h5py
 import numpy as np
 import pandas as pd
@@ -46,6 +47,7 @@ from renumics.spotlight.typing import (
 from . import exceptions
 from .pandas import create_typed_series, infer_dtypes, is_string_mask, prepare_column
 from .typing import (
+    BoundingBoxColumnInputType,
     OutputType,
     ExternalOutputType,
     BoolColumnInputType,
@@ -82,11 +84,6 @@ VALUE_TYPE_BY_DTYPE_NAME = {
     "int": int,
     "float": float,
     "str": str,
-    "datetime": datetime,
-    "Category": spotlight_dtypes.Category,
-    "array": np.ndarray,
-    "Window": spotlight_dtypes.Window,
-    "Embedding": spotlight_dtypes.Embedding,
     "Sequence1D": spotlight_dtypes.Sequence1D,
     "Audio": spotlight_dtypes.Audio,
     "Image": spotlight_dtypes.Image,
@@ -143,6 +140,7 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
         np.ndarray,
         list,
         tuple,
+        range,
         bool,
         int,
         float,
@@ -150,11 +148,21 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
         np.integer,
         np.floating,
     ),
-    "Window": (np.ndarray, list, tuple),
-    "Embedding": (spotlight_dtypes.Embedding, np.ndarray, list, tuple),
-    "Sequence1D": (spotlight_dtypes.Sequence1D, np.ndarray, list, tuple),
+    "Window": (np.ndarray, list, tuple, range),
+    "BoundingBox": (np.ndarray, list, tuple, range),
+    "Embedding": (spotlight_dtypes.Embedding, np.ndarray, list, tuple, range),
+    "Sequence1D": (spotlight_dtypes.Sequence1D, np.ndarray, list, tuple, range),
     "Audio": (spotlight_dtypes.Audio, bytes, str, os.PathLike),
-    "Image": (spotlight_dtypes.Image, bytes, str, os.PathLike, np.ndarray, list, tuple),
+    "Image": (
+        spotlight_dtypes.Image,
+        bytes,
+        str,
+        os.PathLike,
+        np.ndarray,
+        list,
+        tuple,
+        PIL.Image.Image,
+    ),
     "Mesh": (spotlight_dtypes.Mesh, trimesh.Trimesh, str, os.PathLike),
     "Video": (spotlight_dtypes.Video, bytes, str, os.PathLike),
 }
@@ -164,6 +172,7 @@ _ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
     "float": (np.floating,),
     "datetime": (np.datetime64,),
     "Window": (np.floating,),
+    "BoundingBox": (np.floating,),
     "Embedding": (np.floating,),
 }
 
@@ -231,6 +240,7 @@ class Dataset:
             or spotlight_dtypes.is_str_dtype(dtype)
             or spotlight_dtypes.is_category_dtype(dtype)
             or spotlight_dtypes.is_window_dtype(dtype)
+            or spotlight_dtypes.is_bounding_box_dtype(dtype)
         ):
             attribute_names["editable"] = bool
         if spotlight_dtypes.is_category_dtype(dtype):
@@ -258,7 +268,9 @@ class Dataset:
         if spotlight_dtypes.is_datetime_dtype(dtype):
             return np.datetime64("NaT")
         if spotlight_dtypes.is_window_dtype(dtype):
-            return [np.nan, np.nan]
+            return np.full(2, np.nan)
+        if spotlight_dtypes.is_bounding_box_dtype(dtype):
+            return np.full(4, np.nan)
         return None
 
     def __init__(self, filepath: PathType, mode: str):
@@ -1227,6 +1239,7 @@ class Dataset:
         default: EmbeddingColumnInputType = None,
         description: Optional[str] = None,
         tags: Optional[List[str]] = None,
+        length: Optional[int] = None,
         dtype: Union[str, np.dtype] = "float32",
     ) -> None:
         """
@@ -1257,7 +1270,7 @@ class Dataset:
             )
         self._append_column(
             name,
-            spotlight_dtypes.embedding_dtype,
+            spotlight_dtypes.EmbeddingDType(length),
             values,
             h5py.vlen_dtype(np_dtype),
             order,
@@ -1629,6 +1642,52 @@ class Dataset:
             editable=editable,
         )
 
+    def append_bounding_box_column(
+        self,
+        name: str,
+        values: Optional[
+            Union[BoundingBoxColumnInputType, Iterable[BoundingBoxColumnInputType]]
+        ] = None,
+        order: Optional[int] = None,
+        hidden: bool = False,
+        optional: bool = False,
+        default: BoundingBoxColumnInputType = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        editable: bool = True,
+    ) -> None:
+        """
+        Create and optionally fill axis-aligned bounding box column.
+
+        Args:
+            name: Column name.
+            values: Optional column values. If a single value, the whole column
+                filled with this value.
+            order: Optional Spotlight priority order value. `None` means the
+                lowest priority.
+            hidden: Whether column is hidden in Spotlight.
+            optional: Whether column is optional. If `default` other than `None`
+                is specified, `optional` is automatically set to `True`.
+            default: Value to use by default if column is optional and no value
+                or `None` is given.
+            description: Optional column description.
+            tags: Optional tags for the column.
+            editable: Whether column is editable in Spotlight.
+        """
+        self._append_column(
+            name,
+            spotlight_dtypes.bounding_box_dtype,
+            values,
+            np.dtype("float32"),
+            order,
+            hidden,
+            optional,
+            default,
+            description,
+            tags,
+            editable=editable,
+        )
+
     def append_column(
         self,
         name: str,
@@ -1705,8 +1764,17 @@ class Dataset:
             append_column_fn = self.append_array_column
         elif spotlight_dtypes.is_window_dtype(dtype):
             append_column_fn = self.append_window_column
+        elif spotlight_dtypes.is_bounding_box_dtype(dtype):
+            append_column_fn = self.append_bounding_box_column
         elif spotlight_dtypes.is_embedding_dtype(dtype):
             append_column_fn = self.append_embedding_column
+            if dtype.length is not None:
+                if "length" in attrs and attrs["length"] != dtype.length:
+                    raise exceptions.InvalidAttributeError(
+                        f"Embedding length differs between `dtype` ({dtype.length}) "
+                        f"and `length` ({attrs['length']}) keyword argument."
+                    )
+                attrs["length"] = dtype.length
         elif spotlight_dtypes.is_sequence_1d_dtype(dtype):
             append_column_fn = self.append_sequence_1d_column
         elif spotlight_dtypes.is_audio_dtype(dtype):
@@ -1875,7 +1943,9 @@ class Dataset:
             return np.isnan(raw_values)
         if spotlight_dtypes.is_category_dtype(dtype):
             return raw_values == -1
-        if spotlight_dtypes.is_window_dtype(dtype):
+        if spotlight_dtypes.is_window_dtype(
+            dtype
+        ) or spotlight_dtypes.is_bounding_box_dtype(dtype):
             return np.isnan(raw_values).all(axis=1)
         if spotlight_dtypes.is_embedding_dtype(dtype):
             return np.array([len(x) == 0 for x in raw_values])
@@ -2468,6 +2538,9 @@ class Dataset:
         elif spotlight_dtypes.is_window_dtype(dtype):
             shape = (0, 2)
             maxshape = (None, 2)
+        elif spotlight_dtypes.is_bounding_box_dtype(dtype):
+            shape = (0, 4)
+            maxshape = (None, 4)
         elif spotlight_dtypes.is_sequence_1d_dtype(dtype):
             attrs["x_label"] = dtype.x_label
             attrs["y_label"] = dtype.y_label
@@ -2482,6 +2555,8 @@ class Dataset:
             )
             self._column_names.add(name)
             column.attrs["type"] = dtype.name
+            if spotlight_dtypes.is_embedding_dtype(dtype) and dtype.length is not None:
+                column.attrs["value_shape"] = (dtype.length,)
             self.set_column_attributes(
                 name,
                 order,
@@ -2555,7 +2630,7 @@ class Dataset:
 
         encoded_values: Union[np.ndarray, List[_EncodedColumnType]]
         if is_iterable(values):
-            # Single windows and embeddings also come here.
+            # Single windows, bounding boxes and embeddings also come here.
             encoded_values = self._encode_values(values, column)
             if len(encoded_values) != indices_length:
                 if indices_length == 0:
@@ -2597,9 +2672,15 @@ class Dataset:
         elif self._length == 0:
             return
         elif attrs.get("optional", False):
-            encoded_values = column.attrs.get(
+            default_value = column.attrs.get(
                 "default", "" if h5py.check_string_dtype(column.dtype) else None
             )
+            if isinstance(default_value, np.ndarray):
+                encoded_values = np.broadcast_to(
+                    default_value, (indices_length, *default_value.shape)
+                )
+            else:
+                encoded_values = default_value
         else:
             raise exceptions.InvalidDTypeError(
                 f'Dataset has been initialized and values for non-optional column "{column_name}" '
@@ -2712,14 +2793,16 @@ class Dataset:
         if spotlight_dtypes.is_embedding_dtype(dtype):
             null_mask = [len(x) == 0 for x in values]
             values[null_mask] = None
-        # For column types `bool`, `int`, `float` or `Window`, return the array as-is.
+        # For bool, int, float, window or bounding box columns, return the array as-is.
         return values
 
     def _decode_ref_values(
         self, values: np.ndarray, column: h5py.Dataset, dtype: spotlight_dtypes.DType
     ) -> np.ndarray:
         column_name = self._get_column_name(column)
-        if dtype.name in ("array", "Embedding"):
+        if spotlight_dtypes.is_array_dtype(
+            dtype
+        ) or spotlight_dtypes.is_embedding_dtype(dtype):
             # `np.array([<...>], dtype=object)` creation does not work for
             # some cases and erases dtypes of sub-arrays, so we use assignment.
             decoded_values = np.empty(len(values), dtype=object)
@@ -2865,9 +2948,27 @@ class Dataset:
                 return encoded_values
             column_name = self._get_column_name(column)
             raise exceptions.InvalidShapeError(
-                f'Input values to `Window` column "{column_name}" should have '
+                f'Input values to window column "{column_name}" should have '
                 f"one of shapes (2,) (a single window) or (n, 2) (multiple "
                 f"windows), but values with shape {encoded_values.shape} received."
+            )
+        if spotlight_dtypes.is_bounding_box_dtype(dtype):
+            encoded_values = self._asarray(values, column, dtype)
+            if encoded_values.ndim == 1:
+                if len(encoded_values) == 4:
+                    # A single bounding box, reshape it to an array.
+                    return np.broadcast_to(values, (1, 4))  # type: ignore
+                if len(encoded_values) == 0:
+                    # An empty array, reshape for compatibility.
+                    return np.broadcast_to(values, (0, 4))  # type: ignore
+            elif encoded_values.ndim == 2 and encoded_values.shape[1] == 4:
+                # An array with valid bounding boxes.
+                return encoded_values
+            column_name = self._get_column_name(column)
+            raise exceptions.InvalidShapeError(
+                f'Input values to bounding box column "{column_name}" should have '
+                f"one of shapes (4,) (a single bounding box) or (n, 4) (multiple "
+                f"bounding boxes), but values with shape {encoded_values.shape} received."
             )
         if spotlight_dtypes.is_embedding_dtype(dtype):
             if _check_valid_array(values, dtype):
@@ -2875,10 +2976,10 @@ class Dataset:
                 # embedding should go through `_encode_value` element-wise.
                 if values.ndim == 1:
                     # Handle 1-dimensional input as a single embedding.
-                    self._assert_valid_or_set_embedding_shape(values.shape, column)
+                    self._assert_valid_or_set_value_shape(values.shape, column)
                     values_list = list(np.broadcast_to(values, (1, len(values))))
                 elif values.ndim == 2:
-                    self._assert_valid_or_set_embedding_shape(values.shape[1:], column)
+                    self._assert_valid_or_set_value_shape(values.shape[1:], column)
                     values_list = list(values)
                 else:
                     raise exceptions.InvalidShapeError(
@@ -3093,16 +3194,24 @@ class Dataset:
             value = np.asarray(value, dtype=column.dtype)
             if value.shape == (2,):
                 return value
-            raise exceptions.InvalidDTypeError(
+            raise exceptions.InvalidShapeError(
                 f"Windows should consist of 2 values, but window of shape "
-                f"{value.shape} received for column {column_name}."
+                f"{value.shape} received for column '{column_name}'."
+            )
+        if spotlight_dtypes.is_bounding_box_dtype(dtype):
+            value = np.asarray(value, dtype=column.dtype)
+            if value.shape == (4,):
+                return value
+            raise exceptions.InvalidShapeError(
+                f"Bounding boxes should consist of 4 values, but bounding box "
+                f"of shape {value.shape} received for column '{column_name}'."
             )
         if spotlight_dtypes.is_embedding_dtype(dtype):
             # `Embedding` column is not a ref column.
             if isinstance(value, spotlight_dtypes.Embedding):
                 value = value.encode(attrs.get("format", None))
             value = np.asarray(value, dtype=column.dtype.metadata["vlen"])
-            self._assert_valid_or_set_embedding_shape(value.shape, column)
+            self._assert_valid_or_set_value_shape(value.shape, column)
             return value
         if isinstance(value, np.str_):
             return value.tolist()
@@ -3153,7 +3262,7 @@ class Dataset:
                 value = spotlight_dtypes.Embedding(value)  # type: ignore
             value = value.encode()
             self._assert_valid_or_set_value_dtype(value.dtype, column)
-            self._assert_valid_or_set_embedding_shape(value.shape, column)
+            self._assert_valid_or_set_value_shape(value.shape, column)
             return value
         if spotlight_dtypes.is_sequence_1d_dtype(dtype):
             if not isinstance(value, spotlight_dtypes.Sequence1D):
@@ -3289,8 +3398,10 @@ class Dataset:
         value: Union[np.bool_, np.integer, np.floating, bytes, str, np.ndarray],
         dtype: spotlight_dtypes.DType,
     ) -> Optional[Union[bool, int, float, str, datetime, np.ndarray]]:
-        if spotlight_dtypes.is_window_dtype(dtype):
-            return value  # type: ignore
+        if spotlight_dtypes.is_window_dtype(
+            dtype
+        ) or spotlight_dtypes.is_bounding_box_dtype(dtype):
+            return cast(np.ndarray, value)
         if spotlight_dtypes.is_embedding_dtype(dtype):
             value = cast(np.ndarray, value)
             if len(value) == 0:
@@ -3469,6 +3580,12 @@ class Dataset:
             return spotlight_dtypes.Sequence1DDType(
                 x.get("x_label", "x"), x.get("y_label", "y")
             )
+        if type_name == "Embedding":
+            try:
+                length = x["value_shape"][0]
+            except (KeyError, IndexError):
+                return spotlight_dtypes.embedding_dtype
+            return spotlight_dtypes.EmbeddingDType(length)
         return spotlight_dtypes.create_dtype(type_name)
 
     @staticmethod
@@ -3579,6 +3696,9 @@ class Dataset:
     def _assert_valid_or_set_value_dtype(
         self, dtype: np.dtype, column: h5py.Dataset
     ) -> None:
+        """
+        Set value dtype for the whole column if not yet set, check shape otherwise.
+        """
         attrs = column.attrs
         if "value_dtype" in attrs:
             if dtype.str != attrs["value_dtype"]:
@@ -3598,27 +3718,27 @@ class Dataset:
                 f"received."
             )
 
-    def _assert_valid_or_set_embedding_shape(
+    def _assert_valid_or_set_value_shape(
         self, shape: Tuple[int, ...], column: h5py.Dataset
     ) -> None:
+        """
+        Set value shape for the whole column if not yet set, check shape otherwise.
+        """
         attrs = column.attrs
         if shape == (0,) and attrs.get("optional", False):
             # Do not check shape if an empty array given for an optional column.
             return
-        if "value_shape" in attrs:
-            if shape != attrs["value_shape"]:
-                column_name = self._get_column_name(column)
-                raise exceptions.InvalidShapeError(
-                    f'Values for `Embedding` column "{column_name}" '
-                    f'should have shape {attrs["value_shape"]}, but '
-                    f"value with shape {shape} received."
-                )
-        elif len(shape) == 1 and shape[0] > 0:
+        try:
+            target_shape = attrs["value_shape"]
+        except KeyError:
+            # Target shape isn't set, set.
             attrs["value_shape"] = shape
         else:
-            column_name = self._get_column_name(column)
-            raise exceptions.InvalidShapeError(
-                f'Values for `Embedding` column "{column_name}" should '
-                f"have shape `(num_features,)`, `num_features > 0`, "
-                f"but value with shape {shape} received."
-            )
+            # Target shape is set, check.
+            if shape != target_shape:
+                name = self._get_column_name(column)
+                dtype = self._get_dtype(column)
+                raise exceptions.InvalidShapeError(
+                    f'Values for {dtype} column "{name}" should have shape '
+                    f"{target_shape}, but value with shape {shape} received."
+                )

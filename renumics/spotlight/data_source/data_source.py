@@ -2,7 +2,7 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any, Union
+from typing import Iterable, Optional, List, Any, Union
 
 import pandas as pd
 import numpy as np
@@ -27,6 +27,7 @@ class ColumnMetadata:
     hidden: bool = False
     description: Optional[str] = None
     tags: List[str] = dataclasses.field(default_factory=list)
+    computed: bool = False
 
 
 class DataSource(ABC):
@@ -102,7 +103,7 @@ class DataSource(ABC):
         self,
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
-    ) -> np.ndarray:
+    ) -> Iterable:
         """
         Get normalized values of a column.
         """

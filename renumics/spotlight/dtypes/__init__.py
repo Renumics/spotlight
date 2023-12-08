@@ -65,6 +65,12 @@ class DType:
     def __hash__(self) -> int:
         return hash(self._name)
 
+    def dict(self) -> dict:
+        """
+        Serialize dtype as dict.
+        """
+        return {"name": self._name}
+
     @property
     def name(self) -> str:
         return self._name
@@ -142,6 +148,9 @@ class CategoryDType(DType):
             ^ hash(tuple(self._categories.values()))
         )
 
+    def dict(self) -> dict:
+        return {"name": self._name, "categories": self._categories}
+
     @property
     def categories(self) -> Optional[Dict[str, int]]:
         """
@@ -198,6 +207,9 @@ class ArrayDType(DType):
     def __hash__(self) -> int:
         return hash(self._name) ^ hash(self.shape)
 
+    def dict(self) -> dict:
+        return {"name": self._name, "shape": self.shape}
+
     @property
     def ndim(self) -> int:
         """
@@ -246,6 +258,9 @@ class EmbeddingDType(DType):
     def __hash__(self) -> int:
         return hash(self._name) ^ hash(self.length)
 
+    def dict(self) -> dict:
+        return {"name": self._name, "length": self.length}
+
 
 class Sequence1DDType(DType):
     """
@@ -287,6 +302,47 @@ class Sequence1DDType(DType):
 
     def __hash__(self) -> int:
         return hash(self._name) ^ hash(self.x_label) ^ hash(self.y_label)
+
+    def dict(self) -> dict:
+        return {"name": self._name, "x_label": self.x_label, "y_label": self.y_label}
+
+
+class SequenceDType(DType):
+    """
+    Sequence of values with the same dtype.
+    """
+
+    dtype: DType
+    length: Optional[int]
+
+    def __init__(self, dtype: DType, length: Optional[int] = None):
+        super().__init__("Sequence")
+        self.dtype = dtype
+        if length is not None and length < 0:
+            raise ValueError(
+                "Negative length not allowed. Use `None` for arbitrary length."
+            )
+        self.length = length
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, SequenceDType):
+            return other.dtype == self.dtype and other.length == self.length
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._name) ^ hash(self.dtype) ^ hash(self.length)
+
+    def dict(self) -> dict:
+        return {"name": self._name, "dtype": self.dtype.dict(), "length": self.length}
+
+    @staticmethod
+    def is_supported_inner_dtype(dtype: DType) -> bool:
+        return (
+            is_str_dtype(dtype)
+            or is_category_dtype(dtype)
+            or is_window_dtype(dtype)
+            or is_bounding_box_dtype(dtype)
+        )
 
 
 ALIASES: Dict[Any, DType] = {}
@@ -364,6 +420,12 @@ Single or multiple bounding boxes. Aliases: `"BoundingBox"`.
 A single bounding box is represented by an array-like with its relative
 coordinates [x_min, y_min, x_max, y_max] (float values scaled onto 0 to 1).
 Top-left image corner is assumed to be (0, 0).
+"""
+register_dtype(bounding_box_dtype, [])
+
+bounding_boxes_dtype = SequenceDType(bounding_box_dtype)
+"""
+Multiple bounding boxes.
 
 Multiple bounding boxes for the same image are represented by an array-like of
 floats with shape (n, 4) (preferred) or (4, n).
@@ -466,6 +528,14 @@ def is_window_dtype(dtype: DType) -> bool:
     return dtype.name == "Window"
 
 
+def is_bounding_box_dtype(dtype: DType) -> bool:
+    return dtype.name == "BoundingBox"
+
+
+def is_bounding_boxes_dtype(dtype: DType) -> bool:
+    return is_sequence_dtype(dtype) and is_bounding_box_dtype(dtype.dtype)
+
+
 def is_embedding_dtype(dtype: DType) -> TypeGuard[EmbeddingDType]:
     return dtype.name == "Embedding"
 
@@ -492,6 +562,10 @@ def is_video_dtype(dtype: DType) -> bool:
 
 def is_bytes_dtype(dtype: DType) -> bool:
     return dtype.name == "bytes"
+
+
+def is_sequence_dtype(dtype: DType) -> TypeGuard[SequenceDType]:
+    return dtype.name == "Sequence"
 
 
 def is_mixed_dtype(dtype: DType) -> bool:

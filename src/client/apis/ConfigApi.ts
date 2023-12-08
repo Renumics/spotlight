@@ -17,7 +17,7 @@ import type {
     HTTPValidationError,
     ResponseGetValue,
     SetConfigRequest,
-} from '../models';
+} from '../models/index';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
@@ -25,22 +25,22 @@ import {
     ResponseGetValueToJSON,
     SetConfigRequestFromJSON,
     SetConfigRequestToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface GetValueRequest {
     name: string;
-    browserId?: string;
+    browserId?: string | null;
 }
 
 export interface RemoveRequest {
     name: string;
-    browserId?: string;
+    browserId?: string | null;
 }
 
 export interface SetValueRequest {
     name: string;
     setConfigRequest: SetConfigRequest;
-    browserId?: string;
+    browserId?: string | null;
 }
 
 /**
