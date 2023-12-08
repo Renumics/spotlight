@@ -11,10 +11,12 @@ const columnWidthByType: Record<DataType['kind'], number> = {
     Audio: 200,
     Video: 200,
     Window: 150,
+    BoundingBox: 128,
     Mesh: 200,
     Image: 200,
     Sequence1D: 200,
     Category: 128,
+    Sequence: 128,
     Unknown: 128,
 };
 

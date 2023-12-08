@@ -27,6 +27,7 @@
     },
     "types": "index.d.ts",
     "dependencies": {
+        "@dnd-kit/core": "^6.0.8",
         "@floating-ui/react": "^0.19.2",
         "@react-hook/resize-observer": "^1.2.6",
         "@react-three/drei": "^9.56.25",
@@ -52,6 +53,7 @@
         "d3-zoom": "^3.0.0",
         "detect-gpu": "^5.0.12",
         "dompurify": "^3.0.3",
+        "fast-levenshtein": "^3.0.0",
         "file-saver": "^2.0.5",
         "flexlayout-react": "^0.7.6",
         "fuse.js": "^6.6.2",
@@ -73,7 +75,7 @@
         "react-select": "^5.7.0",
         "react-slider": "^2.0.4",
         "react-toastify": "^9.1.1",
-        "react-virtualized-auto-sizer": "^1.0.7",
+        "react-virtualized-auto-sizer": "^1.0.20",
         "react-window": "^1.8.8",
         "recharts": "^2.4.3",
         "rouge": "^1.0.3",
@@ -93,10 +95,12 @@
         "bleu-score": "^1.0.4"
     },
     "devDependencies": {
+        "@openapitools/openapi-generator-cli": "^2.7.0",
         "@testing-library/react": "^14.0.0",
         "@types/chroma-js": "^2.4.0",
         "@types/d3": "^7.4.0",
         "@types/d3-cloud": "^1.2.5",
+        "@types/fast-levenshtein": "^0.0.4",
         "@types/file-saver": "^2.0.5",
         "@types/jest": "^29.4.0",
         "@types/lodash": "^4.14.191",

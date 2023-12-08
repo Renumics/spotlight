@@ -24,8 +24,11 @@ class AppConfig:
     project_root: Optional[Path] = None
 
     # data analysis
-    analyze: Optional[Union[bool, List[str]]] = None
+    analyze: Optional[Union[List[str], bool]] = None
     custom_issues: Optional[List[DataIssue]] = None
+
+    # embedding
+    embed: Optional[Union[List[str], bool]] = None
 
     # frontend
     layout: Optional[Layout] = None

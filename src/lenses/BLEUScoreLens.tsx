@@ -1,5 +1,6 @@
 import { Lens, DataColumn } from '../types';
 import { bleu } from 'bleu-score';
+import 'twin.macro';
 
 const BLEUScoreLens: Lens = ({ values }) => {
     const N = 4;
@@ -13,9 +14,9 @@ const BLEUScoreLens: Lens = ({ values }) => {
     }
 
     return (
-        <div tw="p-1 text-xs" style={{ height: '100%', overflowY: 'scroll' }}>
+        <div tw="p-1 text-sm" style={{ height: '100%', overflowY: 'scroll' }}>
             {bleuScores.map((score, index) => (
-                <div key={index}>{`BLEU score using ${index + 1}-gram: ${score}`}</div>
+                <div key={index}>{`BLEU (${index + 1}-gram): ${score}`}</div>
             ))}
         </div>
     );
@@ -23,8 +24,8 @@ const BLEUScoreLens: Lens = ({ values }) => {
 
 BLEUScoreLens.key = 'BLEUScoreView';
 BLEUScoreLens.dataTypes = ['str'];
-BLEUScoreLens.defaultHeight = 22;
-BLEUScoreLens.minHeight = 22;
+BLEUScoreLens.defaultHeight = 64;
+BLEUScoreLens.minHeight = 64;
 BLEUScoreLens.maxHeight = 64;
 BLEUScoreLens.displayName = 'BLEU Score';
 BLEUScoreLens.multi = true;

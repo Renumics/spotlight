@@ -51,4 +51,40 @@ const amplitudeToDb = (amplitude: number, ref: number, amin: number) => {
     return log_spec;
 };
 
-export { unitType, freqType, fixWindow, amplitudeToDb };
+const hzToMel = (freq: number) => {
+    // Fill in the linear part
+    const f_min = 0.0;
+    const f_sp = 200.0 / 3;
+
+    let mel = (freq - f_min) / f_sp;
+
+    // Fill in the log-scale part
+    const min_log_hz = 1000.0; // beginning of log region (Hz)
+    const min_log_mel = (min_log_hz - f_min) / f_sp; // same (Mels)
+    const logstep = Math.log(6.4) / 27.0; // step size for log region
+
+    if (freq >= min_log_hz) {
+        mel = min_log_mel + Math.log(freq / min_log_hz) / logstep;
+    }
+
+    return mel;
+};
+
+const melToHz = (mel: number) => {
+    const f_min = 0.0;
+    const f_sp = 200.0 / 3;
+    let freq = f_min + f_sp * mel;
+
+    // And now the nonlinear scale
+    const min_log_hz = 1000.0; // beginning of log region (Hz)
+    const min_log_mel = (min_log_hz - f_min) / f_sp; // same (Mels)
+    const logstep = Math.log(6.4) / 27.0; // step size for log region
+
+    if (mel >= min_log_mel) {
+        // If we have scalar data, check directly
+        freq = min_log_hz * Math.exp(logstep * (mel - min_log_mel));
+    }
+    return freq;
+};
+
+export { unitType, freqType, fixWindow, amplitudeToDb, hzToMel, melToHz };

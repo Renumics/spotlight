@@ -1,8 +1,6 @@
 import application from '../application';
 import { ConfigApi, Configuration } from '../client';
 
-type ConfigValue = number | string | boolean | Record<string, unknown>;
-
 export class ConfigService {
     api: ConfigApi;
 
@@ -24,7 +22,7 @@ export class ConfigService {
     async set<T>(name: string, value: T) {
         await this.api.setValue({
             name,
-            setConfigRequest: { value: value as ConfigValue | undefined },
+            setConfigRequest: { value: value ?? null },
         });
     }
     async setItem<T>(name: string, value: T) {

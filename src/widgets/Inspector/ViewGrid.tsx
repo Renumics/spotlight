@@ -10,14 +10,14 @@ import type { GridOnScrollProps } from 'react-window';
 import { IndexArray } from '../../types';
 import DetailCell from './DetailCell';
 import { RowHeightContext } from './rowHeightContext';
-import { ViewConfig } from './types';
+import { LensConfig } from './types';
 
 type ViewGridProps = {
     height: number;
     width: number;
     columnWidth: () => number;
     estimatedColumnWidth: number;
-    views: ViewConfig[];
+    views: LensConfig[];
     rowIndices: IndexArray;
     onScroll: ({
         scrollUpdateWasRequested,

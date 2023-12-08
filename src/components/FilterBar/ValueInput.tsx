@@ -1,6 +1,6 @@
 import Checkbox from '../ui/Checkbox';
 import Select from '../ui/Select';
-import dataformat from '../../dataformat';
+import { parse, useDataformat } from '../../dataformat';
 import { CategoricalDataType, DataType } from '../../datatypes';
 import { ChangeEvent, KeyboardEvent, useCallback } from 'react';
 import 'twin.macro';
@@ -53,7 +53,7 @@ const DefaultInput = ({
 }: Props): JSX.Element => {
     const onChangeInput = useCallback(
         (e: ChangeEvent<HTMLInputElement>) => {
-            const value = dataformat.parse(e.target.value, type);
+            const value = parse(e.target.value, type);
             onChange?.(value);
         },
         [onChange, type]
@@ -62,12 +62,13 @@ const DefaultInput = ({
     const onKeyDown = useCallback(
         (e: KeyboardEvent<HTMLInputElement>) => {
             if (onEnter && e.key === 'Enter') {
-                onEnter(dataformat.parse(e.currentTarget.value, type));
+                onEnter(parse(e.currentTarget.value, type));
             }
         },
         [onEnter, type]
     );
 
+    const dataformat = useDataformat();
     const defaultValue =
         value === undefined ? undefined : dataformat.format(value, type);
 

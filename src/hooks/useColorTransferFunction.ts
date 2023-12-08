@@ -111,48 +111,52 @@ export const createConstantTransferFunction = (
 
 export const createColorTransferFunction = (
     data: ColumnData | undefined,
-    dType: DataType | undefined,
+    dtype: DataType | undefined,
     robust = false,
     continuousInts = false,
     continuousCategories = false,
     classBreaks?: number[]
 ): TransferFunction => {
-    if (dType === undefined) return createConstantTransferFunction(unknownDataType);
-    if (data === undefined) return createConstantTransferFunction(dType);
+    if (dtype === undefined) return createConstantTransferFunction(unknownDataType);
+    if (data === undefined) return createConstantTransferFunction(dtype);
 
-    if (['bool', 'str'].includes(dType.kind)) {
-        return createCategoricalTransferFunction(_.uniq(data), dType);
+    while (dtype.kind === 'Sequence') {
+        dtype = dtype.dtype;
     }
 
-    if (dType.kind === 'int' && !continuousInts) {
+    if (['bool', 'str'].includes(dtype.kind)) {
+        return createCategoricalTransferFunction(_.uniq(data), dtype);
+    }
+
+    if (dtype.kind === 'int' && !continuousInts) {
         const uniqValues = _.uniq(data);
         const tooManyInts =
-            dType.kind === 'int' && uniqValues.length > MAX_VALUES_FOR_INT_CATEGORY;
+            dtype.kind === 'int' && uniqValues.length > MAX_VALUES_FOR_INT_CATEGORY;
 
         if (!tooManyInts) {
-            return createCategoricalTransferFunction(uniqValues, dType);
+            return createCategoricalTransferFunction(uniqValues, dtype);
         }
     }
 
-    if (dType.kind === 'Category' && !continuousCategories) {
-        return createCategoricalTransferFunction(_.uniq(data), dType);
+    if (dtype.kind === 'Category' && !continuousCategories) {
+        return createCategoricalTransferFunction(_.uniq(data), dtype);
     }
 
-    if (['int', 'float', 'Category'].includes(dType.kind)) {
-        const stats = makeStats(dType, data);
+    if (['int', 'float', 'Category'].includes(dtype.kind)) {
+        const stats = makeStats(dtype, data);
         return createContinuousTransferFunction(
             (robust ? stats?.p5 : stats?.min) ?? 0,
             (robust ? stats?.p95 : stats?.max) ?? 1,
-            dType,
+            dtype,
             classBreaks
         );
     }
 
-    return createConstantTransferFunction(dType);
+    return createConstantTransferFunction(dtype);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const useColorTransferFunction = (data: any[], dtype: DataType) => {
+export const useColorTransferFunction = (data: any[], dtype: DataType | undefined) => {
     const colors = useColors();
     return useMemo(
         () =>

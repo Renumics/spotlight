@@ -2,7 +2,6 @@
 """
 generate the api spec
 """
-import os
 import json
 
 import click
@@ -21,16 +20,15 @@ from renumics.spotlight.app import SpotlightApp
 def generate_api_spec(output_path: str) -> None:
     """
     generate swagger api spec as json
-    :param server_name: server name where api is reachable
     :param output_path: path to output json
     :return:
     """
-    os.environ["SPOTLIGHT_DEV"] = "True"
     app = SpotlightApp()
+    app.openapi_version = "3.0.2"
 
     with open(output_path, "w", encoding="utf8") as out_f:
         json.dump(app.openapi(), out_f, indent=4)
 
 
 if __name__ == "__main__":
-    generate_api_spec()  # type: ignore
+    generate_api_spec()

@@ -8,14 +8,12 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
 
-from pydantic import (
-    HttpUrl,
-    ValidationError,
-    parse_obj_as,
-)
+from pydantic import ValidationError
 
 import requests
 from typing_extensions import Literal
+
+import validators
 
 from renumics.spotlight.backend.exceptions import InvalidLayout
 from .nodes import (
@@ -147,18 +145,16 @@ def parse(layout_: _LayoutLike) -> Layout:
     if isinstance(layout_, Layout):
         return layout_
 
-    try:
-        parse_obj_as(HttpUrl, layout_)
+    if isinstance(layout_, str) and validators.url(layout_):
         try:
             resp = requests.get(str(layout_), timeout=20)
             return Layout(**resp.json())
         except (ValidationError, requests.JSONDecodeError) as e:
             raise InvalidLayout() from e
-    except ValidationError:
-        pass
 
     if (isinstance(layout_, (os.PathLike, str))) and os.path.isfile(layout_):
-        return Layout.parse_file(Path(layout_))
+        obj = Path(layout_).read_text()
+        return Layout.model_validate_json(obj)
 
     layout_ = cast(_NodeLike, layout_)
     return layout(layout_)

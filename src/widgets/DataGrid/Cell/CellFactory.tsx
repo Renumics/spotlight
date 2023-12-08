@@ -1,37 +1,45 @@
 import { FunctionComponent, memo } from 'react';
 import 'twin.macro';
-import { CategoricalColumn, NumberColumn } from '../../../types';
 import { useColumn } from '../context/columnContext';
 import useCellValue from '../hooks/useCellValue';
 import CategoricalCell from './CategoricalCell';
 import DefaultCell from './DefaultCell';
 import NumberCell from './NumberCell';
+import { CellDragData, Draggable } from '../../../systems/dnd';
+import useSort from '../hooks/useSort';
 
 interface Props {
     columnIndex: number;
     rowIndex: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CELL_COMPONENTS: Record<string, any> = {
+    int: NumberCell,
+    float: NumberCell,
+    Category: CategoricalCell,
+};
+
 const CellFactory: FunctionComponent<Props> = ({ columnIndex, rowIndex }) => {
     const column = useColumn(columnIndex);
-
     const value = useCellValue(column?.key, rowIndex);
+    const row = useSort().getOriginalIndex(rowIndex);
 
-    if (column === undefined || column === null) return <></>;
+    if (column === undefined || column === null || value === null) return <></>;
 
-    if (value === null) return <></>;
+    const CellComponent = CELL_COMPONENTS[column.type.kind] ?? DefaultCell;
 
-    switch (column.type.kind) {
-        case 'int':
-        case 'float':
-            return <NumberCell column={column as NumberColumn} value={value} />;
-        case 'Category':
-            return (
-                <CategoricalCell column={column as CategoricalColumn} value={value} />
-            );
-        default:
-            return <DefaultCell column={column} value={value} />;
-    }
+    const dragData: CellDragData = {
+        kind: 'cell',
+        column,
+        row,
+    };
+
+    return (
+        <Draggable data={dragData}>
+            <CellComponent column={column} value={value} />
+        </Draggable>
+    );
 };
 
 export default memo(CellFactory);

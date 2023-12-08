@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { formatNumber } from '../../../dataformat';
+import { useDataformat } from '../../../dataformat';
 import { FunctionComponent, useContext, useEffect } from 'react';
 import { theme } from 'twin.macro';
 import PlotContext from './PlotContext';
@@ -23,6 +23,8 @@ function findOrCreateGroup<P extends SVGElement>(parentElement: P) {
 const YAxis: FunctionComponent<Props> = ({ caption }) => {
     const { transform, svgRef, width, height, yScale } = useContext(PlotContext);
 
+    const formatter = useDataformat();
+
     useEffect(() => {
         if (!transform || !svgRef.current) return;
 
@@ -40,7 +42,7 @@ const YAxis: FunctionComponent<Props> = ({ caption }) => {
             )
             .ticks(height / 64)
             .tickSizeOuter(0)
-            .tickFormat((value) => formatNumber(value as number));
+            .tickFormat((value) => formatter.formatFloat(value as number));
 
         group.style('font-size', '0.75rem');
         group.style('color', theme`colors.gray.900`);
@@ -68,7 +70,7 @@ const YAxis: FunctionComponent<Props> = ({ caption }) => {
             .attr('color', theme`colors.midnight.600`)
             .attr('text-anchor', 'start')
             .text(caption ?? '');
-    }, [transform, svgRef, width, height, yScale, caption]);
+    }, [transform, svgRef, width, height, yScale, caption, formatter]);
 
     return <></>;
 };
