@@ -1,6 +1,6 @@
 import tw from 'twin.macro';
 
-const Svg = tw.svg`text-blue-400 w-full h-full animate-spin`;
+const Svg = tw.svg`text-blue-400 w-full h-full animate-spin rounded-full`;
 const Circle = tw.circle`opacity-50 stroke-current`;
 const Path = tw.path`text-blue-600 stroke-current`;
 
