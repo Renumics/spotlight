@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import levenshtein from 'fast-levenshtein';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
 
@@ -95,6 +96,25 @@ export const METRICS: Record<string, Metric> = {
                 (tp * tn - fp * fn) /
                 Math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
             );
+        },
+    },
+    levenshtein: {
+        signature: {
+            X: ['str'],
+            Y: ['str'],
+        },
+        compute: ([actualValues, assignedValues]) => {
+            let sum = 0;
+
+            for (let i = 0; i < actualValues.length; i++) {
+                const actual = actualValues[i];
+                const assigned = assignedValues[i];
+
+                const dist = levenshtein.get(actual as string, assigned as string);
+                sum += dist;
+            }
+
+            return sum / actualValues.length;
         },
     },
 };
