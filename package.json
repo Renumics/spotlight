@@ -53,6 +53,7 @@
         "d3-zoom": "^3.0.0",
         "detect-gpu": "^5.0.12",
         "dompurify": "^3.0.3",
+        "fast-levenshtein": "^3.0.0",
         "file-saver": "^2.0.5",
         "flexlayout-react": "^0.7.6",
         "fuse.js": "^6.6.2",
@@ -90,14 +91,16 @@
         "unique-names-generator": "^4.7.1",
         "uuid": "^9.0.0",
         "wavesurfer.js": "^6.4.0",
-        "zustand": "^4.3.3"
+        "zustand": "^4.3.3",
         "bleu-score": "^1.0.4"
     },
     "devDependencies": {
+        "@openapitools/openapi-generator-cli": "^2.7.0",
         "@testing-library/react": "^14.0.0",
         "@types/chroma-js": "^2.4.0",
         "@types/d3": "^7.4.0",
         "@types/d3-cloud": "^1.2.5",
+        "@types/fast-levenshtein": "^0.0.4",
         "@types/file-saver": "^2.0.5",
         "@types/jest": "^29.4.0",
         "@types/lodash": "^4.14.191",

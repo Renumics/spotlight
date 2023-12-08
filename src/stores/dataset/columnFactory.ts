@@ -77,6 +77,7 @@ export function makeColumn(column: Column, index: number): DataColumn {
         type: makeDatatype(column.dtype, column.optional),
         editable: column.editable,
         optional: column.optional,
+        computed: column.computed,
         hidden: column.hidden,
         description: column.description ?? '',
         tags: _.uniq(column.tags),

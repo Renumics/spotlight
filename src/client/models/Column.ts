@@ -48,25 +48,31 @@ export interface Column {
      * @type {any}
      * @memberof Column
      */
-    dtype?: any | null;
+    dtype: any | null;
     /**
      *
      * @type {Array<any>}
      * @memberof Column
      */
-    values: Array<any>;
+    values: Array<any> | null;
     /**
      *
      * @type {string}
      * @memberof Column
      */
-    description?: string;
+    description: string | null;
     /**
      *
      * @type {Array<string>}
      * @memberof Column
      */
-    tags?: Array<string>;
+    tags: Array<string> | null;
+    /**
+     *
+     * @type {boolean}
+     * @memberof Column
+     */
+    computed: boolean;
 }
 
 /**
@@ -78,7 +84,11 @@ export function instanceOfColumn(value: object): boolean {
     isInstance = isInstance && 'editable' in value;
     isInstance = isInstance && 'optional' in value;
     isInstance = isInstance && 'hidden' in value;
+    isInstance = isInstance && 'dtype' in value;
     isInstance = isInstance && 'values' in value;
+    isInstance = isInstance && 'description' in value;
+    isInstance = isInstance && 'tags' in value;
+    isInstance = isInstance && 'computed' in value;
 
     return isInstance;
 }
@@ -96,10 +106,11 @@ export function ColumnFromJSONTyped(json: any, ignoreDiscriminator: boolean): Co
         editable: json['editable'],
         optional: json['optional'],
         hidden: json['hidden'],
-        dtype: !exists(json, 'dtype') ? undefined : json['dtype'],
+        dtype: json['dtype'],
         values: json['values'],
-        description: !exists(json, 'description') ? undefined : json['description'],
-        tags: !exists(json, 'tags') ? undefined : json['tags'],
+        description: json['description'],
+        tags: json['tags'],
+        computed: json['computed'],
     };
 }
 
@@ -119,5 +130,6 @@ export function ColumnToJSON(value?: Column | null): any {
         values: value.values,
         description: value.description,
         tags: value.tags,
+        computed: value.computed,
     };
 }

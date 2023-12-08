@@ -1,7 +1,9 @@
 import _ from 'lodash';
+import levenshtein from 'fast-levenshtein';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
 import { bleu } from 'bleu-score';
+import rouge from 'rouge';
 
 export const METRICS: Record<string, Metric> = {
     sum: {
@@ -98,22 +100,59 @@ export const METRICS: Record<string, Metric> = {
             );
         },
     },
-    bleu_score: {
+    BLEU1: {
         signature: {
             X: ['str'],
             Y: ['str'],
         },
         compute: ([actualValues, assignedValues]) => {
             const scores = [];
-            
+
             for (let i = 0; i < actualValues.length; i++) {
                 const references = actualValues[i];
                 const candidate = assignedValues[i];
-                scores.push(bleu(references, candidate));
+                scores.push(bleu(references as string, candidate as string, 1));
             }
-            
+
             const mean_bleu_score = _.mean(scores);
             return mean_bleu_score;
+        },
+    },
+    ROUGE1: {
+        signature: {
+            X: 'str',
+            Y: 'str',
+        },
+        compute: ([referenceSummary, generatedSummary]) => {
+            return rouge.n(referenceSummary, generatedSummary, { n: 1 });
+        },
+    },
+    ROUGE2: {
+        signature: {
+            X: 'str',
+            Y: 'str',
+        },
+        compute: ([referenceSummary, generatedSummary]) => {
+            return rouge.n(referenceSummary, generatedSummary, { n: 2 });
+        },
+    },
+    levenshtein: {
+        signature: {
+            X: ['str'],
+            Y: ['str'],
+        },
+        compute: ([actualValues, assignedValues]) => {
+            let sum = 0;
+
+            for (let i = 0; i < actualValues.length; i++) {
+                const actual = actualValues[i];
+                const assigned = assignedValues[i];
+
+                const dist = levenshtein.get(actual as string, assigned as string);
+                sum += dist;
+            }
+
+            return sum / actualValues.length;
         },
     },
 };

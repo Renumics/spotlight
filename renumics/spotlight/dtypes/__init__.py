@@ -421,6 +421,7 @@ A single bounding box is represented by an array-like with its relative
 coordinates [x_min, y_min, x_max, y_max] (float values scaled onto 0 to 1).
 Top-left image corner is assumed to be (0, 0).
 """
+register_dtype(bounding_box_dtype, [])
 
 bounding_boxes_dtype = SequenceDType(bounding_box_dtype)
 """

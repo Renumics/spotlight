@@ -9,7 +9,7 @@ import {
     useState,
 } from 'react';
 import tw from 'twin.macro';
-import dataformat from '../../dataformat';
+import { formatType } from '../../dataformat';
 import X from '../../icons/X';
 import { DataColumn } from '../../types';
 import { DropdownContext } from '../ui/Dropdown';
@@ -43,8 +43,8 @@ const ColumnSelector = ({
             (c) =>
                 regex.test(c.name) ||
                 regex.test(c.type.kind) ||
-                regex.test(dataformat.formatType(c.type)) ||
-                regex.test(dataformat.formatType(c.type, true)) ||
+                regex.test(formatType(c.type)) ||
+                regex.test(formatType(c.type, true)) ||
                 c.tags?.some((tag) => regex.test(tag))
         );
     }, [availableColumns, searchTerm]);

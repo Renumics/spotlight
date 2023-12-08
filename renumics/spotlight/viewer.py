@@ -150,8 +150,9 @@ class Viewer:
         allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
         wait: Union[bool, Literal["auto", "forever"]] = "auto",
         dtype: Optional[Dict[str, Any]] = None,
-        analyze: Optional[Union[bool, List[str]]] = None,
+        analyze: Optional[Union[List[str], bool]] = None,
         issues: Optional[Collection[DataIssue]] = None,
+        embed: Optional[Union[List[str], bool]] = None,
     ) -> None:
         """
         Show a dataset or folder in this spotlight viewer.
@@ -173,6 +174,8 @@ class Viewer:
                 column types allowed by Spotlight (for dataframes only).
             analyze: Automatically analyze common dataset issues (disabled by default).
             issues: Custom dataset issues displayed in the viewer.
+            embed: Automatically embed all or given columns with default
+                embedders (disabled by default).
         """
 
         if is_pathtype(dataset):
@@ -206,6 +209,7 @@ class Viewer:
             project_root=project_root,
             analyze=analyze,
             custom_issues=list(issues) if issues else None,
+            embed=embed,
             layout=parsed_layout,
             filebrowsing_allowed=filebrowsing_allowed,
         )
@@ -373,6 +377,7 @@ def show(
     dtype: Optional[Dict[str, Any]] = None,
     analyze: Optional[Union[bool, List[str]]] = None,
     issues: Optional[Collection[DataIssue]] = None,
+    embed: Optional[Union[List[str], bool]] = None,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
@@ -397,6 +402,8 @@ def show(
             column types allowed by Spotlight (for dataframes only).
         analyze: Automatically analyze common dataset issues (disabled by default).
         issues: Custom dataset issues displayed in the viewer.
+        embed: Automatically embed all or given columns with default
+            embedders (disabled by default).
     """
 
     viewer = None
@@ -419,6 +426,7 @@ def show(
         dtype=dtype,
         analyze=analyze,
         issues=issues,
+        embed=embed,
     )
     return viewer
 

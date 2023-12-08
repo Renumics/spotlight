@@ -198,7 +198,7 @@ api-client: ## Generate API Spec and CLient
 	rm -rf /tmp/spotlight-api-client
 	mkdir -p /tmp/spotlight-api-client
 	poetry run python ./scripts/generate_api_spec.py -o /tmp/spotlight-api-spec.json
-	npx @openapitools/openapi-generator-cli generate -g typescript-fetch \
+	pnpm exec openapi-generator-cli generate -g typescript-fetch \
 		-i /tmp/spotlight-api-spec.json -o /tmp/spotlight-api-client
 	# Fix generated code for multiple! file upload.
 	# This is supported by oai 3 but openapi-generator does not support it (yet).

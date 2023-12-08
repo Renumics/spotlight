@@ -3,7 +3,7 @@ import hashlib
 import io
 import os
 import statistics
-from typing import Any, Iterable, List, Optional, Set, Union, cast
+from typing import Any, Dict, Iterable, List, Optional, Set, Union, cast
 
 import numpy as np
 import filetype
@@ -25,16 +25,19 @@ from renumics.spotlight.media.audio import Audio
 from renumics.spotlight.media.image import Image
 from renumics.spotlight.media.sequence_1d import Sequence1D
 from renumics.spotlight.media.embedding import Embedding
+from renumics.spotlight.backend.exceptions import ComputedColumnNotReady
 
 
 class DataStore:
     _data_source: DataSource
     _user_dtypes: spotlight_dtypes.DTypeMap
     _dtypes: spotlight_dtypes.DTypeMap
+    _embeddings: Dict[str, Optional[np.ndarray]]
 
     def __init__(
         self, data_source: DataSource, user_dtypes: spotlight_dtypes.DTypeMap
     ) -> None:
+        self._embeddings = {}
         self._data_source = data_source
         self._user_dtypes = user_dtypes
         self._update_dtypes()
@@ -56,7 +59,7 @@ class DataStore:
 
     @property
     def column_names(self) -> List[str]:
-        return self._data_source.column_names
+        return self._data_source.column_names + list(self._embeddings)
 
     @property
     def data_source(self) -> DataSource:
@@ -64,12 +67,45 @@ class DataStore:
 
     @property
     def dtypes(self) -> spotlight_dtypes.DTypeMap:
-        return self._dtypes
+        dtypes_ = self._dtypes.copy()
+        for column, embeddings in self._embeddings.items():
+            if embeddings is None:
+                length = None
+            else:
+                try:
+                    length = len(
+                        next(
+                            embedding
+                            for embedding in embeddings
+                            if embedding is not None
+                        )
+                    )
+                except StopIteration:
+                    length = None
+            dtypes_[column] = spotlight_dtypes.EmbeddingDType(length=length)
+        return dtypes_
+
+    @property
+    def embeddings(self) -> Dict[str, Optional[np.ndarray]]:
+        return self._embeddings
+
+    @embeddings.setter
+    def embeddings(self, new_embeddings: Dict[str, Optional[np.ndarray]]) -> None:
+        self._embeddings = new_embeddings
 
     def check_generation_id(self, generation_id: int) -> None:
         self._data_source.check_generation_id(generation_id)
 
     def get_column_metadata(self, column_name: str) -> ColumnMetadata:
+        if column_name in self._embeddings:
+            return ColumnMetadata(
+                nullable=True,
+                editable=False,
+                hidden=True,
+                description=None,
+                tags=[],
+                computed=True,
+            )
         return self._data_source.get_column_metadata(column_name)
 
     def get_converted_values(
@@ -79,8 +115,16 @@ class DataStore:
         simple: bool = False,
         check: bool = True,
     ) -> List[ConvertedValue]:
-        dtype = self._dtypes[column_name]
-        normalized_values = self._data_source.get_column_values(column_name, indices)
+        dtype = self.dtypes[column_name]
+        if column_name in self._embeddings:
+            embeddings = self._embeddings[column_name]
+            if embeddings is None:
+                raise ComputedColumnNotReady(column_name)
+            normalized_values: Iterable = embeddings[indices]
+        else:
+            normalized_values = self._data_source.get_column_values(
+                column_name, indices
+            )
         converted_values = [
             convert_to_dtype(value, dtype, simple=simple, check=check)
             for value in normalized_values
@@ -88,9 +132,11 @@ class DataStore:
         return converted_values
 
     def get_converted_value(
-        self, column_name: str, index: int, simple: bool = False
+        self, column_name: str, index: int, simple: bool = False, check: bool = True
     ) -> ConvertedValue:
-        return self.get_converted_values(column_name, indices=[index], simple=simple)[0]
+        return self.get_converted_values(
+            column_name, indices=[index], simple=simple, check=check
+        )[0]
 
     def get_waveform(self, column_name: str, index: int) -> Optional[np.ndarray]:
         """
@@ -295,21 +341,33 @@ def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
     return None
 
 
-def _guess_array_dtype(dtype: spotlight_dtypes.ArrayDType) -> spotlight_dtypes.DType:
+def _guess_array_dtype(
+    dtype: spotlight_dtypes.ArrayDType,
+) -> Optional[spotlight_dtypes.DType]:
     if dtype.shape is None:
-        return dtype
-    if dtype.shape == (2,):
-        return spotlight_dtypes.window_dtype
-    if dtype.shape == (4,):
-        return spotlight_dtypes.bounding_box_dtype
-    if dtype.ndim == 1 and dtype.shape[0] is not None:
-        return spotlight_dtypes.EmbeddingDType(dtype.shape[0])
-    if dtype.ndim == 1 and dtype.shape[0] is None:
+        return None
+    if dtype.ndim == 1:
+        length = dtype.shape[0]
+        if length == 2:
+            return spotlight_dtypes.window_dtype
+        if length == 4:
+            return spotlight_dtypes.bounding_box_dtype
+        if length is not None:
+            return spotlight_dtypes.EmbeddingDType(length)
         return spotlight_dtypes.sequence_1d_dtype
-    if dtype.ndim == 2 and (dtype.shape[0] == 2 or dtype.shape[1] == 2):
-        return spotlight_dtypes.sequence_1d_dtype
-    if dtype.ndim == 2 and dtype.shape[1] == 4:
-        return spotlight_dtypes.bounding_boxes_dtype
+    if dtype.ndim == 2:
+        if dtype.shape[1] == 2:  # (n, 2)
+            return spotlight_dtypes.SequenceDType(
+                spotlight_dtypes.window_dtype, dtype.shape[0]
+            )
+        if dtype.shape[1] == 4:  # (n, 4)
+            return spotlight_dtypes.SequenceDType(
+                spotlight_dtypes.bounding_box_dtype, dtype.shape[0]
+            )
+        if dtype.shape[0] == 2:  # (2, n)
+            return spotlight_dtypes.sequence_1d_dtype
     if dtype.ndim == 3 and dtype.shape[-1] in (1, 3, 4):
         return spotlight_dtypes.image_dtype
+    if all(dim is None for dim in dtype.shape):
+        return None
     return dtype

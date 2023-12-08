@@ -72,7 +72,7 @@ export type {
     DataKind,
 } from './datatypes';
 
-export { default as dataformat, formatNumber } from './dataformat';
+export { formatType, formatKind, useDataformat } from './dataformat';
 export { default as ScalarValue } from './components/ScalarValue';
 
 export { getApplicablePredicates } from './filters';

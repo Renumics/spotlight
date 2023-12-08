@@ -8,7 +8,11 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
 
-from renumics.spotlight.backend.exceptions import FilebrowsingNotAllowed, InvalidPath
+from renumics.spotlight.backend.exceptions import (
+    ComputedColumnNotReady,
+    FilebrowsingNotAllowed,
+    InvalidPath,
+)
 from renumics.spotlight.app import SpotlightApp
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
@@ -25,9 +29,10 @@ class Column(BaseModel):
     optional: bool
     hidden: bool
     dtype: Any
-    values: List[Any]
+    values: Optional[List[Any]]
     description: Optional[str]
     tags: Optional[List[str]]
+    computed: bool
 
 
 class Table(BaseModel):
@@ -65,13 +70,18 @@ def get_table(request: Request) -> ORJSONResponse:
                 filename="",
                 columns=[],
                 generation_id=-1,
-            ).dict()
+            ).model_dump()
         )
 
     columns = []
     for column_name in data_store.column_names:
         dtype = data_store.dtypes[column_name]
-        values = data_store.get_converted_values(column_name, simple=True, check=False)
+        try:
+            values = data_store.get_converted_values(
+                column_name, simple=True, check=False
+            )
+        except ComputedColumnNotReady:
+            values = None
         meta = data_store.get_column_metadata(column_name)
         column = Column(
             name=column_name,
@@ -82,6 +92,7 @@ def get_table(request: Request) -> ORJSONResponse:
             dtype=dtype.dict(),
             description=meta.description,
             tags=meta.tags,
+            computed=meta.computed,
         )
         columns.append(column)
 
@@ -91,8 +102,29 @@ def get_table(request: Request) -> ORJSONResponse:
             filename=data_store.name,
             columns=columns,
             generation_id=data_store.generation_id,
-        ).dict()
+        ).model_dump()
     )
+
+
+@router.get(
+    "/{column}",
+    tags=["table"],
+    operation_id="get_column",
+)
+async def get_table_column(
+    column: str, generation_id: int, request: Request
+) -> Response:
+    """
+    table column api endpoint
+    """
+    app: SpotlightApp = request.app
+    data_store = app.data_store
+    if data_store is None:
+        return ORJSONResponse(None)
+    data_store.check_generation_id(generation_id)
+
+    values = data_store.get_converted_values(column, simple=True, check=False)
+    return ORJSONResponse(values)
 
 
 @router.get(

@@ -13,8 +13,8 @@
  */
 
 import * as runtime from '../runtime';
-import type { AnalysisInfo } from '../models';
-import { AnalysisInfoFromJSON, AnalysisInfoToJSON } from '../models';
+import type { AnalysisInfo } from '../models/index';
+import { AnalysisInfoFromJSON, AnalysisInfoToJSON } from '../models/index';
 
 /**
  *

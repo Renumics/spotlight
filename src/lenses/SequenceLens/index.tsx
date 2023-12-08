@@ -7,6 +7,7 @@ import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
 import { isSequence1DColumn } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
+import { useSharedState } from '../useSharedState';
 
 const Container = styled.div`
     ${tw`h-full flex flex-col relative items-center w-full`}
@@ -47,38 +48,19 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
 
     const categoricalPalette = useColors((c) => c.categoricalPalette);
 
-    const [isXSyncedGlobally, setIsXSyncedGlobally] = useSetting(
-        'isXSyncedGlobally',
-        false,
-        true
-    );
     const [yAxisMultiple, setYAxisMultiple] = useSetting('yAxisMultiple', false);
-    const [xExtents, setXExtents] = useSetting<Vec2>(
-        'xExtents',
-        [-Infinity, Infinity],
-        isXSyncedGlobally
-    );
+    const [xExtents, setXExtents] = useSharedState<Vec2>('xExtents', [
+        -Infinity,
+        Infinity,
+    ]);
 
-    const [isXSynchronized, setIsXSynchronized] = useSetting('isXSynchronized', false);
-    const [syncedYDomains, setSyncedYDomains] = useSetting<{
+    const [isXSynchronized, setIsXSynchronized] = useSharedState(
+        'isXSynchronized',
+        false
+    );
+    const [syncedYDomains, setSyncedYDomains] = useSharedState<{
         [key: string]: [number, number];
     }>('syncedYDomains', {});
-
-    const syncYDomain = useCallback(
-        (key: string, domain: [number, number]) => {
-            setSyncedYDomains((domains) => ({
-                ...domains,
-                [key]: domain,
-            }));
-        },
-        [setSyncedYDomains]
-    );
-    const unsyncYDomain = useCallback(
-        (key: string) => {
-            setSyncedYDomains((domains) => _.omit(domains, key));
-        },
-        [setSyncedYDomains]
-    );
 
     // calculate y domains from sliced data
     const calculatedYDomains: [number, number][] = useMemo(
@@ -106,35 +88,33 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
 
     const handleChangeIsYSynchronized = useCallback(
         (isSynchronized: boolean) => {
-            chartData.forEach(({ name }, index) => {
-                const key = `${syncKey}_${name}`;
-
-                if (isSynchronized) {
-                    syncYDomain(key, calculatedYDomains[index]);
-                } else {
-                    unsyncYDomain(key);
-                }
-            });
+            if (isSynchronized) {
+                const domains: Record<string, [number, number]> = {};
+                chartData.forEach(({ name }, index) => {
+                    domains[name] = calculatedYDomains[index];
+                });
+                setSyncedYDomains(domains);
+            } else {
+                setSyncedYDomains({});
+            }
         },
-        [chartData, calculatedYDomains, syncYDomain, unsyncYDomain, syncKey]
+        [chartData, calculatedYDomains, setSyncedYDomains]
     );
 
     const isYSynchronized = useMemo(
         () =>
             _.every(chartData, ({ name }) => {
-                const key = `${syncKey}_${name}`;
-                return syncedYDomains[key];
+                return syncedYDomains[name];
             }),
-        [syncedYDomains, syncKey, chartData]
+        [syncedYDomains, chartData]
     );
-
     const yDomains = useMemo(
         () =>
             chartData.map(({ name }, index) => {
-                const key = `${syncKey}_${name}`;
+                const key = `${name}`;
                 return syncedYDomains[key] ?? calculatedYDomains[index];
             }),
-        [syncedYDomains, calculatedYDomains, chartData, syncKey]
+        [syncedYDomains, calculatedYDomains, chartData]
     );
 
     const chartColors = useMemo(
@@ -213,12 +193,10 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
                 groupY={yAxisMultiple}
                 isXSynchronized={isXSynchronized}
                 isYSynchronized={isYSynchronized}
-                isXSyncedGlobally={isXSyncedGlobally}
                 onChangeGroupY={setYAxisMultiple}
                 onReset={resetPlot}
                 onChangeIsXSynchronized={onChangeIsXSynchronized}
                 onChangeIsYSynchronized={handleChangeIsYSynchronized}
-                onChangeIsXSyncedGlobally={setIsXSyncedGlobally}
             />
         </Container>
     );

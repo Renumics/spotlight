@@ -43,7 +43,7 @@ export interface Folder {
      * @type {string}
      * @memberof Folder
      */
-    parent?: string;
+    parent: string | null;
     /**
      *
      * @type {Array<FileEntry>}
@@ -59,6 +59,7 @@ export function instanceOfFolder(value: object): boolean {
     let isInstance = true;
     isInstance = isInstance && 'name' in value;
     isInstance = isInstance && 'path' in value;
+    isInstance = isInstance && 'parent' in value;
     isInstance = isInstance && 'files' in value;
 
     return isInstance;
@@ -75,7 +76,7 @@ export function FolderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Fo
     return {
         name: json['name'],
         path: json['path'],
-        parent: !exists(json, 'parent') ? undefined : json['parent'],
+        parent: json['parent'],
         files: (json['files'] as Array<any>).map(FileEntryFromJSON),
     };
 }

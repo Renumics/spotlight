@@ -1,14 +1,13 @@
-import * as React from 'react';
 import _ from 'lodash';
-import { useCallback, useEffect, useMemo } from 'react';
+import { FunctionComponent, useCallback, useEffect, useMemo, useState } from 'react';
 import type { FallbackProps } from 'react-error-boundary';
 import { ErrorBoundary } from 'react-error-boundary';
 import tw from 'twin.macro';
 import LoadingIndicator from '../components/LoadingIndicator';
 import useMemoWithPrevious from '../hooks/useMemoWithPrevious';
-import { DataColumn, LensKey } from '../types';
+import { DataColumn, LensKey, LensSettings, Setter } from '../types';
 import LensContext from './LensContext';
-import useCellValues from './useCellValue';
+import useCellValues from './useCellValues';
 import None from './None';
 import { isLensCompatible, useComponentsStore } from '../stores/components';
 
@@ -18,6 +17,8 @@ interface Props {
     rowIndex: number;
     syncKey: string;
     deferLoading?: boolean;
+    settings: LensSettings;
+    onChangeSettings: Setter<LensSettings>;
 }
 
 const Info = tw.div`w-full h-full flex items-center justify-center text-gray-800 italic text-sm p-2 text-center`;
@@ -39,18 +40,22 @@ const ErrorFallback = ({
     );
 };
 
-const LensFactory: React.FunctionComponent<Props> = ({
+const LensFactory: FunctionComponent<Props> = ({
     view,
     columns,
     rowIndex,
     syncKey,
     deferLoading = false,
+    settings,
+    onChangeSettings,
 }) => {
     const columnKeys = useMemo(() => columns.map((c) => c.key), [columns]);
     const [values, problem] = useCellValues(rowIndex, columnKeys, deferLoading);
 
     const lenses = useComponentsStore((state) => state.lensesByKey);
     const LensComponent = lenses[view];
+
+    const [sharedState, setSharedState] = useState<Record<string, unknown>>({});
 
     const urls = useMemoWithPrevious(
         (previousUrls: (string | undefined)[] | undefined) => {
@@ -91,13 +96,15 @@ const LensFactory: React.FunctionComponent<Props> = ({
     const types = columns.map((c) => c.type);
     const allEditable = columns.every((c) => c.editable);
 
-    if (problem) return <Info>Failed to load value!</Info>;
+    if (problem) {
+        return <Info>{problem.title}</Info>;
+    }
     if (!values || !urls) return <LoadingIndicator delay={100} />;
     if (!LensComponent) return <Info>View not found ({view})!</Info>;
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible View ({view})</Info>;
 
-    const context = { syncKey };
+    const context = { settings, onChangeSettings, sharedState, setSharedState };
 
     const allValuesAreNull = values.every(_.isNull);
 
