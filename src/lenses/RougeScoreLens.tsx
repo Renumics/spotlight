@@ -4,8 +4,13 @@ import rouge from 'rouge';
 import { useDataformat } from '../dataformat';
 
 const RougeScoreLens: Lens<string> = ({ values }) => {
-    const rouge1 = rouge.n(values[0], values[1], 1);
-    const rouge2 = rouge.n(values[0], values[1], 2);
+    const a = values[0] ?? '';
+    const b = values[1] ?? '';
+
+    const anyEmpty = a.length === 0 || b.length === 0;
+
+    const rouge1 = anyEmpty ? 0 : rouge.n(a, b, 1);
+    const rouge2 = anyEmpty ? 0 : rouge.n(a, b, 2);
 
     const formatter = useDataformat();
 
@@ -25,7 +30,7 @@ RougeScoreLens.key = 'RougeScore';
 RougeScoreLens.dataTypes = ['str'];
 RougeScoreLens.defaultHeight = 50;
 RougeScoreLens.minHeight = 50;
-RougeScoreLens.maxHeight = 100;
+RougeScoreLens.maxHeight = 50;
 RougeScoreLens.multi = true;
 RougeScoreLens.displayName = 'ROUGE Score';
 
