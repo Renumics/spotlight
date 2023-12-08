@@ -1,7 +1,7 @@
 import _ from 'lodash';
+import levenshtein from 'fast-levenshtein';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
-import { computeLevenshtein } from './levenshtein';
 
 export const METRICS: Record<string, Metric> = {
     sum: {
@@ -98,22 +98,23 @@ export const METRICS: Record<string, Metric> = {
             );
         },
     },
-    Levenshtein: {
+    levenshtein: {
         signature: {
             X: ['str'],
             Y: ['str'],
         },
         compute: ([actualValues, assignedValues]) => {
-            const numValues = actualValues.length;
-            var sumLevenshtein = 0;
+            let sum = 0;
 
             for (let i = 0; i < actualValues.length; i++) {
                 const actual = actualValues[i];
                 const assigned = assignedValues[i];
-                sumLevenshtein += computeLevenshtein(actual as string, assigned as string);
+
+                const dist = levenshtein.get(actual as string, assigned as string);
+                sum += dist;
             }
 
-            return sumLevenshtein / numValues;
+            return sum / actualValues.length;
         },
     },
 };
