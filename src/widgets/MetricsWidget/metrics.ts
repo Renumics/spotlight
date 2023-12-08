@@ -2,6 +2,7 @@ import _ from 'lodash';
 import levenshtein from 'fast-levenshtein';
 import { Metric } from './types';
 import { computeConfusion } from './confusion';
+import rouge from 'rouge';
 
 export const METRICS: Record<string, Metric> = {
     sum: {
@@ -96,6 +97,24 @@ export const METRICS: Record<string, Metric> = {
                 (tp * tn - fp * fn) /
                 Math.sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn))
             );
+        },
+    },
+    ROUGE1: {
+        signature: {
+            X: 'str',
+            Y: 'str',
+        },
+        compute: ([referenceSummary, generatedSummary]) => {
+            return rouge.n(referenceSummary, generatedSummary, { n: 1 });
+        },
+    },
+    ROUGE2: {
+        signature: {
+            X: 'str',
+            Y: 'str',
+        },
+        compute: ([referenceSummary, generatedSummary]) => {
+            return rouge.n(referenceSummary, generatedSummary, { n: 2 });
         },
     },
     levenshtein: {
