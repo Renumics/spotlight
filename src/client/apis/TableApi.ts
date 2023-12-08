@@ -13,17 +13,22 @@
  */
 
 import * as runtime from '../runtime';
-import type { HTTPValidationError, Table } from '../models';
+import type { HTTPValidationError, Table } from '../models/index';
 import {
     HTTPValidationErrorFromJSON,
     HTTPValidationErrorToJSON,
     TableFromJSON,
     TableToJSON,
-} from '../models';
+} from '../models/index';
 
 export interface GetCellRequest {
     column: string;
     row: number;
+    generationId: number;
+}
+
+export interface GetColumnRequest {
+    column: string;
     generationId: number;
 }
 
@@ -118,6 +123,74 @@ export class TableApi extends runtime.BaseAPI {
         initOverrides?: RequestInit | runtime.InitOverrideFunction
     ): Promise<any> {
         const response = await this.getCellRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * table column api endpoint
+     * Get Table Column
+     */
+    async getColumnRaw(
+        requestParameters: GetColumnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<runtime.ApiResponse<any>> {
+        if (
+            requestParameters.column === null ||
+            requestParameters.column === undefined
+        ) {
+            throw new runtime.RequiredError(
+                'column',
+                'Required parameter requestParameters.column was null or undefined when calling getColumn.'
+            );
+        }
+
+        if (
+            requestParameters.generationId === null ||
+            requestParameters.generationId === undefined
+        ) {
+            throw new runtime.RequiredError(
+                'generationId',
+                'Required parameter requestParameters.generationId was null or undefined when calling getColumn.'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters.generationId !== undefined) {
+            queryParameters['generation_id'] = requestParameters.generationId;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request(
+            {
+                path: `/api/table/{column}`.replace(
+                    `{${'column'}}`,
+                    encodeURIComponent(String(requestParameters.column))
+                ),
+                method: 'GET',
+                headers: headerParameters,
+                query: queryParameters,
+            },
+            initOverrides
+        );
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<any>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * table column api endpoint
+     * Get Table Column
+     */
+    async getColumn(
+        requestParameters: GetColumnRequest,
+        initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<any> {
+        const response = await this.getColumnRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

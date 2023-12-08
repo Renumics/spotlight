@@ -3,6 +3,8 @@ import type { DataType } from '../datatypes';
 
 export type LensKey = string;
 
+export type LensSettings = Record<string, unknown>;
+
 export interface LensProps<T = unknown> {
     value: T;
     values: T[];

@@ -12,13 +12,10 @@ class Connection {
     messageQueue: string[];
     onmessage?: (data: unknown) => void;
 
-    constructor(host: string, port: string) {
+    constructor(host: string, port: string, basePath: string) {
         this.messageQueue = [];
-        if (globalThis.location.protocol === 'https:') {
-            this.url = `wss://${host}:${port}/api/ws`;
-        } else {
-            this.url = `ws://${host}:${port}/api/ws`;
-        }
+        const protocol = globalThis.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        this.url = `${protocol}//${host}:${port}${basePath}api/ws`;
         this.#connect();
     }
 

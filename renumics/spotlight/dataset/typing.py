@@ -40,6 +40,13 @@ CategoricalColumnInputType = Optional[str]
 WindowColumnInputType = Optional[
     Union[List[NumberType], Tuple[NumberType, NumberType], np.ndarray]
 ]
+BoundingBoxColumnInputType = Optional[
+    Union[
+        List[NumberType],
+        Tuple[NumberType, NumberType, NumberType, NumberType],
+        np.ndarray,
+    ]
+]
 ArrayColumnInputType = Optional[Union[np.ndarray, Sequence]]
 EmbeddingColumnInputType = Optional[Union[Embedding, Array1dLike]]
 AudioColumnInputType = Optional[Union[Audio, PathOrUrlType, bytes]]
@@ -56,6 +63,7 @@ SimpleColumnInputType = Union[
     DatetimeColumnInputType,
     CategoricalColumnInputType,
     WindowColumnInputType,
+    BoundingBoxColumnInputType,
     EmbeddingColumnInputType,
 ]
 RefColumnInputType = Union[

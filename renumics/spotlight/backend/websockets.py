@@ -117,7 +117,7 @@ class WebsocketConnection:
 
         try:
             json_text = orjson.dumps(
-                message.dict(), option=orjson.OPT_SERIALIZE_NUMPY
+                message.model_dump(), option=orjson.OPT_SERIALIZE_NUMPY
             ).decode()
         except TypeError as e:
             raise SerializationError(str(e))
@@ -278,6 +278,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
     except TaskCancelled:
         pass
     except Problem as e:
+        logger.exception(e)
         msg = Message(
             type="task.error",
             data={
@@ -291,6 +292,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         )
         await connection.send_async(msg)
     except Exception as e:
+        logger.exception(e)
         msg = Message(
             type="task.error",
             data={

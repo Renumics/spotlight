@@ -23,6 +23,8 @@ import { BinKey } from './types';
 import useHistogram from './useHistogram';
 import XAxis from './XAxis';
 import Info from '../../components/ui/Info';
+import { WidgetContainer, WidgetContent, WidgetMenu } from '../../lib';
+import { CellDragData, ColumnDragData, Droppable } from '../../systems/dnd';
 
 const columnsSelector = (d: Dataset) => d.columns;
 
@@ -104,9 +106,27 @@ const Histogram: Widget = () => {
 
     const toggleHideUnfiltered = () => setFilter((state) => !state);
 
+    const accepts = (data: ColumnDragData | CellDragData) => {
+        return (
+            ['cell', 'column'].includes(data.kind) &&
+            validTypes.includes(data.column.type.kind)
+        );
+    };
+
+    const handleDrop = (data: ColumnDragData | CellDragData) => {
+        if (columnKeys.includes(data.column.key)) {
+            setColumnKey(data.column.key);
+        }
+    };
+
     return (
-        <div tw="flex flex-col w-full h-full items-stretch justify-center">
-            <div tw="flex flex-row bg-gray-100 border-b border-gray-400 items-center">
+        <WidgetContainer>
+            <Droppable
+                accepts={accepts}
+                onDrop={handleDrop}
+                tw="absolute w-full h-full pointer-events-none"
+            />
+            <WidgetMenu>
                 <div tw="flex-grow text-xs px-2 py-0.5 font-bold">{columnKey}</div>
                 <Button
                     onClick={toggleHideUnfiltered}
@@ -135,8 +155,8 @@ const Histogram: Widget = () => {
                 >
                     <SettingsIcon />
                 </Dropdown>
-            </div>
-            <div tw="flex-grow overflow-hidden mt-1.5" ref={wrapper}>
+            </WidgetMenu>
+            <WidgetContent tw="overflow-hidden pt-1.5" ref={wrapper}>
                 {histogram.xBins.length > 0 ? (
                     <Tooltip
                         histogramm={histogram}
@@ -170,7 +190,7 @@ const Histogram: Widget = () => {
                 ) : (
                     <Info>No column selected.</Info>
                 )}
-            </div>
+            </WidgetContent>
             {histogram.yColumnName && histogram.yBins.length > 0 && (
                 <Legend
                     tw="top-2.5 flex flex-row items-end max-w-[none] w-full justify-start"
@@ -178,7 +198,7 @@ const Histogram: Widget = () => {
                     caption={stackByColumnKey || ''}
                 />
             )}
-        </div>
+        </WidgetContainer>
     );
 };
 

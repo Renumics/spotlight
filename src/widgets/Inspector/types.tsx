@@ -1,8 +1,9 @@
-import { LensKey } from '../../types';
+import { LensKey, LensSettings } from '../../types';
 
-export interface ViewConfig {
+export interface LensConfig {
     view: LensKey;
     key: string;
     name: string;
     columns: string[];
+    settings: LensSettings;
 }

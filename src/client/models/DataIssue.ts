@@ -42,7 +42,7 @@ export interface DataIssue {
      * @type {Array<string>}
      * @memberof DataIssue
      */
-    columns?: Array<string>;
+    columns?: Array<string> | null;
     /**
      *
      * @type {string}

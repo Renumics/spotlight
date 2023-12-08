@@ -1,10 +1,11 @@
 """
 Manage data analyzers available for spotlights automatic dataset analysis.
 """
+from typing import Set
 
 from .typing import DataAnalyzer
 
-registered_analyzers = set()
+registered_analyzers: Set[DataAnalyzer] = set()
 
 
 def register_analyzer(analyzer: DataAnalyzer) -> None:

@@ -42,7 +42,7 @@ export interface Plugin {
      * @type {string}
      * @memberof Plugin
      */
-    entrypoint?: string;
+    entrypoint: string | null;
 }
 
 /**
@@ -53,6 +53,7 @@ export function instanceOfPlugin(value: object): boolean {
     isInstance = isInstance && 'name' in value;
     isInstance = isInstance && 'priority' in value;
     isInstance = isInstance && 'dev' in value;
+    isInstance = isInstance && 'entrypoint' in value;
 
     return isInstance;
 }
@@ -69,7 +70,7 @@ export function PluginFromJSONTyped(json: any, ignoreDiscriminator: boolean): Pl
         name: json['name'],
         priority: json['priority'],
         dev: json['dev'],
-        entrypoint: !exists(json, 'entrypoint') ? undefined : json['entrypoint'],
+        entrypoint: json['entrypoint'],
     };
 }
 

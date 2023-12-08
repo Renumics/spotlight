@@ -4,20 +4,20 @@ Implementation of widget models and interfaces for widget creation.
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Field
 from typing_extensions import Literal
 
 from .lenses import Lens
 
 
-class WidgetConfig(BaseModel, allow_population_by_field_name=True):
+class WidgetConfig(BaseModel, populate_by_name=True):
 
     """
     Base Spotlight widget configuration model.
     """
 
 
-class Widget(BaseModel, extra=Extra.forbid):
+class Widget(BaseModel, extra="forbid"):
     """
     Spotlight widget model.
     """
@@ -188,6 +188,7 @@ class ConfusionMatrixConfig(WidgetConfig):
 
     x_column: Optional[str] = Field(None, alias="xColumn")
     y_column: Optional[str] = Field(None, alias="yColumn")
+    filter: bool = Field(False, alias="filter")
 
 
 class ConfusionMatrix(Widget):

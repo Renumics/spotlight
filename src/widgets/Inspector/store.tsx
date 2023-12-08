@@ -13,46 +13,66 @@ import { createStore, useStore as useZustandStore, StoreApi } from 'zustand';
 import { useDataset } from '../../stores/dataset';
 import { isLensCompatible, useComponentsStore } from '../../stores/components';
 import useWidgetConfig from '../useWidgetConfig';
-import { ViewConfig } from './types';
+import { LensConfig } from './types';
 
 export interface State {
-    views: ViewConfig[];
-    addView: (view: ViewConfig) => void;
-    removeView: (view: ViewConfig) => void;
-    moveView: (source: number, target: number) => void;
+    lenses: LensConfig[];
+    addLens: (view: LensConfig) => void;
+    removeLens: (view: LensConfig) => void;
+    moveLens: (source: number, target: number) => void;
+    changeLens: (
+        key: string,
+        lens: LensConfig | ((prev: LensConfig) => LensConfig)
+    ) => void;
 }
 
 export const StoreContext = createContext<StoreApi<State> | null>(null);
 
 const createInspectorStore = (
-    initialViews: ViewConfig[],
-    storeViews: Dispatch<SetStateAction<ViewConfig[]>>
+    initialViews: LensConfig[],
+    storeLenses: Dispatch<SetStateAction<LensConfig[]>>
 ) =>
     createStore<State>((set, get) => ({
-        views: initialViews,
-        addView: (view: ViewConfig) => {
+        lenses: initialViews,
+        addLens: (lens: LensConfig) => {
             set((prev) => {
-                const views = [...prev.views, view];
-                storeViews(views);
-                return { views };
+                const lenses = [...prev.lenses, lens];
+                storeLenses(lenses);
+                return { lenses };
             });
         },
-        removeView: (view: ViewConfig) => {
+        removeLens: (lens: LensConfig) => {
             set((prev) => {
-                const views = prev.views.filter((v) => v !== view);
-                storeViews(views);
-                return { views };
+                const lenses = prev.lenses.filter((v) => v !== lens);
+                storeLenses(lenses);
+                return { lenses };
             });
         },
-        moveView: (source: number, target: number) => {
-            const newViews = get().views.slice();
+        moveLens: (source: number, target: number) => {
+            const newLenses = get().lenses.slice();
 
-            const draggedView = newViews[source];
-            newViews.splice(source, 1);
+            const draggedView = newLenses[source];
+            newLenses.splice(source, 1);
 
-            newViews.splice(target, 0, draggedView);
+            newLenses.splice(target, 0, draggedView);
 
-            set({ views: newViews });
+            set({ lenses: newLenses });
+        },
+        changeLens: (key, lens) => {
+            set((prev) => {
+                const index = prev.lenses.findIndex((prevLens) => prevLens.key === key);
+
+                if (typeof lens === 'function') {
+                    lens = lens(prev.lenses[index]);
+                }
+
+                const lenses = prev.lenses.slice();
+                lenses.splice(index, 1, lens);
+                storeLenses(lenses);
+                return {
+                    lenses,
+                };
+            });
         },
     }));
 
@@ -82,16 +102,17 @@ const StoreProvider = ({ children }: ProviderProps): JSX.Element => {
                     key: shortUUID.generate().toString(),
                     name: column.name,
                     columns: [column.key],
+                    settings: {},
                 };
             })
         );
     }, [allColumns, lenses]);
 
-    const [storedViews, storeViews] = useWidgetConfig<ViewConfig[]>(
+    const [storedLenses, storeLenses] = useWidgetConfig<LensConfig[]>(
         'views',
         defaultLenses
     );
-    const [store] = useState(() => createInspectorStore(storedViews, storeViews));
+    const [store] = useState(() => createInspectorStore(storedLenses, storeLenses));
 
     return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
 };

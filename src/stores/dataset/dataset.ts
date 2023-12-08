@@ -67,6 +67,7 @@ export interface Dataset {
     lastFocusedRow?: number; // the last row that has been focused by a view
     openTable: (path: string) => void; //open the table file at path
     fetch: () => void; // fetch the dataset from the backend
+    refetchColumnValues: (columnKey: string) => void; // refetch values for a single column (after update/computation)
     fetchIssues: () => void; // fetch the ready issues
     refresh: () => void; // refresh the dataset from the backend
     addFilter: (filter: Filter) => void; // add a new filter
@@ -92,13 +93,13 @@ export function convertValue(value: any, type: DataType) {
         return NaN;
     }
 
-    if (value === null) return null;
+    if (value === null || value === undefined) return null;
 
     if (type.kind === 'datetime') {
         return new Date(Date.parse(value));
     }
 
-    if (type.kind === 'Window') {
+    if (type.kind === 'Window' && value !== null) {
         value[0] = value[0] === null ? NaN : value[0];
         value[1] = value[1] === null ? NaN : value[1];
         return value;
@@ -135,7 +136,7 @@ const fetchTable = async (): Promise<{
     const columnData: TableData = {};
     table.columns.forEach((rawColumn, i) => {
         const dsColumn = columns[i];
-        if (rawColumn.values === undefined) {
+        if (rawColumn.values === undefined || rawColumn.values === null) {
             return;
         }
 
@@ -243,7 +244,7 @@ export const useDataset = create(
                     filtered: {},
                 };
 
-                set(() => ({
+                set({
                     uid,
                     generationID,
                     filename,
@@ -253,6 +254,37 @@ export const useDataset = create(
                     columnsByKey: _.keyBy(dataframe.columns, 'key'),
                     columnData: dataframe.data,
                     columnStats,
+                });
+            },
+            refetchColumnValues: async (columnKey) => {
+                const column = get().columnsByKey[columnKey];
+
+                let rawValues = null;
+                try {
+                    rawValues = await api.table.getColumn({
+                        column: columnKey,
+                        generationId: get().generationID,
+                    });
+                } catch (error) {
+                    notifyAPIError(error);
+                    return;
+                }
+                let values = rawValues.map((value: unknown) =>
+                    convertValue(value, column.type)
+                );
+
+                switch (column.type.kind) {
+                    case 'int':
+                    case 'Category':
+                        values = Int32Array.from(values);
+                        break;
+                    case 'float':
+                        values = Float32Array.from(values);
+                        break;
+                }
+
+                set(({ columnData }) => ({
+                    columnData: { ...columnData, [columnKey]: values },
                 }));
             },
             fetchIssues: async () => {
@@ -261,8 +293,19 @@ export const useDataset = create(
                 for (const issue of analysis.issues) {
                     issue.rows.forEach(rowsWithIssues.add, rowsWithIssues);
                 }
+                const issues = analysis.issues.map((apiIssue) => {
+                    const columns = _.compact(
+                        apiIssue.columns
+                            ? apiIssue.columns.map((c) => get().columnsByKey[c])
+                            : []
+                    );
+                    return {
+                        ...apiIssue,
+                        columns,
+                    };
+                });
                 set({
-                    issues: analysis.issues as DataIssue[],
+                    issues: issues as DataIssue[],
                     rowsWithIssues: Int32Array.from(rowsWithIssues),
                     isAnalysisRunning: analysis.running,
                 });
@@ -550,3 +593,16 @@ websocketService.registerMessageHandler('refresh', () => {
 websocketService.registerMessageHandler('issuesUpdated', () => {
     useDataset.getState().fetchIssues();
 });
+
+websocketService.registerMessageHandler('columnsUpdated', (columnKeys: string[]) => {
+    for (const columnKey of columnKeys) {
+        useDataset.getState().refetchColumnValues(columnKey);
+    }
+});
+
+useDataset.subscribe(
+    (state) => state.columns,
+    (columns) => {
+        if (columns) useDataset.getState().fetchIssues();
+    }
+);
