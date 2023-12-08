@@ -14,7 +14,7 @@ const BLEUScoreLens: Lens = ({ values }) => {
     }
 
     return (
-        <div tw="p-1 text-sm" style={{ height: '100%', overflowY: 'scroll' }}>
+        <div tw="p-1 text-sm">
             {bleuScores.map((score, index) => (
                 <div key={index}>{`BLEU (${index + 1}-gram): ${score}`}</div>
             ))}
@@ -24,9 +24,9 @@ const BLEUScoreLens: Lens = ({ values }) => {
 
 BLEUScoreLens.key = 'BLEUScoreView';
 BLEUScoreLens.dataTypes = ['str'];
-BLEUScoreLens.defaultHeight = 64;
-BLEUScoreLens.minHeight = 64;
-BLEUScoreLens.maxHeight = 64;
+BLEUScoreLens.defaultHeight = 90;
+BLEUScoreLens.minHeight = 90;
+BLEUScoreLens.maxHeight = 90;
 BLEUScoreLens.displayName = 'BLEU Score';
 BLEUScoreLens.multi = true;
 BLEUScoreLens.filterAllowedColumns = (allColumns, selectedColumns) => {

@@ -30,7 +30,7 @@ RougeScoreLens.key = 'RougeScore';
 RougeScoreLens.dataTypes = ['str'];
 RougeScoreLens.defaultHeight = 50;
 RougeScoreLens.minHeight = 50;
-RougeScoreLens.maxHeight = 100;
+RougeScoreLens.maxHeight = 50;
 RougeScoreLens.multi = true;
 RougeScoreLens.displayName = 'ROUGE Score';
 
