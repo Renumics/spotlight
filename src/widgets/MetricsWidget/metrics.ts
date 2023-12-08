@@ -101,8 +101,8 @@ export const METRICS: Record<string, Metric> = {
     },
     ROUGE1: {
         signature: {
-            referenceSummary: 'str',
-            generatedSummary: 'str',
+            X: 'str',
+            Y: 'str',
         },
         compute: ([referenceSummary, generatedSummary]) => {
             return rouge.n(referenceSummary, generatedSummary, { n: 1 });
@@ -110,8 +110,8 @@ export const METRICS: Record<string, Metric> = {
     },
     ROUGE2: {
         signature: {
-            referenceSummary: 'str',
-            generatedSummary: 'str',
+            X: 'str',
+            Y: 'str',
         },
         compute: ([referenceSummary, generatedSummary]) => {
             return rouge.n(referenceSummary, generatedSummary, { n: 2 });
