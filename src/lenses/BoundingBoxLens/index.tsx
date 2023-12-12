@@ -1,11 +1,10 @@
-import useResizeObserver from '@react-hook/resize-observer';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import { Lens } from '../../types';
-import tw, { styled } from 'twin.macro';
+import tw, { styled, theme } from 'twin.macro';
 import { CategoricalDataType, SequenceDataType } from '../../datatypes';
 import { ColorsState, useColors } from '../../stores/colors';
 import { Dataset, useDataset } from '../../stores/dataset';
-import * as d3 from 'd3';
+import chroma from 'chroma-js';
 
 const Container = styled.div`
     ${tw`relative h-full w-full overflow-hidden`}
@@ -21,6 +20,7 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const container = useRef<HTMLDivElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
     const imgRef = useRef<HTMLImageElement>(null);
+    const [imgSize, setImgSize] = useState({ width: 0, height: 1 });
 
     // In case of single bounding box with label
     const bboxColumnIndex = columns.findIndex((col) => col.type.kind === 'BoundingBox');
@@ -38,8 +38,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const imageColumnIndex = columns.findIndex((col) => col.type.kind === 'Image');
     const url = urls[imageColumnIndex];
 
-    let boxes: [number[]] | [] = [];
-    let categories: number[] | [] = [];
+    let boxes: [number[]] | [];
+    let categories: number[] | [];
     let invertedCategories = (index: number) => index.toString();
 
     // Check if single bounding box or multiple
@@ -47,6 +47,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
         boxes = [values[bboxColumnIndex] as number[]];
     } else if (bboxesColumnIndex != -1) {
         boxes = values[bboxesColumnIndex] as [number[]];
+    } else {
+        boxes = [];
     }
 
     if (categoryColumnIndex != -1) {
@@ -63,6 +65,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
                 (columns[categoriesColumnIndex].type as SequenceDataType)
                     .dtype as CategoricalDataType
             ).invertedCategories[index];
+    } else {
+        categories = [];
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,109 +86,134 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const colorPalette = useColors(colorPaletteSelector);
     const colorTransferFunction = useDataset(colorTransferFunctionSelector);
 
-    useResizeObserver(container.current, () => drawBoundingBoxes());
+    let colorFunc: (i: number) => string;
 
-    const drawBoundingBoxes = () => {
-        if (!svgRef.current) return;
-        if (!container.current) return;
-        if (!imgRef.current) return;
-        if (!boxes) return;
-
-        // Remove previous svg elements
-        d3.select(svgRef.current).select<SVGSVGElement>('g').remove();
-
-        let colorFunc: (i: number) => string;
-
-        if (categories.length === 0) {
-            colorFunc = (i: number) => colorPalette.scale().colors(boxes.length)[i];
+    if (categories.length === 0) {
+        colorFunc = (i: number) => colorPalette.scale().colors(boxes.length)[i];
+    } else {
+        if (colorTransferFunction !== undefined) {
+            colorFunc = (i: number) => colorTransferFunction(categories[i]).hex();
         } else {
-            if (colorTransferFunction !== undefined) {
-                colorFunc = (i: number) => colorTransferFunction(categories[i]).hex();
-            } else {
-                colorFunc = (i: number) => {
-                    const dtype = (
-                        columns[categoriesColumnIndex].type as SequenceDataType
-                    ).dtype as CategoricalDataType;
-                    const index = dtype.categories[invertedCategories(categories[i])];
-                    return colorPalette
-                        .scale()
-                        .colors(Object.keys(dtype.categories).length)[index];
-                };
-            }
+            colorFunc = (i: number) => {
+                const dtype = (columns[categoriesColumnIndex].type as SequenceDataType)
+                    .dtype as CategoricalDataType;
+                const index = dtype.categories[invertedCategories(categories[i])];
+                return colorPalette
+                    .scale()
+                    .colors(Object.keys(dtype.categories).length)[index];
+            };
         }
+    }
+
+    useEffect(() => {
+        const handleLoad = () => {
+            setImgSize({
+                width: imgRef.current?.naturalWidth ?? 0,
+                height: imgRef.current?.naturalHeight ?? 1,
+            });
+        };
 
         const image = imgRef.current;
 
-        // Natural dimensions of the image
-        const naturalWidth = image.naturalWidth;
-        const naturalHeight = image.naturalHeight;
-        const imageAspectRatio = naturalWidth / naturalHeight;
-
-        // Dimensions of the parent element
-        const parentWidth = container.current.offsetWidth;
-        const parentHeight = container.current.offsetHeight;
-
-        const parentAspectRatio = parentWidth / parentHeight;
-
-        let renderedWidth, renderedHeight;
-
-        if (imageAspectRatio > parentAspectRatio) {
-            renderedWidth = parentWidth;
-            renderedHeight = parentWidth / imageAspectRatio;
-        } else {
-            renderedHeight = parentHeight;
-            renderedWidth = parentHeight * imageAspectRatio;
+        if (image) {
+            image.addEventListener('load', handleLoad);
         }
-        const offsetWidth = (parentWidth - renderedWidth) / 2;
-        const offsetHeight = (parentHeight - renderedHeight) / 2;
 
-        d3.select(svgRef.current).append<SVGSVGElement>('g');
-
-        for (let i = 0; i < boxes.length; i++) {
-            const box = boxes[i];
-
-            // Box format [x, y, w, h] normalized.
-            const x = box[0] * renderedWidth + offsetWidth;
-            const y = box[1] * renderedHeight + offsetHeight;
-            const width = (box[2] - box[0]) * renderedWidth;
-            const height = (box[3] - box[1]) * renderedHeight;
-            const boxColor = colorFunc(i);
-
-            d3.select(svgRef.current)
-                .select<SVGSVGElement>('g')
-                .append('rect')
-                .attr('x', x)
-                .attr('y', y)
-                .attr('width', width)
-                .attr('height', height)
-                .attr('stroke', 'firebrick')
-                .attr('stroke-width', 2)
-                .attr('stroke', boxColor)
-                .attr('fill', 'none');
-
-            if (categories.length > 0) {
-                d3.select(svgRef.current)
-                    .select<SVGSVGElement>('g')
-                    .append('text')
-                    .text(invertedCategories(categories[i]))
-                    .attr('x', x)
-                    .attr('y', y - 3)
-                    .attr('fontsize', 12)
-                    .attr('fill', boxColor);
+        return () => {
+            if (image) {
+                image.removeEventListener('load', handleLoad);
             }
-        }
-    };
+        };
+    }, []);
+    //}, [boxes, categories, colorFunc]);
 
     return (
         <Container ref={container}>
-            <img
-                ref={imgRef}
-                src={url}
-                alt="URL not found!"
-                onLoad={drawBoundingBoxes}
-            />
+            <img ref={imgRef} src={url} alt="URL not found!" />
             <svg ref={svgRef}>
-                <g />
+                {boxes.map((box, index) => {
+                    if (!svgRef.current) return;
+                    if (!container.current) return;
+                    if (!boxes) return;
+
+                    console.log('draw a box');
+                    //const image = imgRef.current;
+
+                    // Natural dimensions of the image
+                    //const naturalWidth = image?.naturalWidth ?? 1;
+                    //const naturalHeight = image?.naturalHeight ?? 1;
+                    const naturalWidth = imgSize.width;
+                    const naturalHeight = imgSize.height;
+                    const imageAspectRatio = naturalWidth / naturalHeight;
+
+                    // Dimensions of the parent element
+                    const parentWidth = container.current.offsetWidth;
+                    const parentHeight = container.current.offsetHeight;
+
+                    const parentAspectRatio = parentWidth / parentHeight;
+
+                    let renderedWidth, renderedHeight;
+
+                    if (imageAspectRatio > parentAspectRatio) {
+                        renderedWidth = parentWidth;
+                        renderedHeight = parentWidth / imageAspectRatio;
+                    } else {
+                        renderedHeight = parentHeight;
+                        renderedWidth = parentHeight * imageAspectRatio;
+                    }
+                    const offsetWidth = (parentWidth - renderedWidth) / 2;
+                    const offsetHeight = (parentHeight - renderedHeight) / 2;
+
+                    // Box format [x, y, w, h] normalized.
+                    const x = box[0] * renderedWidth + offsetWidth;
+                    const y = box[1] * renderedHeight + offsetHeight;
+                    const width = (box[2] - box[0]) * renderedWidth;
+                    const height = (box[3] - box[1]) * renderedHeight;
+                    const boxColor = colorFunc(index);
+                    const text = invertedCategories(categories[index]);
+                    const white = chroma(theme`colors.white`);
+                    const black = chroma(theme`colors.black`);
+
+                    const textColor =
+                        chroma.contrast(boxColor, white) >
+                        chroma.contrast(boxColor, black)
+                            ? white
+                            : black;
+
+                    return (
+                        <g key={index}>
+                            <rect
+                                key={index + 'bbox'}
+                                x={x}
+                                y={y}
+                                width={width}
+                                height={height}
+                                fill="none"
+                                stroke={boxColor}
+                                strokeWidth={2}
+                            ></rect>
+                            <rect
+                                key={index + 'background'}
+                                x={x}
+                                y={y - 11}
+                                width={width}
+                                height={12}
+                                fill={boxColor}
+                                stroke={boxColor}
+                                strokeWidth={2}
+                            ></rect>
+                            <text
+                                key={index + 'text'}
+                                x={x}
+                                y={y}
+                                fontSize={12}
+                                stroke={textColor.hex()}
+                            >
+                                {text}
+                            </text>
+                        </g>
+                    );
+                })}
             </svg>
         </Container>
     );
