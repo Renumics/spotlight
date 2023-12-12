@@ -3,12 +3,11 @@ import api from '../api';
 import { Dataset, useDataset } from '../stores/dataset';
 
 interface CachedCell {
-    column: string;
-    row: number;
     generationId: number;
     promise: Promise<unknown>;
 }
-const cellCache: Record<string, CachedCell> = {};
+const cellCacheCapacity = 100;
+const cellCache: Map<string, CachedCell> = new Map();
 
 async function _fetchCell(
     column: string,
@@ -28,7 +27,7 @@ async function _sleep(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function _getCell(
+function _getCell(
     column: string,
     row: number,
     generationId: number,
@@ -36,17 +35,25 @@ async function _getCell(
     fetchDelay = 0
 ) {
     const cacheKey = `${column},${row},${asBuffer}`;
-    let cell = cellCache[cacheKey];
+    let cell = cellCache.get(cacheKey);
     if (cell?.generationId != generationId) {
         if (fetchDelay) _sleep(fetchDelay);
         const promise = _fetchCell(column, row, generationId, asBuffer);
         cell = {
-            column,
-            row,
             generationId,
             promise,
         };
-        cellCache[cacheKey] = cell;
+
+        // remove oldest 10% if cache is full
+        if (cellCache.size > cellCacheCapacity) {
+            const keyIter = cellCache.keys();
+            const removeCount = Math.ceil(cellCacheCapacity / 10);
+            for (let i = 0; i < removeCount; i++) {
+                cellCache.delete(keyIter.next().value);
+            }
+        }
+
+        cellCache.set(cacheKey, cell);
     }
     return cell.promise;
 }
