@@ -28,7 +28,7 @@ export class Formatter {
     format(value: any, type: DataType, full = false): string {
         // format a single value by it's DataType (usually taken from column.type)
 
-        if (value === null) {
+        if (value === null || value === undefined) {
             return '';
         }
 

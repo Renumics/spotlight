@@ -31,6 +31,7 @@ from renumics.spotlight.backend.websockets import (
     ResetLayoutMessage,
     WebsocketManager,
 )
+from renumics.spotlight.embeddings import create_embedders, run_embedders
 from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.typing import PathType
@@ -52,10 +53,8 @@ from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.data_source import DataSource, create_datasource
 from renumics.spotlight import layouts
-
 from renumics.spotlight.data_store import DataStore
-
-from renumics.spotlight.dtypes import DTypeMap
+from renumics.spotlight import dtypes as spotlight_dtypes
 
 CURRENT_LAYOUT_KEY = "layout.current"
 
@@ -83,6 +82,15 @@ class IssuesUpdatedMessage(Message):
     data: Any = None
 
 
+class ColumnsUpdatedMessage(Message):
+    """
+    Notify about updated embeddings.
+    """
+
+    type: Literal["columnsUpdated"] = "columnsUpdated"
+    data: List[str]
+
+
 class SpotlightApp(FastAPI):
     """
     Spotlight wsgi application
@@ -97,7 +105,7 @@ class SpotlightApp(FastAPI):
 
     # datasource
     _dataset: Optional[Union[PathType, pd.DataFrame]]
-    _user_dtypes: DTypeMap
+    _user_dtypes: spotlight_dtypes.DTypeMap
     _data_source: Optional[DataSource]
     _data_store: Optional[DataStore]
 
@@ -115,7 +123,10 @@ class SpotlightApp(FastAPI):
     # data issues
     issues: Optional[List[DataIssue]] = []
     _custom_issues: List[DataIssue] = []
-    analyze_columns: Union[List[str], bool] = False
+    analyze_columns: Union[List[str], bool]
+
+    # embedding
+    embed_columns: Union[List[str], bool]
 
     def __init__(self) -> None:
         super().__init__()
@@ -130,6 +141,7 @@ class SpotlightApp(FastAPI):
         self.analyze_columns = False
         self.issues = None
         self._custom_issues = []
+        self.embed_columns = False
 
         self._dataset = None
         self._user_dtypes = {}
@@ -320,6 +332,8 @@ class SpotlightApp(FastAPI):
                 self.analyze_columns = config.analyze
             if config.custom_issues is not None:
                 self.custom_issues = config.custom_issues
+            if config.embed is not None:
+                self.embed_columns = config.embed
             if config.dataset is not None:
                 self._dataset = config.dataset
                 self._data_source = create_datasource(self._dataset)
@@ -334,6 +348,7 @@ class SpotlightApp(FastAPI):
                 self._data_store = DataStore(data_source, self._user_dtypes)
                 self._broadcast(RefreshMessage())
                 self._update_issues()
+                self._update_embeddings()
             if config.layout is not None:
                 if self._data_store is not None:
                     dataset_uid = self._data_store.uid
@@ -450,6 +465,47 @@ class SpotlightApp(FastAPI):
             self._broadcast(IssuesUpdatedMessage())
 
         task.future.add_done_callback(_on_issues_ready)
+
+    def _update_embeddings(self) -> None:
+        """
+        Update embeddings, update them in the data store and notify client about.
+        """
+        if not self.embed_columns:
+            return
+
+        if self._data_store is None:
+            return
+
+        logger.info("Embedding started.")
+
+        if self.embed_columns is True:
+            embed_columns = self._data_store.column_names
+        else:
+            embed_columns = [
+                column
+                for column in self.embed_columns
+                if column in self._data_store.column_names
+            ]
+
+        embedders = create_embedders(self._data_store, embed_columns)
+
+        self._data_store.embeddings = {column: None for column in embedders}
+
+        task = self.task_manager.create_task(
+            run_embedders, (embedders,), name="update_embeddings"
+        )
+
+        def _on_embeddings_ready(future: Future) -> None:
+            if self._data_store is None:
+                return
+            try:
+                self._data_store.embeddings = future.result()
+            except CancelledError:
+                return
+            logger.info("Embedding done.")
+            self._broadcast(ColumnsUpdatedMessage(data=list(embedders.keys())))
+
+        task.future.add_done_callback(_on_embeddings_ready)
 
     def _broadcast(self, message: Message) -> None:
         """

@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dataset, useDataset } from '../stores/dataset';
 import { Problem } from '../types';
@@ -6,15 +7,29 @@ import { shallow } from 'zustand/shallow';
 import { usePrevious } from '../hooks';
 
 async function fetchValue(row: number, column: string, raw: boolean) {
-    const response = await api.table.getCellRaw({
-        row,
-        column,
-        generationId: useDataset.getState().generationID,
-    });
-    if (raw) {
-        return response.raw.arrayBuffer();
-    } else {
-        return response.value();
+    try {
+        const response = await api.table.getCellRaw({
+            row,
+            column,
+            generationId: useDataset.getState().generationID,
+        });
+        if (raw) {
+            return response.raw.arrayBuffer();
+        } else {
+            return response.value();
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+        if (error.response?.json) {
+            throw await error.response.json();
+        } else {
+            const problem: Problem = {
+                type: 'FailedToLoadValue',
+                title: 'Failed to load value',
+                detail: error.toString?.(),
+            };
+            throw problem;
+        }
     }
 }
 
@@ -27,7 +42,7 @@ function useCellValues(
 ): [unknown[] | undefined, Problem | undefined] {
     const cellsSelector = useCallback(
         (d: Dataset) => {
-            return columnKeys.map((key) => d.columnData[key][rowIndex]);
+            return columnKeys.map((key) => d.columnData[key]?.[rowIndex]);
         },
         [rowIndex, columnKeys]
     );
@@ -43,7 +58,17 @@ function useCellValues(
     const cellEntries = useDataset(cellsSelector, shallow);
     const columns = useDataset(columnsSelector, shallow);
     const generationId = useDataset((d) => d.generationID);
-    const previousGenerationId = usePrevious(generationId);
+
+    const isAnyColumnComputing = useDataset((d) =>
+        _.some(
+            columnKeys,
+            (key) => d.columnsByKey[key].computed && d.columnData[key] === undefined
+        )
+    );
+
+    const previousGenerationId = usePrevious(
+        isAnyColumnComputing ? undefined : generationId
+    );
 
     const [values, setValues] = useState<unknown[] | undefined>();
     const [problem, setProblem] = useState<Problem>();
@@ -52,6 +77,7 @@ function useCellValues(
     const promisesRef = useRef<Record<string, Promise<unknown>>>({});
 
     const cancelledRef = useRef<boolean>(false);
+
     useEffect(() => {
         // reset cancelled for StrictMode in dev
         cancelledRef.current = false;
@@ -61,6 +87,8 @@ function useCellValues(
     }, []);
 
     useEffect(() => {
+        if (isAnyColumnComputing) return;
+
         const promises = promisesRef.current;
 
         if (generationId !== previousGenerationId) {
@@ -92,12 +120,12 @@ function useCellValues(
                 })
                 .catch((error) => {
                     if (!cancelledRef.current) {
-                        console.error(error);
                         setProblem(error);
                     }
                 });
         }
     }, [
+        isAnyColumnComputing,
         cellEntries,
         columnKeys,
         columns,

@@ -97,7 +97,7 @@ const LensFactory: FunctionComponent<Props> = ({
     const allEditable = columns.every((c) => c.editable);
 
     if (problem) {
-        return <Info>Failed to load value!</Info>;
+        return <Info>{problem.title}</Info>;
     }
     if (!values || !urls) return <LoadingIndicator delay={100} />;
     if (!LensComponent) return <Info>View not found ({view})!</Info>;

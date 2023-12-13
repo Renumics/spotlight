@@ -1,6 +1,6 @@
 import Tag from '../../../components/ui/Tag';
 import Tooltip from '../../../components/ui/Tooltip';
-import { useDataformat } from '../../../dataformat';
+import { formatKind, useDataformat } from '../../../dataformat';
 import { useColorTransferFunction } from '../../../hooks/useColorTransferFunction';
 import * as React from 'react';
 import { FunctionComponent, useCallback, useContext, useMemo } from 'react';
@@ -13,6 +13,7 @@ import { useSortByColumn } from '../context/sortingContext';
 import RelevanceIndicator from '../RelevanceIndicator';
 import { ResizingContext } from '../context/resizeContext';
 import ColumnBadge from '../../../components/ui/ColumnBadge';
+import DataTypeIcon from '../../../components/DataTypeIcon';
 
 interface SortingIndicatorProps {
     sorting?: Sorting;
@@ -89,7 +90,13 @@ const HeaderCell: FunctionComponent<Props> = ({ style, columnIndex }) => {
     const tooltipContent = useMemo(
         () => (
             <div tw="flex flex-col max-w-xl">
-                <div tw="font-bold break-all">{column.name}</div>
+                <div tw="font-bold break-all p-0.5">{column.name}</div>
+                <div tw="flex flex-row justify-center">
+                    <div tw="flex flex-row rounded-full bg-gray-300 text-xs space-x-1 px-2 py-0.5">
+                        <DataTypeIcon type={column.type} />
+                        <div>{formatKind(column.type.kind)}</div>
+                    </div>
+                </div>
                 <div tw="text-gray-700 space-x-1.5 text-xs">
                     <span css={[!column.editable && tw`line-through`]}>editable</span>
                     <span css={[!column.optional && tw`line-through`]}>optional</span>

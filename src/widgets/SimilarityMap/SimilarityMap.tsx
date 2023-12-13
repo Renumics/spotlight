@@ -1,5 +1,4 @@
 import SimilaritiesIcon from '../../icons/Bubbles';
-import LoadingIndicator from '../../components/LoadingIndicator';
 import Plot, {
     MergeStrategy,
     Points,
@@ -36,6 +35,7 @@ import TooltipContent from './TooltipContent';
 import { ReductionMethod } from './types';
 import Info from '../../components/ui/Info';
 import { unknownDataType } from '../../datatypes';
+import { Spinner } from '../../lib';
 
 const MapContainer = styled.div`
     ${tw`bg-gray-100 border-gray-400 w-full h-full overflow-hidden`}
@@ -103,6 +103,7 @@ const SimilarityMap: Widget = () => {
     >('pcaNormalization', 'none');
 
     const [isComputing, setIsComputing] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState<string>('');
 
     const {
         fullColumns,
@@ -273,6 +274,13 @@ const SimilarityMap: Widget = () => {
 
     const widgetId = useMemo(() => uuidv4(), []);
 
+    const anyColumnComputing = useDataset((d) =>
+        _.some(
+            placeByColumnKeys,
+            (key) => d.columnsByKey[key]?.computed && d.columnData[key] === undefined
+        )
+    );
+
     useEffect(() => {
         setVisibleIndices([]);
         setPositions([]);
@@ -282,7 +290,15 @@ const SimilarityMap: Widget = () => {
             setIsComputing(false);
             return;
         }
+
+        if (anyColumnComputing) {
+            setIsComputing(true);
+            setLoadingMessage(`Computing embeddings`);
+            return;
+        }
+
         setIsComputing(true);
+        setLoadingMessage(`Computing ${reductionMethod}`);
 
         const reductionPromise =
             reductionMethod === 'umap'
@@ -327,6 +343,7 @@ const SimilarityMap: Widget = () => {
         umapMetric,
         umapMinDist,
         pcaNormalization,
+        anyColumnComputing,
     ]);
 
     const getOriginalIndices = useCallback(
@@ -461,7 +478,14 @@ const SimilarityMap: Widget = () => {
             </div>
         );
     } else if (isComputing) {
-        content = <LoadingIndicator />;
+        content = (
+            <Info>
+                <div tw="flex flex-col items-center overflow-hidden space-x-1">
+                    <Spinner tw="h-8 w-8" />
+                    <div>{loadingMessage}</div>
+                </div>
+            </Info>
+        );
     } else if (!areColumnsSelected) {
         content = (
             <Info>
