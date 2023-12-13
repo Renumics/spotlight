@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import { Dataset, useDataset } from '../stores/dataset';
+import { Problem, isProblem } from '../types';
 
 interface CachedCell {
     generationId: number;
@@ -58,6 +59,21 @@ function _getCell(
     return cell.promise;
 }
 
+function _errorToProblem(e: unknown): Problem {
+    if (isProblem(e)) {
+        return e;
+    }
+    return {
+        type: 'unknown',
+        title: 'Error',
+        detail: `{e}`,
+    };
+}
+
+function _handleError(e: unknown) {
+    throw _errorToProblem(e);
+}
+
 const generationIdSelector = (d: Dataset) => d.generationID;
 
 function useCell(
@@ -73,11 +89,11 @@ function useCell(
     const [remoteValue, setRemoteValue] = useState<unknown | null>();
     useEffect(() => {
         if (!dtype.lazy) return;
-        _getCell(columnKey, row, generationId, dtype.binary, fetchDelay).then(
-            (v: any) => {
+        _getCell(columnKey, row, generationId, dtype.binary, fetchDelay)
+            .then((v: unknown) => {
                 setRemoteValue(v);
-            }
-        );
+            })
+            .catch(_handleError);
     }, [columnKey, row, generationId, dtype, fetchDelay]);
 
     return dtype.lazy ? localValue : remoteValue;
@@ -103,13 +119,15 @@ export function useRow(
                 return Promise.resolve(columnData[key][row]);
             }
         });
-        Promise.all(promises).then((v) => {
-            const keyedValues: Record<string, unknown> = {};
-            for (let i = 0; i < columnKeys.length; ++i) {
-                keyedValues[columnKeys[i]] = v[i];
-            }
-            setValues(keyedValues);
-        });
+        Promise.all(promises)
+            .then((v) => {
+                const keyedValues: Record<string, unknown> = {};
+                for (let i = 0; i < columnKeys.length; ++i) {
+                    keyedValues[columnKeys[i]] = v[i];
+                }
+                setValues(keyedValues);
+            })
+            .catch(_handleError);
     }, [row, columnKeys, generationId, columnsByKey, columnData, fetchDelay]);
 
     return values;
