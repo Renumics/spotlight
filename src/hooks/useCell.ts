@@ -29,13 +29,14 @@ async function _sleep(ms: number) {
 }
 
 function _getCell(
+    datasetId: string,
     column: string,
     row: number,
     generationId: number,
     asBuffer: boolean,
     fetchDelay = 0
 ) {
-    const cacheKey = `${column},${row},${asBuffer}`;
+    const cacheKey = `${datasetId},${column},${row},${asBuffer}`;
     let cell = cellCache.get(cacheKey);
     if (cell?.generationId != generationId) {
         if (fetchDelay) _sleep(fetchDelay);
@@ -71,29 +72,35 @@ function _errorToProblem(e: unknown): Problem {
 }
 
 const generationIdSelector = (d: Dataset) => d.generationID;
+const datasetIdSelector = (d: Dataset) => d.uid;
+const columnsByKeySelector = (d: Dataset) => d.columnsByKey;
+const localDataSelector = (d: Dataset) => d.columnData;
 
 function useCell(
     columnKey: string,
     row: number,
     fetchDelay = 0
 ): [unknown | null | undefined, Problem | undefined] {
+    const datasetId = useDataset(datasetIdSelector) ?? '';
     const generationId = useDataset(generationIdSelector);
-    const dtype = useDataset((d) => d.columnsByKey[columnKey].type);
+    const columnsByKey = useDataset(columnsByKeySelector);
+    const localData = useDataset(localDataSelector);
 
-    const localValue = useDataset((d) => d.columnData[columnKey][row]);
+    const dtype = columnsByKey[columnKey].type;
+    const localValue = localData[columnKey][row];
 
     const [remoteValue, setRemoteValue] = useState<unknown | null>();
     const [problem, setProblem] = useState<Problem>();
 
     useEffect(() => {
         if (!dtype.lazy) return;
-        _getCell(columnKey, row, generationId, dtype.binary, fetchDelay)
+        _getCell(datasetId, columnKey, row, generationId, dtype.binary, fetchDelay)
             .then((v: unknown) => {
                 setRemoteValue(v);
                 setProblem(undefined);
             })
             .catch((e) => setProblem(_errorToProblem(e)));
-    }, [columnKey, row, generationId, dtype, fetchDelay]);
+    }, [datasetId, columnKey, row, generationId, dtype, fetchDelay]);
 
     return [dtype.lazy ? localValue : remoteValue, problem];
 }
@@ -103,9 +110,10 @@ export function useRow(
     columnKeys: Array<string>,
     fetchDelay = 0
 ): [Record<string, unknown> | undefined, Problem | undefined] {
+    const datasetId = useDataset(datasetIdSelector) ?? '';
     const generationId = useDataset(generationIdSelector);
-    const columnsByKey = useDataset((d) => d.columnsByKey);
-    const columnData = useDataset((d) => d.columnData);
+    const columnsByKey = useDataset(columnsByKeySelector);
+    const localData = useDataset(localDataSelector);
 
     const [values, setValues] = useState<Record<string, unknown>>();
     const [problem, setProblem] = useState<Problem>();
@@ -114,9 +122,16 @@ export function useRow(
         const promises = columnKeys.map((key) => {
             const dtype = columnsByKey[key].type;
             if (dtype.lazy) {
-                return _getCell(key, row, generationId, dtype.binary, fetchDelay);
+                return _getCell(
+                    datasetId,
+                    key,
+                    row,
+                    generationId,
+                    dtype.binary,
+                    fetchDelay
+                );
             } else {
-                return Promise.resolve(columnData[key][row]);
+                return Promise.resolve(localData[key][row]);
             }
         });
         Promise.all(promises)
@@ -129,7 +144,7 @@ export function useRow(
                 setProblem(undefined);
             })
             .catch((e) => setProblem(_errorToProblem(e)));
-    }, [row, columnKeys, generationId, columnsByKey, columnData, fetchDelay]);
+    }, [datasetId, row, columnKeys, generationId, columnsByKey, localData, fetchDelay]);
 
     return [values, problem];
 }
