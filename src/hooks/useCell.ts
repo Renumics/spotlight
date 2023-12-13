@@ -70,45 +70,45 @@ function _errorToProblem(e: unknown): Problem {
     };
 }
 
-function _handleError(e: unknown) {
-    throw _errorToProblem(e);
-}
-
 const generationIdSelector = (d: Dataset) => d.generationID;
 
 function useCell(
     columnKey: string,
     row: number,
     fetchDelay = 0
-): unknown | null | undefined {
+): [unknown | null | undefined, Problem | undefined] {
     const generationId = useDataset(generationIdSelector);
     const dtype = useDataset((d) => d.columnsByKey[columnKey].type);
 
     const localValue = useDataset((d) => d.columnData[columnKey][row]);
 
     const [remoteValue, setRemoteValue] = useState<unknown | null>();
+    const [problem, setProblem] = useState<Problem>();
+
     useEffect(() => {
         if (!dtype.lazy) return;
         _getCell(columnKey, row, generationId, dtype.binary, fetchDelay)
             .then((v: unknown) => {
                 setRemoteValue(v);
+                setProblem(undefined);
             })
-            .catch(_handleError);
+            .catch((e) => setProblem(_errorToProblem(e)));
     }, [columnKey, row, generationId, dtype, fetchDelay]);
 
-    return dtype.lazy ? localValue : remoteValue;
+    return [dtype.lazy ? localValue : remoteValue, problem];
 }
 
 export function useRow(
     row: number,
     columnKeys: Array<string>,
     fetchDelay = 0
-): Record<string, unknown> | undefined {
+): [Record<string, unknown> | undefined, Problem | undefined] {
     const generationId = useDataset(generationIdSelector);
     const columnsByKey = useDataset((d) => d.columnsByKey);
     const columnData = useDataset((d) => d.columnData);
 
     const [values, setValues] = useState<Record<string, unknown>>();
+    const [problem, setProblem] = useState<Problem>();
 
     useEffect(() => {
         const promises = columnKeys.map((key) => {
@@ -126,11 +126,12 @@ export function useRow(
                     keyedValues[columnKeys[i]] = v[i];
                 }
                 setValues(keyedValues);
+                setProblem(undefined);
             })
-            .catch(_handleError);
+            .catch((e) => setProblem(_errorToProblem(e)));
     }, [row, columnKeys, generationId, columnsByKey, columnData, fetchDelay]);
 
-    return values;
+    return [values, problem];
 }
 
 export default useCell;
