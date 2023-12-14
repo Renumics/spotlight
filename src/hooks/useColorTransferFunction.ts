@@ -159,7 +159,6 @@ export const createColorTransferFunction = (
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useColorTransferFunction = (data: any[], dtype: DataType | undefined) => {
     const colors = useColors();
-    useWhyDidYouUpdate('transfer', { data, dtype });
     return useMemo(
         () =>
             createColorTransferFunction(
