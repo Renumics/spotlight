@@ -1,5 +1,5 @@
 import { useColorTransferFunction } from '../../hooks';
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, useMemo } from 'react';
 import { Lens } from '../../types';
 import 'twin.macro';
 import { CategoricalDataType } from '../../datatypes';
@@ -29,21 +29,25 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const imageColumnIndex = columns.findIndex((col) => col.type.kind === 'Image');
     const url = urls[imageColumnIndex];
 
-    let boxes: [number[]] | [] = [];
-    let categories: number[] | [] = [];
+    const boxes = useMemo(() => {
+        if (bboxColumnIndex != -1) {
+            return [values[bboxColumnIndex] as number[]];
+        } else if (bboxesColumnIndex != -1) {
+            return values[bboxesColumnIndex] as [number[]];
+        } else {
+            return [];
+        }
+    }, [values, bboxColumnIndex, bboxesColumnIndex]);
 
-    // Check if single bounding box or multiple
-    if (bboxColumnIndex != -1) {
-        boxes = [values[bboxColumnIndex] as number[]];
-    } else if (bboxesColumnIndex != -1) {
-        boxes = values[bboxesColumnIndex] as [number[]];
-    }
-
-    if (categoryColumnIndex != -1) {
-        categories = [values[categoryColumnIndex] as number];
-    } else if (categoriesColumnIndex != -1) {
-        categories = values[categoriesColumnIndex] as [number];
-    }
+    const categories = useMemo(() => {
+        if (categoryColumnIndex != -1) {
+            return [values[categoryColumnIndex] as number];
+        } else if (categoriesColumnIndex != -1) {
+            return values[categoriesColumnIndex] as [number];
+        } else {
+            return [];
+        }
+    }, [values, categoryColumnIndex, categoriesColumnIndex]);
 
     // Natural dimensions of the image
     const naturalWidth = imgSize.width;

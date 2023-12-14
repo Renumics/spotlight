@@ -6,6 +6,7 @@ import { useColors } from '../stores/colors';
 import { makeStats } from '../stores/dataset/statisticsFactory';
 import { ColumnData } from '../types';
 import { NO_DATA as NO_DATA_COLOR } from '../palettes';
+import useWhyDidYouUpdate from './useWhyDidYouUpdate';
 
 const MAX_VALUES_FOR_INT_CATEGORY = 100;
 
@@ -158,6 +159,7 @@ export const createColorTransferFunction = (
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const useColorTransferFunction = (data: any[], dtype: DataType | undefined) => {
     const colors = useColors();
+    useWhyDidYouUpdate('transfer', { data, dtype });
     return useMemo(
         () =>
             createColorTransferFunction(
