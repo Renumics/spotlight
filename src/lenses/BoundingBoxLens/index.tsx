@@ -1,71 +1,17 @@
 import { useColorTransferFunction } from '../../hooks';
 import { useRef, useCallback, useState } from 'react';
 import { Lens } from '../../types';
-import tw, { styled, theme } from 'twin.macro';
+import 'twin.macro';
 import { CategoricalDataType } from '../../datatypes';
-import chroma from 'chroma-js';
-
-const Container = styled.div`
-    ${tw`relative h-full w-full overflow-hidden`}
-    img {
-        ${tw`absolute top-0 left-0 h-full w-full object-contain`}
-    }
-    svg {
-        ${tw`absolute top-0 left-0 h-full w-full`}
-    }
-`;
-
-interface BBoxProps {
-    width: number;
-    height: number;
-    x: number;
-    y: number;
-    color: string;
-    label: string;
-}
-
-const BBox = ({ width, height, x, y, color, label }: BBoxProps) => {
-    // Box format [x, y, w, h] normalized.
-    const white = chroma(theme`colors.white`);
-    const black = chroma(theme`colors.black`);
-
-    const textColor =
-        chroma.contrast(color ?? black, white) > chroma.contrast(color ?? white, black)
-            ? white
-            : black;
-
-    return (
-        <g>
-            <rect
-                x={x}
-                y={y}
-                width={width}
-                height={height}
-                fill="none"
-                stroke={color}
-                strokeWidth={2}
-            ></rect>
-            <rect
-                x={x}
-                y={y - 11}
-                width={width}
-                height={12}
-                fill={color}
-                stroke={color}
-                strokeWidth={2}
-            ></rect>
-            <text x={x} y={y} fontSize={12} stroke={textColor.hex()}>
-                {label}
-            </text>
-        </g>
-    );
-};
+import BBox from './BBox';
+import useResizeObserver from '@react-hook/resize-observer';
 
 const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const container = useRef<HTMLDivElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
     const imgRef = useRef<HTMLImageElement>(null);
-    const [imgSize, setImgSize] = useState({ width: 0, height: 1 });
+    const [imgSize, setImgSize] = useState({ width: 0, height: 0 });
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
     // In case of single bounding box with label
     const bboxColumnIndex = columns.findIndex((col) => col.type.kind === 'BoundingBox');
@@ -100,15 +46,15 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     }
 
     // Natural dimensions of the image
-    const naturalWidth = imgSize.width ?? 1;
-    const naturalHeight = imgSize.height ?? 1;
-    const imageAspectRatio = naturalWidth / naturalHeight;
+    const naturalWidth = imgSize.width;
+    const naturalHeight = imgSize.height;
+    const imageAspectRatio = naturalWidth / Math.max(1, naturalHeight);
 
     //Dimensions of the parent element
-    const parentWidth = container.current?.offsetWidth ?? 0;
-    const parentHeight = container.current?.offsetHeight ?? 1;
+    const parentWidth = containerSize.width;
+    const parentHeight = containerSize.height;
 
-    const parentAspectRatio = parentWidth / parentHeight;
+    const parentAspectRatio = parentWidth / Math.max(1, parentHeight);
 
     let renderedWidth: number, renderedHeight: number;
 
@@ -135,6 +81,13 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
         categoricalDtype
     );
 
+    useResizeObserver(container, () => {
+        setContainerSize({
+            width: container.current?.offsetWidth ?? 0,
+            height: container.current?.offsetHeight ?? 0,
+        });
+    });
+
     const handleLoad = useCallback(() => {
         setImgSize({
             width: imgRef.current?.naturalWidth ?? 0,
@@ -143,9 +96,15 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     }, []);
 
     return (
-        <Container ref={container}>
-            <img ref={imgRef} src={url} alt="URL not found!" onLoad={handleLoad} />
-            <svg ref={svgRef}>
+        <div tw="relative h-full w-full overflow-hidden" ref={container}>
+            <img
+                tw="absolute top-0 left-0 h-full w-full object-contain"
+                ref={imgRef}
+                src={url}
+                alt="URL not found!"
+                onLoad={handleLoad}
+            />
+            <svg tw="absolute top-0 left-0 h-full w-full" ref={svgRef}>
                 <g />
                 {boxes.map((box, index) => (
                     <BBox
@@ -162,7 +121,7 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
                     />
                 ))}
             </svg>
-        </Container>
+        </div>
     );
 };
 
