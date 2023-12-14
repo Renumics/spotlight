@@ -6,7 +6,6 @@ import { useColors } from '../stores/colors';
 import { makeStats } from '../stores/dataset/statisticsFactory';
 import { ColumnData } from '../types';
 import { NO_DATA as NO_DATA_COLOR } from '../palettes';
-import useWhyDidYouUpdate from './useWhyDidYouUpdate';
 
 const MAX_VALUES_FOR_INT_CATEGORY = 100;
 
