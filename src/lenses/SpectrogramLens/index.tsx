@@ -41,6 +41,8 @@ const drawScale = (
         numTicks = Math.round(height / 20);
     } else if (scale === 'linear') {
         numTicks = Math.round(height / 30);
+    } else if (scale === 'mel') {
+        numTicks = Math.round(height / 30);
     } else {
         numTicks = 5;
     }
@@ -59,6 +61,19 @@ const drawScale = (
             .tickSizeOuter(0)
             .ticks(numTicks, (x: number) => {
                 return `${freqType(x).toFixed(1)} ${unitType(x)}`;
+            });
+    } else if (scale === 'mel') {
+        const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+        const range = [height, 0];
+        const scale = d3.scaleLog(domain, range);
+
+        axis = d3
+            .axisRight(scale)
+            .scale(scale)
+            .tickPadding(1)
+            .tickSizeOuter(0)
+            .ticks(numTicks, (x: number) => {
+                return `${hzToMel(x).toFixed(1)}`;
             });
     } else {
         const domain = [upperLimit, 0];
@@ -243,24 +258,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
                     drawData[i] = col;
                 }
-            } else if (ampScale === 'mel') {
-                for (let i = 0; i < frequenciesData.length; i++) {
-                    const col = [];
-
-                    for (let j = 0; j < frequenciesData[i].length; j++) {
-                        const amplitude = frequenciesData[i][j];
-                        col[j] = hzToMel(amplitude ** 2);
-
-                        if (col[j] > max) {
-                            max = col[j];
-                        }
-
-                        if (col[j] < min) {
-                            min = col[j];
-                        }
-                    }
-                    drawData[i] = col;
-                }
             } else {
                 // ampScale === 'linear'
                 for (let i = 0; i < frequenciesData.length; i++) {
@@ -285,6 +282,8 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                     value = heightScale(scaleFunc.invert(height - y));
                 } else if (freqScale === 'linear') {
                     value = Math.abs(heightScale(height - y));
+                } else if (freqScale === 'mel') {
+                    value = hzToMel(scaleFunc.invert(height - y));
                 }
 
                 const indexA = Math.floor(value);
@@ -464,10 +463,10 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             }
 
             <MenuBar
-                availableFreqScales={['linear', 'logarithmic']}
+                availableFreqScales={['linear', 'logarithmic', 'mel']}
                 freqScale={freqScale}
                 onChangeFreqScale={handleFreqScaleChange}
-                availableAmpScales={['decibel', 'linear', 'mel']}
+                availableAmpScales={['decibel', 'linear']}
                 ampScale={ampScale}
                 onChangeAmpScale={handleAmpScaleChange}
             />
