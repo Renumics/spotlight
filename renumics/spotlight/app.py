@@ -12,6 +12,7 @@ from threading import Thread
 import multiprocessing.connection
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 import uuid
+import mimetypes
 
 from typing_extensions import Annotated
 from fastapi import Cookie, FastAPI, Request, status
@@ -57,6 +58,12 @@ from renumics.spotlight.data_store import DataStore
 from renumics.spotlight import dtypes as spotlight_dtypes
 
 CURRENT_LAYOUT_KEY = "layout.current"
+
+
+# explicitly set mimetypes for broken python setups
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
 
 
 class UncachedStaticFiles(StaticFiles):
