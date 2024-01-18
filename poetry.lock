@@ -2241,13 +2241,13 @@ jupyter-server = ">=1.1.2"
 
 [[package]]
 name = "jupyter-server"
-version = "2.10.0"
+version = "2.11.2"
 description = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jupyter_server-2.10.0-py3-none-any.whl", hash = "sha256:dde56c9bc3cb52d7b72cc0f696d15d7163603526f1a758eb4a27405b73eab2a5"},
-    {file = "jupyter_server-2.10.0.tar.gz", hash = "sha256:47b8f5e63440125cb1bb8957bf12b18453ee5ed9efe42d2f7b2ca66a7019a278"},
+    {file = "jupyter_server-2.11.2-py3-none-any.whl", hash = "sha256:0c548151b54bcb516ca466ec628f7f021545be137d01b5467877e87f6fff4374"},
+    {file = "jupyter_server-2.11.2.tar.gz", hash = "sha256:0c99f9367b0f24141e527544522430176613f9249849be80504c6d2b955004bb"},
 ]
 
 [package.dependencies]
@@ -2256,7 +2256,7 @@ argon2-cffi = "*"
 jinja2 = "*"
 jupyter-client = ">=7.4.4"
 jupyter-core = ">=4.12,<5.0.dev0 || >=5.1.dev0"
-jupyter-events = ">=0.6.0"
+jupyter-events = ">=0.9.0"
 jupyter-server-terminals = "*"
 nbconvert = ">=6.4.4"
 nbformat = ">=5.3.0"
