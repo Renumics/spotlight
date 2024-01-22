@@ -7,6 +7,7 @@ import SimilarityMap from './SimilarityMap';
 import WordCloudView from './WordCloudView';
 import ConfusionMatrix from './ConfusionMatrix';
 import MetricsWidget from './MetricsWidget';
+import LLMWidget from './LLMWidget';
 
 export const ALL_WIDGETS = [
     DataGrid,
@@ -18,4 +19,5 @@ export const ALL_WIDGETS = [
     WordCloudView,
     ConfusionMatrix,
     MetricsWidget,
+    LLMWidget,
 ];
