@@ -126,29 +126,29 @@ def _convert_dtype(field: pa.Field) -> spotlight_dtypes.DType:
         return spotlight_dtypes.str_dtype
     if isinstance(field.type, pa.Decimal128Type):
         return spotlight_dtypes.float_dtype
-    if isinstance(field.dtype, pa.ListType):
-        return spotlight_dtypes.SequenceDType(_convert_dtype(field.dtype.value_field))
-    if isinstance(field.dtype, pa.FixedSizeListType):
+    if isinstance(field.type, pa.ListType):
+        return spotlight_dtypes.SequenceDType(_convert_dtype(field.type.value_field))
+    if isinstance(field.type, pa.FixedSizeListType):
         return spotlight_dtypes.SequenceDType(
-            _convert_dtype(field.dtype.value_field), field.dtype.list_size
+            _convert_dtype(field.type.value_field), field.type.list_size
         )
-    if isinstance(field.dtype, pa.LargeListType):
-        return spotlight_dtypes.SequenceDType(_convert_dtype(field.dtype.value_field))
-    if isinstance(field.dtype, pa.MapType):
+    if isinstance(field.type, pa.LargeListType):
+        return spotlight_dtypes.SequenceDType(_convert_dtype(field.type.value_field))
+    if isinstance(field.type, pa.MapType):
         # TODO: introduce a `map` dtype?
         return spotlight_dtypes.mixed_dtype
-    if isinstance(field.dtype, pa.StructType):
+    if isinstance(field.type, pa.StructType):
         # TODO: introduce a `struct` dtype?
         return spotlight_dtypes.mixed_dtype
-    if isinstance(field.dtype, pa.DictionaryType):
-        if (field.dtype.index_type() in PA_INTEGER_TYPES) and (
-            field.dtype.value_type() in (pa.string(), pa.large_string())
+    if isinstance(field.type, pa.DictionaryType):
+        if (field.type.index_type() in PA_INTEGER_TYPES) and (
+            field.type.value_type() in (pa.string(), pa.large_string())
         ):
             return spotlight_dtypes.CategoryDType()
         return spotlight_dtypes.mixed_dtype
-    if isinstance(field.dtype, pa.RunEndEncodedType):
+    if isinstance(field.type, pa.RunEndEncodedType):
         return spotlight_dtypes.SequenceDType(
-            _convert_dtype(pa.field("", field.dtype.value_type))
+            _convert_dtype(pa.field("", field.type.value_type))
         )
 
     raise UnknownArrowType()

@@ -94,6 +94,7 @@ pydantic-settings = "^2.0.3"
 pycatch22 = { version = "!=0.4.4", optional = true }
 transformers = "^4.35.2"
 pyarrow = "^14.0.2"
+duckdb = "^0.9.2"
 
 [tool.poetry.extras]
 descriptors = ["pycatch22"]

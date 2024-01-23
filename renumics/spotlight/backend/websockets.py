@@ -26,6 +26,7 @@ import httpx
 
 from renumics.spotlight.data_store import DataStore
 
+
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
 from .exceptions import GenerationIDMismatch, Problem
@@ -339,6 +340,19 @@ class ChatData(BaseModel):
 
 @message_handler("chat", ChatData)
 async def _(data: ChatData, connection: WebsocketConnection) -> None:
+    data_store: Optional[DataStore] = connection.websocket.app.data_store
+    if not data_store:
+        print("no datastore")
+        return
+
+    data_source = data_store.data_source
+    if not hasattr(data_source, "sql"):
+        print("no sql method")
+        print(data_source.__class__)
+        return
+
+    # res = data_source.sql("SELECT team from f1_laps LIMIT 5")
+
     async with httpx.AsyncClient(
         base_url="http://localhost:11434/api/"
     ) as ollama_client:

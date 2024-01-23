@@ -7,6 +7,7 @@ from typing import Any, List, Union, cast
 import numpy as np
 import pandas as pd
 import datasets
+import duckdb
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
@@ -122,6 +123,11 @@ class PandasDataSource(DataSource):
     @property
     def semantic_dtypes(self) -> dtypes.DTypeMap:
         return {}
+
+    def sql(self, query: str) -> pd.DataFrame:
+        df = self._df  # noqa: F841
+        query = query.replace("f1_laps", "df")
+        return duckdb.sql(query).df()
 
     def get_generation_id(self) -> int:
         return self._generation_id
