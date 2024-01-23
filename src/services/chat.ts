@@ -41,19 +41,24 @@ class ChatService {
         );
     }
 
-    async chat(message: string) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return new Promise<any>((resolve, reject) => {
-            const chat_id = crypto.randomUUID();
-            this.dispatchTable.set(chat_id, { resolve, reject });
-            websocketService.send({
-                type: 'chat',
-                data: {
-                    chat_id: chat_id,
-                    message,
-                },
-            });
+    async *stream(message: string) {
+        const chat_id = crypto.randomUUID();
+        websocketService.send({
+            type: 'chat',
+            data: {
+                chat_id: chat_id,
+                message,
+            },
         });
+
+        let msg = '';
+        do {
+            const promise = new Promise<string>((resolve, reject) => {
+                this.dispatchTable.set(chat_id, { resolve, reject });
+            });
+            msg = await promise;
+            yield msg;
+        } while (msg !== '');
     }
 }
 

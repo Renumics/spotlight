@@ -5,34 +5,56 @@ import WidgetContent from '../../components/ui/WidgetContent';
 import BrainIcon from '../../icons/Brain';
 import DeleteIcon from '../../icons/Delete';
 import tw from 'twin.macro';
-import { KeyboardEvent, useRef, useState } from 'react';
+import { KeyboardEvent, useCallback, useRef, useState } from 'react';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 import chatService from '../../services/chat';
 
+interface Message {
+    content: string;
+    processing?: boolean;
+}
+
 const LLMWidget: Widget = () => {
-    const [chat, setChat] = useState<Array<string>>([]);
+    const [chat, setChat] = useState<Array<Message>>([]);
     const [processing, setProcessing] = useState(false);
 
     const queryInputRef = useRef<HTMLInputElement>(null);
 
-    const handleKeyUp = (e: KeyboardEvent) => {
+    const handleKeyUp = useCallback((e: KeyboardEvent) => {
         if (!queryInputRef.current) return;
 
         if (e.key == 'Enter') {
             const query = queryInputRef.current.value;
             queryInputRef.current.value = '';
             setProcessing(true);
-            setChat((state) => [...state, query]);
+            setChat((state) => [...state, { content: query }]);
 
             const processQuery = async () => {
-                const response = await chatService.chat(query);
-                setChat((state) => [...state, response]);
+                setChat((messages) => [...messages, { content: '', processing: true }]);
+
+                const stream = chatService.stream(query);
+                for await (const response of stream) {
+                    setChat((messages) => {
+                        const lastMsg = messages[messages.length - 1];
+                        return [
+                            ...messages.slice(0, messages.length - 1),
+                            { content: lastMsg.content + response, processing: true },
+                        ];
+                    });
+                }
+                setChat((messages) => {
+                    const lastMsg = messages[messages.length - 1];
+                    return [
+                        ...messages.slice(0, messages.length - 1),
+                        { content: lastMsg.content, processing: false },
+                    ];
+                });
                 setProcessing(false);
             };
             processQuery();
         }
-    };
+    }, []);
 
     const clearChat = () => setChat([]);
 
@@ -47,14 +69,10 @@ const LLMWidget: Widget = () => {
                 <div tw="flex-grow flex flex-col p-1 space-y-1">
                     {chat.map((message, i) => (
                         <div tw="bg-gray-100 px-1 py-0.5 rounded" key={i}>
-                            {message}
+                            {message.content}
+                            {message.processing && <Spinner tw="w-4 h-4" />}
                         </div>
                     ))}
-                    {processing && (
-                        <div tw="bg-gray-100 px-1 py-0.5 rounded">
-                            <Spinner tw="w-4 h-4" />
-                        </div>
-                    )}
                 </div>
                 <div tw="p-1 relative">
                     <input

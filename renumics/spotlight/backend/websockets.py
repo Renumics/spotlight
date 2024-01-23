@@ -3,6 +3,7 @@ This module provides interfaces for websockets.
 """
 
 import asyncio
+import json
 from typing import (
     Any,
     Coroutine,
@@ -21,6 +22,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 from pydantic import BaseModel
 from typing_extensions import Literal
+import httpx
 
 from renumics.spotlight.data_store import DataStore
 
@@ -337,13 +339,29 @@ class ChatData(BaseModel):
 
 @message_handler("chat", ChatData)
 async def _(data: ChatData, connection: WebsocketConnection) -> None:
-    # TODO: integrate LLM
-    await asyncio.sleep(3)
-    llm_response = f"llm response for {data.message}"
-    print(llm_response)
-    await connection.send_async(
-        Message(
-            type="chat.response",
-            data={"chat_id": data.chat_id, "message": llm_response},
-        )
-    )
+    async with httpx.AsyncClient(
+        base_url="http://localhost:11434/api/"
+    ) as ollama_client:
+        async with ollama_client.stream(
+            "POST",
+            "chat",
+            json={
+                "model": "openhermes2",
+                "stream": True,
+                "messages": [{"role": "user", "content": data.message}],
+            },
+            timeout=None,
+        ) as stream:
+            async for chunk in stream.aiter_text():
+                try:
+                    response = json.loads(chunk)
+                except json.JSONDecodeError:
+                    break
+                llm_response = response["message"]["content"]
+
+                await connection.send_async(
+                    Message(
+                        type="chat.response",
+                        data={"chat_id": data.chat_id, "message": llm_response},
+                    )
+                )
