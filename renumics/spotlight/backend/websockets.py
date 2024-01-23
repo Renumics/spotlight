@@ -328,3 +328,22 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
                 },
             )
             await connection.send_async(error_msg)
+
+
+class ChatData(BaseModel):
+    chat_id: str
+    message: str
+
+
+@message_handler("chat", ChatData)
+async def _(data: ChatData, connection: WebsocketConnection) -> None:
+    # TODO: integrate LLM
+    await asyncio.sleep(3)
+    llm_response = f"llm response for {data.message}"
+    print(llm_response)
+    await connection.send_async(
+        Message(
+            type="chat.response",
+            data={"chat_id": data.chat_id, "message": llm_response},
+        )
+    )

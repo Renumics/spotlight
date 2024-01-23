@@ -8,6 +8,7 @@ import tw from 'twin.macro';
 import { KeyboardEvent, useRef, useState } from 'react';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
+import chatService from '../../services/chat';
 
 const LLMWidget: Widget = () => {
     const [chat, setChat] = useState<Array<string>>([]);
@@ -25,9 +26,7 @@ const LLMWidget: Widget = () => {
             setChat((state) => [...state, query]);
 
             const processQuery = async () => {
-                // TODO: replace sleep with call to backend
-                await new Promise((r) => setTimeout(r, 2000));
-                const response = 'LLM Response';
+                const response = await chatService.chat(query);
                 setChat((state) => [...state, response]);
                 setProcessing(false);
             };
@@ -78,7 +77,7 @@ const LLMWidget: Widget = () => {
 };
 
 LLMWidget.key = 'LLMWidget';
-LLMWidget.defaultName = 'LLM';
+LLMWidget.defaultName = 'Chat';
 LLMWidget.icon = BrainIcon;
 
 export default LLMWidget;
