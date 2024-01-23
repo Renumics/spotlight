@@ -25,6 +25,7 @@ def __register__() -> None:
         pandas_data_source,  # noqa: F401
         hdf5_data_source,  # noqa: F401
         huggingface_datasource,  # noqa: F401
+        arrow_dataset_source,  # noqa: F401
     )
 
 
