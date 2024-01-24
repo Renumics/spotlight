@@ -3,7 +3,6 @@ This module provides interfaces for websockets.
 """
 
 import asyncio
-import json
 from typing import (
     Any,
     Coroutine,
@@ -18,19 +17,19 @@ from typing import (
 
 import numpy as np
 import orjson
+import pandas as pd
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
+from openai import OpenAI
 from pydantic import BaseModel
 from typing_extensions import Literal
-import httpx
 
 from renumics.spotlight.data_store import DataStore
-
-
+from .exceptions import GenerationIDMismatch, Problem
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
-from .exceptions import GenerationIDMismatch, Problem
 
+openai_client = OpenAI()
 
 class Message(BaseModel):
     """
@@ -338,6 +337,58 @@ class ChatData(BaseModel):
     message: str
 
 
+sql_prompt_race = """
+### Instructions:
+Your task is to convert a question into a SQL query, given a Postgres database schema.
+Adhere to these rules:
+- **Deliberately go through the question and database schema word by word** to appropriately answer the question
+- **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
+- When creating a ratio, always cast the numerator as float
+
+### Input:
+Generate a SQL query that answers the question `{question}`.
+This query will run on a database whose schema is represented in this string:
+CREATE TABLE df (
+  time INTERVAL, -- Session time when the lap time was set (end of lap)
+  driver VARCHAR, -- Name of the driver as a 3 letter code
+  drivernumber VARCHAR, -- Driver identifier
+  laptime INTERVAL, -- The recorded lap time is the time the driver needed to complete this lap
+  lapnumber DOUBLE, -- the number of the current lap starting with 0 for the first lap
+  stint DOUBLE, -- Stint number
+  pitouttime INTERVAL, -- Session time when the car exited the pit
+  pittntime INTERVAL, -- Session time when the car entered the pit
+  sector1time INTERVAL, -- Recorded sector 1 time in nanoseconds
+  sector2time INTERVAL, -- Recorded sector 2 time in nanoseconds
+  sector3time INTERVAL, -- Recorded sector 3 time in nanoseconds
+  sector1sessiontime INTERVAL, -- Session time when the sector 1 time was set (end of sector 1)
+  sector2sessiontime INTERVAL, -- Session time when the sector 2 time was set (end of sector 2)
+  sector3sessiontime INTERVAL, -- Session time when the sector 3 time was set (end of sector 3)
+  speedi1 DOUBLE, -- Speedtrap sector 1 in km/h
+  speedi2 DOUBLE, -- Speedtrap sector 2 in km/h
+  speedfl DOUBLE, -- Speedtrap finish line in km/h
+  speedst DOUBLE, -- Speedtrap on the longest straight in km/h
+  ispersonalbest BOOLEAN, -- Flag that indicates whether this lap is the official personal best lap of a driver of all times.
+  compound VARCHAR, -- Tyres compound name
+  tyrelife DOUBLE, -- Tyre life in laps
+  freshtyre BOOLEAN, -- Flag that indicates whether the tyres were fresh at the start of the lap
+  team VARCHAR, -- Name of team the driver is driving for
+  lapstarttime INTERVAL, -- Session time at the start of the lap
+  lapstartdate TIMESTAMP_NS, -- Timestamp at the start of the lap
+  trackstatus VARCHAR, -- A string that contains track status numbers for all track status that occurred during this lap
+  position DOUBLE -- Position of the car at the end of the lap
+  deleted BOOLEAN -- Indicates that a lap was deleted by the stewards, for example because of a track limits violation.
+  deletedreason VARCHAR -- Gives the reason for a lap time .
+  isaccurate BOOLEAN -- Indicates that the lap start and end time are synced correctly with other lapsdeletion
+  event VARCHAR -- Name of the event
+);
+
+
+
+### Response:
+Based on your instructions, here is the SQL query I have generated to answer the question `{question}`
+```sql
+"""
+
 @message_handler("chat", ChatData)
 async def _(data: ChatData, connection: WebsocketConnection) -> None:
     data_store: Optional[DataStore] = connection.websocket.app.data_store
@@ -351,31 +402,116 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         print(data_source.__class__)
         return
 
+    completion = openai_client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": sql_prompt_race.format(question=data.message)}],
+        stream=False,
+    )
+
+    response = completion.choices[0].message.content
+    if response is None:
+        print("no response")
+        response = ""
+    print(response)
+
+    sql_statement = response[:response.find("```")]
+
+    print(sql_statement)
+
+    try:
+        df: pd.DataFrame = data_source.sql(sql_statement)
+    except:
+        df = pd.DataFrame()
+
+    table_summary_prompt = """
+    You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+    Question: {question}
+    Query Result: {query_result}
+    Answer:"""
+
+    print(table_summary_prompt.format(question=data.message, query_result=df.to_markdown()))
+
+    # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": response}))
+    # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": ""}))
+
+    prompt = table_summary_prompt.format(question=data.message, query_result=df.to_markdown())
+
+    completion = openai_client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+
+    for chunk in completion:
+        print(chunk.choices[0].delta)
+        content = chunk.choices[0].delta.content
+        if content:
+            await connection.send_async(
+                Message(
+                    type="chat.response",
+                    data={"chat_id": data.chat_id, "message": chunk.choices[0].delta.content},
+                )
+            )
+    await connection.send_async(
+        Message(
+            type="chat.response",
+            data={"chat_id": data.chat_id, "message": ""},
+        )
+    )
+
+
     # res = data_source.sql("SELECT team from f1_laps LIMIT 5")
 
-    async with httpx.AsyncClient(
-        base_url="http://localhost:11434/api/"
-    ) as ollama_client:
-        async with ollama_client.stream(
-            "POST",
-            "chat",
-            json={
-                "model": "openhermes2",
-                "stream": True,
-                "messages": [{"role": "user", "content": data.message}],
-            },
-            timeout=None,
-        ) as stream:
-            async for chunk in stream.aiter_text():
-                try:
-                    response = json.loads(chunk)
-                except json.JSONDecodeError:
-                    break
-                llm_response = response["message"]["content"]
-
-                await connection.send_async(
-                    Message(
-                        type="chat.response",
-                        data={"chat_id": data.chat_id, "message": llm_response},
-                    )
-                )
+#     async with httpx.AsyncClient(
+#         base_url="http://127.0.0.1:11434/api/", timeout=None
+#     ) as ollama_client:
+#         res = await ollama_client.post("generate", json={
+#             "model": "sqlcoder:15b",
+#             "stream": False,
+#             "prompt": sql_prompt_race.format(question=data.message)
+#         })
+#
+#         response = res.json()["response"]
+#         sql_statement = response[:response.find("```")]
+#
+#         print(f"sql recieved: {sql_statement}")
+#
+#         try:
+#             df: pd.DataFrame = data_source.sql(sql_statement)
+#         except:
+#             df = pd.DataFrame()
+#
+#         # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": df.to_markdown()}))
+#         # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": ""}))
+#
+#         table_summary_prompt = """
+# You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+# Question: {question}
+# Query Result: {query_result}
+# Answer:"""
+#
+#         print(table_summary_prompt.format(question=data.message, query_result=df.to_markdown()))
+#
+#         async with ollama_client.stream(
+#             "POST",
+#             "chat",
+#             json={
+#                 "model": "openhermes2",
+#                 "stream": True,
+#                 "messages": [{"role": "user", "content": table_summary_prompt.format(question=data.message, query_result=df.to_markdown())}]
+#             },
+#             timeout=None,
+#         ) as stream:
+#             async for chunk in stream.aiter_text():
+#                 try:
+#                     response = json.loads(chunk)
+#                 except json.JSONDecodeError:
+#                     break
+#                 llm_response = response["message"]["content"]
+#
+#                 await connection.send_async(
+#                     Message(
+#                         type="chat.response",
+#                         data={"chat_id": data.chat_id, "message": llm_response},
+#                     )
+#                 )

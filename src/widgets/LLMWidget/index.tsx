@@ -68,7 +68,10 @@ const LLMWidget: Widget = () => {
             <WidgetContent tw="flex flex-col bg-gray-300 text-sm">
                 <div tw="flex-grow flex flex-col p-1 space-y-1">
                     {chat.map((message, i) => (
-                        <div tw="bg-gray-100 px-1 py-0.5 rounded" key={i}>
+                        <div
+                            tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
+                            key={i}
+                        >
                             {message.content}
                             {message.processing && <Spinner tw="w-4 h-4" />}
                         </div>

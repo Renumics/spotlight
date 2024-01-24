@@ -4,21 +4,21 @@ access pandas DataFrame table data
 from pathlib import Path
 from typing import Any, List, Union, cast
 
-import numpy as np
-import pandas as pd
 import datasets
 import duckdb
+import numpy as np
+import pandas as pd
 
 from renumics.spotlight import dtypes
-from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
+from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
 from renumics.spotlight.data_source import (
     datasource,
     ColumnMetadata,
     DataSource,
 )
-from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
-from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
+from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
 
 
 @datasource(pd.DataFrame)
@@ -126,7 +126,6 @@ class PandasDataSource(DataSource):
 
     def sql(self, query: str) -> pd.DataFrame:
         df = self._df  # noqa: F841
-        query = query.replace("f1_laps", "df")
         return duckdb.sql(query).df()
 
     def get_generation_id(self) -> int:
