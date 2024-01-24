@@ -20,7 +20,7 @@ import orjson
 import pandas as pd
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
-from openai import OpenAI
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 from typing_extensions import Literal
 
@@ -29,7 +29,7 @@ from .exceptions import GenerationIDMismatch, Problem
 from .tasks import TaskManager, TaskCancelled
 from .tasks.reduction import compute_umap, compute_pca
 
-openai_client = OpenAI()
+openai_client = AsyncOpenAI()
 
 
 class Message(BaseModel):
@@ -405,7 +405,7 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         return
 
     try:
-        text2sql_completion = openai_client.chat.completions.create(
+        text2sql_completion = await openai_client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {
@@ -450,13 +450,13 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
             question=data.message, query_result=df.to_markdown()
         )
 
-        completion = openai_client.chat.completions.create(
+        completion = await openai_client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             stream=True,
         )
 
-        for chunk in completion:
+        async for chunk in completion:
             print(chunk.choices[0].delta)
             content = chunk.choices[0].delta.content
             if content:
