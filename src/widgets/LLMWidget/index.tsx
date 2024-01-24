@@ -14,6 +14,7 @@ import { Problem } from '../../types';
 interface Message {
     content: string;
     processing?: boolean;
+    isError?: boolean;
 }
 
 const LLMWidget: Widget = () => {
@@ -66,6 +67,7 @@ const LLMWidget: Widget = () => {
                             {
                                 content: `${problem.title}\n${problem.detail}`,
                                 processing: false,
+                                isError: true,
                             },
                         ];
                     });
@@ -94,6 +96,7 @@ const LLMWidget: Widget = () => {
                     {chat.map((message, i) => (
                         <div
                             tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
+                            css={[message.isError && tw`bg-red-100`]}
                             key={i}
                         >
                             {message.content}
