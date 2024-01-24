@@ -13,8 +13,8 @@ import { Problem } from '../../types';
 
 interface Message {
     content: string;
+    role: string;
     processing?: boolean;
-    isError?: boolean;
 }
 
 const LLMWidget: Widget = () => {
@@ -30,13 +30,13 @@ const LLMWidget: Widget = () => {
             const query = queryInputRef.current.value;
             queryInputRef.current.value = '';
             setProcessing(true);
-            setChat((state) => [...state, { content: query }]);
+            setChat((state) => [...state, { role: 'user', content: query }]);
 
             const processQuery = async () => {
                 try {
                     setChat((messages) => [
                         ...messages,
-                        { content: '', processing: true },
+                        { role: 'assistant', content: '', processing: true },
                     ]);
 
                     const stream = chatService.stream(query);
@@ -46,6 +46,7 @@ const LLMWidget: Widget = () => {
                             return [
                                 ...messages.slice(0, messages.length - 1),
                                 {
+                                    role: 'assistant',
                                     content: lastMsg.content + response,
                                     processing: true,
                                 },
@@ -56,7 +57,11 @@ const LLMWidget: Widget = () => {
                         const lastMsg = messages[messages.length - 1];
                         return [
                             ...messages.slice(0, messages.length - 1),
-                            { content: lastMsg.content, processing: false },
+                            {
+                                role: 'assistant',
+                                content: lastMsg.content,
+                                processing: false,
+                            },
                         ];
                     });
                 } catch (e) {
@@ -65,9 +70,9 @@ const LLMWidget: Widget = () => {
                         return [
                             ...messages.slice(0, messages.length - 1),
                             {
+                                role: 'error',
                                 content: `${problem.title}\n${problem.detail}`,
                                 processing: false,
-                                isError: true,
                             },
                         ];
                     });
@@ -91,20 +96,31 @@ const LLMWidget: Widget = () => {
                     <DeleteIcon />
                 </Button>
             </WidgetMenu>
-            <WidgetContent tw="flex flex-col bg-gray-300 text-sm">
-                <div tw="flex-grow flex flex-col p-1 space-y-1">
-                    {chat.map((message, i) => (
-                        <div
-                            tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
-                            css={[message.isError && tw`bg-red-100`]}
-                            key={i}
-                        >
-                            {message.content}
-                            {message.processing && <Spinner tw="w-4 h-4" />}
-                        </div>
-                    ))}
+            <WidgetContent tw="flex flex-col bg-gray-300 text-sm overflow-hidden">
+                <div tw="flex-grow flex-shrink flex flex-col-reverse overflow-y-scroll">
+                    <div tw="flex flex-col p-1 space-y-1">
+                        {chat.map((message, i) => (
+                            <div
+                                tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
+                                css={[
+                                    message.role === 'error' && tw`bg-red-100`,
+                                    message.role === 'user' && tw`bg-green-100 ml-4`,
+                                    message.role !== 'user' && tw`mr-4`,
+                                ]}
+                                key={i}
+                            >
+                                <div tw="text-xxs uppercase font-bold text-midnight-600/30">
+                                    {message.role}
+                                </div>
+                                <div>{message.content}</div>
+                                <div tw="h-2 flex flex-row justify-end">
+                                    {message.processing && <Spinner tw="w-2 h-2" />}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div tw="p-1 relative">
+                <div tw="flex-grow-0 flex-shrink-0 p-1 relative overflow-hidden">
                     <input
                         ref={queryInputRef}
                         disabled={processing}
@@ -112,12 +128,6 @@ const LLMWidget: Widget = () => {
                         placeholder={processing ? '' : 'Query'}
                         onKeyUp={handleKeyUp}
                     />
-                    <div
-                        tw="absolute top-0 left-0 h-full flex items-center"
-                        css={[!processing && tw`hidden`]}
-                    >
-                        <Spinner tw="mx-1.5 w-4 h-4" />
-                    </div>
                 </div>
             </WidgetContent>
         </WidgetContainer>
