@@ -9,10 +9,12 @@ import { KeyboardEvent, useCallback, useRef, useState } from 'react';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 import chatService from '../../services/chat';
+import { Problem } from '../../types';
 
 interface Message {
     content: string;
     processing?: boolean;
+    isError?: boolean;
 }
 
 const LLMWidget: Widget = () => {
@@ -31,32 +33,56 @@ const LLMWidget: Widget = () => {
             setChat((state) => [...state, { content: query }]);
 
             const processQuery = async () => {
-                setChat((messages) => [...messages, { content: '', processing: true }]);
+                try {
+                    setChat((messages) => [
+                        ...messages,
+                        { content: '', processing: true },
+                    ]);
 
-                const stream = chatService.stream(query);
-                for await (const response of stream) {
+                    const stream = chatService.stream(query);
+                    for await (const response of stream) {
+                        setChat((messages) => {
+                            const lastMsg = messages[messages.length - 1];
+                            return [
+                                ...messages.slice(0, messages.length - 1),
+                                {
+                                    content: lastMsg.content + response,
+                                    processing: true,
+                                },
+                            ];
+                        });
+                    }
                     setChat((messages) => {
                         const lastMsg = messages[messages.length - 1];
                         return [
                             ...messages.slice(0, messages.length - 1),
-                            { content: lastMsg.content + response, processing: true },
+                            { content: lastMsg.content, processing: false },
                         ];
                     });
+                } catch (e) {
+                    const problem = e as Problem;
+                    setChat((messages) => {
+                        return [
+                            ...messages.slice(0, messages.length - 1),
+                            {
+                                content: `${problem.title}\n${problem.detail}`,
+                                processing: false,
+                                isError: true,
+                            },
+                        ];
+                    });
+                } finally {
+                    setProcessing(false);
                 }
-                setChat((messages) => {
-                    const lastMsg = messages[messages.length - 1];
-                    return [
-                        ...messages.slice(0, messages.length - 1),
-                        { content: lastMsg.content, processing: false },
-                    ];
-                });
-                setProcessing(false);
             };
             processQuery();
         }
     }, []);
 
     const clearChat = () => setChat([]);
+
+    // TODO: scroll with new messages
+    // TODO: only scroll message container
 
     return (
         <WidgetContainer>
@@ -70,6 +96,7 @@ const LLMWidget: Widget = () => {
                     {chat.map((message, i) => (
                         <div
                             tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
+                            css={[message.isError && tw`bg-red-100`]}
                             key={i}
                         >
                             {message.content}

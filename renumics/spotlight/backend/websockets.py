@@ -31,6 +31,7 @@ from .tasks.reduction import compute_umap, compute_pca
 
 openai_client = OpenAI()
 
+
 class Message(BaseModel):
     """
     Common websocket message model.
@@ -389,6 +390,7 @@ Based on your instructions, here is the SQL query I have generated to answer the
 ```sql
 """
 
+
 @message_handler("chat", ChatData)
 async def _(data: ChatData, connection: WebsocketConnection) -> None:
     data_store: Optional[DataStore] = connection.websocket.app.data_store
@@ -402,116 +404,88 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         print(data_source.__class__)
         return
 
-    completion = openai_client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": sql_prompt_race.format(question=data.message)}],
-        stream=False,
-    )
-
-    response = completion.choices[0].message.content
-    if response is None:
-        print("no response")
-        response = ""
-    print(response)
-
-    sql_statement = response[:response.find("```")]
-
-    print(sql_statement)
-
     try:
-        df: pd.DataFrame = data_source.sql(sql_statement)
-    except:
-        df = pd.DataFrame()
-
-    table_summary_prompt = """
-    You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
-    Question: {question}
-    Query Result: {query_result}
-    Answer:"""
-
-    print(table_summary_prompt.format(question=data.message, query_result=df.to_markdown()))
-
-    # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": response}))
-    # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": ""}))
-
-    prompt = table_summary_prompt.format(question=data.message, query_result=df.to_markdown())
-
-    completion = openai_client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
-
-    for chunk in completion:
-        print(chunk.choices[0].delta)
-        content = chunk.choices[0].delta.content
-        if content:
-            await connection.send_async(
-                Message(
-                    type="chat.response",
-                    data={"chat_id": data.chat_id, "message": chunk.choices[0].delta.content},
-                )
-            )
-    await connection.send_async(
-        Message(
-            type="chat.response",
-            data={"chat_id": data.chat_id, "message": ""},
+        text2sql_completion = openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {
+                    "role": "user",
+                    "content": sql_prompt_race.format(question=data.message),
+                }
+            ],
+            stream=False,
         )
-    )
 
+        response = text2sql_completion.choices[0].message.content
+        if response is None:
+            print("no response")
+            response = ""
+        print(response)
 
-    # res = data_source.sql("SELECT team from f1_laps LIMIT 5")
+        sql_statement = response[: response.find("```")]
 
-#     async with httpx.AsyncClient(
-#         base_url="http://127.0.0.1:11434/api/", timeout=None
-#     ) as ollama_client:
-#         res = await ollama_client.post("generate", json={
-#             "model": "sqlcoder:15b",
-#             "stream": False,
-#             "prompt": sql_prompt_race.format(question=data.message)
-#         })
-#
-#         response = res.json()["response"]
-#         sql_statement = response[:response.find("```")]
-#
-#         print(f"sql recieved: {sql_statement}")
-#
-#         try:
-#             df: pd.DataFrame = data_source.sql(sql_statement)
-#         except:
-#             df = pd.DataFrame()
-#
-#         # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": df.to_markdown()}))
-#         # await connection.send_async(Message(type="chat.response", data={"chat_id": data.chat_id, "message": ""}))
-#
-#         table_summary_prompt = """
-# You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
-# Question: {question}
-# Query Result: {query_result}
-# Answer:"""
-#
-#         print(table_summary_prompt.format(question=data.message, query_result=df.to_markdown()))
-#
-#         async with ollama_client.stream(
-#             "POST",
-#             "chat",
-#             json={
-#                 "model": "openhermes2",
-#                 "stream": True,
-#                 "messages": [{"role": "user", "content": table_summary_prompt.format(question=data.message, query_result=df.to_markdown())}]
-#             },
-#             timeout=None,
-#         ) as stream:
-#             async for chunk in stream.aiter_text():
-#                 try:
-#                     response = json.loads(chunk)
-#                 except json.JSONDecodeError:
-#                     break
-#                 llm_response = response["message"]["content"]
-#
-#                 await connection.send_async(
-#                     Message(
-#                         type="chat.response",
-#                         data={"chat_id": data.chat_id, "message": llm_response},
-#                     )
-#                 )
+        print(sql_statement)
+
+        df: pd.DataFrame = data_source.sql(sql_statement)
+
+        rows = len(df.axes[0])
+        cols = len(df.axes[1])
+
+        if rows * cols > 100:
+            df = df.head(10)
+
+        table_summary_prompt = """
+        You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+        Question: {question}
+        Query Result: {query_result}
+        Answer:"""
+
+        print(
+            table_summary_prompt.format(
+                question=data.message, query_result=df.to_markdown()
+            )
+        )
+
+        prompt = table_summary_prompt.format(
+            question=data.message, query_result=df.to_markdown()
+        )
+
+        completion = openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            stream=True,
+        )
+
+        for chunk in completion:
+            print(chunk.choices[0].delta)
+            content = chunk.choices[0].delta.content
+            if content:
+                await connection.send_async(
+                    Message(
+                        type="chat.response",
+                        data={
+                            "chat_id": data.chat_id,
+                            "message": chunk.choices[0].delta.content,
+                        },
+                    )
+                )
+        await connection.send_async(
+            Message(
+                type="chat.response",
+                data={"chat_id": data.chat_id, "message": ""},
+            )
+        )
+    except Exception as e:
+        logger.exception(e)
+        msg = Message(
+            type="chat.error",
+            data={
+                "chat_id": data.chat_id,
+                "error": {
+                    "type": type(e).__name__,
+                    "title": type(e).__name__,
+                    "detail": str(e),
+                },
+            },
+        )
+        await connection.send_async(msg)
