@@ -351,31 +351,44 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         print(data_source.__class__)
         return
 
-    # res = data_source.sql("SELECT team from f1_laps LIMIT 5")
+    try:
+        async with httpx.AsyncClient(
+            base_url="http://localhost:11434/api/"
+        ) as ollama_client:
+            async with ollama_client.stream(
+                "POST",
+                "chat",
+                json={
+                    "model": "openhermes2",
+                    "stream": True,
+                    "messages": [{"role": "user", "content": data.message}],
+                },
+                timeout=None,
+            ) as stream:
+                async for chunk in stream.aiter_text():
+                    try:
+                        response = json.loads(chunk)
+                    except json.JSONDecodeError:
+                        break
+                    llm_response = response["message"]["content"]
 
-    async with httpx.AsyncClient(
-        base_url="http://localhost:11434/api/"
-    ) as ollama_client:
-        async with ollama_client.stream(
-            "POST",
-            "chat",
-            json={
-                "model": "openhermes2",
-                "stream": True,
-                "messages": [{"role": "user", "content": data.message}],
-            },
-            timeout=None,
-        ) as stream:
-            async for chunk in stream.aiter_text():
-                try:
-                    response = json.loads(chunk)
-                except json.JSONDecodeError:
-                    break
-                llm_response = response["message"]["content"]
-
-                await connection.send_async(
-                    Message(
-                        type="chat.response",
-                        data={"chat_id": data.chat_id, "message": llm_response},
+                    await connection.send_async(
+                        Message(
+                            type="chat.response",
+                            data={"chat_id": data.chat_id, "message": llm_response},
+                        )
                     )
-                )
+    except Exception as e:
+        logger.exception(e)
+        msg = Message(
+            type="chat.error",
+            data={
+                "chat_id": data.chat_id,
+                "error": {
+                    "type": type(e).__name__,
+                    "title": type(e).__name__,
+                    "detail": str(e),
+                },
+            },
+        )
+        await connection.send_async(msg)

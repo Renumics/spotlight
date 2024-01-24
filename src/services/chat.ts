@@ -8,9 +8,7 @@ interface ChatResponse {
 
 interface ChatError {
     chat_id: string;
-    type: string;
-    title: string;
-    detail: string;
+    error: Problem;
 }
 
 interface ChatHandler {
@@ -36,7 +34,7 @@ class ChatService {
         this.websocketService.registerMessageHandler(
             'chat.error',
             (data: ChatError) => {
-                this.dispatchTable.get(data.chat_id)?.reject(data);
+                this.dispatchTable.get(data.chat_id)?.reject(data.error);
             }
         );
     }
