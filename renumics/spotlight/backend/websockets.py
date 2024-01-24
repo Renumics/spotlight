@@ -350,37 +350,42 @@ Adhere to these rules:
 Generate a SQL query that answers the question `{question}`.
 This query will run on a database whose schema is represented in this string:
 CREATE TABLE df (
-  time INTERVAL, -- Session time when the lap time was set (end of lap)
-  driver VARCHAR, -- Name of the driver as a 3 letter code
-  drivernumber VARCHAR, -- Driver identifier
-  laptime INTERVAL, -- The recorded lap time is the time the driver needed to complete this lap
-  lapnumber DOUBLE, -- the number of the current lap starting with 0 for the first lap
-  stint DOUBLE, -- Stint number
-  pitouttime INTERVAL, -- Session time when the car exited the pit
-  pittntime INTERVAL, -- Session time when the car entered the pit
-  sector1time INTERVAL, -- Recorded sector 1 time in nanoseconds
-  sector2time INTERVAL, -- Recorded sector 2 time in nanoseconds
-  sector3time INTERVAL, -- Recorded sector 3 time in nanoseconds
-  sector1sessiontime INTERVAL, -- Session time when the sector 1 time was set (end of sector 1)
-  sector2sessiontime INTERVAL, -- Session time when the sector 2 time was set (end of sector 2)
-  sector3sessiontime INTERVAL, -- Session time when the sector 3 time was set (end of sector 3)
-  speedi1 DOUBLE, -- Speedtrap sector 1 in km/h
-  speedi2 DOUBLE, -- Speedtrap sector 2 in km/h
-  speedfl DOUBLE, -- Speedtrap finish line in km/h
-  speedst DOUBLE, -- Speedtrap on the longest straight in km/h
-  ispersonalbest BOOLEAN, -- Flag that indicates whether this lap is the official personal best lap of a driver of all times.
-  compound VARCHAR, -- Tyres compound name
-  tyrelife DOUBLE, -- Tyre life in laps
-  freshtyre BOOLEAN, -- Flag that indicates whether the tyres were fresh at the start of the lap
-  team VARCHAR, -- Name of team the driver is driving for
-  lapstarttime INTERVAL, -- Session time at the start of the lap
-  lapstartdate TIMESTAMP_NS, -- Timestamp at the start of the lap
-  trackstatus VARCHAR, -- A string that contains track status numbers for all track status that occurred during this lap
-  position DOUBLE -- Position of the car at the end of the lap
-  deleted BOOLEAN -- Indicates that a lap was deleted by the stewards, for example because of a track limits violation.
-  deletedreason VARCHAR -- Gives the reason for a lap time .
-  isaccurate BOOLEAN -- Indicates that the lap start and end time are synced correctly with other lapsdeletion
-  event VARCHAR -- Name of the event
+    time INTERVAL, -- absolute session time when the lap time was set (end of lap)
+    driver_number VARCHAR, -- Driver identifier
+    driver VARCHAR, -- 3 letter code of the driver
+    driver_name VARCHAR, -- Full name of the driver
+    lap_time INTERVAL, -- The recorded lap time is the time the driver needed to complete this lap
+    lap_time_seconds FLOAT, -- The recorded lap time is the time the driver needed to complete this lap in seconds
+    lap_number INTEGER, -- the number of the current lap where the highest number is the last lap in the race
+    stint DOUBLE, -- stint number
+    pit_out_time INTERVAL, -- Session time when the car exited the pit
+    pit_in_time INTERVAL, -- Session time when the car entered the pit
+    sector1_time INTERVAL, -- Recorded sector 1 time
+    sector1_time_seconds FLOAT, -- Recorded sector 1 time in seconds
+    sector2_time, -- Recorded sector 2 time
+    sector2_time_seconds, -- Recorded sector 2 time in seconds
+    sector3_time, -- Recorded sector 3 time
+    sector3_time_seconds, -- Recorded sector 3 time in seconds
+    sector1_session_time INTERVAL, -- Session time when the sector 1 time was set (end of sector 1)
+    sector2_session_time INTERVAL, -- Session time when the sector 2 time was set (end of sector 2)
+    sector3_session_time INTERVAL, -- Session time when the sector 3 time was set (end of sector 3)
+    speed_i1 DOUBLE, -- measured speed at Speedtrap sector 1 in km/h
+    speed_i2 DOUBLE, -- measured speed at Speedtrap sector 2 in km/h
+    speed_f_l DOUBLE, -- measured speed at Speedtrap finish line in km/h
+    speed_s_t DOUBLE, -- measured speed at Speedtrap on the longest straight in km/h
+    is_personal_best BOOLEAN, -- Flag that indicates whether this lap is the official personal best lap of a driver of all times.
+    compound VARCHAR, -- Tyres compound name
+    tyre_life DOUBLE, -- Tyre age in laps
+    fresh_tyre BOOLEAN, -- Flag that indicates whether the tyres were fresh at the start of the lap
+    team VARCHAR, -- Name of the team the driver is driving for
+    lap_start_time INTERVAL, -- Session time at the start of the lap
+    lap_start_date TIMESTAMP_NS, -- Timestamp at the start of the lap
+    track_status VARCHAR, -- A string that contains track status numbers for all track status that occurred during this lap
+    position -- Position of the car at the end of the lap
+    deleted -- Indicates that a lap was deleted by the stewards, for example because of a track limits violation.
+    deleted_reason VARCHAR -- Gives the reason for a lap time
+    is_accurate BOOLEAN -- Indicates that the lap start and end time are synced correctly with other lapsdeletion
+    event VARCHAR -- Name of the event
 );
 
 
