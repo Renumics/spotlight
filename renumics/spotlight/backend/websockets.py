@@ -431,6 +431,21 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
 
         print(sql_statement)
 
+        await connection.send_async(
+            Message(
+                type="chat.response",
+                data={
+                    "chat_id": data.chat_id,
+                    "message": {
+                        "role": "context",
+                        "content_type": "text/sql",
+                        "content": sql_statement,
+                        "done": True,
+                    },
+                },
+            )
+        )
+
         df: pd.DataFrame = data_source.sql(sql_statement)
 
         rows = len(df.axes[0])
@@ -439,6 +454,23 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         if rows * cols > 100:
             df = df.head(10)
 
+        result_md = df.to_markdown()
+
+        await connection.send_async(
+            Message(
+                type="chat.response",
+                data={
+                    "chat_id": data.chat_id,
+                    "message": {
+                        "role": "context",
+                        "content_type": "text/markdown",
+                        "content": result_md,
+                        "done": True,
+                    },
+                },
+            )
+        )
+
         table_summary_prompt = """
         You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
         Question: {question}
@@ -446,13 +478,11 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         Answer:"""
 
         print(
-            table_summary_prompt.format(
-                question=data.message, query_result=df.to_markdown()
-            )
+            table_summary_prompt.format(question=data.message, query_result=result_md)
         )
 
         prompt = table_summary_prompt.format(
-            question=data.message, query_result=df.to_markdown()
+            question=data.message, query_result=result_md
         )
 
         completion = await openai_client.chat.completions.create(
@@ -462,7 +492,6 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         )
 
         async for chunk in completion:
-            print(chunk.choices[0].delta)
             content = chunk.choices[0].delta.content
             if content:
                 await connection.send_async(
@@ -470,16 +499,34 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
                         type="chat.response",
                         data={
                             "chat_id": data.chat_id,
-                            "message": chunk.choices[0].delta.content,
+                            "role": "assistant",
+                            "message": {
+                                "role": "assistant",
+                                "content_type": "text/plain",
+                                "content": content,
+                                "done": False,
+                            },
                         },
                     )
                 )
+
         await connection.send_async(
             Message(
                 type="chat.response",
-                data={"chat_id": data.chat_id, "message": ""},
+                data={
+                    "chat_id": data.chat_id,
+                    "role": "assistant",
+                    "message": {
+                        "role": "assistant",
+                        "content_type": "text/plain",
+                        "content": "",
+                        "done": True,
+                    },
+                    "done": True,
+                },
             )
         )
+
     except Exception as e:
         logger.exception(e)
         msg = Message(

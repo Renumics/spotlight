@@ -8,18 +8,17 @@ import tw from 'twin.macro';
 import { KeyboardEvent, useCallback, useRef, useState } from 'react';
 import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
-import chatService from '../../services/chat';
+import ToggleButton from '../../components/ui/ToggleButton';
+import chatService, { type Message } from '../../services/chat';
 import { Problem } from '../../types';
-
-interface Message {
-    content: string;
-    role: string;
-    processing?: boolean;
-}
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import Markdown from '../../components/ui/Markdown';
 
 const LLMWidget: Widget = () => {
     const [chat, setChat] = useState<Array<Message>>([]);
     const [processing, setProcessing] = useState(false);
+    const [isContextVisible, setIsContextVisible] = useState(false);
 
     const queryInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,49 +29,43 @@ const LLMWidget: Widget = () => {
             const query = queryInputRef.current.value;
             queryInputRef.current.value = '';
             setProcessing(true);
-            setChat((state) => [...state, { role: 'user', content: query }]);
+            setChat((state) => [
+                ...state,
+                { role: 'user', content: query, done: true },
+            ]);
 
             const processQuery = async () => {
                 try {
-                    setChat((messages) => [
-                        ...messages,
-                        { role: 'assistant', content: '', processing: true },
-                    ]);
+                    let content = '';
 
                     const stream = chatService.stream(query);
-                    for await (const response of stream) {
+                    for await (const chunk of stream) {
+                        content += chunk.content;
+                        const message = { ...chunk, content };
+                        if (message.done) {
+                            content = '';
+                        }
                         setChat((messages) => {
-                            const lastMsg = messages[messages.length - 1];
-                            return [
-                                ...messages.slice(0, messages.length - 1),
-                                {
-                                    role: 'assistant',
-                                    content: lastMsg.content + response,
-                                    processing: true,
-                                },
-                            ];
+                            const lastMessage = messages[messages.length - 1];
+                            if (lastMessage.done) {
+                                return [...messages, message];
+                            } else {
+                                return [
+                                    ...messages.slice(0, messages.length - 1),
+                                    message,
+                                ];
+                            }
                         });
                     }
-                    setChat((messages) => {
-                        const lastMsg = messages[messages.length - 1];
-                        return [
-                            ...messages.slice(0, messages.length - 1),
-                            {
-                                role: 'assistant',
-                                content: lastMsg.content,
-                                processing: false,
-                            },
-                        ];
-                    });
                 } catch (e) {
                     const problem = e as Problem;
                     setChat((messages) => {
                         return [
-                            ...messages.slice(0, messages.length - 1),
+                            ...messages,
                             {
                                 role: 'error',
                                 content: `${problem.title}\n${problem.detail}`,
-                                processing: false,
+                                done: true,
                             },
                         ];
                     });
@@ -86,38 +79,64 @@ const LLMWidget: Widget = () => {
 
     const clearChat = () => setChat([]);
 
-    // TODO: scroll with new messages
-    // TODO: only scroll message container
-
     return (
         <WidgetContainer>
             <WidgetMenu tw="flex flex-row justify-end">
-                <Button onClick={clearChat}>
+                <ToggleButton
+                    onChange={({ checked }) => setIsContextVisible(checked)}
+                    tooltip="Show internal context"
+                >
+                    <BrainIcon />
+                </ToggleButton>
+                <Button tooltip="Clear Chat" onClick={clearChat} disabled={processing}>
                     <DeleteIcon />
                 </Button>
             </WidgetMenu>
             <WidgetContent tw="flex flex-col bg-gray-300 text-sm overflow-hidden">
                 <div tw="flex-grow flex-shrink flex flex-col-reverse overflow-y-scroll">
-                    <div tw="flex flex-col p-1 space-y-1">
-                        {chat.map((message, i) => (
-                            <div
-                                tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
-                                css={[
-                                    message.role === 'error' && tw`bg-red-100`,
-                                    message.role === 'user' && tw`bg-green-100 ml-4`,
-                                    message.role !== 'user' && tw`mr-4`,
-                                ]}
-                                key={i}
-                            >
-                                <div tw="text-xxs uppercase font-bold text-midnight-600/30">
-                                    {message.role}
+                    <div tw="flex flex-col">
+                        <div tw="flex flex-col p-1 space-y-1">
+                            {chat.map((message, i) => (
+                                <div
+                                    tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
+                                    css={[
+                                        message.role === 'error' && tw`bg-red-100`,
+                                        message.role === 'context' &&
+                                            tw`bg-gray-300 border border-dashed border-gray-600`,
+                                        message.role === 'context' &&
+                                            !isContextVisible &&
+                                            tw`hidden`,
+                                        message.role === 'user' &&
+                                            tw`bg-green-100 ml-4`,
+                                        message.role !== 'user' && tw`mr-4`,
+                                    ]}
+                                    key={i}
+                                >
+                                    <div tw="text-xxs uppercase font-bold text-midnight-600/30">
+                                        {message.role}
+                                    </div>
+                                    <div>
+                                        {message.content_type === 'text/sql' && (
+                                            <SyntaxHighlighter
+                                                language="sql"
+                                                style={dracula}
+                                            >
+                                                {message.content}
+                                            </SyntaxHighlighter>
+                                        )}
+                                        {message.content_type === 'text/markdown' && (
+                                            <Markdown content={message.content} />
+                                        )}
+                                        {(message.content_type === 'text/plain' ||
+                                            message.content_type === undefined) &&
+                                            message.content}
+                                    </div>
                                 </div>
-                                <div>{message.content}</div>
-                                <div tw="h-2 flex flex-row justify-end">
-                                    {message.processing && <Spinner tw="w-2 h-2" />}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
+                        <div tw="h-2 overflow-hidden px-2">
+                            {processing && <Spinner tw="w-2 h-2" />}
+                        </div>
                     </div>
                 </div>
                 <div tw="flex-grow-0 flex-shrink-0 p-1 relative overflow-hidden">

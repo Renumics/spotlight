@@ -1,9 +1,17 @@
 import { Problem } from '../types';
 import websocketService, { WebsocketService } from './websocket';
 
+export interface Message {
+    content: string;
+    role: string;
+    content_type?: string;
+    done?: boolean;
+}
+
 interface ChatResponse {
     chat_id: string;
-    message: string;
+    message: Message;
+    done?: boolean;
 }
 
 interface ChatError {
@@ -12,7 +20,7 @@ interface ChatError {
 }
 
 interface ChatHandler {
-    resolve: (message: string) => void;
+    resolve: (message: ChatResponse) => void;
     reject: (error: Problem) => void;
 }
 
@@ -28,7 +36,7 @@ class ChatService {
         this.websocketService.registerMessageHandler(
             'chat.response',
             (data: ChatResponse) => {
-                this.dispatchTable.get(data.chat_id)?.resolve(data.message);
+                this.dispatchTable.get(data.chat_id)?.resolve(data);
             }
         );
         this.websocketService.registerMessageHandler(
@@ -49,14 +57,14 @@ class ChatService {
             },
         });
 
-        let msg = '';
+        let response: ChatResponse;
         do {
-            const promise = new Promise<string>((resolve, reject) => {
+            const promise = new Promise<ChatResponse>((resolve, reject) => {
                 this.dispatchTable.set(chat_id, { resolve, reject });
             });
-            msg = await promise;
-            yield msg;
-        } while (msg !== '');
+            response = await promise;
+            yield response.message;
+        } while (!response.done);
     }
 }
 

@@ -35,7 +35,9 @@
         "@tailwindcss/typography": "^0.5.9",
         "@tippyjs/react": "^4.2.6",
         "@types/dompurify": "^3.0.2",
+        "@types/react-syntax-highlighter": "^15.5.11",
         "@uiw/react-json-view": "2.0.0-alpha.7",
+        "bleu-score": "^1.0.4",
         "chroma-js": "^2.4.2",
         "comlink": "^4.4.1",
         "cropperjs": "^1.5.13",
@@ -74,6 +76,7 @@
         "react-player": "^2.11.2",
         "react-select": "^5.7.0",
         "react-slider": "^2.0.4",
+        "react-syntax-highlighter": "^15.5.0",
         "react-toastify": "^9.1.1",
         "react-virtualized-auto-sizer": "^1.0.20",
         "react-window": "^1.8.8",
@@ -91,8 +94,7 @@
         "unique-names-generator": "^4.7.1",
         "uuid": "^9.0.0",
         "wavesurfer.js": "^6.4.0",
-        "zustand": "^4.3.3",
-        "bleu-score": "^1.0.4"
+        "zustand": "^4.3.3"
     },
     "devDependencies": {
         "@openapitools/openapi-generator-cli": "^2.7.0",
