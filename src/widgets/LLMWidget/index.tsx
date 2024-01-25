@@ -18,15 +18,17 @@ import { useDataset } from '../../lib';
 
 interface RowsBadgeProps {
     rows: number[];
+    name?: string;
 }
-const RowsBadge = ({ rows }: RowsBadgeProps): JSX.Element => {
+
+const RowsBadge = ({ rows, name }: RowsBadgeProps): JSX.Element => {
     const filter = () => {
-        useDataset.getState().addFilter(new SetFilter(rows));
+        useDataset.getState().addFilter(new SetFilter(rows, name));
     };
 
     return (
         <div>
-            <Button onClick={filter}>filter</Button>
+            <Button onClick={filter}>{name || 'filter'}</Button>
         </div>
     );
 };
@@ -145,7 +147,8 @@ const LLMWidget: Widget = () => {
                                         )}
                                         {message.content_type === 'rows' && (
                                             <RowsBadge
-                                                rows={JSON.parse(message.content)}
+                                                rows={JSON.parse(message.content).rows}
+                                                name={JSON.parse(message.content).name}
                                             />
                                         )}
                                         {(message.content_type === 'text/plain' ||

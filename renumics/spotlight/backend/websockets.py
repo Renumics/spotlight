@@ -531,6 +531,34 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         )
 
         if "row_number" in full_df:
+            filter_name_prompt = """
+            You are an assistant for finding short but expressive descriptions for filters applied on data.
+            Use the provided question and summarize it in a maximum of three words.
+            Limit your answer to a maximum of 15 characters.
+
+            Example question: All drivers younger than 35 years old.
+            Summary: age < 35
+
+            Question: {question}
+            Answer:"""
+
+            filter_name_completion = await openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": filter_name_prompt.format(question=data.message),
+                    }
+                ],
+                stream=False,
+            )
+
+            filter_name = filter_name_completion.choices[0].message.content
+
+            if filter_name is None:
+                filter_name = f"({len(full_df)} rows)"
+            filter_name = filter_name.strip()[:15]
+
             await connection.send_async(
                 Message(
                     type="chat.response",
@@ -541,7 +569,10 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
                             "role": "assistant",
                             "content_type": "rows",
                             "content": orjson.dumps(
-                                full_df["row_number"].tolist()
+                                {
+                                    "rows": full_df["row_number"].tolist(),
+                                    "name": filter_name,
+                                }
                             ).decode(),
                             "done": True,
                         },
