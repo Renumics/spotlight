@@ -10,7 +10,7 @@ export interface Message {
 
 interface ChatResponse {
     chat_id: string;
-    message: Message;
+    message?: Message;
     done?: boolean;
 }
 
@@ -63,7 +63,9 @@ class ChatService {
                 this.dispatchTable.set(chat_id, { resolve, reject });
             });
             response = await promise;
-            yield response.message;
+            if (response.message) {
+                yield response.message;
+            }
         } while (!response.done);
     }
 }

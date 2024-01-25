@@ -126,6 +126,7 @@ class PandasDataSource(DataSource):
 
     def sql(self, query: str) -> pd.DataFrame:
         df = self._df  # noqa: F841
+        df["index"] = range(len(df))
         return duckdb.sql(query).df()
 
     def get_generation_id(self) -> int:

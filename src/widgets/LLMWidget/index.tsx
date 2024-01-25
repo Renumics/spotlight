@@ -10,10 +10,26 @@ import Spinner from '../../components/ui/Spinner';
 import Button from '../../components/ui/Button';
 import ToggleButton from '../../components/ui/ToggleButton';
 import chatService, { type Message } from '../../services/chat';
-import { Problem } from '../../types';
+import { Problem, SetFilter } from '../../types';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Markdown from '../../components/ui/Markdown';
+import { useDataset } from '../../lib';
+
+interface RowsBadgeProps {
+    rows: number[];
+}
+const RowsBadge = ({ rows }: RowsBadgeProps): JSX.Element => {
+    const filter = () => {
+        useDataset.getState().addFilter(new SetFilter(rows));
+    };
+
+    return (
+        <div>
+            <Button onClick={filter}>filter</Button>
+        </div>
+    );
+};
 
 const LLMWidget: Widget = () => {
     const [chat, setChat] = useState<Array<Message>>([]);
@@ -126,6 +142,11 @@ const LLMWidget: Widget = () => {
                                         )}
                                         {message.content_type === 'text/markdown' && (
                                             <Markdown content={message.content} />
+                                        )}
+                                        {message.content_type === 'rows' && (
+                                            <RowsBadge
+                                                rows={JSON.parse(message.content)}
+                                            />
                                         )}
                                         {(message.content_type === 'text/plain' ||
                                             message.content_type === undefined) &&

@@ -345,11 +345,13 @@ Adhere to these rules:
 - **Deliberately go through the question and database schema word by word** to appropriately answer the question
 - **Use Table Aliases** to prevent ambiguity. For example, `SELECT table1.col1, table2.col1 FROM table1 JOIN table2 ON table1.id = table2.id`.
 - When creating a ratio, always cast the numerator as float
+- ALWAYS include the index column as row_number, when selecting from the df table. For example, `SELECT df.index as row_number ...`
 
 ### Input:
 Generate a SQL query that answers the question `{question}`.
 This query will run on a database whose schema is represented in this string:
 CREATE TABLE df (
+    index INTEGER, -- the index of the row in the original dataset
     time INTERVAL, -- absolute session time when the lap time was set (end of lap)
     driver_number VARCHAR, -- Driver identifier
     driver VARCHAR, -- 3 letter code of the driver
@@ -446,13 +448,15 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
             )
         )
 
-        df: pd.DataFrame = data_source.sql(sql_statement)
+        full_df: pd.DataFrame = data_source.sql(sql_statement)
 
-        rows = len(df.axes[0])
-        cols = len(df.axes[1])
+        rows = len(full_df.axes[0])
+        cols = len(full_df.axes[1])
 
         if rows * cols > 100:
-            df = df.head(10)
+            df = full_df.head(10)
+        else:
+            df = full_df
 
         result_md = df.to_markdown()
 
@@ -472,17 +476,17 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         )
 
         table_summary_prompt = """
-        You are an assistant for question-answering tasks. Use the provided sql query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+        You are an assistant for question-answering tasks. Use the provided sql query and query result to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
         Question: {question}
+
+        SQL Query: {query}
+
         Query Result: {query_result}
+
         Answer:"""
 
-        print(
-            table_summary_prompt.format(question=data.message, query_result=result_md)
-        )
-
         prompt = table_summary_prompt.format(
-            question=data.message, query_result=result_md
+            question=data.message, query=sql_statement, query_result=result_md
         )
 
         completion = await openai_client.chat.completions.create(
@@ -522,8 +526,33 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
                         "content": "",
                         "done": True,
                     },
-                    "done": True,
                 },
+            )
+        )
+
+        if "row_number" in full_df:
+            await connection.send_async(
+                Message(
+                    type="chat.response",
+                    data={
+                        "chat_id": data.chat_id,
+                        "role": "assistant",
+                        "message": {
+                            "role": "assistant",
+                            "content_type": "rows",
+                            "content": orjson.dumps(
+                                full_df["row_number"].tolist()
+                            ).decode(),
+                            "done": True,
+                        },
+                    },
+                )
+            )
+
+        await connection.send_async(
+            Message(
+                type="chat.response",
+                data={"chat_id": data.chat_id, "done": True},
             )
         )
 
