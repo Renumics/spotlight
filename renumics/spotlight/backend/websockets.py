@@ -420,6 +420,7 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
                     "content": sql_prompt_race.format(question=data.message),
                 }
             ],
+            temperature=0.0,
             stream=False,
         )
 
@@ -492,6 +493,7 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         completion = await openai_client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
             stream=True,
         )
 
@@ -551,6 +553,7 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
                         "content": filter_name_prompt.format(question=data.message),
                     }
                 ],
+                temperature=0.0,
                 stream=False,
             )
 
