@@ -428,11 +428,15 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
         if response is None:
             print("no response")
             response = ""
-        print(response)
+        print("model response", response)
 
-        sql_statement = response[: response.find("```")]
+        sql_statement = response
 
-        print(sql_statement)
+        pos = sql_statement.find("```")
+        if pos > -1:
+            sql_statement = sql_statement[:pos]
+
+        print("sql_statement", sql_statement)
 
         await connection.send_async(
             Message(
