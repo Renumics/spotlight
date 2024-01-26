@@ -4,6 +4,8 @@ import WidgetMenu from '../../components/ui/WidgetMenu';
 import WidgetContent from '../../components/ui/WidgetContent';
 import BrainIcon from '../../icons/Brain';
 import DeleteIcon from '../../icons/Delete';
+import FilterIcon from '../../icons/Filter';
+import SelectionIcon from '../../icons/Selection';
 import tw from 'twin.macro';
 import { KeyboardEvent, useCallback, useRef, useState } from 'react';
 import Spinner from '../../components/ui/Spinner';
@@ -14,7 +16,7 @@ import { Problem, SetFilter } from '../../types';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Markdown from '../../components/ui/Markdown';
-import { useDataset } from '../../lib';
+import { useDataset } from '../../stores/dataset';
 
 interface RowsBadgeProps {
     rows: number[];
@@ -22,13 +24,30 @@ interface RowsBadgeProps {
 }
 
 const RowsBadge = ({ rows, name }: RowsBadgeProps): JSX.Element => {
-    const filter = () => {
-        useDataset.getState().addFilter(new SetFilter(rows, name));
-    };
+    const select = () => useDataset.getState().selectRows(rows);
+    const filter = () => useDataset.getState().addFilter(new SetFilter(rows, name));
 
     return (
-        <div>
-            <Button onClick={filter}>{name || 'filter'}</Button>
+        <div tw="flex flex-row">
+            <div tw="flex-grow-0 flex-shrink-0 flex flex-row bg-gray-100 rounded divide-x divide-gray-400">
+                <Button
+                    tw="px-2 py-1 hover:bg-gray-200 flex flex-row font-normal"
+                    onClick={select}
+                >
+                    <div tw="mr-1 font-bold flex justify-center items-center">
+                        <SelectionIcon />
+                    </div>
+                    <div>{name}</div>
+                </Button>
+                <Button
+                    tw="h-full px-2 py-1 hover:bg-gray-200 flex justify-center items-center"
+                    onClick={filter}
+                    tooltip="filter"
+                >
+                    <FilterIcon />
+                </Button>
+            </div>
+            <div tw="flex-grow flex-shrink"></div>
         </div>
     );
 };
@@ -116,8 +135,10 @@ const LLMWidget: Widget = () => {
                         <div tw="flex flex-col p-1 space-y-1">
                             {chat.map((message, i) => (
                                 <div
-                                    tw="bg-gray-100 px-1 py-0.5 rounded whitespace-pre-wrap"
+                                    tw="px-1 py-0.5 rounded whitespace-pre-wrap"
                                     css={[
+                                        message.role === 'assistant' && tw`bg-gray-100`,
+                                        message.role === 'artifact' && tw`px-0 py-0`,
                                         message.role === 'error' && tw`bg-red-100`,
                                         message.role === 'context' &&
                                             tw`bg-gray-300 border border-dashed border-gray-600`,
@@ -131,7 +152,7 @@ const LLMWidget: Widget = () => {
                                     key={i}
                                 >
                                     <div tw="text-xxs uppercase font-bold text-midnight-600/30">
-                                        {message.role}
+                                        {message.role != 'artifact' && message.role}
                                     </div>
                                     <div>
                                         {message.content_type === 'text/sql' && (

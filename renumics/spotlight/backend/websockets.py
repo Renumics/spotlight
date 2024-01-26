@@ -534,7 +534,8 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
             filter_name_prompt = """
             You are an assistant for finding short but expressive descriptions for filters applied on data.
             Use the provided question and summarize it in a maximum of three words.
-            Limit your answer to a maximum of 15 characters.
+            Try to stick to one or two words if possible.
+            Limit your answer to a maximum of 15 characters!
 
             Example question: All drivers younger than 35 years old.
             Summary: age < 35
@@ -557,7 +558,7 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
 
             if filter_name is None:
                 filter_name = f"({len(full_df)} rows)"
-            filter_name = filter_name.strip()[:15]
+            filter_name = filter_name.strip()[:18]
 
             await connection.send_async(
                 Message(
@@ -566,7 +567,7 @@ async def _(data: ChatData, connection: WebsocketConnection) -> None:
                         "chat_id": data.chat_id,
                         "role": "assistant",
                         "message": {
-                            "role": "assistant",
+                            "role": "artifact",
                             "content_type": "rows",
                             "content": orjson.dumps(
                                 {
