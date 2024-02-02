@@ -142,17 +142,20 @@ class PandasDataSource(DataSource):
         if pd.api.types.is_bool_dtype(column):
             values = column.to_numpy()
             na_mask = column.isna()
-            values[na_mask] = None
+            if na_mask.any():
+                values[na_mask] = None
             return values
         if pd.api.types.is_integer_dtype(column):
             values = column.to_numpy()
             na_mask = column.isna()
-            values[na_mask] = None
+            if na_mask.any():
+                values[na_mask] = None
             return values
         if pd.api.types.is_float_dtype(column):
             values = column.to_numpy()
             na_mask = column.isna()
-            values[na_mask] = None
+            if na_mask.any():
+                values[na_mask] = None
             return values
         if pd.api.types.is_datetime64_any_dtype(column):
             return column.dt.tz_localize(None).to_numpy()
