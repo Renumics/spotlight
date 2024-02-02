@@ -3,11 +3,12 @@ import _ from 'lodash';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useColors } from '../../stores/colors';
 import tw, { styled } from 'twin.macro';
-import type { Lens, Sequence1DColumn, Vec2 } from '../../types';
-import { isSequence1DColumn } from '../../types';
+import type { Lens, Problem, Vec2 } from '../../types';
+import { isSequence1DColumn, isEmbeddingColumn } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
 import { useSharedState } from '../useSharedState';
+import { formatType } from '../../dataformat';
 
 const Container = styled.div`
     ${tw`h-full flex flex-col relative items-center w-full`}
@@ -18,10 +19,14 @@ const ViewerWrapper = styled.div`
 
 const Info = tw.div`flex w-full h-full justify-center items-center text-gray-500 italic text-xs text-center`;
 
-const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
+const SequenceView: Lens<Vec2[] | number[]> = ({ values, columns, syncKey }) => {
     const [sequences, window] = useMemo(
         () => [
-            values.filter((_value, index) => isSequence1DColumn(columns[index])),
+            values.filter(
+                (_value, index) =>
+                    isSequence1DColumn(columns[index]) ||
+                    isEmbeddingColumn(columns[index])
+            ),
             values.find((_value, index) => columns[index].type.kind === 'Window') as
                 | [number, number]
                 | undefined,
@@ -33,13 +38,31 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
         return sequences
             .filter((v) => v !== null)
             .map((vals, i) => {
-                const column = columns[i] as Sequence1DColumn;
-                return {
-                    values: vals,
-                    xLabel: column.xLabel,
-                    yLabel: column.yLabel,
-                    name: column.name,
-                };
+                const column = columns[i];
+                if (isSequence1DColumn(column)) {
+                    return {
+                        values: vals as Vec2[],
+                        xLabel: column.xLabel,
+                        yLabel: column.yLabel,
+                        name: column.name,
+                    };
+                } else if (isEmbeddingColumn(column)) {
+                    return {
+                        values: vals.map((y, i) => [i, y]) as Vec2[],
+                        xLabel: 'x',
+                        yLabel: 'y',
+                        name: column.name,
+                    };
+                } else {
+                    const problem: Problem = {
+                        type: 'UnsupportedDtype',
+                        title: 'Unsupported Datatype',
+                        detail: `Column '${
+                            column.name
+                        } has unsupported dtype '${formatType(column.type)}'`,
+                    };
+                    throw problem;
+                }
             });
     }, [sequences, columns]);
 
@@ -203,7 +226,7 @@ const SequenceView: Lens<Vec2[]> = ({ values, columns, syncKey }) => {
 };
 
 SequenceView.key = 'SequenceView';
-SequenceView.dataTypes = ['Sequence1D', 'Window'];
+SequenceView.dataTypes = ['Embedding', 'Sequence1D', 'Window'];
 SequenceView.multi = true;
 SequenceView.defaultHeight = 192;
 SequenceView.displayName = 'Lineplot';
@@ -212,12 +235,16 @@ SequenceView.multi = true;
 SequenceView.filterAllowedColumns = (allColumns, selectedColumns) => {
     // allow max 1 window column
     if (selectedColumns.some((col) => col.type.kind === 'Window'))
-        return allColumns.filter((col) => col.type.kind === 'Sequence1D');
+        return allColumns.filter((col) =>
+            ['Sequence1D', 'Embedding'].includes(col.type.kind)
+        );
 
-    return allColumns.filter((col) => ['Sequence1D', 'Window'].includes(col.type.kind));
+    return allColumns.filter((col) =>
+        ['Sequence1D', 'Embedding', 'Window'].includes(col.type.kind)
+    );
 };
 SequenceView.isSatisfied = (columns) => {
-    return columns.some((col) => isSequence1DColumn(col));
+    return columns.some((col) => isSequence1DColumn(col) || isEmbeddingColumn(col));
 };
 
 export default SequenceView;
