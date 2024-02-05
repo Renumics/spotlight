@@ -216,5 +216,12 @@
             ".jsx",
             ".tsx"
         ]
+    },
+    "pnpm": {
+        "auditConfig": {
+            "ignoreCves": [
+                "CVE-2020-8203"
+            ]
+        }
     }
 }

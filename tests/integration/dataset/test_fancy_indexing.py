@@ -3,7 +3,7 @@ Test fancy indexing of `spotlight.Dataset` class.
 """
 
 import datetime
-from typing import Any, List
+from typing import Any, List, cast
 
 import numpy as np
 import pytest
@@ -300,7 +300,7 @@ def test_setitem(fancy_indexing_dataset: Dataset) -> None:
             )
             target = np.array(fancy_indexing_dataset[column_name])
             target[indices] = values
-            fancy_indexing_dataset[column_name, indices] = values
+            fancy_indexing_dataset[column_name, indices] = cast(np.ndarray, values)
             last_edited_at = last_edited_at_column[last_edited_at_indices]
             if len(last_edited_at_indices) > 0:
                 timestamp_ = _assert_unique_datetime(
