@@ -3,12 +3,13 @@ Data for h5 tests
 """
 
 import datetime
+from typing import Dict, Tuple
 
 import numpy as np
 from renumics import spotlight
 
 
-COLUMNS = {
+COLUMNS: Dict[str, Tuple[str, list]] = {
     "bool": ("bool", [True, False]),
     "int": ("int", [0, 1]),
     "float": ("float", [0.0, np.nan]),

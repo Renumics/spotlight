@@ -1,11 +1,9 @@
-from typing import Tuple
 import numpy as np
 import pytest
 
 from renumics import spotlight
 from renumics.spotlight import dtypes
 from renumics.spotlight.dataset.exceptions import InvalidDTypeError, InvalidShapeError
-from renumics.spotlight.dataset.typing import EmbeddingColumnInputType
 
 
 @pytest.mark.parametrize("length", [1, 2, 8])
@@ -16,7 +14,7 @@ def test_default(empty_dataset: spotlight.Dataset, length: int) -> None:
     empty_dataset.append_embedding_column("embedding")
     assert empty_dataset.get_dtype("embedding") == dtypes.embedding_dtype
 
-    valid_values: Tuple[EmbeddingColumnInputType] = (
+    valid_values: tuple = (
         [0] * length,
         range(length),
         tuple(range(length)),
@@ -69,7 +67,7 @@ def test_default_with_values(empty_dataset: spotlight.Dataset, length: int) -> N
     Test default embedding column creation with given values and afterwards
     filling row-by-row.
     """
-    valid_values = (
+    valid_values: tuple = (
         [0] * length,
         range(length),
         tuple(range(length)),
@@ -194,7 +192,7 @@ def test_length(empty_dataset: spotlight.Dataset, length: int) -> None:
     empty_dataset.append_embedding_column("embedding", length=length)
     assert empty_dataset.get_dtype("embedding") == dtypes.EmbeddingDType(length=length)
 
-    valid_values = (
+    valid_values: tuple = (
         [0] * length,
         range(length),
         tuple(range(length)),
@@ -256,7 +254,7 @@ def test_dtype(
     empty_dataset.append_embedding_column("embedding", dtype=np_dtype)
     assert empty_dataset.get_dtype("embedding") == dtypes.embedding_dtype
 
-    valid_values = (
+    valid_values: tuple = (
         [0] * length,
         range(length),
         tuple(range(length)),
@@ -284,7 +282,7 @@ def test_generic(empty_dataset: spotlight.Dataset, length: int) -> None:
     empty_dataset.append_column("embedding", dtype)
     assert empty_dataset.get_dtype("embedding") == dtype
 
-    valid_values = (
+    valid_values: tuple = (
         [0] * length,
         range(length),
         tuple(range(length)),
