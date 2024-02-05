@@ -371,7 +371,7 @@ jobs:
                   || steps.setup-geckodriver.outcome == 'success'
               uses: actions/upload-artifact@v4
               with:
-                  name: .ui-test-${{ needs.prepare-python.outputs.version }}
+                  name: .ui-test-${{ matrix.browser }}-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
                   if-no-files-found: error
     integration-test:
