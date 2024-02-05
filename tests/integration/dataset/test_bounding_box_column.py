@@ -26,7 +26,7 @@ def test_default(empty_dataset: spotlight.Dataset) -> None:
     empty_dataset.append_bounding_box_column("column")
     assert empty_dataset.get_dtype("column") == dtypes.bounding_box_dtype
 
-    valid_values = (
+    valid_values: tuple = (
         [0, 1, 2, 3],
         [0.0, 1.0, np.nan, np.inf],
         range(4),
@@ -84,7 +84,7 @@ def test_optional(empty_dataset: spotlight.Dataset) -> None:
     empty_dataset.append_bounding_box_column("column", optional=True)
     assert empty_dataset.get_dtype("column") == dtypes.bounding_box_dtype
 
-    valid_values = (
+    valid_values: tuple = (
         [0, 1, 2, 3],
         [0.0, 1.0, np.nan, np.inf],
         range(4),
