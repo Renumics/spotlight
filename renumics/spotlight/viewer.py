@@ -90,25 +90,24 @@ Reuse the dataset `Viewer`:
     >>> spotlight.close()
 """
 
-from pathlib import Path
 import time
-from typing import Any, Collection, Dict, List, Union, Optional
+from pathlib import Path
+from typing import Any, Collection, Dict, List, Optional, Union
 
+import IPython.display
+import ipywidgets as widgets
 import pandas as pd
 from typing_extensions import Literal
-import ipywidgets as widgets
-import IPython.display
 
 import __main__
-from renumics.spotlight.settings import settings
-from renumics.spotlight.layout import _LayoutLike, parse
-from renumics.spotlight.typing import PathType, is_pathtype
-from renumics.spotlight.webbrowser import launch_browser_in_thread
-from renumics.spotlight.server import Server
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.app_config import AppConfig
-
 from renumics.spotlight.dtypes import create_dtype
+from renumics.spotlight.layout import _LayoutLike, parse
+from renumics.spotlight.server import Server
+from renumics.spotlight.settings import settings
+from renumics.spotlight.typing import PathType, is_pathtype
+from renumics.spotlight.webbrowser import launch_browser_in_thread
 
 
 class ViewerNotFoundError(Exception):

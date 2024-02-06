@@ -1,7 +1,8 @@
-from typing import Dict, List, Union, Type, Any
 from pathlib import Path
+from typing import Any, Dict, List, Type, Union
 
 from renumics.spotlight.typing import is_pathtype
+
 from .data_source import DataSource
 from .exceptions import InvalidDataSource
 

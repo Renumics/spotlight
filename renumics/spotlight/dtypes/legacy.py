@@ -1,9 +1,9 @@
 from renumics.spotlight.media import (
-    Embedding,  # noqa: F401
-    Sequence1D,  # noqa: F401
     Audio,  # noqa: F401
+    Embedding,  # noqa: F401
     Image,  # noqa: F401
     Mesh,  # noqa: F401
+    Sequence1D,  # noqa: F401
     Video,  # noqa: F401
 )
 

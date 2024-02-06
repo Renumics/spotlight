@@ -1,7 +1,7 @@
 import io
 import math
 import os
-from typing import Dict, IO, List, Optional, Tuple, Union
+from typing import IO, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import numpy as np
@@ -11,13 +11,12 @@ import trimesh
 import validators
 from loguru import logger
 
+from renumics.spotlight.media.base import Array2dLike, FileMediaType
 from renumics.spotlight.requests import headers
 from renumics.spotlight.typing import PathType
 
-from renumics.spotlight.media.base import Array2dLike, FileMediaType
-
-from . import exceptions
 from ..io import gltf
+from . import exceptions
 
 
 class Mesh(FileMediaType):

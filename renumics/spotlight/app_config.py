@@ -4,12 +4,11 @@ Spotlight Application Config
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Union, Any
+from typing import Any, List, Optional, Union
 
-
-from renumics.spotlight.layout.nodes import Layout
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.dtypes import DTypeMap
+from renumics.spotlight.layout.nodes import Layout
 
 
 @dataclass(frozen=True)

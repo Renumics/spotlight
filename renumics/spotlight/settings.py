@@ -2,6 +2,7 @@
 global settings (read from env)
 """
 from typing import Optional
+
 from pydantic_settings import BaseSettings
 
 

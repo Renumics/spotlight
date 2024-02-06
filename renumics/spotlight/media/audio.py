@@ -3,11 +3,11 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from renumics.spotlight.typing import FileType
 from renumics.spotlight.media.base import Array2dLike, FileMediaType
+from renumics.spotlight.typing import FileType
 
-from . import exceptions
 from ..io import audio
+from . import exceptions
 
 
 class Audio(FileMediaType):

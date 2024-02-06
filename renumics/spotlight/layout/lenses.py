@@ -4,11 +4,11 @@ Viewers (lenses) for Spotlight inspector widget.
 For usage examples, see `renumics.spotlight.layout.inspector`.
 """
 
-from typing_extensions import Literal
 import uuid
 from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
+from typing_extensions import Literal
 
 
 class Lens(BaseModel, populate_by_name=True):

@@ -7,7 +7,6 @@ from typing import List, Tuple
 import numpy as np
 import pygltflib
 
-
 GLTF_DTYPES_CONVERSION = {
     "i1": "<i1",
     "i2": "<i2",

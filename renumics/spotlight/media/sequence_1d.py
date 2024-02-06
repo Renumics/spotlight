@@ -2,7 +2,6 @@ from typing import Optional, Type, Union
 
 import numpy as np
 
-
 from renumics.spotlight.media.base import Array1dLike, MediaType
 
 

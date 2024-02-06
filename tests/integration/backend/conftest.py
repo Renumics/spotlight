@@ -5,11 +5,10 @@ import tempfile
 from typing import Iterator, Tuple
 from urllib.parse import urljoin
 
-import pytest
 import pandas as pd
+import pytest
 
 from renumics import spotlight
-
 
 BASE_URL = "https://spotlightpublic.blob.core.windows.net/internal-test-data/"
 

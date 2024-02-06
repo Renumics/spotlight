@@ -3,10 +3,11 @@ A decorator for data analysis functions
 """
 
 import functools
-from typing import Callable, Dict, Literal, Optional, Any, Union, overload
+from typing import Any, Callable, Dict, Literal, Optional, Union, overload
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.media import Audio, Embedding, Image, Sequence1D
+
 from .preprocessors import (
     preprocess_audio_batch,
     preprocess_batch,

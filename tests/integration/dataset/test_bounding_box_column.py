@@ -1,11 +1,11 @@
 from typing import Union
+
 import numpy as np
 import pytest
 
 from renumics import spotlight
 from renumics.spotlight import dtypes
 from renumics.spotlight.dataset.exceptions import InvalidDTypeError, InvalidShapeError
-
 
 BOUNDING_BOXES = [
     [0, 1, 2, 3],

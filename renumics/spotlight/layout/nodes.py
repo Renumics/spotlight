@@ -9,7 +9,6 @@ from typing_extensions import Literal
 
 from .widgets import Widget
 
-
 Orientation = Optional[Literal["horizontal", "vertical"]]
 
 

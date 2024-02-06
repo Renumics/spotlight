@@ -3,8 +3,9 @@ Test Spotlight dataset with categorical columns.
 """
 
 import pytest
-from renumics.spotlight.dataset import exceptions
+
 from renumics.spotlight import Dataset
+from renumics.spotlight.dataset import exceptions
 
 
 @pytest.mark.parametrize(

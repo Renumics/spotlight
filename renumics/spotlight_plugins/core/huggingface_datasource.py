@@ -5,10 +5,9 @@ import numpy as np
 
 import renumics.spotlight.dtypes as spotlight_dtypes
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.logging import logger
-
 
 _FeatureType = Union[
     datasets.Value,

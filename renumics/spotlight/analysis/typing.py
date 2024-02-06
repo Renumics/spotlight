@@ -8,7 +8,6 @@ from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.data_store import DataStore
 
-
 Severity = Literal["low", "medium", "high"]
 
 

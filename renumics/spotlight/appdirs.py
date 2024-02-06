@@ -3,6 +3,7 @@ Module managing different application directories (config, cache, temp,...)
 """
 
 from pathlib import Path
+
 import appdirs
 
 _APP_NAME = "spotlight"

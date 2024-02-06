@@ -2,9 +2,11 @@
 Integration Test on API level for h5 data sources
 """
 from typing import Type
+
+import httpx
 import numpy as np
 import pytest
-import httpx
+
 from renumics import spotlight
 from renumics.spotlight.dataset.typing import OutputType
 

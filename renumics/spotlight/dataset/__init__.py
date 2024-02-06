@@ -14,18 +14,18 @@ from typing import (
     Iterable,
     List,
     Optional,
-    overload,
     Set,
     Tuple,
     Type,
     Union,
     cast,
+    overload,
 )
 
-import PIL.Image
 import h5py
 import numpy as np
 import pandas as pd
+import PIL.Image
 import prettytable
 import trimesh
 import validators
@@ -44,31 +44,31 @@ from renumics.spotlight.typing import (
     is_integer,
     is_iterable,
 )
+
 from . import exceptions
 from .pandas import create_typed_series, infer_dtypes, is_string_mask, prepare_column
 from .typing import (
-    BoundingBoxColumnInputType,
-    OutputType,
-    ExternalOutputType,
-    BoolColumnInputType,
-    IntColumnInputType,
-    FloatColumnInputType,
-    StringColumnInputType,
-    DatetimeColumnInputType,
-    CategoricalColumnInputType,
-    WindowColumnInputType,
     ArrayColumnInputType,
-    EmbeddingColumnInputType,
     AudioColumnInputType,
-    ImageColumnInputType,
-    MeshColumnInputType,
-    Sequence1DColumnInputType,
-    VideoColumnInputType,
-    SimpleColumnInputType,
-    RefColumnInputType,
+    BoolColumnInputType,
+    BoundingBoxColumnInputType,
+    CategoricalColumnInputType,
     ColumnInputType,
+    DatetimeColumnInputType,
+    EmbeddingColumnInputType,
+    ExternalOutputType,
+    FloatColumnInputType,
+    ImageColumnInputType,
+    IntColumnInputType,
+    MeshColumnInputType,
+    OutputType,
+    RefColumnInputType,
+    Sequence1DColumnInputType,
+    SimpleColumnInputType,
+    StringColumnInputType,
+    VideoColumnInputType,
+    WindowColumnInputType,
 )
-
 
 __all__ = ["Dataset"]
 

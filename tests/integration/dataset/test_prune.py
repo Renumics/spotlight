@@ -8,6 +8,7 @@ from typing import List
 import numpy as np
 
 from renumics import spotlight
+
 from .conftest import ColumnData
 
 

@@ -1,14 +1,15 @@
 """conftest for ui-tests"""
 
-from typing import Dict, Any, Generator
-from pathlib import Path
-import subprocess
 import json
-import requests
+import subprocess
+from pathlib import Path
+from typing import Any, Dict, Generator
+
 import pytest
+import requests
 from selenium import webdriver as wd
-from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.remote.webdriver import WebDriver
 
 from .generate_ui_test_elements import generate_ui_test_elements_py
 

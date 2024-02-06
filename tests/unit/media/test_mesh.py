@@ -6,8 +6,8 @@ import pytest
 
 from renumics.spotlight.media import Mesh
 
-from .data import MESHES_FOLDER
 from ...integration.helpers import approx
+from .data import MESHES_FOLDER
 
 
 @pytest.mark.parametrize("num_points", [10, 100, 10000])

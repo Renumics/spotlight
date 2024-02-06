@@ -2,13 +2,12 @@
 test that layout can be set via environment
 """
 
-from pytest import MonkeyPatch
-import pandas as pd
 import httpx
+import pandas as pd
+from pytest import MonkeyPatch
 
 from renumics import spotlight
-from renumics.spotlight import layout
-from renumics.spotlight import settings
+from renumics.spotlight import layout, settings
 
 
 def test_settings_layout_is_used(monkeypatch: MonkeyPatch) -> None:

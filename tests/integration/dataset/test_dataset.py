@@ -22,14 +22,15 @@ from renumics.spotlight import (
     Mesh,
     Sequence1D,
     Video,
+    dtypes,
 )
 from renumics.spotlight.dataset import escape_dataset_name, unescape_dataset_name
-from renumics.spotlight import dtypes
-from renumics.spotlight.dataset.typing import OutputType
 from renumics.spotlight.dataset.pandas import infer_dtype
+from renumics.spotlight.dataset.typing import OutputType
+
+from ..helpers import approx
 from .conftest import ColumnData
 from .helpers import get_append_column_fn_name
-from ..helpers import approx
 
 
 @pytest.mark.parametrize(

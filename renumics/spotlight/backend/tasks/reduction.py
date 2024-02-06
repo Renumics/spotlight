@@ -7,8 +7,8 @@ from typing import List, Tuple, cast
 import numpy as np
 import pandas as pd
 
-from renumics.spotlight.data_store import DataStore
 from renumics.spotlight import dtypes
+from renumics.spotlight.data_store import DataStore
 
 SEED = 42
 
@@ -118,7 +118,7 @@ def compute_pca(
     if data.size == 0:
         return np.empty(0, np.float64), []
 
-    from sklearn import preprocessing, decomposition
+    from sklearn import decomposition, preprocessing
 
     if data.shape[1] == 1:
         return np.hstack((data, np.zeros_like(data))), indices
