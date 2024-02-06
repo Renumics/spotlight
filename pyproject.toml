@@ -147,7 +147,8 @@ style = "semver"
 [tool.poetry-dynamic-versioning.substitution]
 files = ["renumics/spotlight/__version__.py"]
 
-[tool.ruff]
+[tool.ruff.lint]
+extend-select = ["I"]
 ignore = ["E501"]
 
 [tool.mypy]

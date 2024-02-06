@@ -6,7 +6,7 @@ repos:
       hooks:
           - id: ruff
             name: ruff
-            entry: poetry run ruff
+            entry: poetry run ruff check --fix --exit-non-zero-on-fix --show-fixes
             language: system
             types: [python]
             require_serial: true
