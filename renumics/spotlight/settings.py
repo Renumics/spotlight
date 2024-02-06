@@ -1,9 +1,10 @@
 """
 global settings (read from env)
 """
+
 from typing import Optional
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -18,13 +19,7 @@ class Settings(BaseSettings):
     opt_in: bool = False
     layout: Optional[str] = None
 
-    class Config:
-        """
-        settings config
-        set env prefix to spotlight_
-        """
-
-        env_prefix = "spotlight_"
+    model_config = SettingsConfigDict(env_prefix="spotlight_")
 
 
 settings = Settings()

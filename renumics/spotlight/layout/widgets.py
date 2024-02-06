@@ -11,7 +11,6 @@ from .lenses import Lens
 
 
 class WidgetConfig(BaseModel, populate_by_name=True):
-
     """
     Base Spotlight widget configuration model.
     """

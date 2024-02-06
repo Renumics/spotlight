@@ -1,6 +1,7 @@
 """
 Helper methods for tests
 """
+
 import tempfile
 from typing import Iterator, Tuple
 from urllib.parse import urljoin

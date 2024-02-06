@@ -1,6 +1,7 @@
 """
 Spotlight Frontend Configuration
 """
+
 import json
 from typing import Dict, Optional, Union, cast
 

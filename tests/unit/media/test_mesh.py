@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Mesh` class.
 """
+
 import numpy as np
 import pytest
 

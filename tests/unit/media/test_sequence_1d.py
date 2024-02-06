@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Sequence1D` class.
 """
+
 import numpy as np
 import pytest
 

@@ -114,12 +114,12 @@ class NoConverterAvailable(Problem):
 N = TypeVar("N", bound=NormalizedValue)
 
 Converter = Callable[[N, dtypes.DType], ConvertedValue]
-_converters_table: Dict[
-    Type[NormalizedValue], Dict[str, List[Converter]]
-] = defaultdict(lambda: defaultdict(list))
-_simple_converters_table: Dict[
-    Type[NormalizedValue], Dict[str, List[Converter]]
-] = defaultdict(lambda: defaultdict(list))
+_converters_table: Dict[Type[NormalizedValue], Dict[str, List[Converter]]] = (
+    defaultdict(lambda: defaultdict(list))
+)
+_simple_converters_table: Dict[Type[NormalizedValue], Dict[str, List[Converter]]] = (
+    defaultdict(lambda: defaultdict(list))
+)
 
 
 def register_converter(

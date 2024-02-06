@@ -98,9 +98,11 @@ class HuggingfaceDataSource(DataSource):
         if isinstance(feature, datasets.Audio) or isinstance(feature, datasets.Image):
             return np.array(
                 [
-                    value["path"].as_py()
-                    if value["bytes"].as_py() is None
-                    else value["bytes"].as_py()
+                    (
+                        value["path"].as_py()
+                        if value["bytes"].as_py() is None
+                        else value["bytes"].as_py()
+                    )
                     for value in raw_values
                 ],
                 dtype=object,

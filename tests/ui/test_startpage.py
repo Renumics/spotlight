@@ -1,4 +1,5 @@
 """Tests for the start page"""
+
 import time
 from pathlib import Path
 from typing import Any

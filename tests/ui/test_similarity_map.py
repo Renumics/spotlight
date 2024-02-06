@@ -1,4 +1,5 @@
 """Tests for basic interactions"""
+
 import time
 from typing import Any
 

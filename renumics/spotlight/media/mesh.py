@@ -524,18 +524,22 @@ def clean(
     )
     triangles = triangles[valid_triangles_mask]
     triangle_attributes = {
-        k: [x[valid_triangles_mask] for x in v]
-        if isinstance(v, list)
-        else v[valid_triangles_mask]
+        k: (
+            [x[valid_triangles_mask] for x in v]
+            if isinstance(v, list)
+            else v[valid_triangles_mask]
+        )
         for k, v in (triangle_attributes or {}).items()
     }
 
     valid_points_mask = np.isin(point_ids, triangles)
     points = points[valid_points_mask]
     point_attributes = {
-        k: [x[valid_points_mask] for x in v]
-        if isinstance(v, list)
-        else v[valid_points_mask]
+        k: (
+            [x[valid_points_mask] for x in v]
+            if isinstance(v, list)
+            else v[valid_points_mask]
+        )
         for k, v in (point_attributes or {}).items()
     }
     point_displacements = [x[valid_points_mask] for x in point_displacements or []]

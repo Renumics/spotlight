@@ -47,7 +47,6 @@ class Category:
 
 
 class Window:
-
     """
     A pair of two timestamps in seconds which can be later projected onto
     continuous data (only `renumics.spotlight.dtypes.Audio`
