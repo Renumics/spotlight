@@ -3,11 +3,11 @@ Exceptions to be raised from backend.
 """
 
 from typing import Any, Optional
+
 from fastapi import status
 
-from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
-
 from renumics.spotlight.dtypes import DType
+from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
 
 
 class Problem(Exception):

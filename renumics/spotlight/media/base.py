@@ -8,7 +8,6 @@ import numpy as np
 
 from renumics.spotlight.typing import NumberType, PathType
 
-
 Array1dLike = Union[Sequence[NumberType], np.ndarray]
 Array2dLike = Union[Sequence[Sequence[NumberType]], Sequence[np.ndarray], np.ndarray]
 ImageLike = Union[

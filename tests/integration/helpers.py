@@ -2,10 +2,10 @@ from typing import Optional
 
 import numpy as np
 
+from renumics.spotlight import dtypes
 from renumics.spotlight.dataset import VALUE_TYPE_BY_DTYPE_NAME
 from renumics.spotlight.dataset.typing import ColumnInputType, OutputType
-from renumics.spotlight.media import Embedding, Sequence1D, Audio, Image, Mesh, Video
-from renumics.spotlight import dtypes
+from renumics.spotlight.media import Audio, Embedding, Image, Mesh, Sequence1D, Video
 
 
 def approx(

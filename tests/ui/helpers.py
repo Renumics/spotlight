@@ -1,17 +1,18 @@
 """Helpers for ui-tests"""
 import time
+from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Callable, Iterator
-from datetime import datetime
-from contextlib import contextmanager
+
 import pytest
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    StaleElementReferenceException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.common.exceptions import (
-    StaleElementReferenceException,
-    NoSuchElementException,
-)
 
 
 class LoadingIsStillDisplayed(Exception):

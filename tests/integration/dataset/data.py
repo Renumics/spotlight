@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Sequence, Union, Dict
+from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
 
-from renumics.spotlight import Embedding, Mesh, Sequence1D, Image, Audio, Video
+from renumics.spotlight import Audio, Embedding, Image, Mesh, Sequence1D, Video
 from renumics.spotlight.dataset.typing import ColumnInputType
 
 

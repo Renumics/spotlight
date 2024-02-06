@@ -1,13 +1,14 @@
 """Tests for basic interactions"""
 import time
 from typing import Any
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from .helpers import (
-    wait_for_tagged_element,
     get_tab,
     screenshot_exception,
+    wait_for_tagged_element,
 )
 
 

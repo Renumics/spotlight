@@ -2,6 +2,7 @@
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
+
 from .helpers import wait_for_tagged_element
 
 

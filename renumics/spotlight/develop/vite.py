@@ -1,8 +1,8 @@
 """Manage vitejs dev server for local (plugin) development"""
 
-from typing import Optional
 import socket
 import subprocess
+from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter, Retry

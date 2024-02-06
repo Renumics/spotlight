@@ -11,7 +11,6 @@ from typing import Dict, Optional, Tuple, Union
 import click
 
 from renumics import spotlight
-
 from renumics.spotlight import logging
 
 

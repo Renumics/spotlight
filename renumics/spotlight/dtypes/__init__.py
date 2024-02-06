@@ -24,7 +24,6 @@ from typing_extensions import TypeGuard
 
 from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window
 
-
 __all__ = [
     "CategoryDType",
     "ArrayDType",

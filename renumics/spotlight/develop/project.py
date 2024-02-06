@@ -2,10 +2,10 @@
 Functionality for (plugin) development
 """
 
+import dataclasses
+import site
 from pathlib import Path
 from typing import Optional
-import site
-import dataclasses
 
 import toml
 

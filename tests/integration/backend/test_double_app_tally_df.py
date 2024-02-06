@@ -3,7 +3,7 @@
 """
 
 import json
-from typing import List, Any, Tuple
+from typing import Any, List, Tuple
 
 import requests
 

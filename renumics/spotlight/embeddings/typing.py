@@ -6,8 +6,8 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Callable, Iterable, List, Optional
 
-import PIL.Image
 import numpy as np
+import PIL.Image
 
 from renumics.spotlight.data_store import DataStore
 

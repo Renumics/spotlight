@@ -4,7 +4,7 @@ This module contains helpers for reading and writing of audio.
 
 import io
 import os
-from typing import Dict, IO, Tuple, Union
+from typing import IO, Dict, Tuple, Union
 
 import av
 import numpy as np
@@ -13,7 +13,6 @@ import validators
 
 from renumics.spotlight.requests import headers
 from renumics.spotlight.typing import FileType
-
 
 # Some AV warning messages have ERROR level and can be confusing.
 av.logging.set_level(av.logging.CRITICAL)

@@ -2,7 +2,7 @@
 Spotlight Frontend Configuration
 """
 import json
-from typing import Dict, Union, cast, Optional
+from typing import Dict, Optional, Union, cast
 
 from databases import Database
 

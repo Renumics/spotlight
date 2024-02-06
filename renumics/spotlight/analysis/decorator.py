@@ -2,8 +2,8 @@
 A decorator for data analysis functions
 """
 
-from .typing import DataAnalyzer
 from .registry import register_analyzer
+from .typing import DataAnalyzer
 
 
 def data_analyzer(func: DataAnalyzer) -> DataAnalyzer:

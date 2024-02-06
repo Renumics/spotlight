@@ -3,28 +3,37 @@ Spotlight wsgi application
 """
 
 import asyncio
-import time
-import os
-from pathlib import Path
-from concurrent.futures import CancelledError, Future
-import re
-from threading import Thread
-import multiprocessing.connection
-from typing import Any, Dict, List, Literal, Optional, Union, cast
-import uuid
 import mimetypes
+import multiprocessing.connection
+import os
+import re
+import time
+import uuid
+from concurrent.futures import CancelledError, Future
+from pathlib import Path
+from threading import Thread
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
-from typing_extensions import Annotated
+import pandas as pd
 from fastapi import Cookie, FastAPI, Request, status
 from fastapi.datastructures import Headers
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import pandas as pd
+from httpx import URL, AsyncClient
+from typing_extensions import Annotated
 
-from httpx import AsyncClient, URL
-
+from renumics.spotlight import dtypes as spotlight_dtypes
+from renumics.spotlight import layouts
+from renumics.spotlight.analysis import find_issues
+from renumics.spotlight.analysis.typing import DataIssue
+from renumics.spotlight.app_config import AppConfig
+from renumics.spotlight.backend.apis import plugins as plugin_api
+from renumics.spotlight.backend.apis import websocket
+from renumics.spotlight.backend.config import Config
+from renumics.spotlight.backend.exceptions import Problem
+from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
     Message,
@@ -32,30 +41,20 @@ from renumics.spotlight.backend.websockets import (
     ResetLayoutMessage,
     WebsocketManager,
 )
+from renumics.spotlight.data_source import DataSource, create_datasource
+from renumics.spotlight.data_store import DataStore
+from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.embeddings import create_embedders, run_embedders
 from renumics.spotlight.layout.nodes import Layout
-from renumics.spotlight.backend.config import Config
-from renumics.spotlight.typing import PathType
-from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.logging import logger
-from renumics.spotlight.backend.apis import plugins as plugin_api
-from renumics.spotlight.backend.apis import websocket
-from renumics.spotlight.settings import settings
-from renumics.spotlight.analysis import find_issues
+from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.reporting import (
     emit_exception_event,
     emit_exit_event,
     emit_startup_event,
 )
-from renumics.spotlight.backend.exceptions import Problem
-from renumics.spotlight.plugin_loader import load_plugins
-from renumics.spotlight.develop.project import get_project_info
-from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
-from renumics.spotlight.app_config import AppConfig
-from renumics.spotlight.data_source import DataSource, create_datasource
-from renumics.spotlight import layouts
-from renumics.spotlight.data_store import DataStore
-from renumics.spotlight import dtypes as spotlight_dtypes
+from renumics.spotlight.settings import settings
+from renumics.spotlight.typing import PathType
 
 CURRENT_LAYOUT_KEY = "layout.current"
 

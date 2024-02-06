@@ -8,9 +8,8 @@ from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from renumics.spotlight.plugin_loader import load_plugins
-
 from renumics.spotlight.backend.exceptions import Problem
+from renumics.spotlight.plugin_loader import load_plugins
 
 router = APIRouter(tags=["plugins"])
 

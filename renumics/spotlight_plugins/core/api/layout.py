@@ -3,10 +3,10 @@ Layout API endpoints
 """
 
 from typing import Dict, Optional, Union
-from typing_extensions import Annotated
 
-from fastapi import APIRouter, Request, Cookie
+from fastapi import APIRouter, Cookie, Request
 from pydantic import BaseModel
+from typing_extensions import Annotated
 
 from renumics.spotlight.app import CURRENT_LAYOUT_KEY, SpotlightApp
 

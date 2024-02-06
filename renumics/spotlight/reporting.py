@@ -11,8 +11,8 @@ from functools import wraps
 from os import environ
 from typing import Any, Callable, Dict, Optional, Union
 from uuid import uuid4
-import machineid
 
+import machineid
 import requests
 from loguru import logger
 

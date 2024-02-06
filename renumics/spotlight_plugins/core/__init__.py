@@ -4,14 +4,22 @@
 """
 
 from renumics.spotlight.app import SpotlightApp
+
 from .api import (
-    table as table_api,
-    filebrowser as file_api,
     config as config_api,
-    layout as layout_api,
+)
+from .api import (
+    filebrowser as file_api,
+)
+from .api import (
     issues as issues_api,
 )
-
+from .api import (
+    layout as layout_api,
+)
+from .api import (
+    table as table_api,
+)
 
 __version__ = "0.0.1"
 __priority__ = 0
@@ -22,9 +30,9 @@ def __register__() -> None:
     register data sources
     """
     from . import (
-        pandas_data_source,  # noqa: F401
         hdf5_data_source,  # noqa: F401
         huggingface_datasource,  # noqa: F401
+        pandas_data_source,  # noqa: F401
     )
 
 

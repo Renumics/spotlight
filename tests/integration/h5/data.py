@@ -6,8 +6,8 @@ import datetime
 from typing import Dict, Tuple
 
 import numpy as np
-from renumics import spotlight
 
+from renumics import spotlight
 
 COLUMNS: Dict[str, Tuple[str, list]] = {
     "bool": ("bool", [True, False]),

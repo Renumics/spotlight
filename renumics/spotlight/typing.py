@@ -2,11 +2,10 @@
 Common types and type guards.
 """
 import os
-from typing import Any, IO, Iterable, List, Union
+from typing import IO, Any, Iterable, List, Union
 
 import numpy as np
 from typing_extensions import TypeGuard
-
 
 BoolType = Union[bool, np.bool_]
 IntType = Union[int, np.integer]

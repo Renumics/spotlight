@@ -11,19 +11,19 @@ import numpy as np
 import pytest
 from _pytest.fixtures import SubRequest
 
-from renumics.spotlight import Embedding, Mesh, Sequence1D, Image, Audio, Dataset
+from renumics.spotlight import Audio, Dataset, Embedding, Image, Mesh, Sequence1D
 
 from .data import (
     ColumnData,
-    categorical_data,
     array_data,
-    window_data,
-    embedding_data,
-    sequence_1d_data,
     audio_data,
+    categorical_data,
+    embedding_data,
     image_data,
     mesh_data,
+    sequence_1d_data,
     video_data,
+    window_data,
 )
 
 

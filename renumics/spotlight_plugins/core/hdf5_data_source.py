@@ -8,15 +8,15 @@ from typing import Iterable, List, Union, cast
 import h5py
 import numpy as np
 
-from renumics.spotlight.dataset import Dataset
-from renumics.spotlight.data_source import DataSource, datasource
+from renumics.spotlight import dtypes
 from renumics.spotlight.backend.exceptions import (
+    CouldNotOpenTableFile,
     H5DatasetOutdated,
     NoTableFileFound,
-    CouldNotOpenTableFile,
 )
+from renumics.spotlight.data_source import DataSource, datasource
 from renumics.spotlight.data_source.data_source import ColumnMetadata
-from renumics.spotlight import dtypes
+from renumics.spotlight.dataset import Dataset
 
 
 @datasource(".h5")

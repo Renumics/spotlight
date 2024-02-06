@@ -5,10 +5,9 @@ import numpy as np
 import requests
 import validators
 
+from renumics.spotlight.media.base import FileMediaType
 from renumics.spotlight.requests import headers
 from renumics.spotlight.typing import PathType
-
-from renumics.spotlight.media.base import FileMediaType
 
 from ..media import exceptions
 
