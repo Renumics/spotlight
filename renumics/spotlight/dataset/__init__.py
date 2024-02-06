@@ -393,18 +393,15 @@ class Dataset:
     @overload
     def __getitem__(
         self, item: Union[str, Tuple[str, Indices1dType], Tuple[Indices1dType, str]]
-    ) -> np.ndarray:
-        ...
+    ) -> np.ndarray: ...
 
     @overload
-    def __getitem__(self, item: IndexType) -> Dict[str, Optional[OutputType]]:
-        ...
+    def __getitem__(self, item: IndexType) -> Dict[str, Optional[OutputType]]: ...
 
     @overload
     def __getitem__(
         self, item: Union[Tuple[str, IndexType], Tuple[IndexType, str]]
-    ) -> Optional[OutputType]:
-        ...
+    ) -> Optional[OutputType]: ...
 
     def __getitem__(
         self,
@@ -463,20 +460,19 @@ class Dataset:
         self,
         item: Union[str, Tuple[str, Indices1dType], Tuple[Indices1dType, str]],
         value: Union[ColumnInputType, Iterable[ColumnInputType]],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
-    def __setitem__(self, item: IndexType, value: Dict[str, ColumnInputType]) -> None:
-        ...
+    def __setitem__(
+        self, item: IndexType, value: Dict[str, ColumnInputType]
+    ) -> None: ...
 
     @overload
     def __setitem__(
         self,
         item: Union[Tuple[str, IndexType], Tuple[IndexType, str]],
         value: ColumnInputType,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __setitem__(
         self,
@@ -635,16 +631,14 @@ class Dataset:
         return list(self._column_names)
 
     @overload
-    def iterrows(self) -> Iterable[Dict[str, Optional[OutputType]]]:
-        ...
+    def iterrows(self) -> Iterable[Dict[str, Optional[OutputType]]]: ...
 
     @overload
     def iterrows(
         self, column_names: Union[str, Iterable[str]]
     ) -> Union[
         Iterable[Dict[str, Optional[OutputType]]], Iterable[Optional[OutputType]]
-    ]:
-        ...
+    ]: ...
 
     def iterrows(
         self, column_names: Optional[Union[str, Iterable[str]]] = None
@@ -1902,12 +1896,10 @@ class Dataset:
         self._update_generation_id()
 
     @overload
-    def pop(self, item: str) -> np.ndarray:
-        ...
+    def pop(self, item: str) -> np.ndarray: ...
 
     @overload
-    def pop(self, item: IndexType) -> Dict[str, Optional[OutputType]]:
-        ...
+    def pop(self, item: IndexType) -> Dict[str, Optional[OutputType]]: ...
 
     def pop(
         self, item: Union[str, IndexType]

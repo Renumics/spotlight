@@ -20,8 +20,7 @@ from .typing import EmbedArrayFunc, EmbedFunc, EmbedImageFunc, FunctionalEmbedde
 @overload
 def embed(
     dtype: Union[Literal["image", "Image"], Image], *, name: Optional[str] = None
-) -> Callable[[EmbedImageFunc], EmbedImageFunc]:
-    ...
+) -> Callable[[EmbedImageFunc], EmbedImageFunc]: ...
 
 
 @overload
@@ -30,8 +29,7 @@ def embed(
     *,
     name: Optional[str] = None,
     sampling_rate: int,
-) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]:
-    ...
+) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]: ...
 
 
 @overload
@@ -43,15 +41,13 @@ def embed(
     ],
     *,
     name: Optional[str] = None,
-) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]:
-    ...
+) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]: ...
 
 
 @overload
 def embed(
     dtype: Any, *, name: Optional[str] = None, sampling_rate: Optional[int] = None
-) -> Callable[[EmbedFunc], EmbedFunc]:
-    ...
+) -> Callable[[EmbedFunc], EmbedFunc]: ...
 
 
 def embed(
