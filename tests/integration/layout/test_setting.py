@@ -15,7 +15,7 @@ def test_settings_layout_is_used(monkeypatch: MonkeyPatch) -> None:
     Test if the layout set via env var is actually used in the frontend.
     """
     # set settings layout
-    env_layout = layout.parse([layout.table(name="env_layout_table")]).json(
+    env_layout = layout.parse([layout.table(name="env_layout_table")]).model_dump_json(
         by_alias=True
     )
     monkeypatch.setattr(settings, "layout", env_layout)
@@ -37,15 +37,15 @@ def test_layout_from_params_has_priority(monkeypatch: MonkeyPatch) -> None:
     over the layout set via env.
     """
     # set settings layout
-    env_layout = layout.parse([layout.table(name="env_layout_table")]).json(
+    env_layout = layout.parse([layout.table(name="env_layout_table")]).model_dump_json(
         by_alias=True
     )
     monkeypatch.setattr(settings, "layout", env_layout)
 
     # launch spotlight with another layout parameter
-    param_layout = layout.parse([layout.table(name="param_layout_table")]).json(
-        by_alias=True
-    )
+    param_layout = layout.parse(
+        [layout.table(name="param_layout_table")]
+    ).model_dump_json(by_alias=True)
     viewer = spotlight.show(
         pd.DataFrame({"a": [0]}), wait=False, layout=param_layout, no_browser=True
     )
