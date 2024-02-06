@@ -388,12 +388,14 @@ def table(
         config=TableConfig(
             active_view=_TABLE_TAB_TO_TABLE_VIEW[active_view],
             visible_columns=visible_columns,
-            sort_by_columns=None
-            if sort_by_columns is None
-            else [
-                [column, _SORT_ORDER_MAPPING[order]]
-                for column, order in sort_by_columns
-            ],
+            sort_by_columns=(
+                None
+                if sort_by_columns is None
+                else [
+                    [column, _SORT_ORDER_MAPPING[order]]
+                    for column, order in sort_by_columns
+                ]
+            ),
             order_by_relevance=order_by_relevance,
         ),
     )

@@ -1,6 +1,7 @@
 """
 Reading and writing of different data formats.
 """
+
 import ast
 from contextlib import suppress
 from typing import Any

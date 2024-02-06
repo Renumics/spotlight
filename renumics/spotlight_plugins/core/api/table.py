@@ -1,6 +1,7 @@
 """
 table api endpoints
 """
+
 from pathlib import Path
 from typing import Any, List, Optional
 

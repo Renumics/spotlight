@@ -1,6 +1,7 @@
 """
 Common types and type guards.
 """
+
 import os
 from typing import IO, Any, Iterable, List, Union
 

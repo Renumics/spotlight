@@ -154,9 +154,11 @@ class Server:
             command,
             env=env,
             pass_fds=() if platform.system() == "Windows" else (sock.fileno(),),
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
-            if platform.system() == "Windows"
-            else 0,
+            creationflags=(
+                subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+                if platform.system() == "Windows"
+                else 0
+            ),
             stdout=None if settings.verbose else subprocess.DEVNULL,
             stderr=None if settings.verbose else subprocess.DEVNULL,
         )

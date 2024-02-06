@@ -1,6 +1,7 @@
 """
 Test open of an existing H5 file with any structure as a dataset.
 """
+
 from pathlib import Path
 
 import h5py

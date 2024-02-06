@@ -1,6 +1,7 @@
 """
 Manage data analyzers available for spotlights automatic dataset analysis.
 """
+
 from typing import Any, Dict, Tuple, Type
 
 from renumics.spotlight import dtypes

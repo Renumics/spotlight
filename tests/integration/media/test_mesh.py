@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Mesh` class.
 """
+
 from urllib.parse import urljoin
 
 import pytest

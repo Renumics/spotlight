@@ -1,6 +1,7 @@
 """
 Base classes for dtypes.
 """
+
 from abc import ABC, abstractmethod
 from typing import Optional, Sequence, Union
 

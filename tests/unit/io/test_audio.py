@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.io.utils` module.
 """
+
 import os
 import tempfile
 from glob import glob

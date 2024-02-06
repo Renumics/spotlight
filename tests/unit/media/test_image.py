@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Image` class.
 """
+
 import io
 from typing import Optional
 

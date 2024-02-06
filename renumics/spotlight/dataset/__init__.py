@@ -213,7 +213,6 @@ def _check_valid_array(
 
 
 class Dataset:
-
     """
     Spotlight dataset.
     """
@@ -2178,9 +2177,11 @@ class Dataset:
 
         attrs.update(
             {
-                attribute_name: attribute_type(column_attrs[attribute_name])
-                if attribute_type is not object
-                else column_attrs[attribute_name]
+                attribute_name: (
+                    attribute_type(column_attrs[attribute_name])
+                    if attribute_type is not object
+                    else column_attrs[attribute_name]
+                )
                 for attribute_name, attribute_type in allowed_attributes.items()
                 if attribute_name in column_attrs
             }

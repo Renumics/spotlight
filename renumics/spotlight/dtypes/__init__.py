@@ -15,7 +15,6 @@ default dtypes. For more info, see the module classes.
 The main usage of the dtypes is customizing the [`spotlight.show`](../#show()).
 """
 
-
 from datetime import datetime
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
 

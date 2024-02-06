@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Audio` class.
 """
+
 import io
 from typing import Optional
 
