@@ -1,23 +1,20 @@
 """
 access pandas DataFrame table data
 """
+
 from pathlib import Path
 from typing import Any, List, Union, cast
 
+import datasets
 import numpy as np
 import pandas as pd
-import datasets
 
 from renumics.spotlight import dtypes
-from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
-from renumics.spotlight.data_source import (
-    datasource,
-    ColumnMetadata,
-    DataSource,
-)
 from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
-from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+from renumics.spotlight.data_source import ColumnMetadata, DataSource, datasource
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
+from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
 
 
 @datasource(pd.DataFrame)
@@ -138,15 +135,15 @@ class PandasDataSource(DataSource):
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
         column_index = self._parse_column_index(column_name)
-        column = self._df[column_index].iloc[indices]
+        column: pd.Series = self._df[column_index].iloc[indices]
         if pd.api.types.is_bool_dtype(column):
-            values = column.to_numpy()
+            values = column.to_numpy(na_value=pd.NA)  # type: ignore
             na_mask = column.isna()
             if na_mask.any():
                 values[na_mask] = None
             return values
         if pd.api.types.is_integer_dtype(column):
-            values = column.to_numpy()
+            values = column.to_numpy(na_value=pd.NA)  # type: ignore
             na_mask = column.isna()
             if na_mask.any():
                 values[na_mask] = None
@@ -160,7 +157,7 @@ class PandasDataSource(DataSource):
         if pd.api.types.is_datetime64_any_dtype(column):
             return column.dt.tz_localize(None).to_numpy()
         if pd.api.types.is_categorical_dtype(column):
-            return column.cat.codes
+            return column.cat.codes.to_numpy()
         if pd.api.types.is_string_dtype(column):
             column = column.astype(object).mask(column.isna(), None)
             str_mask = column.map(type) == str

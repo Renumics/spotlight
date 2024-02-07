@@ -1,19 +1,19 @@
-from typing import Optional, Union, Dict, Any
-from renumics.spotlight import dtypes
-from renumics.spotlight import layout
+from typing import Any, Dict, Optional, Union
+
+from renumics.spotlight import dtypes, layout
 from renumics.spotlight.layout import (
     Layout,
-    Tab,
     Split,
-    lenses,
-    table,
-    similaritymap,
+    Tab,
+    confusion_matrix,
     inspector,
+    issues,
+    lenses,
+    metric,
+    similaritymap,
     split,
     tab,
-    metric,
-    issues,
-    confusion_matrix,
+    table,
 )
 
 

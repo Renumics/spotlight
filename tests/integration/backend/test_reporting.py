@@ -1,6 +1,7 @@
 """
 test reporting module
 """
+
 import pytest
 
 from renumics.spotlight.reporting import skip_analytics

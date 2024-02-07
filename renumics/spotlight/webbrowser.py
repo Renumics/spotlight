@@ -1,6 +1,7 @@
 """
 Launch browser.
 """
+
 import os
 import sys
 import threading

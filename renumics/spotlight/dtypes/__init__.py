@@ -15,7 +15,6 @@ default dtypes. For more info, see the module classes.
 The main usage of the dtypes is customizing the [`spotlight.show`](../#show()).
 """
 
-
 from datetime import datetime
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
@@ -23,7 +22,6 @@ import numpy as np
 from typing_extensions import TypeGuard
 
 from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window
-
 
 __all__ = [
     "CategoryDType",

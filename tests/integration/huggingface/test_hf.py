@@ -1,10 +1,10 @@
 """
 Integration Test on API level for h5 data sources
 """
-import pytest
-import httpx
 
 import datasets
+import httpx
+import pytest
 
 from renumics import spotlight
 

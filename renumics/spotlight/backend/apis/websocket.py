@@ -4,7 +4,6 @@ Endpoints for websocket communication.
 
 from fastapi import APIRouter, WebSocket
 
-
 router = APIRouter()
 
 

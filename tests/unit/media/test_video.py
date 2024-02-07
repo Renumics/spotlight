@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Mesh` class.
 """
+
 import pytest
 
 from renumics.spotlight.media import Video

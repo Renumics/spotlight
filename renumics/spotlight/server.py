@@ -2,29 +2,26 @@
 Local proxy object for the spotlight server process
 """
 
-import platform
-import signal
-import threading
-from queue import Queue, Empty
-import socket
 import atexit
-
-import os
-import sys
-import secrets
 import multiprocessing
 import multiprocessing.connection
+import os
+import platform
+import secrets
+import signal
+import socket
 import subprocess
-from typing import Optional, Any
+import sys
+import threading
+from queue import Empty, Queue
+from typing import Any, Optional
 
 import pandas as pd
 
+from renumics.spotlight.app_config import AppConfig
+from renumics.spotlight.develop.vite import Vite
 from renumics.spotlight.logging import logger
 from renumics.spotlight.settings import settings
-
-from renumics.spotlight.develop.vite import Vite
-
-from renumics.spotlight.app_config import AppConfig
 
 
 class Server:
@@ -157,9 +154,11 @@ class Server:
             command,
             env=env,
             pass_fds=() if platform.system() == "Windows" else (sock.fileno(),),
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
-            if platform.system() == "Windows"
-            else 0,
+            creationflags=(
+                subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore
+                if platform.system() == "Windows"
+                else 0
+            ),
             stdout=None if settings.verbose else subprocess.DEVNULL,
             stderr=None if settings.verbose else subprocess.DEVNULL,
         )

@@ -5,27 +5,27 @@ import os
 import statistics
 from typing import Any, Dict, Iterable, List, Optional, Set, Union, cast
 
-import numpy as np
 import filetype
+import numpy as np
+import PIL.Image
 import requests
 import trimesh
-import PIL.Image
 import validators
 
 import renumics.spotlight.dtypes as spotlight_dtypes
+from renumics.spotlight.backend.exceptions import ComputedColumnNotReady
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.io import audio
-from renumics.spotlight.typing import is_iterable, is_pathtype
-from renumics.spotlight.media.mesh import Mesh
-from renumics.spotlight.media.video import Video
 from renumics.spotlight.media.audio import Audio
-from renumics.spotlight.media.image import Image
-from renumics.spotlight.media.sequence_1d import Sequence1D
 from renumics.spotlight.media.embedding import Embedding
-from renumics.spotlight.backend.exceptions import ComputedColumnNotReady
+from renumics.spotlight.media.image import Image
+from renumics.spotlight.media.mesh import Mesh
+from renumics.spotlight.media.sequence_1d import Sequence1D
+from renumics.spotlight.media.video import Video
+from renumics.spotlight.typing import is_iterable, is_pathtype
 
 
 class DataStore:

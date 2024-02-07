@@ -1,6 +1,7 @@
 """
 Environment variables' manipulation.
 """
+
 import os
 from contextlib import contextmanager
 from typing import Dict, Iterator, Optional

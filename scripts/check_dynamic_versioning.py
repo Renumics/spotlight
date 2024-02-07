@@ -5,6 +5,7 @@ Exit with code 1 otherwise
 """
 
 import sys
+
 import toml
 
 if __name__ == "__main__":

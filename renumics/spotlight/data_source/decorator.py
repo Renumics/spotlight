@@ -1,4 +1,4 @@
-from typing import Union, Type, Callable
+from typing import Callable, Type, Union
 
 from .data_source import DataSource
 from .registry import add_datasource

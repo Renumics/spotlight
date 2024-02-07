@@ -5,10 +5,9 @@ import numpy as np
 
 import renumics.spotlight.dtypes as spotlight_dtypes
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.logging import logger
-
 
 _FeatureType = Union[
     datasets.Value,
@@ -99,9 +98,11 @@ class HuggingfaceDataSource(DataSource):
         if isinstance(feature, datasets.Audio) or isinstance(feature, datasets.Image):
             return np.array(
                 [
-                    value["path"].as_py()
-                    if value["bytes"].as_py() is None
-                    else value["bytes"].as_py()
+                    (
+                        value["path"].as_py()
+                        if value["bytes"].as_py() is None
+                        else value["bytes"].as_py()
+                    )
                     for value in raw_values
                 ],
                 dtype=object,

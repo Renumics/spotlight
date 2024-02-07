@@ -1,14 +1,17 @@
 """Tests for the start page"""
+
 import time
-from typing import Any
 from pathlib import Path
+from typing import Any
+
 import pytest
-from selenium.webdriver.remote.webdriver import WebDriver
 from diffimg import diff
+from selenium.webdriver.remote.webdriver import WebDriver
+
 from .helpers import (
     get_tab,
-    wait_for_tagged_element,
     screenshot_exception,
+    wait_for_tagged_element,
 )
 
 

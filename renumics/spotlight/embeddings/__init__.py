@@ -7,12 +7,13 @@ import pkgutil
 from typing import Dict, List
 
 import numpy as np
-from renumics.spotlight.data_store import DataStore
 
+from renumics.spotlight.data_store import DataStore
 from renumics.spotlight.embeddings.typing import Embedder
-from .registry import registered_embedders
-from .decorator import embed  # noqa: F401
+
 from . import embedders as embedders_namespace
+from .decorator import embed  # noqa: F401
+from .registry import registered_embedders
 
 # import all modules in .embedders
 for module_info in pkgutil.iter_modules(embedders_namespace.__path__):

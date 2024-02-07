@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Audio` class.
 """
+
 from urllib.parse import urljoin
 
 import pytest

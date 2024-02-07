@@ -6,16 +6,17 @@ import os.path
 import statistics
 from typing import Any, Optional, Sequence, Union
 
-import PIL.Image
 import filetype
 import numpy as np
 import pandas as pd
+import PIL.Image
 import trimesh
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
 from renumics.spotlight.media import Audio, Embedding, Image, Mesh, Sequence1D, Video
 from renumics.spotlight.typing import is_iterable, is_pathtype
+
 from .exceptions import InvalidDTypeError
 
 

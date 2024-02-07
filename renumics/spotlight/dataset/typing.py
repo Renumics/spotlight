@@ -8,18 +8,17 @@ from typing import List, Optional, Sequence, Tuple, Union
 import numpy as np
 import trimesh
 
-from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrUrlType
 from renumics.spotlight.media import (
     Array1dLike,
-    ImageLike,
+    Audio,
     Embedding,
+    Image,
+    ImageLike,
     Mesh,
     Sequence1D,
-    Image,
-    Audio,
     Video,
 )
-
+from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrUrlType
 
 OutputType = Union[
     bool, int, float, str, datetime, np.ndarray, Sequence1D, Audio, Image, Mesh, Video

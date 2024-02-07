@@ -3,10 +3,10 @@
 from datetime import datetime
 from typing import Any, Dict
 
-from selenium.webdriver.remote.webdriver import WebDriver
 from pytest import FixtureRequest
+from selenium.webdriver.remote.webdriver import WebDriver
 
-from .helpers import wait_for_tagged_element, screenshot_exception
+from .helpers import screenshot_exception, wait_for_tagged_element
 
 
 def measure_reload_time(

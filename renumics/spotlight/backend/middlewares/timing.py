@@ -4,6 +4,7 @@
 
 import time
 from typing import Callable
+
 from fastapi import FastAPI, Request, Response
 from loguru import logger
 

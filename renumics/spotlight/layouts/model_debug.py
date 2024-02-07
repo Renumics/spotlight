@@ -1,21 +1,22 @@
-from typing import Optional, Union, Dict, List, Any
+from typing import Any, Dict, List, Optional, Union
+
 from renumics.spotlight import layout
+from renumics.spotlight.dtypes import create_dtype, is_audio_dtype, is_image_dtype
 from renumics.spotlight.layout import (
     Layout,
-    Tab,
     Split,
-    lenses,
-    table,
-    similaritymap,
-    inspector,
-    split,
-    tab,
-    metric,
-    issues,
+    Tab,
     confusion_matrix,
     histogram,
+    inspector,
+    issues,
+    lenses,
+    metric,
+    similaritymap,
+    split,
+    tab,
+    table,
 )
-from renumics.spotlight.dtypes import create_dtype, is_audio_dtype, is_image_dtype
 
 
 def debug_classification(

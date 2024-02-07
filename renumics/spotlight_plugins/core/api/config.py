@@ -3,13 +3,12 @@ Config API endpoints
 """
 
 from typing import Optional, Union
+
+from fastapi import APIRouter, Cookie, Request
+from pydantic import BaseModel
 from typing_extensions import Annotated
 
-from fastapi import APIRouter, Request, Cookie
-from pydantic import BaseModel
-
 from renumics.spotlight.backend.config import ConfigValue
-
 
 router = APIRouter(tags=["config"])
 

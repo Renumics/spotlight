@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Image` class.
 """
+
 from urllib.parse import urljoin
 
 import pytest

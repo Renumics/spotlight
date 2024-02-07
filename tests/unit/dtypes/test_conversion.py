@@ -2,15 +2,17 @@
 Tests for conversions from source to internal types
 """
 
-from typing import Any, Dict, Union
-from pathlib import Path
-import io
 import datetime
-import pytest
+import io
+from pathlib import Path
+from typing import Any, Dict, Union
+
 import numpy as np
 import PIL.Image
-from renumics.spotlight.dtypes.conversion import convert_to_dtype
+import pytest
+
 from renumics.spotlight import dtypes
+from renumics.spotlight.dtypes.conversion import convert_to_dtype
 
 
 @pytest.mark.parametrize(

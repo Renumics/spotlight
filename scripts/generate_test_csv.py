@@ -11,8 +11,10 @@ from typing import List, Optional, Sequence
 import click
 import numpy as np
 import pandas as pd
-
-from generate_multimodal_test_data import _random_data, _random_embeddings  # type: ignore
+from generate_multimodal_test_data import (  # type: ignore
+    _random_data,
+    _random_embeddings,
+)
 
 from renumics import spotlight
 

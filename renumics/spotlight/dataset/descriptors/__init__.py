@@ -1,15 +1,17 @@
 """make descriptor methods more available
 """
+
 import warnings
 from typing import Optional, Tuple
 
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from renumics.spotlight import dtypes
 
+from renumics.spotlight import dtypes
 from renumics.spotlight.dataset import Dataset
 from renumics.spotlight.dataset.exceptions import ColumnExistsError, InvalidDTypeError
+
 from .data_alignment import align_column_data
 
 warnings.warn(

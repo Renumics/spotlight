@@ -1,6 +1,7 @@
 """
 Test `renumics.spotlight.media.Image` class.
 """
+
 import io
 from typing import Optional
 
@@ -9,8 +10,8 @@ import pytest
 
 from renumics.spotlight.media import Image
 
-from .data import IMAGES_FOLDER, SEED
 from ...integration.helpers import approx
+from .data import IMAGES_FOLDER, SEED
 
 
 @pytest.mark.parametrize("size", [1, 10, 100])

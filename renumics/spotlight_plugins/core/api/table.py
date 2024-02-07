@@ -1,6 +1,7 @@
 """
 table api endpoints
 """
+
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -8,13 +9,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
 
+from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.backend.exceptions import (
     ComputedColumnNotReady,
     FilebrowsingNotAllowed,
     InvalidPath,
 )
-from renumics.spotlight.app import SpotlightApp
-from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
 

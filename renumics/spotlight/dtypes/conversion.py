@@ -13,39 +13,38 @@ binary: bytes, np.bytes_
 paths: str, np.str_
 """
 
-from abc import ABCMeta
 import ast
-from collections import defaultdict
+import datetime
 import inspect
 import io
 import os
+from abc import ABCMeta
+from collections import defaultdict
 from typing import (
     Callable,
+    Dict,
     List,
+    Optional,
+    Type,
     TypeVar,
     Union,
-    Type,
-    Optional,
-    Dict,
     get_args,
     get_origin,
 )
-import datetime
-from filetype import filetype
 
 import numpy as np
-import trimesh
 import PIL.Image
+import trimesh
 import validators
+from filetype import filetype
 
 from renumics.spotlight import dtypes, media
-from renumics.spotlight.typing import PathOrUrlType, PathType
+from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.io import audio
 from renumics.spotlight.io.file import as_file
 from renumics.spotlight.media.exceptions import InvalidFile
-from renumics.spotlight.backend.exceptions import Problem
-
+from renumics.spotlight.typing import PathOrUrlType, PathType
 
 NormalizedValue = Union[
     None,
@@ -115,12 +114,12 @@ class NoConverterAvailable(Problem):
 N = TypeVar("N", bound=NormalizedValue)
 
 Converter = Callable[[N, dtypes.DType], ConvertedValue]
-_converters_table: Dict[
-    Type[NormalizedValue], Dict[str, List[Converter]]
-] = defaultdict(lambda: defaultdict(list))
-_simple_converters_table: Dict[
-    Type[NormalizedValue], Dict[str, List[Converter]]
-] = defaultdict(lambda: defaultdict(list))
+_converters_table: Dict[Type[NormalizedValue], Dict[str, List[Converter]]] = (
+    defaultdict(lambda: defaultdict(list))
+)
+_simple_converters_table: Dict[Type[NormalizedValue], Dict[str, List[Converter]]] = (
+    defaultdict(lambda: defaultdict(list))
+)
 
 
 def register_converter(

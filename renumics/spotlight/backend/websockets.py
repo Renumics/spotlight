@@ -5,11 +5,11 @@ This module provides interfaces for websockets.
 import asyncio
 from typing import (
     Any,
+    Callable,
     Coroutine,
     Dict,
     Optional,
     Set,
-    Callable,
     Tuple,
     Type,
     cast,
@@ -24,9 +24,9 @@ from typing_extensions import Literal
 
 from renumics.spotlight.data_store import DataStore
 
-from .tasks import TaskManager, TaskCancelled
-from .tasks.reduction import compute_umap, compute_pca
 from .exceptions import GenerationIDMismatch, Problem
+from .tasks import TaskCancelled, TaskManager
+from .tasks.reduction import compute_pca, compute_umap
 
 
 class Message(BaseModel):

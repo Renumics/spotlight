@@ -7,8 +7,8 @@ import pytest
 
 from renumics.spotlight.media import Embedding
 
-from .data import SEED
 from ...integration.helpers import approx
+from .data import SEED
 
 
 @pytest.mark.parametrize("length", [1, 10, 100])

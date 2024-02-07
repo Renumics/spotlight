@@ -8,9 +8,8 @@ from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from renumics.spotlight.plugin_loader import load_plugins
-
 from renumics.spotlight.backend.exceptions import Problem
+from renumics.spotlight.plugin_loader import load_plugins
 
 router = APIRouter(tags=["plugins"])
 
@@ -38,9 +37,9 @@ async def _() -> List[Plugin]:
             name=p.name,
             priority=p.priority,
             dev=p.dev,
-            entrypoint=f"../api/plugins/{p.name}/main.js"
-            if p.frontend_entrypoint
-            else None,
+            entrypoint=(
+                f"../api/plugins/{p.name}/main.js" if p.frontend_entrypoint else None
+            ),
         )
         for p in plugins
     ]

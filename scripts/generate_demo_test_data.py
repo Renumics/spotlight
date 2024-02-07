@@ -4,13 +4,12 @@
 generate spotlight test dataset
 """
 
-import os
 import datetime
+import os
+from pathlib import Path
 from typing import Dict, Optional, Union
 
-from pathlib import Path
 import click
-
 import numpy as np
 import sklearn.utils
 import trimesh
@@ -18,7 +17,7 @@ from scipy.io import wavfile
 from sklearn import datasets
 from sklearn.decomposition import PCA
 
-from renumics.spotlight import Dataset, Embedding, Image, Mesh, Sequence1D, Audio, Video
+from renumics.spotlight import Audio, Dataset, Embedding, Image, Mesh, Sequence1D, Video
 
 
 @click.command()  # type: ignore
