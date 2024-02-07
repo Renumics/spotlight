@@ -1,5 +1,5 @@
-from typing import List, Union
 import uuid
+from typing import List, Union
 
 import numpy as np
 import pyarrow as pa
@@ -8,8 +8,8 @@ import pyarrow.types
 
 import renumics.spotlight.dtypes as spotlight_dtypes
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.data_source.decorator import datasource
 
 
 class UnknownArrowType(Exception):
