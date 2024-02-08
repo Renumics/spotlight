@@ -93,7 +93,7 @@ PA_FLOAT_TYPES = [pa.float16(), pa.float32(), pa.float64()]
 def _convert_dtype(field: pa.Field) -> spotlight_dtypes.DType:
     if field.type == pa.null():
         # should we introduce a `null` dtype?
-        return spotlight_dtypes.mixed_dtype
+        return spotlight_dtypes.unknown_dtype
     if field.type == pa.bool_():
         return spotlight_dtypes.bool_dtype
     if field.type in PA_INTEGER_TYPES:
@@ -134,15 +134,15 @@ def _convert_dtype(field: pa.Field) -> spotlight_dtypes.DType:
     if isinstance(field.type, pa.LargeListType):
         return spotlight_dtypes.SequenceDType(_convert_dtype(field.type.value_field))
     if isinstance(field.type, pa.MapType):
-        return spotlight_dtypes.mixed_dtype
+        return spotlight_dtypes.unknown_dtype
     if isinstance(field.type, pa.StructType):
-        return spotlight_dtypes.mixed_dtype
+        return spotlight_dtypes.unknown_dtype
     if isinstance(field.type, pa.DictionaryType):
         if (field.type.index_type() in PA_INTEGER_TYPES) and (
             field.type.value_type() in (pa.string(), pa.large_string())
         ):
             return spotlight_dtypes.CategoryDType()
-        return spotlight_dtypes.mixed_dtype
+        return spotlight_dtypes.unknown_dtype
     if isinstance(field.type, pa.RunEndEncodedType):
         return spotlight_dtypes.SequenceDType(
             _convert_dtype(pa.field("", field.type.value_type))
