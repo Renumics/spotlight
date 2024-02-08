@@ -472,9 +472,14 @@ Video dtype. Aliases: `"video"`, `renumics.spotlight.media.Video`.
 """
 register_dtype(video_dtype, [Video])
 
-mixed_dtype = DType("mixed")
+unknown_dtype = DType("unknown")
 """
-Unknown or mixed dtype. Aliases: `"mixed"`.
+Unknown dtype. Aliases: `"unknown"`.
+"""
+
+any_dtype = DType("any")
+"""
+Unknown dtype which accepts any value. Aliases: `"any"`.
 """
 
 file_dtype = DType("file")
@@ -566,8 +571,12 @@ def is_sequence_dtype(dtype: DType) -> TypeGuard[SequenceDType]:
     return dtype.name == "Sequence"
 
 
-def is_mixed_dtype(dtype: DType) -> bool:
-    return dtype.name == "mixed"
+def is_unknown_dtype(dtype: DType) -> bool:
+    return dtype.name == "unknown"
+
+
+def is_any_dtype(dtype: DType) -> bool:
+    return dtype.name == "any"
 
 
 def is_scalar_dtype(dtype: DType) -> bool:

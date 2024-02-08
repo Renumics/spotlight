@@ -216,4 +216,4 @@ def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
         return dtypes.datetime_dtype
     if pd.api.types.is_string_dtype(column):
         return dtypes.str_dtype
-    return dtypes.mixed_dtype
+    return dtypes.any_dtype

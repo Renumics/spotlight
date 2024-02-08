@@ -106,7 +106,12 @@ class DataStore:
                 tags=[],
                 computed=True,
             )
-        return self._data_source.get_column_metadata(column_name)
+        metadata = self._data_source.get_column_metadata(column_name)
+        if spotlight_dtypes.is_unknown_dtype(
+            self._data_source.intermediate_dtypes[column_name]
+        ):
+            metadata.editable = False
+        return metadata
 
     def get_converted_values(
         self,
