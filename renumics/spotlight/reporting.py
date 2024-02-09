@@ -7,6 +7,7 @@ import platform
 import sys
 import threading
 import time
+import traceback
 from functools import wraps
 from os import environ
 from typing import Any, Callable, Dict, Optional, Union
@@ -171,14 +172,15 @@ def emit_exit_event() -> None:
     report_event({"type": "spotlight_exit"})
 
 
-def emit_exception_event() -> None:
+def emit_exception_event(path: Optional[str] = None) -> None:
     """
     Emit an exception event.
     """
-    ex_type, ex_value, _ = sys.exc_info()
-    detail = str(ex_value)
-    if ex_type is not None:
-        detail = f"{ex_type.__name__}: {ex_value}"
+    detail = traceback.format_exc()
+
+    if path:
+        detail = f"Path: {path}\n{detail}"
+
     report_event(
         {
             "type": "spotlight_exception",
