@@ -130,6 +130,7 @@ class Viewer:
     _host: str
     _requested_port: Union[int, Literal["auto"]]
     _server: Optional[Server]
+    _df: Optional[pd.DataFrame]
 
     def __init__(
         self,
@@ -139,6 +140,7 @@ class Viewer:
         self._host = host
         self._requested_port = port
         self._server = None
+        self._df = None
 
     def show(
         self,
@@ -177,6 +179,7 @@ class Viewer:
                 embedders (disabled by default).
         """
 
+        self._df = None
         if is_pathtype(dataset):
             dataset = Path(dataset).absolute()
             if dataset.is_dir():
@@ -259,6 +262,7 @@ class Viewer:
             else:
                 self._server.wait_for_frontend_disconnect()
 
+        self._df = self._server.get_df()
         _VIEWERS.remove(self)
         self._server.stop()
         self._server = None
@@ -292,8 +296,7 @@ class Viewer:
         """
         if self._server:
             return self._server.get_df()
-
-        return None
+        return self._df
 
     @property
     def host(self) -> str:
