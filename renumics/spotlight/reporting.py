@@ -178,8 +178,11 @@ def _sanitize_traceback_exception(exc: traceback.TracebackException) -> None:
     spotlight_frames: list = []
     for frame in exc.stack:
         filename = Path(frame.filename)
-        if filename.absolute() == filename.relative_to(spotlight_basepath).absolute():
+        try:
             frame.filename = str(filename.relative_to(spotlight_basepath))
+        except ValueError:
+            pass
+        else:
             spotlight_frames.append(frame)
     exc.stack = traceback.StackSummary.from_list(spotlight_frames)
     if exc.__cause__ is not None:
