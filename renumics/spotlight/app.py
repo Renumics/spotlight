@@ -205,12 +205,12 @@ class SpotlightApp(FastAPI):
         self.include_router(plugin_api.router, prefix="/api/plugins")
 
         @self.exception_handler(Exception)
-        async def _(_: Request, e: Exception) -> JSONResponse:
+        async def _(request: Request, e: Exception) -> JSONResponse:
             if settings.verbose:
                 logger.exception(e)
             else:
                 logger.info(e)
-            emit_exception_event()
+            emit_exception_event(request.url.path)
             class_name = type(e).__name__
             title = re.sub(r"([a-z])([A-Z])", r"\1 \2", class_name)
             return JSONResponse(
@@ -219,11 +219,12 @@ class SpotlightApp(FastAPI):
             )
 
         @self.exception_handler(Problem)
-        async def _(_: Request, problem: Problem) -> JSONResponse:
+        async def _(request: Request, problem: Problem) -> JSONResponse:
             if settings.verbose:
                 logger.exception(problem)
             else:
                 logger.info(problem)
+            emit_exception_event(request.url.path)
             return JSONResponse(
                 {
                     "title": problem.title,
