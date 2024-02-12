@@ -10,6 +10,7 @@ import time
 import traceback
 from functools import wraps
 from os import environ
+from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Union
 from uuid import uuid4
 
@@ -172,14 +173,33 @@ def emit_exit_event() -> None:
     report_event({"type": "spotlight_exit"})
 
 
+def _sanitize_traceback_exception(exc: traceback.TracebackException) -> None:
+    spotlight_basepath = Path(__file__).parent.parent.absolute()
+    spotlight_frames: list = []
+    for frame in exc.stack:
+        filename = Path(frame.filename)
+        if filename.absolute() == filename.relative_to(spotlight_basepath).absolute():
+            frame.filename = str(filename.relative_to(spotlight_basepath))
+            spotlight_frames.append(frame)
+    exc.stack = traceback.StackSummary.from_list(spotlight_frames)
+    if exc.__cause__ is not None:
+        _sanitize_traceback_exception(exc.__cause__)
+    if exc.__context__ is not None:
+        _sanitize_traceback_exception(exc.__context__)
+
+
 def emit_exception_event(path: Optional[str] = None) -> None:
     """
     Emit an exception event.
     """
-    detail = traceback.format_exc()
+    _, exc, _ = sys.exc_info()
+    if exc is None:
+        return
+    traceback_exc = traceback.TracebackException.from_exception(exc)
+    _sanitize_traceback_exception(traceback_exc)
 
     if path:
-        detail = f"Path: {path}\n{detail}"
+        detail = f"Path: {path}\n" + "\n\n".join(traceback_exc.format())
 
     report_event(
         {
