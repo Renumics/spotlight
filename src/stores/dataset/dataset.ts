@@ -16,6 +16,7 @@ import {
     Filter,
     IndexArray,
     TableData,
+    Problem,
 } from '../../types';
 import api from '../../api';
 import { notifyAPIError, notifyError } from '../../notify';
@@ -34,6 +35,7 @@ export interface Dataset {
     generationID: number;
     filename?: string; // filename of the dataset
     loading: boolean; // are we currently loading the Dataset
+    loadingError?: Problem;
     columnStats: { full: ColumnsStats; selected: ColumnsStats; filtered: ColumnsStats }; // an object storing statistics for available columns
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
@@ -114,24 +116,7 @@ const fetchTable = async (): Promise<{
     filename: string;
     dataframe: DataFrame;
 }> => {
-    let table: Table;
-
-    try {
-        table = await api.table.getTable();
-    } catch (error) {
-        notifyAPIError(error);
-        return {
-            uid: '',
-            generationID: -1,
-            filename: '',
-            dataframe: {
-                columns: [],
-                length: 0,
-                data: {},
-            },
-        };
-    }
-
+    const table = await api.table.getTable();
     const columns = table.columns.map(makeColumn);
     const columnData: TableData = {};
     table.columns.forEach((rawColumn, i) => {
@@ -234,27 +219,34 @@ export const useDataset = create(
                     rowsWithIssues: [],
                     isAnalysisRunning: true,
                 }));
+                try {
+                    const { uid, generationID, filename, dataframe } =
+                        await fetchTable();
 
-                const tableFetcher = fetchTable();
-                const { uid, generationID, filename, dataframe } = await tableFetcher;
+                    const columnStats = {
+                        full: makeColumnsStats(dataframe.columns, dataframe.data),
+                        selected: {},
+                        filtered: {},
+                    };
 
-                const columnStats = {
-                    full: makeColumnsStats(dataframe.columns, dataframe.data),
-                    selected: {},
-                    filtered: {},
-                };
-
-                set({
-                    uid,
-                    generationID,
-                    filename,
-                    length: dataframe.length,
-                    loading: false,
-                    columns: dataframe.columns,
-                    columnsByKey: _.keyBy(dataframe.columns, 'key'),
-                    columnData: dataframe.data,
-                    columnStats,
-                });
+                    set({
+                        uid,
+                        generationID,
+                        filename,
+                        length: dataframe.length,
+                        loading: false,
+                        columns: dataframe.columns,
+                        columnsByKey: _.keyBy(dataframe.columns, 'key'),
+                        columnData: dataframe.data,
+                        columnStats,
+                    });
+                } catch (error) {
+                    const problem = await api.parseError(error);
+                    set({
+                        loading: false,
+                        loadingError: problem,
+                    });
+                }
             },
             refetchColumnValues: async (columnKey) => {
                 const column = get().columnsByKey[columnKey];
