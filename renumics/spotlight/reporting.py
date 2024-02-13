@@ -194,8 +194,6 @@ def emit_exception_event(path: Optional[str] = None) -> None:
     """
     Emit an exception event.
     """
-    logger.warning(f"emitted exception {path}")
-
     _, exc, _ = sys.exc_info()
     if exc is None:
         return
