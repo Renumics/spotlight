@@ -60,9 +60,8 @@ def skip_analytics() -> bool:
 def _get_python_runtime() -> str:
     # try to determine what python runtime we are running in
     # plain python, ipython, ipython in colab, ipython in kaggle
+    python_runtime = "python"
     try:
-        python_runtime = "python"
-
         try:
             ipython_kernel = get_ipython()  # type:ignore
             python_runtime = "ipython"
@@ -195,6 +194,8 @@ def emit_exception_event(path: Optional[str] = None) -> None:
     """
     Emit an exception event.
     """
+    logger.warning(f"emitted exception {path}")
+
     _, exc, _ = sys.exc_info()
     if exc is None:
         return
@@ -203,6 +204,8 @@ def emit_exception_event(path: Optional[str] = None) -> None:
 
     if path:
         detail = f"Path: {path}\n" + "\n\n".join(traceback_exc.format())
+    else:
+        detail = "Path: None\n" + "\n\n".join(traceback_exc.format())
 
     report_event(
         {
