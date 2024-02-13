@@ -160,7 +160,7 @@ class PandasDataSource(DataSource):
             return values
         if pd.api.types.is_datetime64_any_dtype(column):
             return column.dt.tz_localize(None).to_numpy()
-        if pd.api.types.is_categorical_dtype(column):
+        if isinstance(column.dtype, pd.CategoricalDtype):
             return column.cat.codes.to_numpy()
         if pd.api.types.is_string_dtype(column):
             column = column.astype(object).mask(column.isna(), None)
@@ -200,7 +200,7 @@ class PandasDataSource(DataSource):
 def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
     if pd.api.types.is_bool_dtype(column):
         return dtypes.bool_dtype
-    if pd.api.types.is_categorical_dtype(column):
+    if isinstance(column.dtype, pd.CategoricalDtype):
         return dtypes.CategoryDType(
             {category: code for code, category in enumerate(column.cat.categories)}
         )

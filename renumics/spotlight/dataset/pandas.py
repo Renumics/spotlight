@@ -132,7 +132,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
 
     if pd.api.types.is_bool_dtype(column):
         return dtypes.bool_dtype
-    if pd.api.types.is_categorical_dtype(column):
+    if isinstance(column.dtype, pd.CategoricalDtype):
         return dtypes.CategoryDType(
             {category: code for code, category in enumerate(column.cat.categories)}
         )
