@@ -6,7 +6,6 @@ import { useColors } from '../colors';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { shallow } from 'zustand/shallow';
-import { Table } from '../../client';
 import {
     ColumnsStats,
     DataColumn,
@@ -87,6 +86,7 @@ export interface Dataset {
     isComputingRelevance: boolean;
     recomputeColumnRelevance: () => void;
     focusRow: (row?: number) => void;
+    clearLoadingError: () => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -471,6 +471,9 @@ export const useDataset = create(
                 set({
                     colorTransferFunctions: newTransferFunctions,
                 });
+            },
+            clearLoadingError: () => {
+                set({ loadingError: undefined });
             },
         };
     })

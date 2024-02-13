@@ -13,18 +13,20 @@ import tw from 'twin.macro';
 import 'styled-components';
 import usePluginStore from './stores/pluginStore';
 import DragContext from './systems/dnd/DragContext';
+import LoadingError from './components/LoadingError';
 
-const Wrapper = tw.div`bg-gray-200 text-midnight-600 w-screen h-screen relative overflow-hidden`;
+const Wrapper = tw.main`bg-gray-200 text-midnight-600 w-screen h-screen relative overflow-hidden`;
 
 // fetch the dataset once on app init
 useDataset.getState().fetch();
 
 const loadingSelector = (d: Dataset) => d.loading;
+const loadingErrorSelector = (d: Dataset) => d.loadingError;
 
 const App = (): JSX.Element => {
     const plugins = usePluginStore((state) => state.plugins);
-
     const loading = useDataset(loadingSelector) || plugins === undefined;
+    const loadingError = useDataset(loadingErrorSelector);
 
     const workspace = useRef<WorkspaceHandle>(null);
     const resetWorkspace = () => workspace.current?.reset();
@@ -44,7 +46,7 @@ const App = (): JSX.Element => {
         <DragContext>
             <Wrapper>
                 <WebGLDetector />
-                {!loading && (
+                {!loading && !loadingError && (
                     <ContextMenuProvider>
                         <div tw="flex flex-col h-full w-full">
                             <div tw="flex-initial relative">
@@ -72,6 +74,7 @@ const App = (): JSX.Element => {
                         <LoadingIndicator />
                     </div>
                 )}
+                {loadingError && <LoadingError problem={loadingError} />}
                 <ToastContainer position="bottom-right" />
             </Wrapper>
         </DragContext>
