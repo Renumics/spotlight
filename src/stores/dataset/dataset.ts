@@ -222,13 +222,11 @@ export const useDataset = create(
                 try {
                     const { uid, generationID, filename, dataframe } =
                         await fetchTable();
-
                     const columnStats = {
                         full: makeColumnsStats(dataframe.columns, dataframe.data),
                         selected: {},
                         filtered: {},
                     };
-
                     set({
                         uid,
                         generationID,
@@ -303,23 +301,32 @@ export const useDataset = create(
                 });
             },
             refresh: async () => {
-                const { uid, generationID, filename, dataframe } = await fetchTable();
-                const columnStats = {
-                    full: makeColumnsStats(dataframe.columns, dataframe.data),
-                    selected: {},
-                    filtered: {},
-                };
-                set(() => ({
-                    uid,
-                    generationID,
-                    filename,
-                    length: dataframe.length,
-                    loading: false,
-                    columns: dataframe.columns,
-                    columnsByKey: _.keyBy(dataframe.columns, 'key'),
-                    columnData: dataframe.data,
-                    columnStats,
-                }));
+                try {
+                    const { uid, generationID, filename, dataframe } =
+                        await fetchTable();
+                    const columnStats = {
+                        full: makeColumnsStats(dataframe.columns, dataframe.data),
+                        selected: {},
+                        filtered: {},
+                    };
+                    set(() => ({
+                        uid,
+                        generationID,
+                        filename,
+                        length: dataframe.length,
+                        loading: false,
+                        columns: dataframe.columns,
+                        columnsByKey: _.keyBy(dataframe.columns, 'key'),
+                        columnData: dataframe.data,
+                        columnStats,
+                    }));
+                } catch (error) {
+                    const problem = await api.parseError(error);
+                    set({
+                        loading: false,
+                        loadingError: problem,
+                    });
+                }
             },
             getRow: (index: number) => {
                 const state = get();
