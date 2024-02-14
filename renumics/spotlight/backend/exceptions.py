@@ -138,17 +138,6 @@ class ConversionFailed(Problem):
         )
 
 
-class DatasetColumnsNotUnique(Problem):
-    """Dataset's columns are not unique"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Dataset columns not unique",
-            "Dataset's columns are not unique.",
-            status.HTTP_403_FORBIDDEN,
-        )
-
-
 class InvalidLayout(Problem):
     """The layout could not be parsed from the given source"""
 

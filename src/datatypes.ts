@@ -18,12 +18,12 @@ export const datakinds = [
     'Sequence',
     'Unknown',
 ] as const;
-export type DataKind = typeof datakinds[number];
+export type DataKind = (typeof datakinds)[number];
 
 export interface BaseDataType<
     K extends DataKind,
     L extends boolean = false,
-    B extends boolean = false
+    B extends boolean = false,
 > {
     kind: K;
     binary: B;
@@ -114,8 +114,9 @@ export const isScalar = (type: DataType): type is ScalarDataType =>
     ['int', 'float', 'str', 'bool'].includes(type.kind);
 
 // 'null' values for every datatype
-export function getNullValue(kind: DataKind): number | boolean | string | null {
-    switch (kind) {
+export function getNullValue(type: DataType): number | boolean | string | null {
+    if (type.optional) return null;
+    switch (type.kind) {
         case 'int':
             return 0;
         case 'float':

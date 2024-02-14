@@ -57,14 +57,16 @@ const ColumnListItem = ({ column, selected, onChangeSelected }: Props): JSX.Elem
                 {column.name}
             </div>
             <div tw="flex-initial overflow-hidden flex flex-row">
-                {column.tags?.slice(0, 3).map((tag) => (
-                    <Tag
-                        key={tag}
-                        tag={tag}
-                        color={tagColorTransferFunction(tag)}
-                        tw="flex-initial mx-0.5"
-                    />
-                ))}
+                {column.tags
+                    ?.slice(0, 3)
+                    .map((tag) => (
+                        <Tag
+                            key={tag}
+                            tag={tag}
+                            color={tagColorTransferFunction(tag)}
+                            tw="flex-initial mx-0.5"
+                        />
+                    ))}
                 {column.tags && column.tags.length > 3 && (
                     <Tag tag={`+${column.tags.length - 3}`} tw="flex-initial mx-0.5" />
                 )}

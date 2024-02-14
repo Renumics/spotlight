@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export const notations = ['scientific', 'standard'] as const;
-export type Notation = typeof notations[number];
+export type Notation = (typeof notations)[number];
 
 export interface AppSettings {
     numberNotation: Notation;

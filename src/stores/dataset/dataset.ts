@@ -131,6 +131,12 @@ const fetchTable = async (): Promise<{
 
         switch (dsColumn.type.kind) {
             case 'int':
+                if (!dsColumn.type.optional) {
+                    columnData[dsColumn.key] = Int32Array.from(
+                        columnData[dsColumn.key]
+                    );
+                }
+                break;
             case 'Category':
                 columnData[dsColumn.key] = Int32Array.from(columnData[dsColumn.key]);
                 break;
