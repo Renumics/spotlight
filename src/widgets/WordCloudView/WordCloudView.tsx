@@ -87,35 +87,45 @@ const WordCloudView: Widget = () => {
         const splitRows = rows.map((row) => (row ?? '').toLowerCase().split(splitter));
 
         let uniqueWordsCount = 0;
-        const wordCounts = splitRows.reduce((acc, line, index) => {
-            line.forEach((word) => {
-                const lower = word.toLowerCase();
-                if (!stopwords.includes(lower) && lower.length >= minWordLength) {
-                    if (lower.length < 1) return acc;
-                    if (lower in acc) {
-                        acc[lower].count++;
-                        acc[lower].rowIds.push(index);
-                    } else {
-                        acc[lower] = { count: 1, rowIds: [index] };
-                        uniqueWordsCount++;
+        const wordCounts = splitRows.reduce(
+            (acc, line, index) => {
+                line.forEach((word) => {
+                    const lower = word.toLowerCase();
+                    if (!stopwords.includes(lower) && lower.length >= minWordLength) {
+                        if (lower.length < 1) return acc;
+                        if (lower in acc) {
+                            acc[lower].count++;
+                            acc[lower].rowIds.push(index);
+                        } else {
+                            acc[lower] = { count: 1, rowIds: [index] };
+                            uniqueWordsCount++;
+                        }
                     }
-                }
-            });
-            return acc;
-        }, {} as Record<string, { count: number; rowIds: number[] }>);
+                });
+                return acc;
+            },
+            {} as Record<string, { count: number; rowIds: number[] }>
+        );
         return [wordCounts, uniqueWordsCount];
     }, [stopwords, columnData, columnToPlaceBy, minWordLength, splitStringsBy]);
 
     const wordCountsWithFiltered = useMemo(
         () =>
-            Object.entries(wordCounts).reduce((acc, [key, word]) => {
-                acc[key] = {
-                    ...word,
-                    filteredCount: word.rowIds.filter((rowId) => isIndexFiltered[rowId])
-                        .length,
-                };
-                return acc;
-            }, {} as Record<string, { count: number; rowIds: number[]; filteredCount: number }>),
+            Object.entries(wordCounts).reduce(
+                (acc, [key, word]) => {
+                    acc[key] = {
+                        ...word,
+                        filteredCount: word.rowIds.filter(
+                            (rowId) => isIndexFiltered[rowId]
+                        ).length,
+                    };
+                    return acc;
+                },
+                {} as Record<
+                    string,
+                    { count: number; rowIds: number[]; filteredCount: number }
+                >
+            ),
         [wordCounts, isIndexFiltered]
     );
 

@@ -53,7 +53,7 @@ export const FileEntryTypeEnum = {
     Folder: 'folder',
 } as const;
 export type FileEntryTypeEnum =
-    typeof FileEntryTypeEnum[keyof typeof FileEntryTypeEnum];
+    (typeof FileEntryTypeEnum)[keyof typeof FileEntryTypeEnum];
 
 /**
  * Check if a given object implements the FileEntry interface.

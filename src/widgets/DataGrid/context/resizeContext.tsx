@@ -28,10 +28,13 @@ export const ColumnResizeProvider = ({ children, onResize }: Props) => {
 
     const defaultColumnWidths = useMemo(
         () =>
-            columns.reduce((acc, column) => {
-                acc[column.key] = columnWidthByType[column.type.kind];
-                return acc;
-            }, {} as Record<string, number>),
+            columns.reduce(
+                (acc, column) => {
+                    acc[column.key] = columnWidthByType[column.type.kind];
+                    return acc;
+                },
+                {} as Record<string, number>
+            ),
         [columns]
     );
 
