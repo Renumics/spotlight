@@ -97,7 +97,14 @@ class PandasDataSource(DataSource):
     def column_names(self) -> List[str]:
         column_names: List[str] = []
         for column in self._df.columns:
-            column_name = str(column)
+            if (
+                isinstance(column, tuple)
+                and len(column)
+                and all(name == "" for name in column[1:])
+            ):
+                column_name = str(column[0])
+            else:
+                column_name = str(column)
             if column_name not in column_names:
                 column_names.append(column_name)
                 continue
@@ -139,7 +146,7 @@ class PandasDataSource(DataSource):
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
-        column = self._get_column(column_name).iloc[indices]  # type: ignore
+        column = cast(pd.Series, self._get_column(column_name).iloc[indices])  # type: ignore
         if pd.api.types.is_bool_dtype(column):
             values = column.to_numpy(na_value=pd.NA)  # type: ignore
             na_mask = column.isna()
