@@ -31,7 +31,7 @@ const Filters: FunctionComponent = () => {
         const referenceValue =
             data.kind === 'cell'
                 ? useDataset.getState().columnData[data.column.key][data.row]
-                : getNullValue(data.column.type.kind);
+                : getNullValue(data.column.type);
 
         if (predicate) {
             useDataset
