@@ -19,6 +19,7 @@ import requests
 from loguru import logger
 
 from renumics.spotlight import __version__
+from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.settings import settings
 
@@ -190,7 +191,9 @@ def _sanitize_traceback_exception(exc: traceback.TracebackException) -> None:
         _sanitize_traceback_exception(exc.__context__)
 
 
-def emit_exception_event(path: Optional[str] = None) -> None:
+def emit_exception_event(
+    path: Optional[str] = None, datasource: Optional[DataSource] = None
+) -> None:
     """
     Emit an exception event.
     """
@@ -200,10 +203,9 @@ def emit_exception_event(path: Optional[str] = None) -> None:
     traceback_exc = traceback.TracebackException.from_exception(exc)
     _sanitize_traceback_exception(traceback_exc)
 
-    if path:
-        detail = f"Path: {path}\n" + "\n\n".join(traceback_exc.format())
-    else:
-        detail = "Path: None\n" + "\n\n".join(traceback_exc.format())
+    detail = f"Path: {path}\nDatasource: {type(datasource).__name__}\n" + "\n\n".join(
+        traceback_exc.format()
+    )
 
     report_event(
         {
