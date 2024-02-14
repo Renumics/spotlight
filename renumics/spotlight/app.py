@@ -350,9 +350,8 @@ class SpotlightApp(FastAPI):
                 self.filebrowsing_allowed = config.filebrowsing_allowed
 
             if config.dtypes is not None or config.dataset is not None:
-                data_source = self._data_source
-                assert data_source is not None
-                self._data_store = DataStore(data_source, self._user_dtypes)
+                assert self._data_source is not None
+                self._data_store = DataStore(self._data_source, self._user_dtypes)
                 self._broadcast(RefreshMessage())
                 self._update_issues()
                 self._update_embeddings()
