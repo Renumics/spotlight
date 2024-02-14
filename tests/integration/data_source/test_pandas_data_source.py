@@ -31,7 +31,7 @@ from renumics.spotlight_plugins.core.pandas_data_source import PandasDataSource
             columns=pd.MultiIndex.from_product([[3, 3], ["baz", "foobar"]]),
         ),
     ],
-    ids=["df", "multiindex-df", "duplicated-multiindex-df"],
+    ids=["df", "multiindex-df", "non-unique-multiindex-df"],
 )
 def test_pandas_data_source(df: pd.DataFrame) -> None:
     data_source = PandasDataSource(df)
