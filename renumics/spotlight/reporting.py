@@ -203,7 +203,7 @@ def emit_exception_event(
     traceback_exc = traceback.TracebackException.from_exception(exc)
     _sanitize_traceback_exception(traceback_exc)
 
-    detail = f"Path: {path}\nDatasource: {type(datasource).__name__}\n" + "\n\n".join(
+    detail = f"Path: {path}\nDatasource: {type(datasource).__name__}\n" + "\n".join(
         traceback_exc.format()
     )
 
