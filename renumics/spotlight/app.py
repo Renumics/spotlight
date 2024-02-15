@@ -210,7 +210,7 @@ class SpotlightApp(FastAPI):
                 logger.exception(e)
             else:
                 logger.info(e)
-            emit_exception_event(request.url.path)
+            emit_exception_event(request.url.path, self._data_source)
             class_name = type(e).__name__
             title = re.sub(r"([a-z])([A-Z])", r"\1 \2", class_name)
             return JSONResponse(
@@ -224,7 +224,7 @@ class SpotlightApp(FastAPI):
                 logger.exception(problem)
             else:
                 logger.info(problem)
-            emit_exception_event(request.url.path)
+            emit_exception_event(request.url.path, self._data_source)
             return JSONResponse(
                 {
                     "title": problem.title,
