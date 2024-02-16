@@ -357,7 +357,7 @@ jobs:
                       && github.event.pull_request.head.repo.full_name == 'Renumics/spotlight'
                     )
                   )
-              uses: LanceMcCarthy/Action-AzureBlobUpload@v2
+              uses: LanceMcCarthy/Action-AzureBlobUpload@v3
               with:
                   connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
                   container_name: github-public
