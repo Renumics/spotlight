@@ -117,7 +117,7 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
                         height={(box[3] - box[1]) * renderedHeight}
                         x={box[0] * renderedWidth + offsetWidth}
                         y={box[1] * renderedHeight + offsetHeight}
-                        color={colorTransferFunction(categories[index]).hex()}
+                        color={colorTransferFunction(categories[index])}
                         label={
                             categoricalDtype?.invertedCategories[categories[index]] ??
                             ''
