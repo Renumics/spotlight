@@ -199,10 +199,11 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     "value",
     [
         "./data/images/nature-360p.jpg",
+        Path("./data/images/nature-360p.jpg"),
         Path("./data/images/nature-360p.jpg").read_bytes(),
         np.array(PIL.Image.new(mode="RGBA", size=(1, 1))),
     ],
-    ids=["path", "bytes", "array"],
+    ids=["path (str)", "Path", "bytes", "array"],
 )
 def test_conversion_to_image(value: Union[str, bytes]) -> None:
     """
@@ -217,9 +218,10 @@ def test_conversion_to_image(value: Union[str, bytes]) -> None:
     "value",
     [
         "./data/audio/1.wav",
+        Path("./data/audio/1.wav"),
         Path("./data/audio/1.wav").read_bytes(),
     ],
-    ids=["path", "bytes"],
+    ids=["path (str)", "Path", "bytes"],
 )
 def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     """
@@ -233,7 +235,9 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     "value",
     [
         "./data/videos/sea-360p.ogg",
+        Path("./data/videos/sea-360p.ogg"),
     ],
+    ids=["path (str)", "Path"],
 )
 def test_conversion_to_video(value: Union[str, bytes]) -> None:
     """
@@ -247,7 +251,9 @@ def test_conversion_to_video(value: Union[str, bytes]) -> None:
     "value",
     [
         "./data/meshes/tree.glb",
+        Path("./data/meshes/tree.glb"),
     ],
+    ids=["path (str)", "Path"],
 )
 def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
     """
