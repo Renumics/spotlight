@@ -1,10 +1,44 @@
-import { useColorTransferFunction } from '../../hooks';
 import { useRef, useCallback, useState, useMemo } from 'react';
-import { Lens } from '../../types';
+import { DataColumn, Lens } from '../../types';
 import 'twin.macro';
-import { CategoricalDataType } from '../../datatypes';
 import BBox from './BBox';
 import useResizeObserver from '@react-hook/resize-observer';
+import chroma from 'chroma-js';
+import _ from 'lodash';
+import { useColorTransferFunction } from '../../hooks';
+import { useDataformat } from '../../dataformat';
+import { NO_DATA as NO_DATA_COLOR } from '../../palettes';
+
+type BBox = [number, number, number, number];
+interface Label {
+    text: string;
+    color: chroma.Color;
+}
+
+const NO_VALUES: unknown[] = [];
+
+function useLabels(column: DataColumn, value: unknown): Label[] {
+    const colorFunc = useColorTransferFunction(NO_VALUES, column.type);
+    const formatter = useDataformat();
+
+    return useMemo(() => {
+        if (column.type.kind === 'Sequence') {
+            const innerType = column.type.dtype;
+            const values = value as unknown[];
+            return values.map((x) => ({
+                text: formatter.format(x, innerType),
+                color: colorFunc(x),
+            }));
+        } else {
+            return [
+                {
+                    text: formatter.format(value, column.type),
+                    color: colorFunc(value),
+                },
+            ];
+        }
+    }, [column, value, formatter, colorFunc]);
+}
 
 const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const container = useRef<HTMLDivElement>(null);
@@ -13,41 +47,30 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     const [imgSize, setImgSize] = useState({ width: 0, height: 0 });
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-    // In case of single bounding box with label
-    const bboxColumnIndex = columns.findIndex((col) => col.type.kind === 'BoundingBox');
-    const categoryColumnIndex = columns.findIndex(
-        (col) => col.type.kind === 'Category'
-    );
-
-    // In case of multiple bounding boxes per image
-    const bboxesColumnIndex = columns.findIndex(
-        (col) => col.type.kind === 'Sequence' && col.type.dtype.kind === 'BoundingBox'
-    );
-    const categoriesColumnIndex = columns.findIndex(
-        (col) => col.type.kind === 'Sequence' && col.type.dtype.kind === 'Category'
-    );
     const imageColumnIndex = columns.findIndex((col) => col.type.kind === 'Image');
     const url = urls[imageColumnIndex];
 
-    const boxes = useMemo(() => {
-        if (bboxColumnIndex != -1) {
-            return [values[bboxColumnIndex] as number[]];
-        } else if (bboxesColumnIndex != -1) {
-            return values[bboxesColumnIndex] as [number[]];
-        } else {
-            return [];
-        }
-    }, [values, bboxColumnIndex, bboxesColumnIndex]);
+    const bboxColumnIndex = columns.findIndex(
+        (col) =>
+            col.type.kind === 'BoundingBox' ||
+            (col.type.kind === 'Sequence' && col.type.dtype.kind === 'BoundingBox')
+    );
+    const boxes: BBox[] = useMemo(() => {
+        const boxValue = values[bboxColumnIndex] as number[] | number[][] | null;
+        if (!boxValue) return [];
+        return (
+            boxValue.length && !_.isArray(boxValue[0]) ? [boxValue] : boxValue
+        ) as BBox[];
+    }, [values, bboxColumnIndex]);
 
-    const categories = useMemo(() => {
-        if (categoryColumnIndex != -1) {
-            return [values[categoryColumnIndex] as number];
-        } else if (categoriesColumnIndex != -1) {
-            return values[categoriesColumnIndex] as [number];
-        } else {
-            return [];
-        }
-    }, [values, categoryColumnIndex, categoriesColumnIndex]);
+    const labelsColumnIndex = columns.findIndex(
+        (col) =>
+            col.type.kind === 'Category' ||
+            col.type.kind === 'str' ||
+            (col.type.kind === 'Sequence' &&
+                (col.type.dtype.kind === 'Category' || col.type.dtype.kind === 'str'))
+    );
+    const labels = useLabels(columns[labelsColumnIndex], values[labelsColumnIndex]);
 
     // Natural dimensions of the image
     const naturalWidth = imgSize.width;
@@ -71,19 +94,6 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
     }
     const offsetWidth = (parentWidth - renderedWidth) / 2;
     const offsetHeight = (parentHeight - renderedHeight) / 2;
-
-    const categoricalColumn =
-        columns[categoryColumnIndex] ?? columns[categoriesColumnIndex];
-    const categoricalDtype = (
-        categoricalColumn?.type?.kind === 'Sequence'
-            ? categoricalColumn?.type?.dtype
-            : categoricalColumn?.type
-    ) as CategoricalDataType | undefined;
-
-    const colorTransferFunction = useColorTransferFunction(
-        categories,
-        categoricalDtype
-    );
 
     useResizeObserver(container, () => {
         setContainerSize({
@@ -117,11 +127,8 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
                         height={(box[3] - box[1]) * renderedHeight}
                         x={box[0] * renderedWidth + offsetWidth}
                         y={box[1] * renderedHeight + offsetHeight}
-                        color={colorTransferFunction(categories[index])}
-                        label={
-                            categoricalDtype?.invertedCategories[categories[index]] ??
-                            ''
-                        }
+                        color={labels[index]?.color ?? NO_DATA_COLOR}
+                        label={labels[index]?.text ?? ''}
                     />
                 ))}
             </svg>
@@ -130,59 +137,86 @@ const BoundingBoxLens: Lens = ({ urls, values, columns }) => {
 };
 
 BoundingBoxLens.key = 'BoundingBoxView';
-BoundingBoxLens.dataTypes = ['Image', 'BoundingBox', 'Sequence', 'Category'];
+BoundingBoxLens.dataTypes = ['Image', 'BoundingBox', 'Sequence', 'Category', 'str'];
 BoundingBoxLens.multi = true;
 BoundingBoxLens.displayName = 'BoundingBox';
 BoundingBoxLens.defaultHeight = 256;
 BoundingBoxLens.filterAllowedColumns = (allColumns, selectedColumns) => {
-    if (selectedColumns.length === 3) return [];
+    const allowedColumns: DataColumn[] = [];
 
-    const selectedTypes = selectedColumns.map((selectedCol) => selectedCol.type);
-    if (selectedColumns.length === 0)
-        return allColumns.filter(({ type }) =>
-            BoundingBoxLens.dataTypes.includes(type.kind)
-        );
-
-    if (selectedTypes.find((type) => type.kind === 'Sequence')) {
-        return allColumns.filter(({ type }) => {
-            return type.kind === 'Sequence' || type.kind === 'Image';
-        });
-    } else if (
-        selectedTypes.find((type) => ['BoundingBox', 'Category'].includes(type.kind))
-    ) {
-        return allColumns.filter(({ type }) => {
-            return (
-                type.kind === 'BoundingBox' ||
-                type.kind === 'Category' ||
-                type.kind === 'Image'
-            );
-        });
-    } else {
-        return allColumns.filter(({ type }) =>
-            BoundingBoxLens.dataTypes.includes(type.kind)
-        );
+    // allow exactly one image column
+    if (!selectedColumns.find(({ type }) => type.kind === 'Image')) {
+        allowedColumns.push(...allColumns.filter(({ type }) => type.kind === 'Image'));
     }
-};
-BoundingBoxLens.isSatisfied = (columns) => {
-    if (columns.length < 2) return false;
 
-    const types = columns.map((col) => col.type);
+    const allowSequences = !selectedColumns.find(
+        ({ type }) => type.kind !== 'Image' && type.kind !== 'Sequence'
+    );
+    const allowNonSequences = !selectedColumns.find(
+        ({ type }) => type.kind === 'Sequence'
+    );
 
-    if (!types.find((type) => type.kind === 'Image')) return false;
-
-    if (!types.find((type) => ['BoundingBox', 'Sequence'].includes(type.kind)))
-        return false;
-
+    // allow exactly one bbox or bbox[] column
     if (
-        types.find(
-            (type) => type.kind === 'Sequence' && type.dtype.kind === 'BoundingBox'
+        !selectedColumns.find(
+            ({ type }) =>
+                type.kind === 'BoundingBox' ||
+                (type.kind === 'Sequence' && type.dtype.kind === 'BoundingBox')
         )
     ) {
-        return true;
-    } else {
-        if (types.find((type) => type.kind === 'BoundingBox')) return true;
-        else return false;
+        if (allowNonSequences) {
+            allowedColumns.push(
+                ...allColumns.filter(({ type }) => type.kind === 'BoundingBox')
+            );
+        }
+        if (allowSequences) {
+            allowedColumns.push(
+                ...allColumns.filter(
+                    ({ type }) =>
+                        type.kind === 'Sequence' && type.dtype.kind === 'BoundingBox'
+                )
+            );
+        }
     }
+
+    // allow exactly one label or label[] column
+    if (
+        !selectedColumns.find(
+            ({ type }) =>
+                type.kind === 'Category' ||
+                type.kind === 'str' ||
+                (type.kind === 'Sequence' &&
+                    (type.dtype.kind === 'str' || type.dtype.kind === 'Category'))
+        )
+    ) {
+        if (allowNonSequences) {
+            allowedColumns.push(
+                ...allColumns.filter(
+                    ({ type }) => type.kind === 'Category' || type.kind === 'str'
+                )
+            );
+        }
+        if (allowSequences) {
+            allowedColumns.push(
+                ...allColumns.filter(
+                    ({ type }) =>
+                        type.kind === 'Sequence' &&
+                        (type.dtype.kind === 'str' || type.dtype.kind === 'Category')
+                )
+            );
+        }
+    }
+    return allowedColumns;
+};
+BoundingBoxLens.isSatisfied = (columns) => {
+    const types = columns.map((col) => col.type);
+    const hasImage = !!types.find((type) => type.kind === 'Image');
+    const hasBbox = !!types.find(
+        (type) =>
+            type.kind === 'BoundingBox' ||
+            (type.kind === 'Sequence' && type.dtype.kind === 'BoundingBox')
+    );
+    return hasImage && hasBbox;
 };
 
 export default BoundingBoxLens;

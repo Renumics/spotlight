@@ -31,18 +31,28 @@ const BBox = ({ x, y, width, height, color, label }: BBoxProps) => {
                 stroke={colorCss}
                 strokeWidth={2}
             ></rect>
-            <rect
-                x={x}
-                y={y - 11}
-                width={width}
-                height={12}
-                fill={colorCss}
-                stroke={colorCss}
-                strokeWidth={2}
-            ></rect>
-            <text x={x} y={y} fontSize={12} fontWeight="bold" fill={textColorCss}>
-                {label}
-            </text>
+            {label && (
+                <>
+                    <rect
+                        x={x}
+                        y={y - 11}
+                        width={width}
+                        height={12}
+                        fill={colorCss}
+                        stroke={colorCss}
+                        strokeWidth={2}
+                    ></rect>
+                    <text
+                        x={x}
+                        y={y}
+                        fontSize={12}
+                        fontWeight="bold"
+                        fill={textColorCss}
+                    >
+                        {label}
+                    </text>
+                </>
+            )}
         </g>
     );
 };
