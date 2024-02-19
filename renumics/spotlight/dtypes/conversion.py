@@ -18,6 +18,7 @@ import datetime
 import inspect
 import io
 import os
+import pathlib
 from abc import ABCMeta
 from collections import defaultdict
 from typing import (
@@ -385,6 +386,17 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Image", simple=False)
+def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+    try:
+        if data := read_external_value(str(value), dtypes.image_dtype):
+            return data.tolist()
+        else:
+            raise ConversionError()
+    except InvalidFile:
+        raise ConversionError()
+
+
+@convert("Image", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
     return media.Image.from_bytes(value).encode().tolist()
 
@@ -407,6 +419,17 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Audio", simple=False)
+def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+    try:
+        if data := read_external_value(str(value), dtypes.audio_dtype):
+            return data.tolist()
+        else:
+            raise ConversionError()
+    except InvalidFile:
+        raise ConversionError()
+
+
+@convert("Audio", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
     return media.Audio.from_bytes(value).encode().tolist()
 
@@ -422,6 +445,17 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Video", simple=False)
+def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+    try:
+        if data := read_external_value(str(value), dtypes.video_dtype):
+            return data.tolist()
+        else:
+            raise ConversionError()
+    except InvalidFile:
+        raise ConversionError()
+
+
+@convert("Video", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
     return media.Video.from_bytes(value).encode().tolist()
 
@@ -434,6 +468,17 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     except InvalidFile:
         raise ConversionError()
     raise ConversionError()
+
+
+@convert("Mesh", simple=False)
+def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+    try:
+        if data := read_external_value(str(value), dtypes.mesh_dtype):
+            return data.tolist()
+        else:
+            raise ConversionError()
+    except InvalidFile:
+        raise ConversionError()
 
 
 @convert("Mesh", simple=False)
