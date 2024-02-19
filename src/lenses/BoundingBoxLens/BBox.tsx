@@ -40,7 +40,7 @@ const BBox = ({ x, y, width, height, color, label }: BBoxProps) => {
                 stroke={colorCss}
                 strokeWidth={2}
             ></rect>
-            <text x={x} y={y} fontSize={12} stroke={textColorCss} fill={textColorCss}>
+            <text x={x} y={y} fontSize={12} fontWeight="bold" fill={textColorCss}>
                 {label}
             </text>
         </g>
