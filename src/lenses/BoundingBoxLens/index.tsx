@@ -8,6 +8,7 @@ import _ from 'lodash';
 import { useColorTransferFunction } from '../../hooks';
 import { useDataformat } from '../../dataformat';
 import { NO_DATA as NO_DATA_COLOR } from '../../palettes';
+import { unknownDataType } from '../../datatypes';
 
 type BBox = [number, number, number, number];
 interface Label {
@@ -17,11 +18,18 @@ interface Label {
 
 const NO_VALUES: unknown[] = [];
 
-function useLabels(column: DataColumn, value: unknown): Label[] {
-    const colorFunc = useColorTransferFunction(NO_VALUES, column.type);
+function useLabels(column?: DataColumn, value?: unknown): Label[] {
+    const colorFunc = useColorTransferFunction(
+        NO_VALUES,
+        column?.type ?? unknownDataType
+    );
     const formatter = useDataformat();
 
     return useMemo(() => {
+        if (!column) {
+            return [{ text: '', color: NO_DATA_COLOR }];
+        }
+
         if (column.type.kind === 'Sequence') {
             const innerType = column.type.dtype;
             const values = value as unknown[];
