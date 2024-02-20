@@ -177,6 +177,25 @@ def image(column: str, name: Optional[str] = None) -> Lens:
     return Lens(type="ImageView", columns=[column], name=name)
 
 
+def bounding_box(
+    image_column: str,
+    bounding_box_column: str,
+    category_column: Optional[str] = None,
+    name: Optional[str] = None,
+) -> Lens:
+    """
+    Add bounding box viewer to Spotlight inspector widget.
+
+    Supports a single column of type image, a second column of type bounding box
+    or sequence of bounding boxes and a third optional column of type category
+    or sequence of categories (according to bounding box column).
+    """
+    columns = [image_column, bounding_box_column]
+    if category_column is not None:
+        columns.append(category_column)
+    return Lens(type="BoundingBoxView", columns=columns, name=name)
+
+
 def video(column: str, name: Optional[str] = None) -> Lens:
     """
     Add video viewer to Spotlight inspector widget.
