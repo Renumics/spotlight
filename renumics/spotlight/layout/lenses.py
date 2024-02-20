@@ -178,18 +178,19 @@ def image(column: str, name: Optional[str] = None) -> Lens:
 
 
 def bounding_box(
-    column: str,
+    image_column: str,
     bounding_box_column: str,
     category_column: Optional[str] = None,
     name: Optional[str] = None,
 ) -> Lens:
     """
-    Add audio viewer to Spotlight inspector widget.
+    Add bounding box viewer to Spotlight inspector widget.
 
-    Supports a single column of type `spotlight.Audio` with optional second
-    column of type `spotlight.Window`.
+    Supports a single column of type image, a second column of type bounding box
+    or sequence of bounding boxes and a third optional column of type category
+    or sequence of categories (according to bounding box column).
     """
-    columns = [column, bounding_box_column]
+    columns = [image_column, bounding_box_column]
     if category_column is not None:
         columns.append(category_column)
     return Lens(type="BoundingBoxView", columns=columns, name=name)
