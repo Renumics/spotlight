@@ -244,7 +244,7 @@ class DataStore:
                 ),
                 length,
             )
-        return guessed_dtype
+        return user_dtype
 
 
 def _guess_dtype_from_values(values: Iterable) -> Optional[spotlight_dtypes.DType]:
