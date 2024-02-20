@@ -144,7 +144,7 @@ class Viewer:
 
     def show(
         self,
-        dataset: Union[PathType, pd.DataFrame, None],
+        dataset: Union[PathType, pd.DataFrame, None] = None,
         folder: Optional[PathType] = None,
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
