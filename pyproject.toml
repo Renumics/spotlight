@@ -62,7 +62,7 @@ uvloop = [
 ]
 diskcache = "*"
 appdirs = "*"
-databases = { version = "*", extras = ["aiosqlite"] }
+databases = { version = ">=0.1.3", extras = ["sqlite"] }
 rsa = "*"
 prettytable = "*"
 networkx = "*"
