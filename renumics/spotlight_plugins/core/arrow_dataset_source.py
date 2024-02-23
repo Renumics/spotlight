@@ -8,6 +8,14 @@ import pyarrow as pa
 import pyarrow.dataset
 import pyarrow.types
 
+try:
+    # let ray register it's extension types if it is installed
+    import ray.data  # noqa
+    import ray.air.util.tensor_extensions.arrow  # noqa
+except ModuleNotFoundError:
+    pass
+
+
 import renumics.spotlight.dtypes as spotlight_dtypes
 from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.data_source.data_source import ColumnMetadata
@@ -17,6 +25,12 @@ from renumics.spotlight.data_source.decorator import datasource
 class UnknownArrowType(Exception):
     """
     We encountered an unknown arrow DataType during type conversion
+    """
+
+
+class UnknownArrowExtensionType(Exception):
+    """
+    We encountered an unknown arrow Extension Type during type conversion
     """
 
 
@@ -36,14 +50,16 @@ class ArrowDatasetSource(DataSource):
         self._intermediate_dtypes: spotlight_dtypes.DTypeMap = self._convert_schema()
 
         self._semantic_dtypes = {}
-        # support hf metadata (only images for now)
-        if hf_metadata := orjson.loads(
-            source.schema.metadata.get(b"huggingface", "null")
-        ):
-            features = hf_metadata.get("info", {}).get("features", {})
-            for name, feat in features.items():
-                if feat.get("_type") == "Image":
-                    self._semantic_dtypes[name] = spotlight_dtypes.image_dtype
+
+        if source.schema.metadata:
+            # support hf metadata (only images for now)
+            if hf_metadata := orjson.loads(
+                source.schema.metadata.get(b"huggingface", "null")
+            ):
+                features = hf_metadata.get("info", {}).get("features", {})
+                for name, feat in features.items():
+                    if feat.get("_type") == "Image":
+                        self._semantic_dtypes[name] = spotlight_dtypes.image_dtype
 
     @property
     def column_names(self) -> List[str]:
@@ -74,6 +90,12 @@ class ArrowDatasetSource(DataSource):
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
+        try:
+            # Import these arrow extension types to ensure that they are registered.
+            import ray.air.util.tensor_extensions.arrow  # noqa
+        except ModuleNotFoundError:
+            pass
+
         if indices == slice(None):
             table = self._dataset.to_table(columns=[column_name])
         else:
@@ -89,6 +111,14 @@ class ArrowDatasetSource(DataSource):
             )
 
         raw_values = table[column_name]
+
+        dtype = self._intermediate_dtypes.get(column_name)
+        if isinstance(dtype, spotlight_dtypes.ArrayDType):
+            if dtype.shape is not None:
+                shape = [-1 if x is None else x for x in dtype.shape]
+                return np.array([np.array(arr).reshape(shape) for arr in raw_values])
+            else:
+                return raw_values.to_numpy()
 
         # convert hf image values
         if self._semantic_dtypes.get(column_name) == spotlight_dtypes.image_dtype:
@@ -115,6 +145,7 @@ class ArrowDatasetSource(DataSource):
         schema: spotlight_dtypes.DTypeMap = {}
         for field in self._dataset.schema:
             schema[field.name] = _convert_dtype(field)
+        print(schema)
         return schema
 
 
@@ -189,5 +220,11 @@ def _convert_dtype(field: pa.Field) -> spotlight_dtypes.DType:
         return spotlight_dtypes.SequenceDType(
             _convert_dtype(pa.field("", field.type.value_type))
         )
+    if isinstance(field.type, pa.ExtensionType):
+        # handle known extensions
+        if field.type.extension_name == "ray.data.arrow_tensor":
+            return spotlight_dtypes.ArrayDType(shape=field.type.shape)
 
-    raise UnknownArrowType()
+        raise UnknownArrowExtensionType(field.type.extension_name)
+
+    raise UnknownArrowType(field.type)
