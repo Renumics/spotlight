@@ -1,7 +1,9 @@
 import uuid
-from typing import List, Union
+from itertools import islice
+from typing import Iterable, List, Union
 
 import numpy as np
+import orjson
 import pyarrow as pa
 import pyarrow.dataset
 import pyarrow.types
@@ -21,12 +23,27 @@ class UnknownArrowType(Exception):
 EMPTY_MAP: spotlight_dtypes.DTypeMap = {}
 
 
+def iter_batched(values: Iterable, n: int) -> Iterable[tuple]:
+    it = iter(values)
+    return iter(lambda: tuple(islice(it, n)), ())
+
+
 @datasource(pyarrow.dataset.Dataset)
 @datasource(pyarrow.dataset.FileSystemDataset)
 class ArrowDatasetSource(DataSource):
     def __init__(self, source: pyarrow.dataset.Dataset):
         self._dataset = source
         self._intermediate_dtypes: spotlight_dtypes.DTypeMap = self._convert_schema()
+
+        self._semantic_dtypes = {}
+        # support hf metadata (only images for now)
+        if hf_metadata := orjson.loads(
+            source.schema.metadata.get(b"huggingface", "null")
+        ):
+            features = hf_metadata.get("info", {}).get("features", {})
+            for name, feat in features.items():
+                if feat.get("_type") == "Image":
+                    self._semantic_dtypes[name] = spotlight_dtypes.image_dtype
 
     @property
     def column_names(self) -> List[str]:
@@ -38,7 +55,7 @@ class ArrowDatasetSource(DataSource):
 
     @property
     def semantic_dtypes(self) -> spotlight_dtypes.DTypeMap:
-        return EMPTY_MAP
+        return self._semantic_dtypes
 
     def __len__(self) -> int:
         return self._dataset.count_rows()
@@ -57,12 +74,37 @@ class ArrowDatasetSource(DataSource):
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
-        if isinstance(indices, slice):
-            indices = np.array(range(*indices.indices(len(self))))
+        if indices == slice(None):
+            table = self._dataset.to_table(columns=[column_name])
+        else:
+            if isinstance(indices, slice):
+                indices = np.array(range(*indices.indices(len(self))))
 
-        table = self._dataset.take(indices)
-        values = table[column_name]
-        return values.to_numpy()
+            table = self._dataset.take(
+                indices,
+                columns=[column_name],
+                batch_size=min(len(indices), 2048),
+                batch_readahead=0,
+                fragment_readahead=0,
+            )
+
+        raw_values = table[column_name]
+
+        # convert hf image values
+        if self._semantic_dtypes.get(column_name) == spotlight_dtypes.image_dtype:
+            return np.array(
+                [
+                    (
+                        value["path"].as_py()
+                        if value["bytes"].as_py() is None
+                        else value["bytes"].as_py()
+                    )
+                    for value in raw_values
+                ],
+                dtype=object,
+            )
+        else:
+            return raw_values.to_numpy()
 
     def get_column_metadata(self, column_name: str) -> ColumnMetadata:
         field_index = self._dataset.schema.get_field_index(column_name)
