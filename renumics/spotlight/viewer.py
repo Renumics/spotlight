@@ -129,6 +129,8 @@ class Viewer:
 
     _host: str
     _requested_port: Union[int, Literal["auto"]]
+    _ssl_keyfile: Optional[str]
+    _ssl_certfile: Optional[str]
     _server: Optional[Server]
     _df: Optional[pd.DataFrame]
 
@@ -136,9 +138,15 @@ class Viewer:
         self,
         host: str = "127.0.0.1",
         port: Union[int, Literal["auto"]] = "auto",
+        ssl_keyfile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
+        ssl_keyfile_password: Optional[str] = None,
     ) -> None:
         self._host = host
         self._requested_port = port
+        self._ssl_keyfile = ssl_keyfile
+        self._ssl_certfile = ssl_certfile
+        self._ssl_keyfile_password = ssl_keyfile_password
         self._server = None
         self._df = None
 
@@ -218,7 +226,13 @@ class Viewer:
 
         if not self._server:
             port = 0 if self._requested_port == "auto" else self._requested_port
-            self._server = Server(host=self._host, port=port)
+            self._server = Server(
+                self._host,
+                port,
+                self._ssl_keyfile,
+                self._ssl_certfile,
+                self._ssl_keyfile_password,
+            )
             self._server.start(config)
 
             if self not in _VIEWERS:
@@ -273,7 +287,11 @@ class Viewer:
         """
         if not self.port:
             return
-        launch_browser_in_thread("localhost", self.port)
+        if self._ssl_certfile is not None:
+            protocol = "https"
+        else:
+            protocol = "http"
+        launch_browser_in_thread(f"{protocol}://{self.host}:{self.port}/")
 
     def refresh(self) -> None:
         """
@@ -319,7 +337,11 @@ class Viewer:
         """
         The viewer's url.
         """
-        return f"http://{self.host}:{self.port}/"
+        if self._ssl_certfile is not None:
+            protocol = "https"
+        else:
+            protocol = "http"
+        return f"{protocol}://{self.host}:{self.port}/"
 
     def __repr__(self) -> str:
         return self.url
@@ -380,6 +402,9 @@ def show(
     analyze: Optional[Union[bool, List[str]]] = None,
     issues: Optional[Collection[DataIssue]] = None,
     embed: Optional[Union[List[str], bool]] = None,
+    ssl_keyfile: Optional[str] = None,
+    ssl_certfile: Optional[str] = None,
+    ssl_keyfile_password: Optional[str] = None,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
@@ -406,6 +431,9 @@ def show(
         issues: Custom dataset issues displayed in the viewer.
         embed: Automatically embed all or given columns with default
             embedders (disabled by default).
+        ssl_keyfile: Optional SSL key file.
+        ssl_certfile: Optional SSL certificate file.
+        ssl_certfile: Optional SSL keyfile password.
     """
 
     viewer = None
@@ -416,7 +444,7 @@ def show(
                 viewer = _VIEWERS[index]
                 break
     if not viewer:
-        viewer = Viewer(host, port)
+        viewer = Viewer(host, port, ssl_keyfile, ssl_certfile, ssl_keyfile_password)
 
     viewer.show(
         dataset,
