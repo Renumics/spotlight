@@ -2,7 +2,6 @@ import ArrayLens from './ArrayLens';
 import AudioLens from './AudioLens';
 import HtmlLens from './HtmlLens';
 import ImageLens from './ImageLens';
-import BoundingBoxLens from './BoundingBoxLens';
 import MarkdownLens from './MarkdownLens';
 import MeshLens from './MeshLens';
 import SafeHtmlLens from './SafeHtmlLens';
@@ -13,6 +12,7 @@ import TextLens from './TextLens';
 import VideoLens from './VideoLens';
 import RougeScoreLens from './RougeScoreLens';
 import BLEUScoreLens from './BLEUScoreLens';
+import BoundingBoxLens from './BoundingBoxLens';
 
 export const ALL_LENSES = [
     ArrayLens,
@@ -20,7 +20,6 @@ export const ALL_LENSES = [
     SpectrogramLens,
     VideoLens,
     ImageLens,
-    BoundingBoxLens,
     MeshLens,
     SequenceLens,
     TextLens,
@@ -30,4 +29,5 @@ export const ALL_LENSES = [
     ScalarLens,
     RougeScoreLens,
     BLEUScoreLens,
+    BoundingBoxLens,
 ];
