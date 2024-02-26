@@ -29,7 +29,6 @@ def launch_browser_in_thread(url: str) -> threading.Thread:
 
 def launch_browser(url: str) -> None:
     """Open the app in a browser once it runs."""
-    print(url)
     wait_for(url)  # wait also for socket?
     try:
         webbrowser.open(url)
