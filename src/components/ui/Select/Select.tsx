@@ -23,7 +23,7 @@ interface SelectProps<T extends Value> {
 }
 
 function defaultLabel<T extends Value>(v?: T) {
-    return v?.toString() || 'None';
+    return v?.toString() ?? 'None';
 }
 
 function Select<T extends Value>({
