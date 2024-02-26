@@ -131,6 +131,7 @@ class Viewer:
     _requested_port: Union[int, Literal["auto"]]
     _ssl_keyfile: Optional[str]
     _ssl_certfile: Optional[str]
+    _ssl_keyfile_password: Optional[str]
     _server: Optional[Server]
     _df: Optional[pd.DataFrame]
 
