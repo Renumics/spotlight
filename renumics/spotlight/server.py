@@ -24,6 +24,14 @@ from renumics.spotlight.logging import logger
 from renumics.spotlight.settings import settings
 
 
+class MissingTLSCertificate(Exception):
+    pass
+
+
+class MissingTLSKey(Exception):
+    pass
+
+
 class Server:
     """
     Local proxy object for the spotlight server process
@@ -32,6 +40,9 @@ class Server:
     _host: str
     _port: int
     _requested_port: int
+    _ssl_keyfile: Optional[str]
+    _ssl_certfile: Optional[str]
+    _ssl_keyfile_password: Optional[str]
 
     _vite: Optional[Vite]
 
@@ -54,15 +65,41 @@ class Server:
     _all_frontends_disconnected: threading.Event
     _any_frontend_connected: threading.Event
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8000) -> None:
+    def __init__(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 8000,
+        ssl_keyfile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
+        ssl_keyfile_password: Optional[str] = None,
+    ) -> None:
+        self.process = None
+
         self._vite = None
 
         self._app_config = AppConfig()
 
         self._host = host
+        if self._host not in ("127.0.0.1", "localhost"):
+            if ssl_certfile is None:
+                raise MissingTLSCertificate(
+                    "Starting Spotlight on non-localhost without TLS certificate is insecure. Please provide TLS certificate and key."
+                )
+            if ssl_keyfile is None:
+                raise MissingTLSKey(
+                    "Starting Spotlight on non-localhost without TLS certificate is insecure. Please provide TLS certificate and key."
+                )
+        elif ssl_certfile is None and ssl_keyfile is not None:
+            raise MissingTLSCertificate(
+                "TLS key provided, but TLS certificate is missing."
+            )
+        elif ssl_certfile is not None and ssl_keyfile is None:
+            raise MissingTLSKey("TLS certificate provided, but TLS key is missing.")
+        self._ssl_keyfile = ssl_keyfile
+        self._ssl_certfile = ssl_certfile
+        self._ssl_keyfile_password = ssl_keyfile_password
         self._requested_port = port
         self._port = self._requested_port
-        self.process = None
 
         self.connected_frontends = 0
         self._any_frontend_connected = threading.Event()
@@ -145,7 +182,12 @@ class Server:
             sock.close()
         else:
             command += ["--fd", str(sock.fileno())]
-
+        if self._ssl_keyfile is not None:
+            command += ["--ssl-keyfile", self._ssl_keyfile]
+        if self._ssl_certfile is not None:
+            command += ["--ssl-certfile", self._ssl_certfile]
+        if self._ssl_keyfile_password is not None:
+            command += ["--ssl-keyfile-password", self._ssl_keyfile_password]
         if settings.dev:
             command.append("--reload")
 
