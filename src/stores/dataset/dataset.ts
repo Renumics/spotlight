@@ -472,19 +472,19 @@ export const useDataset = create(
 
                 set({ columnRelevance, isComputingRelevance: false });
             },
-            recomputeColorTransferFunctions: async () => {
-                const columnsToCompute = get()
-                    .columns.filter((c) => isScalar(c.type) || isCategorical(c.type))
-                    .map((c) => c.key);
+            recomputeColorTransferFunctions: () => {
+                set(({ columns, columnData, filteredIndices }) => {
+                    const columnsToCompute = columns
+                        .filter((c) => isScalar(c.type) || isCategorical(c.type))
+                        .map((c) => c.key);
 
-                const newTransferFunctions = makeColumnsColorTransferFunctions(
-                    get().columns.filter(({ key }) => columnsToCompute.includes(key)),
-                    get().columnData,
-                    get().filteredIndices
-                );
-
-                set({
-                    colorTransferFunctions: newTransferFunctions,
+                    return {
+                        colorTransferFunctions: makeColumnsColorTransferFunctions(
+                            columns.filter(({ key }) => columnsToCompute.includes(key)),
+                            columnData,
+                            filteredIndices
+                        ),
+                    };
                 });
             },
             clearLoadingError: () => {

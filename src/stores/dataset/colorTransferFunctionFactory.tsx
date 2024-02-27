@@ -18,16 +18,22 @@ export const makeColumnsColorTransferFunctions = (
     const colors = useColors.getState();
 
     return columns.reduce((a, column) => {
+        const values = data[column.key];
+        const filteredValues = new Array(filteredIndices.length);
+        for (let i = 0; i < filteredIndices.length; ++i) {
+            filteredValues[i] = data[column.key][filteredIndices[i]];
+        }
+
         a[column.key] = {
             full: createColorTransferFunction(
-                data[column.key],
+                values,
                 column.type,
                 colors.robust,
                 colors.continuousInts,
                 colors.continuousCategories
             ),
             filtered: createColorTransferFunction(
-                filteredIndices.map((i) => data[column.key][i]),
+                filteredValues,
                 column.type,
                 colors.robust,
                 colors.continuousInts,
