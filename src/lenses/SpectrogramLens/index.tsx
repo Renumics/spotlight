@@ -10,7 +10,7 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import { fixWindow, freqType, unitType, amplitudeToDb, melToHz } from './Spectrogram';
+import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -22,7 +22,7 @@ interface WebAudio_ extends WebAudio {
     buffer: AudioBuffer;
 }
 
-const LOG_DOMAIN_LOWER_LIMIT = 10;
+const DOMAIN_LOWER_LIMIT = 10;
 const FFT_SAMPLES = 1024;
 
 interface MelScale {
@@ -36,6 +36,7 @@ interface MelScale {
     ticks(count?: number): number[];
     tickFormat(count?: number, specifier?: string): (d: number) => string;
 }
+
 function toMelScale(frequency: number): number {
     return 2595 * Math.log10(1 + frequency / 700);
 }
@@ -47,6 +48,7 @@ function fromMelScale(mel: number): number {
 function melScale(): MelScale {
     // Create the base log scale
     const linearScale = d3.scaleLinear();
+    const logScale = d3.scaleLog();
 
     // Our custom scale function
     const scale: MelScale = ((value: number) => {
@@ -59,31 +61,28 @@ function melScale(): MelScale {
         if (domain === undefined) {
             return linearScale.domain().map((d) => toMelScale(d));
         }
+        logScale.domain(domain);
         return domain ? (linearScale.domain(domain), scale) : linearScale.domain();
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     scale.range = (range?: number[]): any => {
+        if (range) logScale.range(range);
         return range ? (linearScale.range(range), scale) : linearScale.range();
     };
     scale.copy = () => {
         return melScale().domain(scale.domain()).range(scale.range());
     };
     scale.invert = (value: number): number => {
-        return melToHz(linearScale.invert(value));
+        return fromMelScale(linearScale.invert(value));
     };
 
     scale.ticks = (count?: number): number[] => {
-        const ticks = linearScale.ticks(count).map((num) => {
-            return toMelScale(num);
+        const ticks = logScale.ticks(count).map((val) => {
+            return toMelScale(val);
         });
-        return ticks;
-    };
+        if (!count) return ticks;
 
-    scale.tickFormat = (
-        count?: number,
-        specifier?: string
-    ): ((d: number) => string) => {
-        return linearScale.tickFormat(count, specifier);
+        return [ticks[0]].concat(ticks.slice(ticks.length - count, ticks.length));
     };
 
     return scale;
@@ -106,7 +105,7 @@ const drawScale = (
     } else if (scale === 'linear') {
         numTicks = Math.round(height / 30);
     } else if (scale === 'mel') {
-        numTicks = Math.round(height / 30);
+        numTicks = Math.round(height / 40);
     } else {
         numTicks = 5;
     }
@@ -114,7 +113,7 @@ const drawScale = (
     let axis;
 
     if (scale === 'logarithmic') {
-        const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+        const domain = [DOMAIN_LOWER_LIMIT, upperLimit];
         const range = [height, 0];
         const scale = d3.scaleLog(domain, range);
 
@@ -127,7 +126,7 @@ const drawScale = (
                 return `${freqType(x).toFixed(1)} ${unitType(x)}`;
             });
     } else if (scale === 'mel') {
-        const domain: [number, number] = [20, upperLimit];
+        const domain: [number, number] = [DOMAIN_LOWER_LIMIT, upperLimit];
         const range: [number, number] = [height, 0];
         const scale = melScale().domain(domain).range(range);
 
@@ -270,7 +269,7 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const upperLimit = backend.buffer?.sampleRate / 2;
 
             // 10, ..., half-samplerate (default 22050)
-            const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+            const domain = [DOMAIN_LOWER_LIMIT, upperLimit];
 
             // 0, ..., canvas-height
             const range = [0, height];
@@ -283,7 +282,9 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             if (freqScale === 'logarithmic') {
                 heightScale = d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1]);
             } else if (freqScale === 'linear') {
-                heightScale = d3.scaleLinear(domain, [0, upperLimit]);
+                heightScale = d3.scaleLinear(range, [0, FFT_SAMPLES / 2]);
+            } else if (freqScale === 'mel') {
+                heightScale = d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1]);
             }
 
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
@@ -302,7 +303,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         ref = maxI;
                     }
                 }
-                //const top_db = 80;
                 const amin = 1e-5;
 
                 // Convert amplitudes to decibels
@@ -349,10 +349,13 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 if (freqScale === 'logarithmic') {
                     value = heightScale(scaleFunc.invert(height - y));
                 } else if (freqScale === 'linear') {
-                    value = Math.abs(heightScale(height - y));
+                    value = heightScale(height - y);
                 } else if (freqScale === 'mel') {
-                    value =
-                        scaleFunc(fromMelScale(height)) - scaleFunc(fromMelScale(y));
+                    const scaleFunc = melScale()
+                        .domain([DOMAIN_LOWER_LIMIT, toMelScale(upperLimit)])
+                        .range(range);
+                    heightScale = d3.scaleLinear([0, upperLimit], [0, FFT_SAMPLES / 2]);
+                    value = heightScale(scaleFunc.invert(height - y));
                 }
 
                 const indexA = Math.floor(value);
@@ -456,13 +459,31 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 const coords = d3.pointer(e);
 
                 if (freqScale === 'logarithmic') {
-                    const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+                    const domain = [DOMAIN_LOWER_LIMIT, upperLimit];
                     const range = [0, height];
 
                     const scale = d3.scaleLog(domain, range);
                     const value = scale.invert(height - coords[1]);
                     d3.select(mouseLabel.current)
                         .text(`${freqType(value).toFixed(1)} ${unitType(value)}`)
+                        .attr('x', coords[0])
+                        .attr('y', coords[1])
+                        .attr('font-size', 10)
+                        .attr('fill', theme`colors.white`);
+                } else if (freqScale === 'mel') {
+                    let y = height - coords[1];
+
+                    const domain: [number, number] = [
+                        DOMAIN_LOWER_LIMIT,
+                        toMelScale(upperLimit),
+                    ];
+                    const range: [number, number] = [0, height];
+
+                    const scaleFunc = melScale().domain(domain).range(range);
+                    y = scaleFunc.invert(y);
+
+                    d3.select(mouseLabel.current)
+                        .text(`${freqType(y).toFixed(1)} ${unitType(y)}`)
                         .attr('x', coords[0])
                         .attr('y', coords[1])
                         .attr('font-size', 10)
@@ -526,11 +547,11 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
                 <div ref={wavesurferElement} />
             </div>
+            wiki
             {
                 // Add the menubar as last component, so that it is rendered on top
                 // We don't use a z-index for this, because it interferes with the rendering of the contained menus
             }
-
             <MenuBar
                 availableFreqScales={['linear', 'logarithmic', 'mel']}
                 freqScale={freqScale}
