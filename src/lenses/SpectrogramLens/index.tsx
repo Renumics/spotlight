@@ -10,7 +10,8 @@ import { ColorsState, useColors } from '../../stores/colors';
 import { Lens } from '../../types';
 import useSetting from '../useSetting';
 import MenuBar from './MenuBar';
-import { fixWindow, freqType, unitType, amplitudeToDb, hzToMel } from './Spectrogram';
+import melScale from './MelScale';
+import { fixWindow, freqType, unitType, amplitudeToDb } from './Spectrogram';
 
 const Container = tw.div`flex flex-col w-full h-full items-stretch justify-center`;
 const EmptyNote = styled.p`
@@ -22,7 +23,7 @@ interface WebAudio_ extends WebAudio {
     buffer: AudioBuffer;
 }
 
-const LOG_DOMAIN_LOWER_LIMIT = 10;
+const DOMAIN_LOWER_LIMIT = 10;
 const FFT_SAMPLES = 1024;
 
 /*
@@ -41,6 +42,8 @@ const drawScale = (
         numTicks = Math.round(height / 20);
     } else if (scale === 'linear') {
         numTicks = Math.round(height / 30);
+    } else if (scale === 'mel') {
+        numTicks = Math.round(height / 40);
     } else {
         numTicks = 5;
     }
@@ -48,7 +51,7 @@ const drawScale = (
     let axis;
 
     if (scale === 'logarithmic') {
-        const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+        const domain = [DOMAIN_LOWER_LIMIT, upperLimit];
         const range = [height, 0];
         const scale = d3.scaleLog(domain, range);
 
@@ -60,6 +63,23 @@ const drawScale = (
             .ticks(numTicks, (x: number) => {
                 return `${freqType(x).toFixed(1)} ${unitType(x)}`;
             });
+    } else if (scale === 'mel') {
+        const domain: [number, number] = [DOMAIN_LOWER_LIMIT, upperLimit];
+        const range: [number, number] = [height, 0];
+        const scale = melScale().domain(domain).range(range);
+
+        axis = d3
+            .axisRight(scale)
+            .scale(scale)
+            .tickPadding(1)
+            .tickSizeOuter(0)
+            .ticks(numTicks)
+            .tickFormat(
+                (x: number) =>
+                    `${freqType(scale.fromMelScale(x).valueOf()).toFixed(1)} ${unitType(
+                        scale.fromMelScale(x).valueOf()
+                    )}`
+            );
     } else {
         const domain = [upperLimit, 0];
         const range = [0, height];
@@ -187,14 +207,12 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             const upperLimit = backend.buffer?.sampleRate / 2;
 
             // 10, ..., half-samplerate (default 22050)
-            const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+            const domain = [DOMAIN_LOWER_LIMIT, upperLimit];
 
             // 0, ..., canvas-height
             const range = [0, height];
 
             const imageData = new ImageData(width, height);
-
-            const scaleFunc = d3.scaleLog(domain, range);
 
             // Default to linear scale
             let heightScale = d3.scaleLinear(domain, [0, upperLimit]);
@@ -202,7 +220,9 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             if (freqScale === 'logarithmic') {
                 heightScale = d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1]);
             } else if (freqScale === 'linear') {
-                heightScale = d3.scaleLinear(domain, [0, upperLimit]);
+                heightScale = d3.scaleLinear(range, [0, FFT_SAMPLES / 2]);
+            } else if (freqScale === 'mel') {
+                heightScale = d3.scaleLinear(domain, [0, FFT_SAMPLES / 2 - 1]);
             }
 
             const widthScale = d3.scaleLinear([0, width], [0, frequenciesData.length]);
@@ -221,7 +241,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                         ref = maxI;
                     }
                 }
-                //const top_db = 80;
                 const amin = 1e-5;
 
                 // Convert amplitudes to decibels
@@ -243,24 +262,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
                     drawData[i] = col;
                 }
-            } else if (ampScale === 'mel') {
-                for (let i = 0; i < frequenciesData.length; i++) {
-                    const col = [];
-
-                    for (let j = 0; j < frequenciesData[i].length; j++) {
-                        const amplitude = frequenciesData[i][j];
-                        col[j] = hzToMel(amplitude ** 2);
-
-                        if (col[j] > max) {
-                            max = col[j];
-                        }
-
-                        if (col[j] < min) {
-                            min = col[j];
-                        }
-                    }
-                    drawData[i] = col;
-                }
             } else {
                 // ampScale === 'linear'
                 for (let i = 0; i < frequenciesData.length; i++) {
@@ -278,13 +279,21 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
             }
             const colorScale = colorPalette.scale().domain([min, max]);
 
+            const scaleFunc = d3.scaleLog(domain, range);
+
             for (let y = 0; y < height; y++) {
                 let value = 0;
 
                 if (freqScale === 'logarithmic') {
                     value = heightScale(scaleFunc.invert(height - y));
                 } else if (freqScale === 'linear') {
-                    value = Math.abs(heightScale(height - y));
+                    value = heightScale(height - y);
+                } else if (freqScale === 'mel') {
+                    const scaleFunc = melScale()
+                        .domain([DOMAIN_LOWER_LIMIT, melScale().toMelScale(upperLimit)])
+                        .range(range);
+                    heightScale = d3.scaleLinear([0, upperLimit], [0, FFT_SAMPLES / 2]);
+                    value = heightScale(scaleFunc.invert(height - y));
                 }
 
                 const indexA = Math.floor(value);
@@ -388,13 +397,31 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 const coords = d3.pointer(e);
 
                 if (freqScale === 'logarithmic') {
-                    const domain = [LOG_DOMAIN_LOWER_LIMIT, upperLimit];
+                    const domain = [DOMAIN_LOWER_LIMIT, upperLimit];
                     const range = [0, height];
 
                     const scale = d3.scaleLog(domain, range);
                     const value = scale.invert(height - coords[1]);
                     d3.select(mouseLabel.current)
                         .text(`${freqType(value).toFixed(1)} ${unitType(value)}`)
+                        .attr('x', coords[0])
+                        .attr('y', coords[1])
+                        .attr('font-size', 10)
+                        .attr('fill', theme`colors.white`);
+                } else if (freqScale === 'mel') {
+                    let y = height - coords[1];
+
+                    const domain: [number, number] = [
+                        DOMAIN_LOWER_LIMIT,
+                        melScale().toMelScale(upperLimit),
+                    ];
+                    const range: [number, number] = [0, height];
+
+                    const scaleFunc = melScale().domain(domain).range(range);
+                    y = scaleFunc.invert(y);
+
+                    d3.select(mouseLabel.current)
+                        .text(`${freqType(y).toFixed(1)} ${unitType(y)}`)
                         .attr('x', coords[0])
                         .attr('y', coords[1])
                         .attr('font-size', 10)
@@ -462,12 +489,11 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 // Add the menubar as last component, so that it is rendered on top
                 // We don't use a z-index for this, because it interferes with the rendering of the contained menus
             }
-
             <MenuBar
-                availableFreqScales={['linear', 'logarithmic']}
+                availableFreqScales={['linear', 'logarithmic', 'mel']}
                 freqScale={freqScale}
                 onChangeFreqScale={handleFreqScaleChange}
-                availableAmpScales={['decibel', 'linear', 'mel']}
+                availableAmpScales={['decibel', 'linear']}
                 ampScale={ampScale}
                 onChangeAmpScale={handleAmpScaleChange}
             />
