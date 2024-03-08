@@ -104,27 +104,22 @@ const LensFactory: FunctionComponent<Props> = ({
     if (!isLensCompatible(LensComponent, types, allEditable))
         return <Info>Incompatible View ({view})</Info>;
 
+    if (!LensComponent?.handlesNull && values.every(_.isNull)) return <None />;
+
     const context = { settings, onChangeSettings, sharedState, setSharedState };
-
-    const allValuesAreNull = values.every(_.isNull);
-
     return (
         <LensContext.Provider value={context}>
             <ErrorBoundary fallbackRender={fallbackRenderer}>
-                {allValuesAreNull ? (
-                    <None />
-                ) : (
-                    <LensComponent
-                        url={urls[0]}
-                        urls={urls}
-                        value={values[0]}
-                        values={values}
-                        column={columns[0]}
-                        columns={columns}
-                        rowIndex={rowIndex}
-                        syncKey={syncKey}
-                    />
-                )}
+                <LensComponent
+                    url={urls[0]}
+                    urls={urls}
+                    value={values[0]}
+                    values={values}
+                    column={columns[0]}
+                    columns={columns}
+                    rowIndex={rowIndex}
+                    syncKey={syncKey}
+                />
             </ErrorBoundary>
         </LensContext.Provider>
     );

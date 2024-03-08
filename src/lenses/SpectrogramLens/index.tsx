@@ -547,7 +547,6 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
                 <div ref={wavesurferElement} />
             </div>
-            wiki
             {
                 // Add the menubar as last component, so that it is rendered on top
                 // We don't use a z-index for this, because it interferes with the rendering of the contained menus

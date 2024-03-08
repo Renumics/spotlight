@@ -90,25 +90,24 @@ Reuse the dataset `Viewer`:
     >>> spotlight.close()
 """
 
-from pathlib import Path
 import time
-from typing import Any, Collection, Dict, List, Union, Optional
+from pathlib import Path
+from typing import Any, Collection, Dict, List, Optional, Union
 
+import IPython.display
+import ipywidgets as widgets
 import pandas as pd
 from typing_extensions import Literal
-import ipywidgets as widgets
-import IPython.display
 
 import __main__
-from renumics.spotlight.settings import settings
-from renumics.spotlight.layout import _LayoutLike, parse
-from renumics.spotlight.typing import PathType, is_pathtype
-from renumics.spotlight.webbrowser import launch_browser_in_thread
-from renumics.spotlight.server import Server
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.app_config import AppConfig
-
 from renumics.spotlight.dtypes import create_dtype
+from renumics.spotlight.layout import _LayoutLike, parse
+from renumics.spotlight.server import Server
+from renumics.spotlight.settings import settings
+from renumics.spotlight.typing import PathType, is_pathtype
+from renumics.spotlight.webbrowser import launch_browser_in_thread
 
 
 class ViewerNotFoundError(Exception):
@@ -130,20 +129,31 @@ class Viewer:
 
     _host: str
     _requested_port: Union[int, Literal["auto"]]
+    _ssl_keyfile: Optional[str]
+    _ssl_certfile: Optional[str]
+    _ssl_keyfile_password: Optional[str]
     _server: Optional[Server]
+    _df: Optional[pd.DataFrame]
 
     def __init__(
         self,
         host: str = "127.0.0.1",
         port: Union[int, Literal["auto"]] = "auto",
+        ssl_keyfile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
+        ssl_keyfile_password: Optional[str] = None,
     ) -> None:
         self._host = host
         self._requested_port = port
+        self._ssl_keyfile = ssl_keyfile
+        self._ssl_certfile = ssl_certfile
+        self._ssl_keyfile_password = ssl_keyfile_password
         self._server = None
+        self._df = None
 
     def show(
         self,
-        dataset: Union[PathType, pd.DataFrame, None],
+        dataset: Union[PathType, pd.DataFrame, None] = None,
         folder: Optional[PathType] = None,
         layout: Optional[_LayoutLike] = None,
         no_browser: bool = False,
@@ -178,6 +188,7 @@ class Viewer:
                 embedders (disabled by default).
         """
 
+        self._df = None
         if is_pathtype(dataset):
             dataset = Path(dataset).absolute()
             if dataset.is_dir():
@@ -216,7 +227,13 @@ class Viewer:
 
         if not self._server:
             port = 0 if self._requested_port == "auto" else self._requested_port
-            self._server = Server(host=self._host, port=port)
+            self._server = Server(
+                self._host,
+                port,
+                self._ssl_keyfile,
+                self._ssl_certfile,
+                self._ssl_keyfile_password,
+            )
             self._server.start(config)
 
             if self not in _VIEWERS:
@@ -260,6 +277,7 @@ class Viewer:
             else:
                 self._server.wait_for_frontend_disconnect()
 
+        self._df = self._server.get_df()
         _VIEWERS.remove(self)
         self._server.stop()
         self._server = None
@@ -270,7 +288,11 @@ class Viewer:
         """
         if not self.port:
             return
-        launch_browser_in_thread("localhost", self.port)
+        if self._ssl_certfile is not None:
+            protocol = "https"
+        else:
+            protocol = "http"
+        launch_browser_in_thread(f"{protocol}://{self.host}:{self.port}/")
 
     def refresh(self) -> None:
         """
@@ -293,8 +315,7 @@ class Viewer:
         """
         if self._server:
             return self._server.get_df()
-
-        return None
+        return self._df
 
     @property
     def host(self) -> str:
@@ -317,7 +338,11 @@ class Viewer:
         """
         The viewer's url.
         """
-        return f"http://{self.host}:{self.port}/"
+        if self._ssl_certfile is not None:
+            protocol = "https"
+        else:
+            protocol = "http"
+        return f"{protocol}://{self.host}:{self.port}/"
 
     def __repr__(self) -> str:
         return self.url
@@ -378,6 +403,9 @@ def show(
     analyze: Optional[Union[bool, List[str]]] = None,
     issues: Optional[Collection[DataIssue]] = None,
     embed: Optional[Union[List[str], bool]] = None,
+    ssl_keyfile: Optional[str] = None,
+    ssl_certfile: Optional[str] = None,
+    ssl_keyfile_password: Optional[str] = None,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
@@ -404,6 +432,9 @@ def show(
         issues: Custom dataset issues displayed in the viewer.
         embed: Automatically embed all or given columns with default
             embedders (disabled by default).
+        ssl_keyfile: Optional SSL key file.
+        ssl_certfile: Optional SSL certificate file.
+        ssl_certfile: Optional SSL keyfile password.
     """
 
     viewer = None
@@ -414,7 +445,7 @@ def show(
                 viewer = _VIEWERS[index]
                 break
     if not viewer:
-        viewer = Viewer(host, port)
+        viewer = Viewer(host, port, ssl_keyfile, ssl_certfile, ssl_keyfile_password)
 
     viewer.show(
         dataset,

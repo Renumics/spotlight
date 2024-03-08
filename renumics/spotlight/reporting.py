@@ -7,16 +7,19 @@ import platform
 import sys
 import threading
 import time
+import traceback
 from functools import wraps
 from os import environ
+from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Union
 from uuid import uuid4
-import machineid
 
+import machineid
 import requests
 from loguru import logger
 
 from renumics.spotlight import __version__
+from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.settings import settings
 
@@ -58,9 +61,8 @@ def skip_analytics() -> bool:
 def _get_python_runtime() -> str:
     # try to determine what python runtime we are running in
     # plain python, ipython, ipython in colab, ipython in kaggle
+    python_runtime = "python"
     try:
-        python_runtime = "python"
-
         try:
             ipython_kernel = get_ipython()  # type:ignore
             python_runtime = "ipython"
@@ -171,14 +173,40 @@ def emit_exit_event() -> None:
     report_event({"type": "spotlight_exit"})
 
 
-def emit_exception_event() -> None:
+def _sanitize_traceback_exception(exc: traceback.TracebackException) -> None:
+    spotlight_basepath = Path(__file__).parent.parent.absolute()
+    spotlight_frames: list = []
+    for frame in exc.stack:
+        filename = Path(frame.filename)
+        try:
+            frame.filename = str(filename.relative_to(spotlight_basepath))
+        except ValueError:
+            pass
+        else:
+            spotlight_frames.append(frame)
+    exc.stack = traceback.StackSummary.from_list(spotlight_frames)
+    if exc.__cause__ is not None:
+        _sanitize_traceback_exception(exc.__cause__)
+    if exc.__context__ is not None:
+        _sanitize_traceback_exception(exc.__context__)
+
+
+def emit_exception_event(
+    path: Optional[str] = None, datasource: Optional[DataSource] = None
+) -> None:
     """
     Emit an exception event.
     """
-    ex_type, ex_value, _ = sys.exc_info()
-    detail = str(ex_value)
-    if ex_type is not None:
-        detail = f"{ex_type.__name__}: {ex_value}"
+    _, exc, _ = sys.exc_info()
+    if exc is None:
+        return
+    traceback_exc = traceback.TracebackException.from_exception(exc)
+    _sanitize_traceback_exception(traceback_exc)
+
+    detail = f"Path: {path}\nDatasource: {type(datasource).__name__}\n" + "\n".join(
+        traceback_exc.format()
+    )
+
     report_event(
         {
             "type": "spotlight_exception",

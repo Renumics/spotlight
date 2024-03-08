@@ -8,21 +8,22 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
 
-from pydantic import ValidationError
-
 import requests
+import validators
+from pydantic import ValidationError
 from typing_extensions import Literal
 
-import validators
-
 from renumics.spotlight.backend.exceptions import InvalidLayout
+
+from .lenses import Lens
 from .nodes import (
     Layout,
-    Orientation as _Orientation,
     Split,
     Tab,
 )
-from .lenses import Lens
+from .nodes import (
+    Orientation as _Orientation,
+)
 from .widgets import (
     ConfusionMatrix,
     ConfusionMatrixConfig,
@@ -33,23 +34,36 @@ from .widgets import (
     Issues,
     MetricWidget,
     MetricWidgetConfig,
-    NumInspectorColumns as _NumInspectorColumns,
-    PCANormalization as _PCANormalization,
-    ReductionMethod as _ReductionMethod,
     Scatterplot,
     ScatterplotConfig,
     Similaritymap,
     SimilaritymapConfig,
     Table,
     TableConfig,
-    TableView as _TableView,
-    UmapMetric as _UmapMetric,
-    Widget as _Widget,
     WordCloud,
     WordCloudConfig,
+)
+from .widgets import (
+    NumInspectorColumns as _NumInspectorColumns,
+)
+from .widgets import (
+    PCANormalization as _PCANormalization,
+)
+from .widgets import (
+    ReductionMethod as _ReductionMethod,
+)
+from .widgets import (
+    TableView as _TableView,
+)
+from .widgets import (
+    UmapMetric as _UmapMetric,
+)
+from .widgets import (
+    Widget as _Widget,
+)
+from .widgets import (
     WordCloudScaling as _WordCloudScaling,
 )
-
 
 __all__ = [
     "layout",
@@ -274,8 +288,7 @@ def similaritymap(
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
     filter: bool = False,
-) -> Similaritymap:
-    ...
+) -> Similaritymap: ...
 
 
 @overload
@@ -289,8 +302,7 @@ def similaritymap(
     *,
     umap_metric: Optional[_UmapMetric] = None,
     umap_balance: Optional[_UmapBalance] = None,
-) -> Similaritymap:
-    ...
+) -> Similaritymap: ...
 
 
 @overload
@@ -303,8 +315,7 @@ def similaritymap(
     filter: bool = False,
     *,
     pca_normalization: Optional[_PCANormalization] = None,
-) -> Similaritymap:
-    ...
+) -> Similaritymap: ...
 
 
 def similaritymap(
@@ -374,12 +385,14 @@ def table(
         config=TableConfig(
             active_view=_TABLE_TAB_TO_TABLE_VIEW[active_view],
             visible_columns=visible_columns,
-            sort_by_columns=None
-            if sort_by_columns is None
-            else [
-                [column, _SORT_ORDER_MAPPING[order]]
-                for column, order in sort_by_columns
-            ],
+            sort_by_columns=(
+                None
+                if sort_by_columns is None
+                else [
+                    [column, _SORT_ORDER_MAPPING[order]]
+                    for column, order in sort_by_columns
+                ]
+            ),
             order_by_relevance=order_by_relevance,
         ),
     )

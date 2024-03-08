@@ -5,17 +5,17 @@
 import importlib
 import pkgutil
 from dataclasses import dataclass
-from types import ModuleType
 from pathlib import Path
+from types import ModuleType
 from typing import Any, Callable, List, Optional
+
 from fastapi import FastAPI
 
-from renumics.spotlight.settings import settings
+import renumics.spotlight_plugins as plugins_namespace
+from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.io.path import is_path_relative_to
-from renumics.spotlight.app_config import AppConfig
-
-import renumics.spotlight_plugins as plugins_namespace
+from renumics.spotlight.settings import settings
 
 
 @dataclass

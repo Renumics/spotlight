@@ -7,6 +7,7 @@ import tempfile
 from typing import Iterator
 
 import pytest
+
 from renumics import spotlight
 
 from .data import COLUMNS

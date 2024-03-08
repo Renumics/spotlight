@@ -3,8 +3,8 @@ from typing import Iterable, List, Optional
 import numpy as np
 import transformers
 
-from renumics.spotlight.logging import logger
 from renumics.spotlight.embeddings.decorator import embed
+from renumics.spotlight.logging import logger
 
 try:
     import torch

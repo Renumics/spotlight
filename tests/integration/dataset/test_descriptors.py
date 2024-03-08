@@ -3,8 +3,7 @@ Test `renumics.spotlight.descriptors` module.
 """
 
 from renumics.spotlight import Dataset
-from renumics.spotlight.dataset.descriptors import pca
-from renumics.spotlight.dataset.descriptors import catch22
+from renumics.spotlight.dataset.descriptors import catch22, pca
 
 
 class TestPCA:

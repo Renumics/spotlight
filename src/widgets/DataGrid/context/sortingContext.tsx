@@ -85,8 +85,8 @@ export const SortingProvider: FunctionComponent<
         tableView === 'filtered'
             ? filteredIndices
             : tableView === 'selected'
-            ? selectedIndices
-            : allIndices;
+              ? selectedIndices
+              : allIndices;
 
     const sortedIndices = useMemo(
         () => sortIndices(data, indices, sorting),

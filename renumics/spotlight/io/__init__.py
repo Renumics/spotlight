@@ -1,6 +1,7 @@
 """
 Reading and writing of different data formats.
 """
+
 import ast
 from contextlib import suppress
 from typing import Any
@@ -9,8 +10,8 @@ from .audio import (
     get_format_codec,
     get_waveform,
     read_audio,
-    write_audio,
     transcode_audio,
+    write_audio,
 )
 from .gltf import (
     GLTF_DTYPES,
@@ -23,7 +24,6 @@ from .gltf import (
     encode_gltf_array,
 )
 from .huggingface import prepare_hugging_face_dict
-
 
 __all__ = [
     "get_format_codec",

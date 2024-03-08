@@ -6,7 +6,7 @@ interface BBoxProps {
     y: number;
     width: number;
     height: number;
-    color: string;
+    color: chroma.Color;
     label: string;
 }
 
@@ -17,6 +17,9 @@ const BBox = ({ x, y, width, height, color, label }: BBoxProps) => {
     const textColor =
         chroma.contrast(color, WHITE) > chroma.contrast(color, BLACK) ? WHITE : BLACK;
 
+    const colorCss = color.css();
+    const textColorCss = textColor.css();
+
     return (
         <g>
             <rect
@@ -25,21 +28,31 @@ const BBox = ({ x, y, width, height, color, label }: BBoxProps) => {
                 width={width}
                 height={height}
                 fill="none"
-                stroke={color}
+                stroke={colorCss}
                 strokeWidth={2}
             ></rect>
-            <rect
-                x={x}
-                y={y - 11}
-                width={width}
-                height={12}
-                fill={color}
-                stroke={color}
-                strokeWidth={2}
-            ></rect>
-            <text x={x} y={y} fontSize={12} stroke={textColor.hex()}>
-                {label}
-            </text>
+            {label && (
+                <>
+                    <rect
+                        x={x}
+                        y={y - 11}
+                        width={width}
+                        height={12}
+                        fill={colorCss}
+                        stroke={colorCss}
+                        strokeWidth={2}
+                    ></rect>
+                    <text
+                        x={x}
+                        y={y}
+                        fontSize={12}
+                        fontWeight="bold"
+                        fill={textColorCss}
+                    >
+                        {label}
+                    </text>
+                </>
+            )}
         </g>
     );
 };

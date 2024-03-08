@@ -139,10 +139,23 @@ export const createColorTransferFunction = (
     }
 
     if (dtype.kind === 'Category' && !continuousCategories) {
-        return createCategoricalTransferFunction(_.uniq(data), dtype);
+        return createCategoricalTransferFunction(
+            Object.values(dtype.categories),
+            dtype
+        );
     }
 
-    if (['int', 'float', 'Category'].includes(dtype.kind)) {
+    if (dtype.kind === 'Category' && continuousCategories) {
+        const stats = makeStats(dtype, Object.values(dtype.categories));
+        return createContinuousTransferFunction(
+            (robust ? stats?.p5 : stats?.min) ?? 0,
+            (robust ? stats?.p95 : stats?.max) ?? 1,
+            dtype,
+            classBreaks
+        );
+    }
+
+    if (['int', 'float'].includes(dtype.kind)) {
         const stats = makeStats(dtype, data);
         return createContinuousTransferFunction(
             (robust ? stats?.p5 : stats?.min) ?? 0,

@@ -60,7 +60,7 @@ export const DataIssueSeverityEnum = {
     High: 'high',
 } as const;
 export type DataIssueSeverityEnum =
-    typeof DataIssueSeverityEnum[keyof typeof DataIssueSeverityEnum];
+    (typeof DataIssueSeverityEnum)[keyof typeof DataIssueSeverityEnum];
 
 /**
  * Check if a given object implements the DataIssue interface.

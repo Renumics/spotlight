@@ -1,6 +1,7 @@
 """
 table api endpoints
 """
+
 from pathlib import Path
 from typing import Any, List, Optional
 
@@ -8,13 +9,14 @@ from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
 from pydantic import BaseModel
 
+from renumics.spotlight.app import SpotlightApp
+from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.backend.exceptions import (
     ComputedColumnNotReady,
     FilebrowsingNotAllowed,
     InvalidPath,
+    Problem,
 )
-from renumics.spotlight.app import SpotlightApp
-from renumics.spotlight.app_config import AppConfig
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
 
@@ -49,6 +51,16 @@ class Table(BaseModel):
 router = APIRouter()
 
 
+class NoDataSource(Problem):
+    def __init__(self, filebrowsing_allowed: bool):
+        if filebrowsing_allowed:
+            text = "No dataset provided. Please select a dataset with `.show(dataset)` or with the filebrowser."
+        else:
+            text = "No dataset provided. Please select a dataset with `.show(dataset)`."
+
+        super().__init__("No Dataset", text, 404)
+
+
 @router.get(
     "/",
     response_model=Table,
@@ -64,14 +76,7 @@ def get_table(request: Request) -> ORJSONResponse:
     app: SpotlightApp = request.app
     data_store = app.data_store
     if data_store is None:
-        return ORJSONResponse(
-            Table(
-                uid="",
-                filename="",
-                columns=[],
-                generation_id=-1,
-            ).model_dump()
-        )
+        raise NoDataSource(app.filebrowsing_allowed)
 
     columns = []
     for column_name in data_store.column_names:

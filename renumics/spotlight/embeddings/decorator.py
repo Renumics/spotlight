@@ -3,10 +3,11 @@ A decorator for data analysis functions
 """
 
 import functools
-from typing import Callable, Dict, Literal, Optional, Any, Union, overload
+from typing import Any, Callable, Dict, Literal, Optional, Union, overload
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.media import Audio, Embedding, Image, Sequence1D
+
 from .preprocessors import (
     preprocess_audio_batch,
     preprocess_batch,
@@ -19,8 +20,7 @@ from .typing import EmbedArrayFunc, EmbedFunc, EmbedImageFunc, FunctionalEmbedde
 @overload
 def embed(
     dtype: Union[Literal["image", "Image"], Image], *, name: Optional[str] = None
-) -> Callable[[EmbedImageFunc], EmbedImageFunc]:
-    ...
+) -> Callable[[EmbedImageFunc], EmbedImageFunc]: ...
 
 
 @overload
@@ -29,8 +29,7 @@ def embed(
     *,
     name: Optional[str] = None,
     sampling_rate: int,
-) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]:
-    ...
+) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]: ...
 
 
 @overload
@@ -42,15 +41,13 @@ def embed(
     ],
     *,
     name: Optional[str] = None,
-) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]:
-    ...
+) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]: ...
 
 
 @overload
 def embed(
     dtype: Any, *, name: Optional[str] = None, sampling_rate: Optional[int] = None
-) -> Callable[[EmbedFunc], EmbedFunc]:
-    ...
+) -> Callable[[EmbedFunc], EmbedFunc]: ...
 
 
 def embed(

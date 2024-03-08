@@ -76,10 +76,10 @@ const Brush = ({ hidden, onSelect }: Props): JSX.Element => {
                 sourceEvent.ctrlKey && sourceEvent.shiftKey
                     ? 'intersect'
                     : sourceEvent.ctrlKey
-                    ? 'difference'
-                    : sourceEvent.shiftKey
-                    ? 'union'
-                    : 'replace';
+                      ? 'difference'
+                      : sourceEvent.shiftKey
+                        ? 'union'
+                        : 'replace';
 
             brushGroup.call(brush.move, null);
             onSelect(selectedIndices, mergeMode);

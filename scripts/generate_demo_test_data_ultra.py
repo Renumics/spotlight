@@ -5,16 +5,14 @@ generate spotlight test dataset with 50k rows
 """
 
 import os
-
 from pathlib import Path
+
 import click
-
-from tqdm import tqdm
 import numpy as np
-from sklearn import datasets
 import sklearn.utils
+from sklearn import datasets
 from sklearn.decomposition import PCA
-
+from tqdm import tqdm
 
 from renumics.spotlight import Dataset, Embedding
 

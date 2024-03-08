@@ -1,7 +1,7 @@
 from typing import Iterable, List, Optional
 
-import PIL.Image
 import numpy as np
+import PIL.Image
 import transformers
 
 from renumics.spotlight.embeddings.decorator import embed

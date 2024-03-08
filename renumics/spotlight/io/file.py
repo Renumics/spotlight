@@ -10,9 +10,9 @@ from typing import IO, Iterator
 import requests
 import validators
 
+from renumics.spotlight.media import exceptions
 from renumics.spotlight.requests import headers
 from renumics.spotlight.typing import FileType
-from renumics.spotlight.media import exceptions
 
 
 @contextlib.contextmanager

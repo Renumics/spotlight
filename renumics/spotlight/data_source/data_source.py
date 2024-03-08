@@ -2,17 +2,16 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional, List, Any, Union
+from typing import Any, Iterable, List, Optional, Union
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
+from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
 from renumics.spotlight.dataset.exceptions import (
     ColumnExistsError,
     ColumnNotExistsError,
 )
-from renumics.spotlight.backend.exceptions import GenerationIDMismatch, NoRowFound
-
 from renumics.spotlight.dtypes import DTypeMap
 
 

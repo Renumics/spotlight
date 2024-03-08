@@ -1,31 +1,36 @@
 import datetime
 import hashlib
 import io
+import itertools
 import os
 import statistics
 from typing import Any, Dict, Iterable, List, Optional, Set, Union, cast
 
-import numpy as np
 import filetype
+import numpy as np
+import PIL.Image
 import requests
 import trimesh
-import PIL.Image
 import validators
 
 import renumics.spotlight.dtypes as spotlight_dtypes
+from renumics.spotlight.backend.exceptions import ComputedColumnNotReady
 from renumics.spotlight.cache import external_data_cache
 from renumics.spotlight.data_source import DataSource
-from renumics.spotlight.dtypes.conversion import ConvertedValue, convert_to_dtype
 from renumics.spotlight.data_source.data_source import ColumnMetadata
+from renumics.spotlight.dtypes.conversion import (
+    ConvertedValue,
+    NormalizedValue,
+    convert_to_dtype,
+)
 from renumics.spotlight.io import audio
-from renumics.spotlight.typing import is_iterable, is_pathtype
-from renumics.spotlight.media.mesh import Mesh
-from renumics.spotlight.media.video import Video
 from renumics.spotlight.media.audio import Audio
-from renumics.spotlight.media.image import Image
-from renumics.spotlight.media.sequence_1d import Sequence1D
 from renumics.spotlight.media.embedding import Embedding
-from renumics.spotlight.backend.exceptions import ComputedColumnNotReady
+from renumics.spotlight.media.image import Image
+from renumics.spotlight.media.mesh import Mesh
+from renumics.spotlight.media.sequence_1d import Sequence1D
+from renumics.spotlight.media.video import Video
+from renumics.spotlight.typing import is_iterable, is_pathtype
 
 
 class DataStore:
@@ -106,7 +111,12 @@ class DataStore:
                 tags=[],
                 computed=True,
             )
-        return self._data_source.get_column_metadata(column_name)
+        metadata = self._data_source.get_column_metadata(column_name)
+        if spotlight_dtypes.is_unknown_dtype(
+            self._data_source.intermediate_dtypes[column_name]
+        ):
+            metadata.editable = False
+        return metadata
 
     def get_converted_values(
         self,
@@ -178,20 +188,13 @@ class DataStore:
 
         # determine categories for _automatic_ CategoryDtypes
         for column_name, dtype in dtypes.items():
-            if (
-                spotlight_dtypes.is_category_dtype(dtype)
-                and dtype.categories is None
-                and spotlight_dtypes.is_str_dtype(guessed_dtypes[column_name])
-            ):
-                normalized_values = self._data_source.get_column_values(column_name)
-                converted_values = [
-                    convert_to_dtype(
-                        value, spotlight_dtypes.str_dtype, simple=True, check=True
-                    )
-                    for value in normalized_values
-                ]
-                category_names = sorted(cast(Set[str], set(converted_values)))
-                dtypes[column_name] = spotlight_dtypes.CategoryDType(category_names)
+
+            def values() -> Iterable[NormalizedValue]:
+                yield from self._data_source.get_column_values(column_name)
+
+            dtypes[column_name] = self._refine_dtype(
+                values(), guessed_dtypes[column_name], dtype
+            )
 
         self._dtypes = dtypes
 
@@ -205,6 +208,43 @@ class DataStore:
         sample_values = self._data_source.get_column_values(col, slice(10))
         sample_dtype = _guess_dtype_from_values(sample_values)
         return sample_dtype or spotlight_dtypes.str_dtype
+
+    def _refine_dtype(
+        self,
+        values: Iterable[NormalizedValue],
+        guessed_dtype: spotlight_dtypes.DType,
+        user_dtype: spotlight_dtypes.DType,
+    ) -> spotlight_dtypes.DType:
+        if (
+            spotlight_dtypes.is_category_dtype(user_dtype)
+            and user_dtype.categories is None
+            and spotlight_dtypes.is_str_dtype(guessed_dtype)
+        ):
+            converted_values = [
+                convert_to_dtype(
+                    value, spotlight_dtypes.str_dtype, simple=True, check=True
+                )
+                for value in values
+            ]
+            category_names = sorted(cast(Set[str], set(converted_values)))
+            return spotlight_dtypes.CategoryDType(category_names)
+        if spotlight_dtypes.is_sequence_dtype(
+            user_dtype
+        ) and spotlight_dtypes.is_sequence_dtype(guessed_dtype):
+            length = user_dtype.length
+            if length is None:
+                length = guessed_dtype.length
+            return spotlight_dtypes.SequenceDType(
+                self._refine_dtype(
+                    itertools.chain.from_iterable(
+                        cast(Iterable[Iterable[NormalizedValue]], values)
+                    ),
+                    guessed_dtype.dtype,
+                    user_dtype.dtype,
+                ),
+                length,
+            )
+        return user_dtype
 
 
 def _guess_dtype_from_values(values: Iterable) -> Optional[spotlight_dtypes.DType]:

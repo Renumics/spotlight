@@ -1,10 +1,12 @@
 """
 Test various supported data formats
 """
+
 import sys
 from pathlib import Path
 
 import pytest
+
 from renumics import spotlight
 
 

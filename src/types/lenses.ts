@@ -30,6 +30,7 @@ interface LensAttributes {
         selectedColumns: DataColumn[]
     ) => DataColumn[];
     isSatisfied?: (columns: DataColumn[]) => boolean;
+    handlesNull?: boolean;
 }
 
 export type Lens<T = unknown> = React.FunctionComponent<LensProps<T>> & LensAttributes;

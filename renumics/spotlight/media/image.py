@@ -5,12 +5,11 @@ import imageio.v3 as iio
 import numpy as np
 from loguru import logger
 
+from renumics.spotlight.media.base import FileMediaType, ImageLike
 from renumics.spotlight.typing import FileType
 
-from renumics.spotlight.media.base import FileMediaType, ImageLike
-
-from . import exceptions
 from ..io import file as file_io
+from . import exceptions
 
 
 class Image(FileMediaType):

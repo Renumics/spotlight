@@ -1,6 +1,7 @@
 """
 Test `spotlight.Dataset.prune` method.
 """
+
 import os.path
 from pathlib import Path
 from typing import List
@@ -8,6 +9,7 @@ from typing import List
 import numpy as np
 
 from renumics import spotlight
+
 from .conftest import ColumnData
 
 

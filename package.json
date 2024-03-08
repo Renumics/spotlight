@@ -36,6 +36,7 @@
         "@tippyjs/react": "^4.2.6",
         "@types/dompurify": "^3.0.2",
         "@uiw/react-json-view": "2.0.0-alpha.7",
+        "bleu-score": "^1.0.4",
         "chroma-js": "^2.4.2",
         "comlink": "^4.4.1",
         "cropperjs": "^1.5.13",
@@ -91,8 +92,7 @@
         "unique-names-generator": "^4.7.1",
         "uuid": "^9.0.0",
         "wavesurfer.js": "^6.4.0",
-        "zustand": "^4.3.3",
-        "bleu-score": "^1.0.4"
+        "zustand": "^4.3.3"
     },
     "devDependencies": {
         "@openapitools/openapi-generator-cli": "^2.7.0",
@@ -132,12 +132,12 @@
         "eslint-plugin-react-hooks": "^4.6.0",
         "jest": "^29.4.3",
         "node-fetch": "^2.6.9",
-        "prettier": "^2.7.1",
+        "prettier": "^3.2.5",
         "tailwindcss": "^3.3.1",
         "ts-jest": "^29.0.5",
         "twin.macro": "^3.3.0",
         "typescript": "^5.1.6",
-        "vite": "^4.4.9",
+        "vite": "^4.4.12",
         "vite-plugin-dts": "^3.5.2",
         "vite-plugin-node-polyfills": "^0.14.0"
     },
@@ -216,5 +216,12 @@
             ".jsx",
             ".tsx"
         ]
+    },
+    "pnpm": {
+        "auditConfig": {
+            "ignoreCves": [
+                "CVE-2020-8203"
+            ]
+        }
     }
 }

@@ -97,7 +97,7 @@ export const ColumnProvider: FunctionComponent<
 
 export const useOrderColumnsByRelevance = (): [
     ColumnContextState['areOrderedByRelevance'],
-    ColumnContextState['setAreOrderedByRelevance']
+    ColumnContextState['setAreOrderedByRelevance'],
 ] => {
     const { areOrderedByRelevance, setAreOrderedByRelevance } =
         useContext(ColumnContext);
@@ -108,7 +108,7 @@ export const useVisibleColumns = (): [
     ColumnContextState['columns'],
     ColumnContextState['setColumnKeys'],
     ColumnContextState['hideColumn'],
-    ColumnContextState['resetColumns']
+    ColumnContextState['resetColumns'],
 ] => {
     const { setColumnKeys, columns, hideColumn, resetColumns } =
         useContext(ColumnContext);

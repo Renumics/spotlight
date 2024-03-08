@@ -3,27 +3,37 @@ Spotlight wsgi application
 """
 
 import asyncio
-import time
-import os
-from pathlib import Path
-from concurrent.futures import CancelledError, Future
-import re
-from threading import Thread
+import mimetypes
 import multiprocessing.connection
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+import os
+import re
+import time
 import uuid
+from concurrent.futures import CancelledError, Future
+from pathlib import Path
+from threading import Thread
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 
-from typing_extensions import Annotated
+import pandas as pd
 from fastapi import Cookie, FastAPI, Request, status
 from fastapi.datastructures import Headers
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import pandas as pd
+from httpx import URL, AsyncClient
+from typing_extensions import Annotated
 
-from httpx import AsyncClient, URL
-
+from renumics.spotlight import dtypes as spotlight_dtypes
+from renumics.spotlight import layouts
+from renumics.spotlight.analysis import find_issues
+from renumics.spotlight.analysis.typing import DataIssue
+from renumics.spotlight.app_config import AppConfig
+from renumics.spotlight.backend.apis import plugins as plugin_api
+from renumics.spotlight.backend.apis import websocket
+from renumics.spotlight.backend.config import Config
+from renumics.spotlight.backend.exceptions import Problem
+from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
     Message,
@@ -31,32 +41,28 @@ from renumics.spotlight.backend.websockets import (
     ResetLayoutMessage,
     WebsocketManager,
 )
+from renumics.spotlight.data_source import DataSource, create_datasource
+from renumics.spotlight.data_store import DataStore
+from renumics.spotlight.develop.project import get_project_info
 from renumics.spotlight.embeddings import create_embedders, run_embedders
 from renumics.spotlight.layout.nodes import Layout
-from renumics.spotlight.backend.config import Config
-from renumics.spotlight.typing import PathType
-from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.logging import logger
-from renumics.spotlight.backend.apis import plugins as plugin_api
-from renumics.spotlight.backend.apis import websocket
-from renumics.spotlight.settings import settings
-from renumics.spotlight.analysis import find_issues
+from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.reporting import (
     emit_exception_event,
     emit_exit_event,
     emit_startup_event,
 )
-from renumics.spotlight.backend.exceptions import Problem
-from renumics.spotlight.plugin_loader import load_plugins
-from renumics.spotlight.develop.project import get_project_info
-from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
-from renumics.spotlight.app_config import AppConfig
-from renumics.spotlight.data_source import DataSource, create_datasource
-from renumics.spotlight import layouts
-from renumics.spotlight.data_store import DataStore
-from renumics.spotlight import dtypes as spotlight_dtypes
+from renumics.spotlight.settings import settings
+from renumics.spotlight.typing import PathType
 
 CURRENT_LAYOUT_KEY = "layout.current"
+
+
+# explicitly set mimetypes for broken python setups
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
 
 
 class UncachedStaticFiles(StaticFiles):
@@ -199,12 +205,12 @@ class SpotlightApp(FastAPI):
         self.include_router(plugin_api.router, prefix="/api/plugins")
 
         @self.exception_handler(Exception)
-        async def _(_: Request, e: Exception) -> JSONResponse:
+        async def _(request: Request, e: Exception) -> JSONResponse:
             if settings.verbose:
                 logger.exception(e)
             else:
                 logger.info(e)
-            emit_exception_event()
+            emit_exception_event(request.url.path, self._data_source)
             class_name = type(e).__name__
             title = re.sub(r"([a-z])([A-Z])", r"\1 \2", class_name)
             return JSONResponse(
@@ -213,11 +219,12 @@ class SpotlightApp(FastAPI):
             )
 
         @self.exception_handler(Problem)
-        async def _(_: Request, problem: Problem) -> JSONResponse:
+        async def _(request: Request, problem: Problem) -> JSONResponse:
             if settings.verbose:
                 logger.exception(problem)
             else:
                 logger.info(problem)
+            emit_exception_event(request.url.path, self._data_source)
             return JSONResponse(
                 {
                     "title": problem.title,
@@ -343,12 +350,11 @@ class SpotlightApp(FastAPI):
                 self.filebrowsing_allowed = config.filebrowsing_allowed
 
             if config.dtypes is not None or config.dataset is not None:
-                data_source = self._data_source
-                assert data_source is not None
-                self._data_store = DataStore(data_source, self._user_dtypes)
-                self._broadcast(RefreshMessage())
-                self._update_issues()
-                self._update_embeddings()
+                if self._data_source is not None:
+                    self._data_store = DataStore(self._data_source, self._user_dtypes)
+                    self._broadcast(RefreshMessage())
+                    self._update_issues()
+                    self._update_embeddings()
             if config.layout is not None:
                 if self._data_store is not None:
                     dataset_uid = self._data_store.uid

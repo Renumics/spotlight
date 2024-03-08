@@ -267,7 +267,7 @@ function useHistogram(xColumnKey?: string, yColumnKey?: string): HistogramData {
                     yBin: number;
                     xKey: BinKey;
                     xBin: number;
-                })[][]
+                })[][],
             ] => {
                 // generate a map [xBinIndex][yBinIndex] => [...rowIdxInBin]
                 const binToRowIndexMap = d3.rollup(

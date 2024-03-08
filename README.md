@@ -150,7 +150,7 @@ We have added crash report and performance collection. We do NOT collect user da
 ## Learn more about unstructured data workflows
 
 -   🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets
--   🏀 [Playbook](https://renumics.com/docs/playbook/) for data-centric AI workflows
+-   🏀 [Playbook](https://renumics.com/docs/data-centric-ai/playbook) for data-centric AI workflows
 -   🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
 
 ## Contribute

@@ -6,9 +6,9 @@ intern format to a common format.
 import io
 from typing import List
 
-import PIL.Image
 import av
 import numpy as np
+import PIL.Image
 
 
 def preprocess_batch(raw_values: list) -> list:

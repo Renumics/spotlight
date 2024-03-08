@@ -4,11 +4,11 @@ Viewers (lenses) for Spotlight inspector widget.
 For usage examples, see `renumics.spotlight.layout.inspector`.
 """
 
-from typing_extensions import Literal
 import uuid
 from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
+from typing_extensions import Literal
 
 
 class Lens(BaseModel, populate_by_name=True):
@@ -175,6 +175,25 @@ def image(column: str, name: Optional[str] = None) -> Lens:
     Supports a single column of type `spotlight.Image`.
     """
     return Lens(type="ImageView", columns=[column], name=name)
+
+
+def bounding_box(
+    image_column: str,
+    bounding_box_column: str,
+    category_column: Optional[str] = None,
+    name: Optional[str] = None,
+) -> Lens:
+    """
+    Add bounding box viewer to Spotlight inspector widget.
+
+    Supports a single column of type image, a second column of type bounding box
+    or sequence of bounding boxes and a third optional column of type category
+    or sequence of categories (according to bounding box column).
+    """
+    columns = [image_column, bounding_box_column]
+    if category_column is not None:
+        columns.append(category_column)
+    return Lens(type="BoundingBoxView", columns=columns, name=name)
 
 
 def video(column: str, name: Optional[str] = None) -> Lens:

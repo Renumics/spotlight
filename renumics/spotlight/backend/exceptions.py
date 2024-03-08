@@ -3,11 +3,11 @@ Exceptions to be raised from backend.
 """
 
 from typing import Any, Optional
+
 from fastapi import status
 
-from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
-
 from renumics.spotlight.dtypes import DType
+from renumics.spotlight.typing import IndexType, PathOrUrlType, PathType
 
 
 class Problem(Exception):
@@ -135,17 +135,6 @@ class ConversionFailed(Problem):
             "Type conversion failed",
             f"Value of type {type(value)} cannot be converted to type {dtype}.",
             status.HTTP_422_UNPROCESSABLE_ENTITY,
-        )
-
-
-class DatasetColumnsNotUnique(Problem):
-    """Dataset's columns are not unique"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Dataset columns not unique",
-            "Dataset's columns are not unique.",
-            status.HTTP_403_FORBIDDEN,
         )
 
 

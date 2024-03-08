@@ -8,9 +8,9 @@ export const umapMetricNames = [
     'cosine',
     'mahalanobis',
 ] as const;
-export type UmapMetric = typeof umapMetricNames[number];
+export type UmapMetric = (typeof umapMetricNames)[number];
 export const pcaNormalizations = ['none', 'standardize', 'robust standardize'] as const;
-export type PCANormalization = typeof pcaNormalizations[number];
+export type PCANormalization = (typeof pcaNormalizations)[number];
 
 interface ReductionResult {
     points: [number, number][];

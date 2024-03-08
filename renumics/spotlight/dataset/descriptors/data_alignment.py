@@ -6,7 +6,7 @@ from typing import Tuple
 
 import numpy as np
 from scipy import interpolate, signal
-from skimage.color import rgba2rgb, rgb2gray
+from skimage.color import rgb2gray, rgba2rgb
 from skimage.transform import resize_local_mean
 
 from renumics.spotlight import (

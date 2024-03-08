@@ -6,7 +6,6 @@ import { useColors } from '../colors';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { shallow } from 'zustand/shallow';
-import { Table } from '../../client';
 import {
     ColumnsStats,
     DataColumn,
@@ -16,6 +15,7 @@ import {
     Filter,
     IndexArray,
     TableData,
+    Problem,
 } from '../../types';
 import api from '../../api';
 import { notifyAPIError, notifyError } from '../../notify';
@@ -34,6 +34,7 @@ export interface Dataset {
     generationID: number;
     filename?: string; // filename of the dataset
     loading: boolean; // are we currently loading the Dataset
+    loadingError?: Problem;
     columnStats: { full: ColumnsStats; selected: ColumnsStats; filtered: ColumnsStats }; // an object storing statistics for available columns
     columns: DataColumn[];
     columnsByKey: Record<string, DataColumn>;
@@ -85,6 +86,7 @@ export interface Dataset {
     isComputingRelevance: boolean;
     recomputeColumnRelevance: () => void;
     focusRow: (row?: number) => void;
+    clearLoadingError: () => void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,24 +116,7 @@ const fetchTable = async (): Promise<{
     filename: string;
     dataframe: DataFrame;
 }> => {
-    let table: Table;
-
-    try {
-        table = await api.table.getTable();
-    } catch (error) {
-        notifyAPIError(error);
-        return {
-            uid: '',
-            generationID: -1,
-            filename: '',
-            dataframe: {
-                columns: [],
-                length: 0,
-                data: {},
-            },
-        };
-    }
-
+    const table = await api.table.getTable();
     const columns = table.columns.map(makeColumn);
     const columnData: TableData = {};
     table.columns.forEach((rawColumn, i) => {
@@ -146,6 +131,12 @@ const fetchTable = async (): Promise<{
 
         switch (dsColumn.type.kind) {
             case 'int':
+                if (!dsColumn.type.optional) {
+                    columnData[dsColumn.key] = Int32Array.from(
+                        columnData[dsColumn.key]
+                    );
+                }
+                break;
             case 'Category':
                 columnData[dsColumn.key] = Int32Array.from(columnData[dsColumn.key]);
                 break;
@@ -234,27 +225,33 @@ export const useDataset = create(
                     rowsWithIssues: [],
                     isAnalysisRunning: true,
                 }));
-
-                const tableFetcher = fetchTable();
-                const { uid, generationID, filename, dataframe } = await tableFetcher;
-
-                const columnStats = {
-                    full: makeColumnsStats(dataframe.columns, dataframe.data),
-                    selected: {},
-                    filtered: {},
-                };
-
-                set({
-                    uid,
-                    generationID,
-                    filename,
-                    length: dataframe.length,
-                    loading: false,
-                    columns: dataframe.columns,
-                    columnsByKey: _.keyBy(dataframe.columns, 'key'),
-                    columnData: dataframe.data,
-                    columnStats,
-                });
+                try {
+                    const { uid, generationID, filename, dataframe } =
+                        await fetchTable();
+                    const columnStats = {
+                        full: makeColumnsStats(dataframe.columns, dataframe.data),
+                        selected: {},
+                        filtered: {},
+                    };
+                    set({
+                        uid,
+                        generationID,
+                        filename,
+                        length: dataframe.length,
+                        loading: false,
+                        loadingError: undefined,
+                        columns: dataframe.columns,
+                        columnsByKey: _.keyBy(dataframe.columns, 'key'),
+                        columnData: dataframe.data,
+                        columnStats,
+                    });
+                } catch (error) {
+                    const problem = await api.parseError(error);
+                    set({
+                        loading: false,
+                        loadingError: problem,
+                    });
+                }
             },
             refetchColumnValues: async (columnKey) => {
                 const column = get().columnsByKey[columnKey];
@@ -311,23 +308,33 @@ export const useDataset = create(
                 });
             },
             refresh: async () => {
-                const { uid, generationID, filename, dataframe } = await fetchTable();
-                const columnStats = {
-                    full: makeColumnsStats(dataframe.columns, dataframe.data),
-                    selected: {},
-                    filtered: {},
-                };
-                set(() => ({
-                    uid,
-                    generationID,
-                    filename,
-                    length: dataframe.length,
-                    loading: false,
-                    columns: dataframe.columns,
-                    columnsByKey: _.keyBy(dataframe.columns, 'key'),
-                    columnData: dataframe.data,
-                    columnStats,
-                }));
+                try {
+                    const { uid, generationID, filename, dataframe } =
+                        await fetchTable();
+                    const columnStats = {
+                        full: makeColumnsStats(dataframe.columns, dataframe.data),
+                        selected: {},
+                        filtered: {},
+                    };
+                    set(() => ({
+                        uid,
+                        generationID,
+                        filename,
+                        length: dataframe.length,
+                        loading: false,
+                        loadingError: undefined,
+                        columns: dataframe.columns,
+                        columnsByKey: _.keyBy(dataframe.columns, 'key'),
+                        columnData: dataframe.data,
+                        columnStats,
+                    }));
+                } catch (error) {
+                    const problem = await api.parseError(error);
+                    set({
+                        loading: false,
+                        loadingError: problem,
+                    });
+                }
             },
             getRow: (index: number) => {
                 const state = get();
@@ -465,20 +472,23 @@ export const useDataset = create(
 
                 set({ columnRelevance, isComputingRelevance: false });
             },
-            recomputeColorTransferFunctions: async () => {
-                const columnsToCompute = get()
-                    .columns.filter((c) => isScalar(c.type) || isCategorical(c.type))
-                    .map((c) => c.key);
+            recomputeColorTransferFunctions: () => {
+                set(({ columns, columnData, filteredIndices }) => {
+                    const columnsToCompute = columns
+                        .filter((c) => isScalar(c.type) || isCategorical(c.type))
+                        .map((c) => c.key);
 
-                const newTransferFunctions = makeColumnsColorTransferFunctions(
-                    get().columns.filter(({ key }) => columnsToCompute.includes(key)),
-                    get().columnData,
-                    get().filteredIndices
-                );
-
-                set({
-                    colorTransferFunctions: newTransferFunctions,
+                    return {
+                        colorTransferFunctions: makeColumnsColorTransferFunctions(
+                            columns.filter(({ key }) => columnsToCompute.includes(key)),
+                            columnData,
+                            filteredIndices
+                        ),
+                    };
                 });
+            },
+            clearLoadingError: () => {
+                set({ loadingError: undefined });
             },
         };
     })

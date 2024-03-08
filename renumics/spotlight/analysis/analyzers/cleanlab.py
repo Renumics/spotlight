@@ -5,11 +5,12 @@ Outlier detection
 import inspect
 from typing import Iterable, List
 
-import numpy as np
 import cleanlab.outlier
+import numpy as np
 
 from renumics.spotlight.data_store import DataStore
 from renumics.spotlight.dtypes import is_embedding_dtype
+
 from ..decorator import data_analyzer
 from ..typing import DataIssue
 

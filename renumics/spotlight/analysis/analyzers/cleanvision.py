@@ -2,21 +2,21 @@
 find issues in images
 """
 
-import os
 import inspect
-from typing import Dict, Iterable, List, Tuple
+import os
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from contextlib import redirect_stderr, redirect_stdout
+from typing import Dict, Iterable, List, Tuple
 
-import numpy as np
 import cleanvision
+import numpy as np
 
-from renumics.spotlight.dtypes import Image
 from renumics.spotlight.data_store import DataStore
+from renumics.spotlight.dtypes import Image
+
 from ..decorator import data_analyzer
 from ..typing import DataIssue, Severity
-
 
 _issue_types: Dict[str, Tuple[str, Severity, str]] = {
     "is_light_issue": (

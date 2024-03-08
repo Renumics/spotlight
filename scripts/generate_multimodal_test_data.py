@@ -4,9 +4,9 @@
 This script generates multimodal Spotlight dataset for benchmarking.
 """
 
+import datetime
 import os
 import string
-import datetime
 from typing import Type
 
 import click
@@ -14,7 +14,6 @@ import numpy as np
 from tqdm import trange
 
 from renumics import spotlight
-
 
 DATA_TYPES = [
     bool,

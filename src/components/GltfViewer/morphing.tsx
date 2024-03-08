@@ -1,5 +1,5 @@
 export const morphStyles = ['loop', 'oscillate'] as const;
-export type MorphStyle = typeof morphStyles[number];
+export type MorphStyle = (typeof morphStyles)[number];
 
 export function calculateMorphPosition(at: number, style: MorphStyle): number {
     /*

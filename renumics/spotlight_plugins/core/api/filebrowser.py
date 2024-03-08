@@ -3,10 +3,11 @@
 """
 
 from pathlib import Path
-from typing import Optional, List
-from typing_extensions import Literal
+from typing import List, Optional
+
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
+from typing_extensions import Literal
 
 from renumics.spotlight.backend.exceptions import (
     FilebrowsingNotAllowed,

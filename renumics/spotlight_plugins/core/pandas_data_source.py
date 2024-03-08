@@ -1,23 +1,18 @@
 """
 access pandas DataFrame table data
 """
-from pathlib import Path
-from typing import Any, List, Union, cast
 
+from pathlib import Path
+from typing import List, Union, cast
+
+import datasets
 import numpy as np
 import pandas as pd
-import datasets
 
 from renumics.spotlight import dtypes
-from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
-from renumics.spotlight.data_source import (
-    datasource,
-    ColumnMetadata,
-    DataSource,
-)
-from renumics.spotlight.backend.exceptions import DatasetColumnsNotUnique
-from renumics.spotlight.dataset.exceptions import ColumnNotExistsError
+from renumics.spotlight.data_source import ColumnMetadata, DataSource, datasource
 from renumics.spotlight.data_source.exceptions import InvalidDataSource
+from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
 
 
 @datasource(pd.DataFrame)
@@ -90,20 +85,34 @@ class PandasDataSource(DataSource):
             df = cast(pd.DataFrame, source)
             self._name = "pd.DataFrame"
 
-        if not df.columns.is_unique:
-            raise DatasetColumnsNotUnique()
         self._generation_id = 0
         self._uid = str(id(df))
         self._df = df.convert_dtypes()
         self._intermediate_dtypes = {
-            # TODO: convert column name
-            col: _determine_intermediate_dtype(self._df[col])
-            for col in self._df.columns
+            column_name: _determine_intermediate_dtype(self._get_column(column_name))
+            for column_name in self.column_names
         }
 
     @property
     def column_names(self) -> List[str]:
-        return [str(column) for column in self._df.columns]
+        column_names: List[str] = []
+        for column in self._df.columns:
+            if (
+                isinstance(column, tuple)
+                and len(column)
+                and all(name == "" for name in column[1:])
+            ):
+                column_name = str(column[0])
+            else:
+                column_name = str(column)
+            if column_name not in column_names:
+                column_names.append(column_name)
+                continue
+            i = 1
+            while f"{column_name} ({i})" in column_names:
+                i += 1
+            column_names.append(f"{column_name} ({i})")
+        return column_names
 
     @property
     def df(self) -> pd.DataFrame:
@@ -137,27 +146,29 @@ class PandasDataSource(DataSource):
         column_name: str,
         indices: Union[List[int], np.ndarray, slice] = slice(None),
     ) -> np.ndarray:
-        column_index = self._parse_column_index(column_name)
-        column = self._df[column_index].iloc[indices]
+        column = cast(pd.Series, self._get_column(column_name).iloc[indices])  # type: ignore
         if pd.api.types.is_bool_dtype(column):
-            values = column.to_numpy()
+            values = column.to_numpy(na_value=pd.NA)  # type: ignore
             na_mask = column.isna()
-            values[na_mask] = None
+            if na_mask.any():
+                values[na_mask] = None
             return values
         if pd.api.types.is_integer_dtype(column):
-            values = column.to_numpy()
+            values = column.to_numpy(na_value=pd.NA)  # type: ignore
             na_mask = column.isna()
-            values[na_mask] = None
+            if na_mask.any():
+                values[na_mask] = None
             return values
         if pd.api.types.is_float_dtype(column):
             values = column.to_numpy()
             na_mask = column.isna()
-            values[na_mask] = None
+            if na_mask.any():
+                values[na_mask] = None
             return values
         if pd.api.types.is_datetime64_any_dtype(column):
             return column.dt.tz_localize(None).to_numpy()
-        if pd.api.types.is_categorical_dtype(column):
-            return column.cat.codes
+        if isinstance(column.dtype, pd.CategoricalDtype):
+            return column.cat.codes.to_numpy()
         if pd.api.types.is_string_dtype(column):
             column = column.astype(object).mask(column.isna(), None)
             str_mask = column.map(type) == str
@@ -182,29 +193,21 @@ class PandasDataSource(DataSource):
     def get_column_metadata(self, _: str) -> ColumnMetadata:
         return ColumnMetadata(nullable=True, editable=True)
 
-    def _parse_column_index(self, column_name: str) -> Any:
+    def _get_column(self, column_name: str) -> pd.Series:
+        return cast(pd.Series, self._df.iloc[:, self._get_column_index(column_name)])
+
+    def _get_column_index(self, column_name: str) -> int:
         column_names = self.column_names
-        try:
-            loc = self._df.columns.get_loc(column_name)
-        except KeyError:
-            ...
-        else:
-            if isinstance(self._df.columns, pd.MultiIndex):
-                return self._df.columns[loc][0]
-            return self._df.columns[loc]
-        try:
-            index = column_names.index(column_name)
-        except ValueError as e:
-            raise ColumnNotExistsError(
-                f"Column '{column_name}' doesn't exist in the dataset."
-            ) from e
-        return self._df.columns[index]
+
+        assert column_name in column_names
+
+        return column_names.index(column_name)
 
 
 def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
     if pd.api.types.is_bool_dtype(column):
         return dtypes.bool_dtype
-    if pd.api.types.is_categorical_dtype(column):
+    if isinstance(column.dtype, pd.CategoricalDtype):
         return dtypes.CategoryDType(
             {category: code for code, category in enumerate(column.cat.categories)}
         )
@@ -216,4 +219,4 @@ def _determine_intermediate_dtype(column: pd.Series) -> dtypes.DType:
         return dtypes.datetime_dtype
     if pd.api.types.is_string_dtype(column):
         return dtypes.str_dtype
-    return dtypes.mixed_dtype
+    return dtypes.any_dtype

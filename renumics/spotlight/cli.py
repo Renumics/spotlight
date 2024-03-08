@@ -11,7 +11,6 @@ from typing import Dict, Optional, Tuple, Union
 import click
 
 from renumics import spotlight
-
 from renumics.spotlight import logging
 
 
@@ -110,6 +109,21 @@ def cli_dtype_callback(
     multiple=True,
     help="Columns to embed (if no --embed-all).",
 )
+@click.option(
+    "--ssl-keyfile",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="SSL key file",
+)
+@click.option(
+    "--ssl-certfile",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="SSL certificate file",
+)
+@click.option(
+    "--ssl-keyfile-password", type=str, default=None, help="SSL keyfile password"
+)
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
@@ -125,6 +139,9 @@ def main(
     analyze_all: bool,
     embed: Tuple[str],
     embed_all: bool,
+    ssl_keyfile: Optional[str],
+    ssl_certfile: Optional[str],
+    ssl_keyfile_password: Optional[str],
     verbose: bool,
 ) -> None:
     """
@@ -151,4 +168,7 @@ def main(
         wait="forever",
         analyze=True if analyze_all else list(analyze),
         embed=True if embed_all else list(embed),
+        ssl_keyfile=ssl_keyfile,
+        ssl_certfile=ssl_certfile,
+        ssl_keyfile_password=ssl_keyfile_password,
     )

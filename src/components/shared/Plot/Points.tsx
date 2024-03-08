@@ -323,10 +323,10 @@ const Points = ({ colors, sizes, hidden, selected, onClick }: Props): JSX.Elemen
                         event.ctrlKey && event.shiftKey
                             ? 'intersect'
                             : event.ctrlKey
-                            ? 'difference'
-                            : event.shiftKey
-                            ? 'union'
-                            : 'replace';
+                              ? 'difference'
+                              : event.shiftKey
+                                ? 'union'
+                                : 'replace';
 
                     onClick?.(hoveredIndex, mergeMode);
                 } else {

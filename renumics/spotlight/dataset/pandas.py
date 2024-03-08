@@ -6,16 +6,17 @@ import os.path
 import statistics
 from typing import Any, Optional, Sequence, Union
 
-import PIL.Image
 import filetype
 import numpy as np
 import pandas as pd
+import PIL.Image
 import trimesh
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.io import prepare_hugging_face_dict, try_literal_eval
 from renumics.spotlight.media import Audio, Embedding, Image, Mesh, Sequence1D, Video
 from renumics.spotlight.typing import is_iterable, is_pathtype
+
 from .exceptions import InvalidDTypeError
 
 
@@ -131,7 +132,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
 
     if pd.api.types.is_bool_dtype(column):
         return dtypes.bool_dtype
-    if pd.api.types.is_categorical_dtype(column):
+    if isinstance(column.dtype, pd.CategoricalDtype):
         return dtypes.CategoryDType(
             {category: code for code, category in enumerate(column.cat.categories)}
         )
