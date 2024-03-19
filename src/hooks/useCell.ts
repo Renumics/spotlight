@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../api';
 import { Dataset, useDataset } from '../stores/dataset';
 import { Problem, isProblem } from '../types';
+import { ApiResponse } from '../client';
 
 interface CachedCell {
     generationId: number;
@@ -10,22 +11,38 @@ interface CachedCell {
 const cellCacheCapacity = 100;
 const cellCache: Map<string, CachedCell> = new Map();
 
+async function _sleep(ms: number) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function _fetchCell(
     column: string,
     row: number,
     generationId: number,
     asBuffer: boolean
 ) {
-    const response = await api.table.getCellRaw({ column, row, generationId });
+    const max_tries = 3;
+    let tries = 0;
+    let response: ApiResponse<unknown> | undefined = undefined;
+
+    while (!response) {
+        try {
+            response = await api.table.getCellRaw({ column, row, generationId });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            const problem = await error.response.json?.();
+            if (++tries > max_tries || problem?.type !== 'GenerationIDMismatch') {
+                throw error;
+            }
+            await _sleep(100);
+        }
+    }
+
     if (asBuffer) {
         return response.raw.arrayBuffer();
     } else {
         return response.value();
     }
-}
-
-async function _sleep(ms: number) {
-    await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function _getCell(
