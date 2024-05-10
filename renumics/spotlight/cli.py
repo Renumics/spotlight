@@ -124,6 +124,12 @@ def cli_dtype_callback(
 @click.option(
     "--ssl-keyfile-password", type=str, default=None, help="SSL keyfile password"
 )
+@click.option(
+    "--no-ssl",
+    is_flag=True,
+    default=False,
+    help="Do not require SSL sertificate and keyfile when starting on non-localhost.",
+)
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
@@ -142,6 +148,7 @@ def main(
     ssl_keyfile: Optional[str],
     ssl_certfile: Optional[str],
     ssl_keyfile_password: Optional[str],
+    no_ssl: bool,
     verbose: bool,
 ) -> None:
     """
@@ -171,4 +178,5 @@ def main(
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
         ssl_keyfile_password=ssl_keyfile_password,
+        no_ssl=no_ssl,
     )
