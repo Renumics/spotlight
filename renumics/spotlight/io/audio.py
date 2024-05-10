@@ -4,9 +4,10 @@ This module contains helpers for reading and writing of audio.
 
 import io
 import os
-from typing import IO, Dict, Tuple, Union
+from typing import IO, Dict, Tuple, Union, cast
 
 import av
+import av.audio
 import numpy as np
 import requests
 import validators
@@ -82,6 +83,7 @@ def read_audio(file: FileType) -> Tuple[np.ndarray, int]:
 
         data = []
         for frame in container.decode(audio=0):
+            frame = cast(av.audio.AudioFrame, frame)
             frame_array = frame.to_ndarray()
             if len(frame_array) == 1:
                 frame_array = frame_array.reshape((-1, num_channels))
@@ -123,13 +125,13 @@ def write_audio(
     # `AudioFrame.from_ndarray` expects an C-contiguous array as input.
     data = np.ascontiguousarray(data)
     num_channels = len(data)
-    frame = av.audio.AudioFrame.from_ndarray(data, data_format, num_channels)
+    frame = av.audio.AudioFrame.from_ndarray(data, data_format, num_channels)  # type: ignore
     frame.rate = sampling_rate
     with av.open(file, "w", format_) as container:
         stream = container.add_stream(codec, sampling_rate)
-        stream.channels = num_channels
-        container.mux(stream.encode(frame))
-        container.mux(stream.encode(None))
+        stream.channels = num_channels  # type: ignore
+        container.mux(stream.encode(frame))  # type: ignore
+        container.mux(stream.encode(None))  # type: ignore
 
 
 def transcode_audio(
@@ -155,10 +157,10 @@ def transcode_audio(
 
             for frame in input_container.decode(input_stream):
                 frame.pts = None
-                for packet in output_stream.encode(frame):
+                for packet in output_stream.encode(frame):  # type: ignore
                     output_container.mux(packet)
 
-            for packet in output_stream.encode(None):
+            for packet in output_stream.encode(None):  # type: ignore
                 output_container.mux(packet)
 
 
@@ -169,7 +171,7 @@ def get_format_codec(file: FileType) -> Tuple[str, str]:
     file = prepare_input_file(file)
     with av.open(file, "r") as input_container:
         stream = input_container.streams.audio[0]
-        return input_container.format.name, stream.name
+    return input_container.format.name, stream.name  # type: ignore
 
 
 def get_waveform(file: FileType) -> np.ndarray:

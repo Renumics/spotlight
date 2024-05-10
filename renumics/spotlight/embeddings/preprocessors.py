@@ -4,9 +4,10 @@ intern format to a common format.
 """
 
 import io
-from typing import List
+from typing import List, cast
 
 import av
+import av.audio
 import numpy as np
 import PIL.Image
 
@@ -36,10 +37,11 @@ def preprocess_audio_batch(
     for raw_data in raw_values:
         with av.open(io.BytesIO(raw_data), "r") as container:
             resampler = av.AudioResampler(
-                format="dbl", layout="mono", rate=sampling_rate
+                format="dbl", layout="mono", rate=sampling_rate  # type: ignore
             )
             data = []
             for frame in container.decode(audio=0):
+                frame = cast(av.audio.AudioFrame, frame)
                 resampled_frames = resampler.resample(frame)
                 for resampled_frame in resampled_frames:
                     frame_array = resampled_frame.to_ndarray()[0]

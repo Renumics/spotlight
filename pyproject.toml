@@ -162,7 +162,6 @@ plugins = "pydantic.mypy"
 [[tool.mypy.overrides]]
 module = [
   "pygltflib",
-  "av",
   "validators",
   "h5py",
   "pandas",
