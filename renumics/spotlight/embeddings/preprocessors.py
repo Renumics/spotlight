@@ -7,7 +7,6 @@ import io
 from typing import List, cast
 
 import av
-import av.audio
 import numpy as np
 import PIL.Image
 
