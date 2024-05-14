@@ -1,7 +1,7 @@
 import io
 import math
 import os
-from typing import IO, Dict, List, Optional, Tuple, Union
+from typing import IO, Dict, List, Optional, Tuple, Union, cast
 from urllib.parse import urlparse
 
 import numpy as np
@@ -122,7 +122,7 @@ class Mesh(FileMediaType):
         Import a `trimesh.Trimesh` mesh.
         """
         return cls(
-            mesh.vertices, mesh.faces, mesh.vertex_attributes, mesh.face_attributes
+            mesh.vertices, mesh.faces, mesh.vertex_attributes, mesh.face_attributes  # type: ignore
         )
 
     @classmethod
@@ -155,6 +155,7 @@ class Mesh(FileMediaType):
             raise exceptions.InvalidFile(
                 f"Mesh {filepath} does not exist or could not be read."
             ) from e
+        mesh = cast(trimesh.Trimesh, mesh)
         return cls.from_trimesh(mesh)
 
     @classmethod

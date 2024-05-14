@@ -127,7 +127,7 @@ pandas-stubs = "^2.0.2.230605"
 ruff = "^0.2.1"
 check-wheel-contents = "^0.6.0"
 torch = { version = "^2.1.1+cpu", source = "torch-cpu" }
-ray = {extras = ["data"], version = "^2.9.3"}
+ray = {extras = ["data"], version = "==2.9.3"}
 
 [tool.poetry.group.playbook.dependencies]
 towhee = "^0.9.0"
@@ -162,7 +162,6 @@ plugins = "pydantic.mypy"
 [[tool.mypy.overrides]]
 module = [
   "pygltflib",
-  "av",
   "validators",
   "h5py",
   "pandas",

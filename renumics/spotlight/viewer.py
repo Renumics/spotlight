@@ -132,6 +132,7 @@ class Viewer:
     _ssl_keyfile: Optional[str]
     _ssl_certfile: Optional[str]
     _ssl_keyfile_password: Optional[str]
+    _no_ssl: bool
     _server: Optional[Server]
     _df: Optional[pd.DataFrame]
 
@@ -142,12 +143,14 @@ class Viewer:
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
+        no_ssl: bool = False,
     ) -> None:
         self._host = host
         self._requested_port = port
         self._ssl_keyfile = ssl_keyfile
         self._ssl_certfile = ssl_certfile
         self._ssl_keyfile_password = ssl_keyfile_password
+        self._no_ssl = no_ssl
         self._server = None
         self._df = None
 
@@ -233,6 +236,7 @@ class Viewer:
                 self._ssl_keyfile,
                 self._ssl_certfile,
                 self._ssl_keyfile_password,
+                self._no_ssl,
             )
             self._server.start(config)
 
@@ -406,6 +410,7 @@ def show(
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
     ssl_keyfile_password: Optional[str] = None,
+    no_ssl: bool = False,
 ) -> Viewer:
     """
     Start a new Spotlight viewer.
@@ -435,6 +440,7 @@ def show(
         ssl_keyfile: Optional SSL key file.
         ssl_certfile: Optional SSL certificate file.
         ssl_certfile: Optional SSL keyfile password.
+        no_ssl: Do not require SSL sertificate and keyfile when starting on non-localhost.
     """
 
     viewer = None
@@ -445,7 +451,9 @@ def show(
                 viewer = _VIEWERS[index]
                 break
     if not viewer:
-        viewer = Viewer(host, port, ssl_keyfile, ssl_certfile, ssl_keyfile_password)
+        viewer = Viewer(
+            host, port, ssl_keyfile, ssl_certfile, ssl_keyfile_password, no_ssl
+        )
 
     viewer.show(
         dataset,

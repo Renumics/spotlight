@@ -72,6 +72,7 @@ class Server:
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
+        no_ssl: bool = False,
     ) -> None:
         self.process = None
 
@@ -80,7 +81,7 @@ class Server:
         self._app_config = AppConfig()
 
         self._host = host
-        if self._host not in ("127.0.0.1", "localhost"):
+        if self._host not in ("127.0.0.1", "localhost") and not no_ssl:
             if ssl_certfile is None:
                 raise MissingTLSCertificate(
                     "Starting Spotlight on non-localhost without TLS certificate is insecure. Please provide TLS certificate and key."
