@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 from diffimg import diff
+from PIL import Image
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from .helpers import (
@@ -33,6 +34,15 @@ def take_and_diff_snapshot(
     reference_screenshot_path = old_screenshots_folder / f"{name}-{browser_name}.png"
 
     if reference_screenshot_path.is_file():
+        # make sure both are in the same color mode
+        im1 = Image.open(str(reference_screenshot_path))
+        im2 = Image.open(str(new_screenshot_path))
+        if im1.mode != im2.mode:
+            im1 = im1.convert("RGB")
+            im2 = im2.convert("RGB")
+            im1.save(str(reference_screenshot_path))
+            im2.save(str(new_screenshot_path))
+
         diff_ratio = diff(
             str(reference_screenshot_path),
             str(new_screenshot_path),
