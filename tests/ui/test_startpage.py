@@ -40,6 +40,8 @@ def take_and_diff_snapshot(
         if im1.mode != im2.mode:
             im1 = im1.convert("RGB")
             im2 = im2.convert("RGB")
+            im1.save(str(reference_screenshot_path))
+            im2.save(str(diff_path))
 
         diff_ratio = diff(
             str(reference_screenshot_path),
