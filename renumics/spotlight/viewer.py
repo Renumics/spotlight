@@ -36,7 +36,7 @@ Serving a CSV file:
 Serving a Hugging Face dataset:
     >>> import datasets
     >>> from renumics import spotlight
-    >>> ds = datasets.load_dataset("mnist", split="test")
+    >>> ds = datasets.load_dataset("mnist", split="test", trust_remote_code=True)
     >>> viewer = spotlight.show(ds, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> spotlight.close()
