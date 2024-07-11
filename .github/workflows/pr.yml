@@ -3,7 +3,7 @@ name: Pull request
 on: pull_request
 
 jobs:
-    # Comment
+    # Comment. debug
     comment-gui-screenshots:
         name: '🖍 Comment GUI screenshots'
         if: github.event.pull_request.head.repo.full_name == 'Renumics/spotlight'
