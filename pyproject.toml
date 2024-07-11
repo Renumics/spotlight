@@ -79,9 +79,9 @@ validators = "*"
 ipywidgets = "*"
 jinja2 = "*"
 toml = "*"
-cleanlab = "*"
 websockets = "*"
-cleanvision = "*"
+cleanlab = { version = "*", optional = true }
+cleanvision = { version = "*", optional = true }
 py-machineid = "*"
 filetype = "*"
 setuptools = "*"
@@ -96,8 +96,9 @@ packaging = "*"
 pyarrow = "*"
 
 [tool.poetry.extras]
+analysers = ["cleanlab", "cleanvision"]
 descriptors = ["pycatch22"]
-all = ["pycatch22"]
+all = ["cleanlab", "cleanvision", "pycatch22"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
