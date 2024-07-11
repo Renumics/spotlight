@@ -7319,10 +7319,10 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 
 [extras]
 all = ["cleanlab", "cleanvision", "pycatch22"]
-analyse = ["cleanlab", "cleanvision"]
+analysers = ["cleanlab", "cleanvision"]
 descriptors = ["pycatch22"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8, <3.12"
-content-hash = "0a7daff624a72dbb9c5db7af5c94cfadcae171fb4b5f4849d1bf3d4356fbd790"
+content-hash = "d261f1118fe27ab2f4649265e63fe42a5e4dc53fd0c26645c846d0186a5f02f8"
