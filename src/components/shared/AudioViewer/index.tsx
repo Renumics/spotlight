@@ -338,13 +338,19 @@ const AudioViewer = ({
     ]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (waveform.current?.backend as any).media.loop = repeat;
         if (isReady && autoplay && !waveform.current?.isPlaying()) {
             switchActiveWidget();
             waveform.current?.play();
         }
-    }, [isReady, autoplay, repeat]);
+    }, [isReady, autoplay]);
+
+    useEffect(() => {
+        const backend = waveform.current?.backend;
+        if (backend) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (backend as any).media.loop = repeat;
+        }
+    }, [isReady, repeat]);
 
     useEffect(() => {
         if (!waveform.current?.isReady) return;
