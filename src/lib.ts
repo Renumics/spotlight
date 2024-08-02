@@ -64,7 +64,7 @@ export { default as api } from './api';
 export type { App } from './stores/pluginStore';
 export { useDataset, convertValue } from './stores/dataset';
 export { useColors } from './stores/colors';
-export { isAudio, isBoolean, getNullValue, isCategorical } from './datatypes';
+export { isAudio, isBoolean, getNullValue, isCategorical, isWindow } from './datatypes';
 export type {
     EmbeddingDataType,
     DataType,
