@@ -74,7 +74,7 @@ pandas = "*"
 importlib_resources = "<5.8.0"
 scikit-image = "*"
 imagecodecs = [{ version = "*", markers = 'platform_machine != "arm64"' }]
-av = "<=13.0.0"
+av = "<13.0.0"
 validators = "*"
 ipywidgets = "*"
 jinja2 = "*"
@@ -128,6 +128,7 @@ ruff = "^0.2.1"
 check-wheel-contents = "^0.6.0"
 torch = { version = "^2.1.1+cpu, <=2.4.1+cpu", source = "torch-cpu" }
 ray = {extras = ["data"], version = "==2.9.3"}
+soxr = "*"
 
 [tool.poetry.group.playbook.dependencies]
 towhee = "^0.9.0"
