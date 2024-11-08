@@ -74,7 +74,7 @@ pandas = "*"
 importlib_resources = "<5.8.0"
 scikit-image = "*"
 imagecodecs = [{ version = "*", markers = 'platform_machine != "arm64"' }]
-av = "*"
+av = "<=13.0.0"
 validators = "*"
 ipywidgets = "*"
 jinja2 = "*"
