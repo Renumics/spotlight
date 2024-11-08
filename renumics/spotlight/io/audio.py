@@ -25,6 +25,28 @@ _PACKET_AV_DATA_FORMATS: Dict[str, str] = {
 }
 
 
+def _channel_num_to_layout(channel_num: int) -> str:
+    if channel_num == 1:
+        return "mono"
+    if channel_num == 2:
+        return "stereo"
+    if channel_num == 3:
+        return "3.0"
+    if channel_num == 4:
+        return "4.0"
+    if channel_num == 5:
+        return "5.0"
+    if channel_num == 6:
+        return "6.0"
+    if channel_num == 7:
+        return "7.0"
+    if channel_num == 8:
+        return "7.1"
+    raise ValueError(
+        f"Only channel number from 1 to 8 are supported, but {channel_num} received."
+    )
+
+
 def prepare_input_file(
     file: FileType, timeout: Union[int, float] = 30, reusable: bool = False
 ) -> Union[str, IO]:
@@ -125,13 +147,14 @@ def write_audio(
     # `AudioFrame.from_ndarray` expects an C-contiguous array as input.
     data = np.ascontiguousarray(data)
     num_channels = len(data)
-    frame = av.audio.AudioFrame.from_ndarray(data, data_format, num_channels)  # type: ignore
+    layout = _channel_num_to_layout(num_channels)
+    frame = av.audio.AudioFrame.from_ndarray(data, data_format, layout)
     frame.rate = sampling_rate
     with av.open(file, "w", format_) as container:
         stream = container.add_stream(codec, sampling_rate)
-        stream.channels = num_channels  # type: ignore
-        container.mux(stream.encode(frame))  # type: ignore
-        container.mux(stream.encode(None))  # type: ignore
+        stream.channels = num_channels  # type: ignore[attr-defined]
+        container.mux(stream.encode(frame))  # type: ignore[attr-defined]
+        container.mux(stream.encode(None))  # type: ignore[attr-defined]
 
 
 def transcode_audio(
