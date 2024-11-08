@@ -2,6 +2,9 @@
 global settings (read from env)
 """
 
+# Currently, mypy doesn't work with pydantic_settings.
+# type: ignore
+
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
