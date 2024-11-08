@@ -40,8 +40,8 @@ else:
             )
             with torch.no_grad():
                 outputs = model(**inputs)
-                embeddings = average_pool(
+                embeddings_tensor = average_pool(
                     outputs.last_hidden_state, inputs["attention_mask"]
                 )
-                embeddings = F.normalize(embeddings, p=2, dim=1).cpu().numpy()
+                embeddings = F.normalize(embeddings_tensor, p=2, dim=1).cpu().numpy()
             yield list(embeddings)

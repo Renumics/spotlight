@@ -55,7 +55,7 @@ def prepare_input_file(
         response = requests.get(file, headers=headers, stream=True, timeout=timeout)
         if response.ok:
             if not reusable:
-                return response.raw
+                return response.raw  # type: ignore[return-value]
             return io.BytesIO(response.content)
         raise ValueError(f"URL {file} not found.")
     if not os.path.isfile(file):
