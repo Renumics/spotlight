@@ -5,7 +5,7 @@ description: |
 inputs:
     python-version:
         description: Python version to use
-        default: '3.8'
+        default: '3.10'
     install-dependencies:
         description: Whether to install and cache/restore dependencies
         default: 'true'
