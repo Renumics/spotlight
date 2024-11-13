@@ -3603,9 +3603,9 @@ files = [
 
 [package.dependencies]
 numpy = [
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
     {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -4269,7 +4269,10 @@ files = [
 [package.dependencies]
 annotated-types = ">=0.6.0"
 pydantic-core = "2.23.4"
-typing-extensions = {version = ">=4.6.1", markers = "python_version < \"3.13\""}
+typing-extensions = [
+    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
+    {version = ">=4.6.1", markers = "python_version < \"3.13\""},
+]
 
 [package.extras]
 email = ["email-validator (>=2.0.0)"]
@@ -7217,5 +7220,5 @@ descriptors = ["pycatch22"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.8, <3.13"
-content-hash = "8069c38e3337cc6e85d9e9a35ef8b6a473109b38a97e105cd0b404855508285d"
+python-versions = "^3.8"
+content-hash = "8a453a58a4cb535d3897d872c89a3cdb2e5ae22793c3be460fd065ef41e9c691"
