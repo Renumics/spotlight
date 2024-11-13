@@ -149,7 +149,7 @@ def write_audio(
     frame = av.audio.AudioFrame.from_ndarray(data, data_format, layout)
     frame.rate = sampling_rate
     with av.open(file, "w", format_) as container:
-        stream = container.add_stream(codec, sampling_rate, channels=num_channels)  # type: ignore[call-arg]
+        stream = container.add_stream(codec, sampling_rate, layout=layout)  # type: ignore[call-arg]
         container.mux(stream.encode(frame))  # type: ignore[attr-defined]
         container.mux(stream.encode(None))  # type: ignore[attr-defined]
 
