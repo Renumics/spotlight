@@ -74,7 +74,7 @@ pandas = "*"
 importlib_resources = "<5.8.0"
 scikit-image = "*"
 imagecodecs = [{ version = "*", markers = 'platform_machine != "arm64"' }]
-av = "<13.0.0"
+av = "*"
 validators = "*"
 ipywidgets = "*"
 jinja2 = "*"
@@ -107,7 +107,6 @@ types-requests = "^2.27.20"
 black = "^24.1.1"
 pytest = "^7.4.2"
 ipython = "^8.10.0"
-jupyter = "^1.0.0"
 watchdog = "^2.1.7"
 argh = "^0.26.2"
 typed-ast = "^1.5.3"
@@ -129,6 +128,7 @@ check-wheel-contents = "^0.6.0"
 torch = { version = "^2.1.1+cpu, <=2.4.1+cpu", source = "torch-cpu" }
 ray = {extras = ["data"], version = "==2.9.3"}
 soxr = "*"
+notebook = "*"
 
 [tool.poetry.group.playbook.dependencies]
 annoy = "^1.17.2"

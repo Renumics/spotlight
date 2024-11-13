@@ -31,19 +31,17 @@ def _channel_num_to_layout(channel_num: int) -> str:
     if channel_num == 2:
         return "stereo"
     if channel_num == 3:
-        return "3.0"
+        return "2.1"
     if channel_num == 4:
-        return "4.0"
+        return "3.1"
     if channel_num == 5:
-        return "5.0"
+        return "4.1"
     if channel_num == 6:
-        return "6.0"
+        return "5.1"
     if channel_num == 7:
-        return "7.0"
-    if channel_num == 8:
-        return "7.1"
+        return "6.1"
     raise ValueError(
-        f"Only channel number from 1 to 8 are supported, but {channel_num} received."
+        f"Only channel number from 1 to 7 supported, but value {channel_num} received."
     )
 
 
@@ -151,7 +149,7 @@ def write_audio(
     frame = av.audio.AudioFrame.from_ndarray(data, data_format, layout)
     frame.rate = sampling_rate
     with av.open(file, "w", format_) as container:
-        stream = container.add_stream(codec, sampling_rate, channels=num_channels)  # type: ignore[call-arg]
+        stream = container.add_stream(codec, sampling_rate, layout=layout)  # type: ignore[call-arg]
         container.mux(stream.encode(frame))  # type: ignore[attr-defined]
         container.mux(stream.encode(None))  # type: ignore[attr-defined]
 
