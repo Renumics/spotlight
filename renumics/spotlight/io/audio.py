@@ -31,19 +31,17 @@ def _channel_num_to_layout(channel_num: int) -> str:
     if channel_num == 2:
         return "stereo"
     if channel_num == 3:
-        return "3.0"
+        return "2.1"
     if channel_num == 4:
-        return "4.0"
+        return "3.1"
     if channel_num == 5:
-        return "5.0"
+        return "4.1"
     if channel_num == 6:
-        return "6.0"
+        return "5.1"
     if channel_num == 7:
-        return "7.0"
-    if channel_num == 8:
-        return "7.1"
+        return "6.1"
     raise ValueError(
-        f"Only channel number from 1 to 8 are supported, but {channel_num} received."
+        f"Only channel number from 1 to 7 supported, but value {channel_num} received."
     )
 
 
