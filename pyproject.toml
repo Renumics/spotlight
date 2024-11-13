@@ -85,7 +85,10 @@ cleanvision = { version = "*", optional = true }
 py-machineid = "*"
 filetype = "*"
 setuptools = "*"
-numba = "^0.57.1"
+numba = [
+    {version = ">=0.57.1, <0.59", python = "<=3.8"},
+    {version = ">=0.59", python = "^3.9"}
+]
 pillow = "^10.0.0"
 httpx = "^0.23.0"
 datasets = { extras = ["audio"], version = "^2.12.0" }
@@ -129,6 +132,10 @@ torch = { version = "^2.1.1+cpu, <=2.4.1+cpu", source = "torch-cpu" }
 ray = {extras = ["data"], version = "==2.9.3"}
 soxr = "*"
 notebook = "*"
+llvmlite = [
+    {version = "<0.42", python = "<=3.8"},
+    {version = ">=0.42", python = "^3.9"}
+]
 
 [tool.poetry.group.playbook.dependencies]
 annoy = "^1.17.2"
