@@ -7278,5 +7278,5 @@ descriptors = ["pycatch22"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.8, <=3.12"
-content-hash = "250fc038176e7ded6ebe552bc67bd867ff3c7fa9abebaeac779d5e18a2b61bba"
+python-versions = ">=3.8, <3.13"
+content-hash = "69f25e757d0d83feb89b62f631496a043007a0b7a4ec1b939b73d87f88c263ee"
