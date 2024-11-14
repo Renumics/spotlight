@@ -98,7 +98,7 @@ Get started by installing Spotlight and loading your first dataset.
 
 #### What you'll need
 
--   [Python](https://www.python.org/downloads/) version 3.8-3.11
+-   [Python](https://www.python.org/downloads/) version 3.8-3.12
 
 #### Install Spotlight via [pip](https://packaging.python.org/en/latest/key_projects/#pip)
 
