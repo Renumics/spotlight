@@ -15,7 +15,7 @@ keywords = [
   "ai",
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Framework :: FastAPI",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
@@ -23,8 +23,8 @@ classifiers = [
   "Intended Audience :: Information Technology",
   "Natural Language :: English",
   "Operating System :: POSIX :: Linux",
-  "Operating System :: Microsoft",
-  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: MacOS",
   "Programming Language :: JavaScript",
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
