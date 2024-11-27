@@ -134,7 +134,7 @@ class InspectorConfig(WidgetConfig):
     Inspector configuration model.
     """
 
-    lenses: Optional[List[Lens]] = Field(default_factory=None, alias="views")
+    lenses: Optional[List[Lens]] = Field(None, alias="views")
     num_columns: NumInspectorColumns = Field(4, alias="visibleColumns")
 
 
