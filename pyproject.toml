@@ -97,6 +97,7 @@ pycatch22 = { version = "!=0.4.4", optional = true }
 transformers = "^4.35.2"
 packaging = "*"
 pyarrow = "*"
+tokenizers = {version = "!=0.20.4", python = "3.8"}
 
 [tool.poetry.extras]
 analysers = ["cleanlab", "cleanvision"]
@@ -136,7 +137,6 @@ llvmlite = [
     {version = "<0.42", python = "<=3.8"},
     {version = ">=0.42", python = "^3.9"}
 ]
-tokenizers = "<=0.20.3"
 
 [tool.poetry.group.playbook.dependencies]
 annoy = "^1.17.2"
