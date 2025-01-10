@@ -22,7 +22,7 @@ runs:
         - name: Install Poetry
           run: |
               pipx install poetry
-              pipx inject poetry poetry-dynamic-versioning
+              pipx inject poetry poetry-dynamic-versioning poetry-plugin-export
           shell: bash
         - name: Set up Python ${{ inputs.python-version }} with cache
           id: setup-python-with-cache
