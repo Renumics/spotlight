@@ -90,14 +90,13 @@ numba = [
     {version = ">=0.59", python = "^3.9"}
 ]
 pillow = "^10.0.0"
-httpx = "^0.23.0"
+httpx = ">=0.23.0"
 datasets = { extras = ["audio"], version = "^2.12.0" }
 pydantic-settings = "^2.0.3"
 pycatch22 = { version = "!=0.4.4", optional = true }
-transformers = "^4.35.2"
+transformers = "*"
 packaging = "*"
 pyarrow = "*"
-tokenizers = {version = "!=0.20.4", python = "3.8"}
 
 [tool.poetry.extras]
 analysers = ["cleanlab", "cleanvision"]
@@ -136,6 +135,14 @@ notebook = "*"
 llvmlite = [
     {version = "<0.42", python = "<=3.8"},
     {version = ">=0.42", python = "^3.9"}
+]
+setuptools = [
+    {version = "<75.4.0", python = "<=3.8"},
+    {version = ">=75.4.0", python = "^3.9"}
+]
+transformers = [
+    {version = "<4.47.0", python = "<=3.8"},
+    {version = ">=4.47.0", python = "^3.9"}
 ]
 
 [tool.poetry.group.playbook.dependencies]
