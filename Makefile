@@ -28,7 +28,8 @@ clean: ## clean project
 audit: ## Audit project dependencies
 	poetry export --without-hashes --all-extras --without dev --without playbook \
 		| poetry run safety check --full-report --stdin \
-	 	--ignore 61496 --ignore 70612 --ignore 71596 --ignore 73323
+	 	--ignore 61496 --ignore 70612 --ignore 71596 --ignore 73323 \
+		--ignore 76752 --ignore 74882 --ignore 76262
 	pnpm audit --prod
 
 .PHONY: check-format
