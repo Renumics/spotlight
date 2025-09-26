@@ -26,10 +26,15 @@ clean: ## clean project
 
 .PHONY: audit
 audit: ## Audit project dependencies
+	# Explanations to the ignored vulnerabilities:
+	# 73323 (cleanlab): package is still affected, no fixes provided
+	# 71596 (scikit-learn): fixed package version requires python>=3.9, but when installing different versions for python<3.9 and python >=3.9, poetry-plugin-export fails
+	# all other vulnerabilities are fixed for python<=3.9, no fixes provided for python<3.9
 	poetry export --without-hashes --all-extras --without dev --without playbook \
 		| poetry run safety check --full-report --stdin \
-	 	--ignore 61496 --ignore 70612 --ignore 71596 --ignore 73323 \
-		--ignore 76752 --ignore 74882 --ignore 76262
+		--ignore 73323 \
+		--ignore 71596 \
+		--ignore 78558 --ignore 76752 --ignore 74882 --ignore 78822 --ignore 78823 --ignore 76262 --ignore 77149 --ignore 77714 --ignore 77988 --ignore 77985 --ignore 78153 --ignore 77986 --ignore 78688 --ignore 61496 --ignore 78279 --ignore 77744 --ignore 77745 --ignore 78162
 	pnpm audit --prod
 
 .PHONY: check-format
