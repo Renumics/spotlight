@@ -54,7 +54,7 @@ jobs:
         steps:
             - name: '🔍 Check if pull request'
               id: check-pr
-              uses: 8BitJonny/gh-get-current-pr@3.0.0
+              uses: 8BitJonny/gh-get-current-pr@4056877062a1f3b624d5d4c2bedefa9cf51435c9
               with:
                   filterOutClosed: true
         outputs:
@@ -78,7 +78,7 @@ jobs:
               uses: ./.github/actions/setup-pnpm
             - name: Run shellcheck
               if: success() || steps.setup.outcome == 'success'
-              uses: ludeeus/action-shellcheck@2.0.0
+              uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
               with:
                   ignore_paths: .venv node_modules
             - name: Audit dependencies
@@ -106,21 +106,21 @@ jobs:
               uses: actions/checkout@v4
             - name: '🧱 Build test matrix for pull request'
               if: needs.check-pr.outputs.is-pr == 'true'
-              uses: druzsan/setup-matrix@v2
+              uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
                       python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
             - name: '🧱 Build test matrix for release'
               if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
-              uses: druzsan/setup-matrix@v2
+              uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest, windows-latest, macos-latest]
                       python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
             - name: '🧱 Build test matrix for main branch'
               if: env.MATRIX == '' && github.ref == 'refs/heads/main'
-              uses: druzsan/setup-matrix@v2
+              uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
@@ -132,7 +132,7 @@ jobs:
                             python-version: 3.10
             - name: '🧱 Build test matrix for development branch'
               if: env.MATRIX == ''
-              uses: druzsan/setup-matrix@v2
+              uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
@@ -309,7 +309,7 @@ jobs:
             - name: '🎨 Set up Chrome driver'
               if: matrix.browser == 'chrome'
               id: setup-chromedriver
-              uses: nanasess/setup-chromedriver@v2
+              uses: nanasess/setup-chromedriver@e93e57b843c0c92788f22483f1a31af8ee48db25
             - name: '🦊 Set up Gecko driver'
               id: setup-geckodriver
               if: matrix.browser == 'firefox'
@@ -362,7 +362,7 @@ jobs:
                       && github.event.pull_request.head.repo.full_name == 'Renumics/spotlight'
                     )
                   )
-              uses: LanceMcCarthy/Action-AzureBlobUpload@v3
+              uses: LanceMcCarthy/Action-AzureBlobUpload@caa002d5a92f7436062e44f38031c0c3ff17011e
               with:
                   connection_string: ${{ secrets.AZURE_CONNECTION_STRING }}
                   container_name: github-public
@@ -473,6 +473,6 @@ jobs:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: dist
             - name: '🚀 Publish Spotlight to PyPI'
-              uses: pypa/gh-action-pypi-publish@release/v1
+              uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
               with:
                   password: ${{ secrets.PYPI_API_TOKEN }}
