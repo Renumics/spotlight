@@ -8,6 +8,9 @@ on:
     - push
     - pull_request
 
+permissions:
+    contents: read
+
 # As long as we use local actions, checkout should be made in workflow before
 # and not in the local actions. Otherwise, no action file found.
 # Checkout with `fetch-depth: 0` is needed by `poetry-dynamic-versioning` to get
