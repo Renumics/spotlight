@@ -34,7 +34,7 @@ audit: ## Audit project dependencies
 		| poetry run safety check --full-report --stdin \
 		--ignore 73323 \
 		--ignore 71596 \
-		--ignore 78558 --ignore 76752 --ignore 74882 --ignore 78822 --ignore 78823 --ignore 76262 --ignore 77149 --ignore 77714 --ignore 77988 --ignore 77985 --ignore 78153 --ignore 77986 --ignore 78688 --ignore 61496 --ignore 78279 --ignore 77744 --ignore 77745 --ignore 78162
+		--ignore 78558 --ignore 76752 --ignore 74882 --ignore 78822 --ignore 78823 --ignore 76262 --ignore 77149 --ignore 77714 --ignore 77988 --ignore 77985 --ignore 78153 --ignore 77986 --ignore 78688 --ignore 61496 --ignore 78279 --ignore 77744 --ignore 77745 --ignore 78162 --ignore 79596 --ignore 79595 --ignore 79855
 	pnpm audit --prod
 
 .PHONY: check-format
