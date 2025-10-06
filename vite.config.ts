@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
         },
         define: {
             'process.env.NODE_ENV': JSON.stringify(mode),
-            'process.versions': '{node: "v19.4.0"}',
+            'process.versions': '{"node": "v19.4.0"}',
         },
     };
 });
