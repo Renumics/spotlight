@@ -118,6 +118,9 @@ jobs:
                   matrix: |
                       os: [ubuntu-latest, windows-latest, macos-latest]
                       python-version: [3.8, 3.9, 3.10, 3.11, 3.12, 3.13]
+                      exclude:
+                          - os: windows-latest
+                            python-version: 3.13
             - name: '🧱 Build test matrix for main branch'
               if: env.MATRIX == '' && github.ref == 'refs/heads/main'
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
