@@ -3,9 +3,6 @@ description: |
     Prepare Python environment using Poetry, optionally install and
     cache/restore dependencies
 inputs:
-    python-version:
-        description: Python version to use
-        default: '3.10'
     install-dependencies:
         description: Whether to install and cache/restore dependencies
         default: 'true'
@@ -19,23 +16,29 @@ outputs:
 runs:
     using: composite
     steps:
-        - name: Install Poetry
+        - name: Extract versions from .tool-versions
+          id: tool-versions
           run: |
-              pipx install poetry
+              echo "python-version=$(awk '/^python / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              echo "poetry-version=$(awk '/^poetry / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+          shell: bash
+        - name: Set up Poetry ${{ steps.tool-versions.outputs.poetry-version }}
+          run: |
+              pipx install "poetry==${{ steps.tool-versions.outputs.poetry-version }}"
               pipx inject poetry poetry-dynamic-versioning poetry-plugin-export
           shell: bash
-        - name: Set up Python ${{ inputs.python-version }} with cache
+        - name: Set up Python ${{ steps.tool-versions.outputs.python-version }} with cache
           id: setup-python-with-cache
           if: inputs.install-dependencies != 'false'
-          uses: actions/setup-python@v5
+          uses: actions/setup-python@v6
           with:
-              python-version: ${{ inputs.python-version }}
+              python-version: ${{ steps.tool-versions.outputs.python-version }}
               cache: poetry
-        - name: Set up Python ${{ inputs.python-version }}
+        - name: Set up Python ${{ steps.tool-versions.outputs.python-version }}
           if: inputs.install-dependencies == 'false'
-          uses: actions/setup-python@v5
+          uses: actions/setup-python@v6
           with:
-              python-version: ${{ inputs.python-version }}
+              python-version: ${{ steps.tool-versions.outputs.python-version }}
         - name: Install dependencies
           if: inputs.install-dependencies != 'false' && steps.setup-python-with-cache.outputs.cache-hit != 'true'
           run: poetry install --sync --all-extras --without playbook --no-interaction

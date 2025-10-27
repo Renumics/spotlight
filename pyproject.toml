@@ -41,7 +41,7 @@ exclude = []
 spotlight = "renumics.spotlight.cli:main"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.14"
+python = ">=3.9, <3.14"
 numpy = "*"
 tqdm = "*"
 loguru = "*"
@@ -85,10 +85,7 @@ cleanvision = { version = "*", optional = true }
 py-machineid = "*"
 filetype = "*"
 setuptools = "*"
-numba = [
-    {version = ">=0.57.1, <0.59", python = "<=3.8"},
-    {version = ">=0.59", python = "^3.9"}
-]
+numba = "*"
 pillow = "^10.0.0"
 httpx = ">=0.23.0"
 datasets = { extras = ["audio"], version = "^2.12.0" }
@@ -128,49 +125,9 @@ types-pillow = "^10.0.0.1"
 pandas-stubs = "^2.0.2.230605"
 ruff = "^0.2.1"
 check-wheel-contents = "^0.6.0"
-torch = { version = "^2.1.1+cpu, <=2.4.1+cpu", source = "torch-cpu" }
-ray = [
-    {extras = ["data"], version = "<2.10.0", python = "<=3.8"},
-    {extras = ["data"], version = ">=2.10.0", python = "^3.9"}
-]
-soxr = "*"
+torch = { version = "^2.1.1+cpu", source = "torch-cpu" }
+ray = { extras = ["data"], version = "*" }
 notebook = "*"
-llvmlite = [
-    {version = "<0.42", python = "<=3.8"},
-    {version = ">=0.42", python = "^3.9"}
-]
-setuptools = [
-    {version = "<75.4.0", python = "<=3.8"},
-    {version = ">=75.4.0", python = "^3.9"}
-]
-transformers = [
-    {version = "<4.47.0", python = "<=3.8"},
-    {version = ">=4.47.0", python = "^3.9"}
-]
-aiohttp = [
-    {version = "<3.11.0", python = "<=3.8"},
-    {version = ">=3.11.0", python = "^3.9"}
-]
-imagecodecs = [
-    {version = "<2023.7.10", python = "<=3.8"},
-    {version = ">=2023.7.10", python = "^3.9"}
-]
-starlette = [
-    {version = "<0.45.0", python = "<=3.8"},
-    {version = ">=0.45.0", python = "^3.9"}
-]
-urllib3 = [
-    {version = "<2.3.0", python = "<=3.8"},
-    {version = ">=2.3.0", python = "^3.9"}
-]
-aiosignal = [
-    {version = "<1.3.2", python = "<=3.8"},
-    {version = ">=1.3.2", python = "^3.9"}
-]
-tornado = [
-    {version = "<6.5", python = "<=3.8"},
-    {version = ">=6.5", python = "^3.9"}
-]
 
 [tool.poetry.group.playbook.dependencies]
 annoy = "^1.17.2"
