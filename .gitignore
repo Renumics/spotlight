@@ -10,7 +10,6 @@ build/
 dev/
 /scratch/
 test_install/
-.tool-versions
 .envrc.local
 .DS_Store
 *.log
