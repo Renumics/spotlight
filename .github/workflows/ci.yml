@@ -111,6 +111,9 @@ jobs:
                   matrix: |
                       os: [ubuntu-latest]
                       python-version: [3.9, 3.10, 3.11, 3.12, 3.13]
+                      include:
+                          - os: windows-latest
+                            python-version: 3.13
             - name: '🧱 Build test matrix for release'
               if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
