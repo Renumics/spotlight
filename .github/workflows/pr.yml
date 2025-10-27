@@ -14,6 +14,7 @@ jobs:
             AZURE_FOLDER_URL: https://spotlightpublic.blob.core.windows.net/github-public/${{ github.repository }}/${{ github.event.pull_request.head.sha }}/screenshots
         steps:
             - name: '🖍 Comment GUI screenshots'
+              if: github.actor != 'dependabot[bot]'
               uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
               with:
                   comment_tag: gui-screenshots

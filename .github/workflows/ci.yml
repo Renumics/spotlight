@@ -352,7 +352,7 @@ jobs:
                   fi
             - name: '📸 Upload GUI screenshots'
               if: |
-                  (
+                  github.actor != 'dependabot[bot]' && (
                     success()
                     || steps.setup-chromedriver.outcome == 'success'
                     || steps.setup-geckodriver.outcome == 'success'
