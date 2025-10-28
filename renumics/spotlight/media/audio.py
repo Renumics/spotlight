@@ -44,7 +44,7 @@ class Audio(FileMediaType):
         ...     print(dataset["audio", 0].data[100])
         ...     print(f"{dataset['lossy_audio', 1].data[0, 0]:.5g}")
         [12967 12967]
-        0.4596
+        0.37873
     """
 
     data: np.ndarray

@@ -24,7 +24,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
@@ -39,7 +39,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '⬢ Set up pnpm environment'
@@ -68,7 +68,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
@@ -103,43 +103,40 @@ jobs:
         # action, so use it as check.
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
             - name: '🧱 Build test matrix for pull request'
               if: needs.check-pr.outputs.is-pr == 'true'
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
-                      python-version: [3.8, 3.9, 3.10, 3.11, 3.12, 3.13]
+                      python-version: [3.9, 3.10, 3.11, 3.12, 3.13, 3.14]
             - name: '🧱 Build test matrix for release'
               if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest, windows-latest, macos-latest]
-                      python-version: [3.8, 3.9, 3.10, 3.11, 3.12, 3.13]
-                      exclude:
-                          - os: windows-latest
-                            python-version: 3.13
+                      python-version: [3.9, 3.10, 3.11, 3.12, 3.13, 3.14]
             - name: '🧱 Build test matrix for main branch'
               if: env.MATRIX == '' && github.ref == 'refs/heads/main'
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
-                      python-version: [3.8, 3.9, 3.10, 3.11, 3.12, 3.13]
+                      python-version: [3.9, 3.10, 3.11, 3.12, 3.13, 3.14]
                       include:
                           - os: windows-latest
-                            python-version: 3.10
+                            python-version: 3.12
                           - os: macos-latest
-                            python-version: 3.10
+                            python-version: 3.12
             - name: '🧱 Build test matrix for development branch'
               if: env.MATRIX == ''
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
-                      python-version: [3.10]
+                      python-version: [3.12]
             - name: Print matrix
               run: echo "$MATRIX" | yq -P '{"matrix":.}'
             - name: Set output
@@ -154,7 +151,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
@@ -162,7 +159,7 @@ jobs:
             - name: '📝 Build API docs'
               run: make docs
             - name: '📥 Store API docs'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: docs-${{ needs.prepare-python.outputs.version }}
                   path: build/docs/api/
@@ -174,7 +171,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
@@ -186,7 +183,7 @@ jobs:
               if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
               run: make all-datasets
             - name: '📥 Store datasets'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
@@ -199,7 +196,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry'
@@ -211,7 +208,7 @@ jobs:
             - name: '🧱 Build frontend'
               run: make build-frontend
             - name: '📥 Store frontend'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
@@ -219,7 +216,7 @@ jobs:
             - name: Build Spotlight
               run: make build-wheel
             - name: '📥 Store Spotlight'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist/renumics_spotlight*.whl
@@ -233,13 +230,13 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
               uses: ./.github/actions/setup-poetry
             - name: '📤 Restore Spotlight Wheel'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
@@ -253,7 +250,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
@@ -270,7 +267,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
@@ -294,18 +291,18 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
               uses: ./.github/actions/setup-poetry
             - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
             - name: '📤 Restore frontend'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
@@ -377,7 +374,7 @@ jobs:
                   success()
                   || steps.setup-chromedriver.outcome == 'success'
                   || steps.setup-geckodriver.outcome == 'success'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: .ui-test-${{ matrix.browser }}-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
@@ -395,7 +392,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry'
@@ -410,12 +407,12 @@ jobs:
                   path: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
             - name: '📤 Restore Spotlight'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
             - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
@@ -467,11 +464,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   fetch-depth: 0
             - name: '📤 Restore core Spotlight'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v6
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: dist
