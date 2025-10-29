@@ -1,0 +1,27 @@
+name: Setup Node.js and pnpm
+author: Renumics GmbH
+description: |
+    Set up Node.js and pnpm environment as specified in .tool-versions file,
+    cache/restore dependencies
+runs:
+    using: composite
+    steps:
+        - name: Extract versions from .tool-versions
+          id: tool-versions
+          run: |
+              echo "nodejs-version=$(awk '/^nodejs / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              echo "pnpm-version=$(awk '/^pnpm / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+          shell: bash
+        - name: Install pnpm ${{ steps.tool-versions.outputs.pnpm-version }}
+          uses: pnpm/action-setup@v4
+          with:
+              version: ${{ steps.tool-versions.outputs.pnpm-version }}
+        - name: Set up Node.js ${{ steps.tool-versions.outputs.nodejs-version }}
+          uses: actions/setup-node@v4
+          with:
+              node-version: ${{ steps.tool-versions.outputs.nodejs-version }}
+              cache: pnpm
+              cache-dependency-path: pnpm-lock.yaml
+        - name: Install pnpm dependencies
+          run: pnpm install --frozen-lockfile
+          shell: bash

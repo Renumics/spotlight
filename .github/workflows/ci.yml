@@ -28,11 +28,11 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              id: setup-poetry
-              uses: ./.github/actions/setup-poetry
+              id: setup-python-and-poetry
+              uses: ./.github/actions/setup-python-and-poetry
         outputs:
-            version: ${{ steps.setup-poetry.outputs.package-version }}
-            pip-cache-dir: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
+            version: ${{ steps.setup-python-and-poetry.outputs.package-version }}
+            pip-cache-dir: ${{ steps.setup-python-and-poetry.outputs.pip-cache-dir }}
     prepare-node:
         name: '⬢ Prepare Node.js'
         if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
@@ -43,7 +43,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '⬢ Set up pnpm environment'
-              uses: ./.github/actions/setup-pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
     # Check stage
     check-pr:
         name: '🔍 Check if pull request'
@@ -72,10 +72,10 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '⬢ Set up pnpm environment'
               id: setup
-              uses: ./.github/actions/setup-pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
             - name: Run shellcheck
               if: success() || steps.setup.outcome == 'success'
               uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
@@ -155,7 +155,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '📝 Build API docs'
               run: make docs
             - name: '📥 Store API docs'
@@ -175,7 +175,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '🗃 Build datasets'
               if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/v')
               run: make datasets
@@ -200,11 +200,11 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
               with:
                   install-dependencies: false
             - name: '⬢ Set up pnpm environment'
-              uses: ./.github/actions/setup-pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
             - name: '🧱 Build frontend'
               run: make build-frontend
             - name: '📥 Store frontend'
@@ -234,7 +234,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '📤 Restore Spotlight Wheel'
               uses: actions/download-artifact@v6
               with:
@@ -254,9 +254,9 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '⬢ Set up pnpm environment'
-              uses: ./.github/actions/setup-pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute unit tests
               run: make unit-test
     doc-test:
@@ -271,9 +271,9 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '⬢ Set up pnpm environment'
-              uses: ./.github/actions/setup-pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute doc tests
               run: make doc-test
     ui-test:
@@ -295,7 +295,7 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-poetry
+              uses: ./.github/actions/setup-python-and-poetry
             - name: '📤 Restore datasets'
               uses: actions/download-artifact@v6
               with:
@@ -396,15 +396,15 @@ jobs:
               with:
                   fetch-depth: 0
             - name: '🐍 Set up Poetry'
-              id: setup-poetry
-              uses: ./.github/actions/setup-poetry
+              id: setup-python-and-poetry
+              uses: ./.github/actions/setup-python-and-poetry
               with:
                   python-version: ${{ matrix.python-version }}
                   install-dependencies: false
             - name: '♻️ Cache pip cache folder'
               uses: actions/cache@v4
               with:
-                  path: ${{ steps.setup-poetry.outputs.pip-cache-dir }}
+                  path: ${{ steps.setup-python-and-poetry.outputs.pip-cache-dir }}
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
             - name: '📤 Restore Spotlight'
               uses: actions/download-artifact@v6
