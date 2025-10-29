@@ -62,7 +62,7 @@ uvloop = [
 ]
 diskcache = "*"
 appdirs = "*"
-databases = { version = ">=0.1.3", extras = ["sqlite"] }
+databases = {version = ">=0.1.3", extras = ["sqlite"]}
 rsa = "*"
 prettytable = "*"
 networkx = "*"
@@ -80,17 +80,17 @@ ipywidgets = "*"
 jinja2 = "*"
 toml = "*"
 websockets = "*"
-cleanlab = { version = "*", optional = true }
-cleanvision = { version = "*", optional = true }
+cleanlab = {version = "*", optional = true}
+cleanvision = {version = "*", optional = true}
 py-machineid = "*"
 filetype = "*"
 setuptools = "*"
 numba = "*"
-pillow = "^10.0.0"
+pillow = ">=10.0.0"
 httpx = ">=0.23.0"
-datasets = { extras = ["audio"], version = "^2.12.0" }
-pydantic-settings = "^2.0.3"
-pycatch22 = { version = "!=0.4.4", optional = true }
+datasets = {version = ">=2.12.0", extras = ["audio"]}
+pydantic-settings = "^2.0.0"
+pycatch22 = {version = "!=0.4.4", optional = true}
 transformers = "*"
 packaging = "*"
 pyarrow = "*"
