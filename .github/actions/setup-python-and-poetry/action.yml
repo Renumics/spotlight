@@ -1,6 +1,7 @@
-name: Setup Poetry
+name: Setup Python and Poetry
+author: Renumics GmbH
 description: |
-    Prepare Python environment using Poetry, optionally install and
+    Set up Python and Poetry environment as specified in .tool-versions file,
     cache/restore dependencies
 inputs:
     install-dependencies:

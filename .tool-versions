@@ -1,5 +1,5 @@
-python 3.12.10
-pnpm 9.4.0
-nodejs 20.14.0
 direnv 2.35.0
-poetry 1.8.5
+nodejs 20.14.0
+pnpm 9.4.0
+poetry 2.2.1
+python 3.12.10
