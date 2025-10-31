@@ -41,7 +41,7 @@ exclude = []
 spotlight = "renumics.spotlight.cli:main"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9, <3.14"
 numpy = "*"
 tqdm = "*"
 loguru = "*"
