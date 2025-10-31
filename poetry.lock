@@ -348,10 +348,7 @@ files = [
 ]
 
 [package.dependencies]
-cffi = [
-    {version = ">=1.0.1", markers = "python_version < \"3.14\""},
-    {version = ">=2.0.0b1", markers = "python_version >= \"3.14\""},
-]
+cffi = {version = ">=1.0.1", markers = "python_version < \"3.14\""}
 
 [[package]]
 name = "arrow"
@@ -9196,5 +9193,5 @@ analysers = ["cleanlab", "cleanvision"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.9"
-content-hash = "43f01e57a899354bf75dc3407edc0161d904ffdb1091532310b33de733878ef6"
+python-versions = ">=3.9, <3.14"
+content-hash = "14edaee306d156fc297f4989acc6309ca3586cad1e0ebe962f897197f8e442c7"
