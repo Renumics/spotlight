@@ -90,15 +90,13 @@ pillow = ">=10.0.0"
 httpx = ">=0.23.0"
 datasets = {version = ">=2.12.0", extras = ["audio"]}
 pydantic-settings = "^2.0.0"
-pycatch22 = {version = "!=0.4.4", optional = true}
 transformers = "*"
 packaging = "*"
 pyarrow = "*"
 
 [tool.poetry.extras]
 analysers = ["cleanlab", "cleanvision"]
-descriptors = ["pycatch22"]
-all = ["cleanlab", "cleanvision", "pycatch22"]
+all = ["cleanlab", "cleanvision"]
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.8.0"
@@ -173,7 +171,6 @@ module = [
   "lesscpy",
   "ipywidgets",
   "dotenv",
-  "pycatch22",
   "cleanlab.*",
   "machineid",
   "filetype",
