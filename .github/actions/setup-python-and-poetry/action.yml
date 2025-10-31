@@ -4,6 +4,9 @@ description: |
     Set up Python and Poetry environment as specified in .tool-versions file,
     cache/restore dependencies
 inputs:
+    python-version:
+        description: Python version to set up (overrides .tool-versions)
+        required: false
     install-dependencies:
         description: Whether to install and cache/restore dependencies
         default: 'true'
@@ -20,7 +23,11 @@ runs:
         - name: Extract versions from .tool-versions
           id: tool-versions
           run: |
-              echo "python-version=$(awk '/^python / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              if [[ -n "${{ inputs.python-version }}" ]]; then
+                echo "python-version=${{ inputs.python-version }}" >> "$GITHUB_OUTPUT"
+              else
+                echo "python-version=$(awk '/^python / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              fi
               echo "poetry-version=$(awk '/^poetry / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
           shell: bash
         - name: Set up Poetry ${{ steps.tool-versions.outputs.poetry-version }}
@@ -42,7 +49,7 @@ runs:
               python-version: ${{ steps.tool-versions.outputs.python-version }}
         - name: Install dependencies
           if: inputs.install-dependencies != 'false' && steps.setup-python-with-cache.outputs.cache-hit != 'true'
-          run: poetry install --sync --all-extras --without playbook --no-interaction
+          run: poetry sync --all-extras --without playbook --no-interaction
           shell: bash
         - name: Get Spotlight version
           id: get-package-version
