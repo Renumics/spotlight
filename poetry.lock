@@ -4805,7 +4805,7 @@ description = "Pexpect allows easy control of interactive console applications."
 optional = false
 python-versions = "*"
 groups = ["main", "dev"]
-markers = "sys_platform != \"win32\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and sys_platform != \"emscripten\" or python_version < \"3.11\")"
+markers = "sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and sys_platform != \"emscripten\" or sys_platform != \"win32\" and python_version < \"3.11\" or sys_platform == \"linux\" or sys_platform == \"darwin\""
 files = [
     {file = "pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523"},
     {file = "pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f"},
@@ -5365,7 +5365,7 @@ files = [
     {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
 ]
-markers = {main = "sys_platform != \"win32\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and sys_platform != \"emscripten\" or python_version < \"3.11\")", dev = "(sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"win32\" and sys_platform != \"emscripten\" or os_name != \"nt\" or python_version < \"3.11\") and (sys_platform != \"win32\" or os_name != \"nt\")"}
+markers = {main = "sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and sys_platform != \"emscripten\" or sys_platform != \"win32\" and python_version < \"3.11\" or sys_platform == \"linux\" or sys_platform == \"darwin\"", dev = "sys_platform != \"win32\" and sys_platform != \"emscripten\" or os_name != \"nt\" or python_version < \"3.11\" and sys_platform != \"win32\" or sys_platform == \"linux\" or sys_platform == \"darwin\""}
 
 [[package]]
 name = "pure-eval"
@@ -9196,5 +9196,5 @@ analysers = ["cleanlab", "cleanvision"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.9, <3.15"
-content-hash = "d6d15f675893d6d09e22bc01dff17c35ccca6d7051078a2feab1b62147a30cbb"
+python-versions = "^3.9"
+content-hash = "43f01e57a899354bf75dc3407edc0161d904ffdb1091532310b33de733878ef6"
