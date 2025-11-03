@@ -103,7 +103,7 @@ def prepare_column(column: pd.Series, dtype: dtypes.DType) -> pd.Series:
         column[str_mask] = column[str_mask].apply(try_literal_eval)
 
         if dtypes.is_filebased_dtype(dtype):
-            dict_mask = column.map(type) == dict
+            dict_mask = column.map(type) == dict  # noqa: E721
             column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
 
     return column.mask(na_mask, None)  # type: ignore
@@ -162,7 +162,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
         str_mask = is_string_mask(column)
         x = column[str_mask].apply(try_literal_eval)
         column[str_mask] = x
-        dict_mask = column.map(type) == dict
+        dict_mask = column.map(type) == dict  # noqa: E721
         column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
         try:
             np.asarray(column.to_list(), dtype=float)
@@ -260,7 +260,7 @@ def is_string_mask(column: pd.Series) -> pd.Series:
     """
     if len(column) == 0:
         return pd.Series([], dtype=bool)
-    return column.map(type) == str
+    return column.map(type) == str  # noqa: E721
 
 
 def to_categorical(column: pd.Series, str_categories: bool = False) -> pd.Series:

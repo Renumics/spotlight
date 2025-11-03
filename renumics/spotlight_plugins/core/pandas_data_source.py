@@ -171,16 +171,16 @@ class PandasDataSource(DataSource):
             return column.cat.codes.to_numpy()
         if pd.api.types.is_string_dtype(column):
             column = column.astype(object).mask(column.isna(), None)
-            str_mask = column.map(type) == str
+            str_mask = column.map(type) == str  # noqa: E721
             column[str_mask] = column[str_mask].apply(try_literal_eval)
-            dict_mask = column.map(type) == dict
+            dict_mask = column.map(type) == dict  # noqa: E721
             column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
             return column.to_numpy()
         if pd.api.types.is_object_dtype(column):
             column = column.astype(object).mask(column.isna(), None)
-            str_mask = column.map(type) == str
+            str_mask = column.map(type) == str  # noqa: E721
             column[str_mask] = column[str_mask].apply(try_literal_eval)
-            dict_mask = column.map(type) == dict
+            dict_mask = column.map(type) == dict  # noqa: E721
             column[dict_mask] = column[dict_mask].apply(prepare_hugging_face_dict)
             return column.to_numpy()
         try:
