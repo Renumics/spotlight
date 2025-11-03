@@ -1,5 +1,5 @@
 """
-    Logging facilities for Spotlight
+Logging facilities for Spotlight
 """
 
 from loguru import logger

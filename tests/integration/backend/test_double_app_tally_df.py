@@ -1,5 +1,5 @@
 """
-    Tests for the renumics spotlight app and in mem data frame serving
+Tests for the renumics spotlight app and in mem data frame serving
 """
 
 import json
@@ -15,7 +15,7 @@ def _column_by_name(columns: List, col_name: str) -> Any:
 
 
 def test_read_table(
-    viewer_double_tally_df: Tuple[spotlight.Viewer, spotlight.Viewer]
+    viewer_double_tally_df: Tuple[spotlight.Viewer, spotlight.Viewer],
 ) -> None:
     """test that the two spotlight instances return different data"""
 

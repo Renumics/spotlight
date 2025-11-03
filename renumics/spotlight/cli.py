@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    Command line entrypoint for the renumics-spotlight python package
+Command line entrypoint for the renumics-spotlight python package
 """
 import os
 import platform

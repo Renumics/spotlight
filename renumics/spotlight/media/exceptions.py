@@ -1,5 +1,5 @@
 """
-    Exceptions raised in dtype handling
+Exceptions raised in dtype handling
 """
 
 
