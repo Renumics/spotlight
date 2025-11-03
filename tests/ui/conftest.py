@@ -57,7 +57,7 @@ def backend_base_url(pytestconfig) -> str:  # type: ignore
 def global_browser_name(pytestconfig) -> None:  # type: ignore
     """load command line option"""
     name = pytestconfig.getoption("browser")
-    pytest.browser_name = name
+    pytest.browser_name = name  # type: ignore[attr-defined]
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -66,7 +66,7 @@ def global_results_folder(pytestconfig) -> None:  # type: ignore
     folder = pytestconfig.getoption("resultsFolder")
     Path(folder).mkdir(parents=True, exist_ok=True)
     (Path(folder) / "screenshots").mkdir(parents=True, exist_ok=True)
-    pytest.results_folder = folder
+    pytest.results_folder = folder  # type: ignore[attr-defined]
 
 
 @pytest.fixture
