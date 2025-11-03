@@ -1,5 +1,5 @@
 """
-    middleware for timing requests
+middleware for timing requests
 """
 
 import time

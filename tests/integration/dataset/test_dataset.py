@@ -650,9 +650,10 @@ def test_append_dataset(
                 )
             assert len(dataset) == 6
 
-        with Dataset(output_h5_file, "a") as dataset, Dataset(
-            output_h5_file, "r"
-        ) as dataset1:
+        with (
+            Dataset(output_h5_file, "a") as dataset,
+            Dataset(output_h5_file, "r") as dataset1,
+        ):
             dataset_length = len(dataset)
             dataset.append_dataset(dataset1)
             assert len(dataset) == 2 * dataset_length
@@ -669,17 +670,19 @@ def test_append_dataset(
                 )
             assert len(dataset) == 6
 
-        with Dataset(output_h5_file, "a") as dataset, Dataset(
-            output_h5_file1, "r"
-        ) as dataset1:
+        with (
+            Dataset(output_h5_file, "a") as dataset,
+            Dataset(output_h5_file1, "r") as dataset1,
+        ):
             dataset_length = len(dataset)
             dataset_length1 = len(dataset1)
             dataset.append_dataset(dataset1)
             assert len(dataset) == dataset_length + dataset_length1
 
-        with Dataset(output_h5_file, "a") as dataset, Dataset(
-            output_h5_file1, "r"
-        ) as dataset1:
+        with (
+            Dataset(output_h5_file, "a") as dataset,
+            Dataset(output_h5_file1, "r") as dataset1,
+        ):
             dataset_length = len(dataset)
             dataset_length1 = len(dataset1)
             dataset += dataset1

@@ -1,5 +1,5 @@
 """
-    Tests for the renumics spotlight app and in mem data frame serving
+Tests for the renumics spotlight app and in mem data frame serving
 """
 
 import json

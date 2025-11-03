@@ -5,7 +5,7 @@ from .registry import add_datasource
 
 
 def datasource(
-    source: Union[str, Type]
+    source: Union[str, Type],
 ) -> Callable[[Type[DataSource]], Type[DataSource]]:
     """
     Decorator to add a data source.

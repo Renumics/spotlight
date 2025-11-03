@@ -1,6 +1,6 @@
 """
-    Spotlight core plugin
-    Provides core datatypes and sources.
+Spotlight core plugin
+Provides core datatypes and sources.
 """
 
 from renumics.spotlight.app import SpotlightApp

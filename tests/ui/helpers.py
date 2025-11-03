@@ -38,11 +38,11 @@ def screenshot_exception(webdriver: WebDriver) -> Iterator[None]:
     try:
         yield
     except Exception as e:
-        new_screenshots_folder = Path(pytest.results_folder) / "screenshots"  # type: ignore
+        new_screenshots_folder = Path(pytest.results_folder) / "screenshots"  # type: ignore[attr-defined]
         now = time.strftime("%Y%m%d-%H%M%S")
         new_screenshot_path = (
             new_screenshots_folder
-            / f"Exception_{now}_{e.__class__.__name__ }_{pytest.browser_name}.png"
+            / f"Exception_{now}_{e.__class__.__name__}_{pytest.browser_name}.png"  # type: ignore[attr-defined]
         )
         webdriver.save_screenshot(str(new_screenshot_path))
 

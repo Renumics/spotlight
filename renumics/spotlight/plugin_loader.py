@@ -1,5 +1,5 @@
 """
-    Facilities for plugin loading and registration.
+Facilities for plugin loading and registration.
 """
 
 import importlib

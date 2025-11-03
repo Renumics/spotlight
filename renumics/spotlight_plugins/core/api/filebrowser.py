@@ -1,5 +1,5 @@
 """
-    filebrowser api endpoints
+filebrowser api endpoints
 """
 
 from pathlib import Path
