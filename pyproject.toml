@@ -36,8 +36,6 @@ authors = [
     { name = "Renumics GmbH", email = "info@renumics.com" }
 ]
 license = "MIT"
-packages = [{ include = "renumics", from = "." }]
-exclude = []
 requires-python = ">=3.9, <4.0"
 dependencies = [
     "numpy",
@@ -133,6 +131,8 @@ playbook = [
 
 [tool.poetry]
 version = "0.0.0"
+packages = [{ include = "renumics", from = "." }]
+exclude = []
 
 [[tool.poetry.source]]
 name = "torch-cpu"
