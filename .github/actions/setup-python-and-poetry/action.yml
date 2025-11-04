@@ -33,7 +33,7 @@ runs:
         - name: Set up Poetry ${{ steps.tool-versions.outputs.poetry-version }}
           run: |
               pipx install "poetry==${{ steps.tool-versions.outputs.poetry-version }}"
-              pipx inject poetry 'poetry-dynamic-versioning[plugin]^1.0.0' 'poetry-plugin-export^1.8.0'
+              pipx inject poetry poetry-dynamic-versioning[plugin] poetry-plugin-export
               poetry config virtualenvs.in-project true
           shell: bash
         - name: Set up Python ${{ steps.tool-versions.outputs.python-version }} with cache
