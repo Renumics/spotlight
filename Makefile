@@ -29,7 +29,7 @@ audit: ## Audit project dependencies
 	# Explanations to the ignored vulnerabilities:
 	# 73323 (cleanlab): package is still affected, no fixes provided
 	poetry export --without-hashes --all-extras --without dev --without playbook \
-	    | poetry run safety check --full-report --stdin --ignore 73323 2>&1
+	    | poetry run safety check --full-report --stdin --ignore 73323
 	pnpm audit --prod
 
 .PHONY: check-format
