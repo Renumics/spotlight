@@ -83,7 +83,9 @@ jobs:
                   ignore_paths: .venv node_modules
             - name: Audit dependencies
               if: success() || steps.setup.outcome == 'success'
-              run: make audit
+              run: |
+                  poetry export --without-hashes --all-extras --without dev --without playbook
+                  make audit
             - name: Check code formatting
               if: success() || steps.setup.outcome == 'success'
               run: make check-format
