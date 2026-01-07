@@ -104,9 +104,9 @@ def generate_test_csv(output_folder: str, num_rows: int, seed: int) -> None:
     df["video"] = video_options + _random_choice(
         video_options, num_rows - len(video_options), seed + 3
     )
-    df["embedding"] = _random_embeddings_list(num_rows, seed + 4, 4, optional=True)
-    df["window"] = _random_embeddings_list(num_rows, seed + 5, 2, optional=True)
-    df["sequences"] = _random_sequences(num_rows, seed + 6)
+    df["embedding"] = _random_embeddings_list(num_rows, seed + 4, 4, optional=True)  # type: ignore[assignment]
+    df["window"] = _random_embeddings_list(num_rows, seed + 5, 2, optional=True)  # type: ignore[assignment]
+    df["sequences"] = _random_sequences(num_rows, seed + 6)  # type: ignore[assignment]
     # df["datetime"] = pd.to_datetime(_random_data(datetime.datetime, num_rows, seed + 6))
     for i, data_type in enumerate(
         (
