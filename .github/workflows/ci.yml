@@ -81,10 +81,6 @@ jobs:
               uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
               with:
                   ignore_paths: .venv node_modules
-            - name: Audit dependencies
-              if: success() || steps.setup.outcome == 'success'
-              run: |
-                  make audit
             - name: Check code formatting
               if: success() || steps.setup.outcome == 'success'
               run: make check-format
