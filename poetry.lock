@@ -1139,7 +1139,7 @@ description = "Find issues in image datasets"
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"analyzers\" or extra == \"all\""
+markers = "extra == \"all\" or extra == \"analyzers\""
 files = [
     {file = "cleanvision-0.3.7-py3-none-any.whl", hash = "sha256:46ad8296a7750c354cef5ac39136f0d0e2c9bbdb88eda68c037877ed2702d74f"},
     {file = "cleanvision-0.3.7.tar.gz", hash = "sha256:a4a0bf1871b23963b35423e5ce0e25407e751e2c4b7b76005c5feea71319cf2e"},
@@ -1230,7 +1230,7 @@ description = "Python library for calculating contours of 2D quadrilateral grids
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version < \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version < \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "contourpy-1.3.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:880ea32e5c774634f9fcd46504bf9f080a41ad855f4fef54f5380f5133d343c7"},
     {file = "contourpy-1.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:76c905ef940a4474a6289c71d53122a4f77766eef23c03cd57016ce19d0f7b42"},
@@ -1316,7 +1316,7 @@ description = "Python library for calculating contours of 2D quadrilateral grids
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version >= \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "contourpy-1.3.3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:709a48ef9a690e1343202916450bc48b9e51c049b089c7f79a267b46cffcdaa1"},
     {file = "contourpy-1.3.3-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:23416f38bfd74d5d28ab8429cc4d63fa67d5068bd711a85edb1c3fb0c3e2f381"},
@@ -1538,7 +1538,7 @@ description = "Composable style cycles"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"analyzers\" or extra == \"all\""
+markers = "extra == \"all\" or extra == \"analyzers\""
 files = [
     {file = "cycler-0.12.1-py3-none-any.whl", hash = "sha256:85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30"},
     {file = "cycler-0.12.1.tar.gz", hash = "sha256:88bb128f02ba341da8ef447245a9e138fae777f6a23943da4540077d3601eb1c"},
@@ -1915,7 +1915,7 @@ description = "Tools to manipulate font files"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version < \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version < \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "fonttools-4.60.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:4e36fadcf7e8ca6e34d490eef86ed638d6fd9c55d2f514b05687622cfc4a7050"},
     {file = "fonttools-4.60.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:6e500fc9c04bee749ceabfc20cb4903f6981c2139050d85720ea7ada61b75d5c"},
@@ -1997,7 +1997,7 @@ description = "Tools to manipulate font files"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version >= \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "fonttools-4.61.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7c7db70d57e5e1089a274cbb2b1fd635c9a24de809a231b154965d415d6c6d24"},
     {file = "fonttools-4.61.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:5fe9fd43882620017add5eabb781ebfbc6998ee49b35bd7f8f79af1f9f99a958"},
@@ -2276,6 +2276,8 @@ files = [
     {file = "greenlet-3.2.4-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c2ca18a03a8cfb5b25bc1cbe20f3d9a4c80d8c3b13ba3df49ac3961af0b1018d"},
     {file = "greenlet-3.2.4-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:9fe0a28a7b952a21e2c062cd5756d34354117796c6d9215a87f55e38d15402c5"},
     {file = "greenlet-3.2.4-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:8854167e06950ca75b898b104b63cc646573aa5fef1353d4508ecdd1ee76254f"},
+    {file = "greenlet-3.2.4-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:f47617f698838ba98f4ff4189aef02e7343952df3a615f847bb575c3feb177a7"},
+    {file = "greenlet-3.2.4-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:af41be48a4f60429d5cad9d22175217805098a9ef7c40bfef44f7669fb9d74d8"},
     {file = "greenlet-3.2.4-cp310-cp310-win_amd64.whl", hash = "sha256:73f49b5368b5359d04e18d15828eecc1806033db5233397748f4ca813ff1056c"},
     {file = "greenlet-3.2.4-cp311-cp311-macosx_11_0_universal2.whl", hash = "sha256:96378df1de302bc38e99c3a9aa311967b7dc80ced1dcc6f171e99842987882a2"},
     {file = "greenlet-3.2.4-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:1ee8fae0519a337f2329cb78bd7a8e128ec0f881073d43f023c7b8d4831d5246"},
@@ -2285,6 +2287,8 @@ files = [
     {file = "greenlet-3.2.4-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2523e5246274f54fdadbce8494458a2ebdcdbc7b802318466ac5606d3cded1f8"},
     {file = "greenlet-3.2.4-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:1987de92fec508535687fb807a5cea1560f6196285a4cde35c100b8cd632cc52"},
     {file = "greenlet-3.2.4-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:55e9c5affaa6775e2c6b67659f3a71684de4c549b3dd9afca3bc773533d284fa"},
+    {file = "greenlet-3.2.4-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:c9c6de1940a7d828635fbd254d69db79e54619f165ee7ce32fda763a9cb6a58c"},
+    {file = "greenlet-3.2.4-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:03c5136e7be905045160b1b9fdca93dd6727b180feeafda6818e6496434ed8c5"},
     {file = "greenlet-3.2.4-cp311-cp311-win_amd64.whl", hash = "sha256:9c40adce87eaa9ddb593ccb0fa6a07caf34015a29bf8d344811665b573138db9"},
     {file = "greenlet-3.2.4-cp312-cp312-macosx_11_0_universal2.whl", hash = "sha256:3b67ca49f54cede0186854a008109d6ee71f66bd57bb36abd6d0a0267b540cdd"},
     {file = "greenlet-3.2.4-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:ddf9164e7a5b08e9d22511526865780a576f19ddd00d62f8a665949327fde8bb"},
@@ -2294,6 +2298,8 @@ files = [
     {file = "greenlet-3.2.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3b3812d8d0c9579967815af437d96623f45c0f2ae5f04e366de62a12d83a8fb0"},
     {file = "greenlet-3.2.4-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:abbf57b5a870d30c4675928c37278493044d7c14378350b3aa5d484fa65575f0"},
     {file = "greenlet-3.2.4-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:20fb936b4652b6e307b8f347665e2c615540d4b42b3b4c8a321d8286da7e520f"},
+    {file = "greenlet-3.2.4-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:ee7a6ec486883397d70eec05059353b8e83eca9168b9f3f9a361971e77e0bcd0"},
+    {file = "greenlet-3.2.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:326d234cbf337c9c3def0676412eb7040a35a768efc92504b947b3e9cfc7543d"},
     {file = "greenlet-3.2.4-cp312-cp312-win_amd64.whl", hash = "sha256:a7d4e128405eea3814a12cc2605e0e6aedb4035bf32697f72deca74de4105e02"},
     {file = "greenlet-3.2.4-cp313-cp313-macosx_11_0_universal2.whl", hash = "sha256:1a921e542453fe531144e91e1feedf12e07351b1cf6c9e8a3325ea600a715a31"},
     {file = "greenlet-3.2.4-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:cd3c8e693bff0fff6ba55f140bf390fa92c994083f838fece0f63be121334945"},
@@ -2303,6 +2309,8 @@ files = [
     {file = "greenlet-3.2.4-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:23768528f2911bcd7e475210822ffb5254ed10d71f4028387e5a99b4c6699671"},
     {file = "greenlet-3.2.4-cp313-cp313-musllinux_1_1_aarch64.whl", hash = "sha256:00fadb3fedccc447f517ee0d3fd8fe49eae949e1cd0f6a611818f4f6fb7dc83b"},
     {file = "greenlet-3.2.4-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:d25c5091190f2dc0eaa3f950252122edbbadbb682aa7b1ef2f8af0f8c0afefae"},
+    {file = "greenlet-3.2.4-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:6e343822feb58ac4d0a1211bd9399de2b3a04963ddeec21530fc426cc121f19b"},
+    {file = "greenlet-3.2.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:ca7f6f1f2649b89ce02f6f229d7c19f680a6238af656f61e0115b24857917929"},
     {file = "greenlet-3.2.4-cp313-cp313-win_amd64.whl", hash = "sha256:554b03b6e73aaabec3745364d6239e9e012d64c68ccd0b8430c64ccc14939a8b"},
     {file = "greenlet-3.2.4-cp314-cp314-macosx_11_0_universal2.whl", hash = "sha256:49a30d5fda2507ae77be16479bdb62a660fa51b1eb4928b524975b3bde77b3c0"},
     {file = "greenlet-3.2.4-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:299fd615cd8fc86267b47597123e3f43ad79c9d8a22bebdce535e53550763e2f"},
@@ -2310,6 +2318,8 @@ files = [
     {file = "greenlet-3.2.4-cp314-cp314-manylinux2014_s390x.manylinux_2_17_s390x.whl", hash = "sha256:b4a1870c51720687af7fa3e7cda6d08d801dae660f75a76f3845b642b4da6ee1"},
     {file = "greenlet-3.2.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:061dc4cf2c34852b052a8620d40f36324554bc192be474b9e9770e8c042fd735"},
     {file = "greenlet-3.2.4-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:44358b9bf66c8576a9f57a590d5f5d6e72fa4228b763d0e43fee6d3b06d3a337"},
+    {file = "greenlet-3.2.4-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:2917bdf657f5859fbf3386b12d68ede4cf1f04c90c3a6bc1f013dd68a22e2269"},
+    {file = "greenlet-3.2.4-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:015d48959d4add5d6c9f6c5210ee3803a830dce46356e3bc326d6776bde54681"},
     {file = "greenlet-3.2.4-cp314-cp314-win_amd64.whl", hash = "sha256:e37ab26028f12dbb0ff65f29a8d3d44a765c61e729647bf2ddfbbed621726f01"},
     {file = "greenlet-3.2.4-cp39-cp39-macosx_11_0_universal2.whl", hash = "sha256:b6a7c19cf0d2742d0809a4c05975db036fdff50cd294a93632d6a310bf9ac02c"},
     {file = "greenlet-3.2.4-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:27890167f55d2387576d1f41d9487ef171849ea0359ce1510ca6e06c8bece11d"},
@@ -2319,6 +2329,8 @@ files = [
     {file = "greenlet-3.2.4-cp39-cp39-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c9913f1a30e4526f432991f89ae263459b1c64d1608c0d22a5c79c287b3c70df"},
     {file = "greenlet-3.2.4-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:b90654e092f928f110e0007f572007c9727b5265f7632c2fa7415b4689351594"},
     {file = "greenlet-3.2.4-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:81701fd84f26330f0d5f4944d4e92e61afe6319dcd9775e39396e39d7c3e5f98"},
+    {file = "greenlet-3.2.4-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:28a3c6b7cd72a96f61b0e4b2a36f681025b60ae4779cc73c1535eb5f29560b10"},
+    {file = "greenlet-3.2.4-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:52206cd642670b0b320a1fd1cbfd95bca0e043179c1d8a045f2c6109dfe973be"},
     {file = "greenlet-3.2.4-cp39-cp39-win32.whl", hash = "sha256:65458b409c1ed459ea899e939f0e1cdb14f58dbc803f2f93c5eab5694d32671b"},
     {file = "greenlet-3.2.4-cp39-cp39-win_amd64.whl", hash = "sha256:d2e685ade4dafd447ede19c31277a224a239a0a1a4eca4e6390efedf20260cfb"},
     {file = "greenlet-3.2.4.tar.gz", hash = "sha256:0dca0d95ff849f9a364385f36ab49f50065d76964944638be9691e1832e9f86d"},
@@ -2717,20 +2729,17 @@ files = [
     {file = "imagecodecs-2024.12.30-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1da60b181fc5948e5ae82ba990c9124dde664c61b187ba6f250b50bdac159d98"},
     {file = "imagecodecs-2024.12.30-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a71a74b0759071b685fbf79f7490413f30c2fc26961b6a7ff761f502a016803e"},
     {file = "imagecodecs-2024.12.30-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8973fbc8d328f2d2c79961e09211acaea3be50805d612ccb48d8019c5a948fec"},
-    {file = "imagecodecs-2024.12.30-cp310-cp310-win32.whl", hash = "sha256:f9d2b3ea6157f5f91a033135bd638ceeaa193db92f6c448d793bf81c7d11f1f8"},
     {file = "imagecodecs-2024.12.30-cp310-cp310-win_amd64.whl", hash = "sha256:7d799518ea5a5fa245ba3c4e43edf86ac8fdbcae5a3d1de22c19120aaf426390"},
     {file = "imagecodecs-2024.12.30-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:ad6d8d4c61df08824a93d441b41f0b62ed03281b73bfc5a3f1590f3be7629321"},
     {file = "imagecodecs-2024.12.30-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:dcb40f08a1a74ea97317c032f30688a71c85b8f8b9414f0ace824862e21ead7b"},
     {file = "imagecodecs-2024.12.30-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ff3fce17a03db6a7a9c3b6d2860815b697d2a6756f246ffdeb5462fcc2914fba"},
     {file = "imagecodecs-2024.12.30-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:227bdfc3476f57862e0602ab921a8f2bd1017c70227e122d42f1cdf6d1117af9"},
-    {file = "imagecodecs-2024.12.30-cp311-cp311-win32.whl", hash = "sha256:e722ee1bfaaf8173a37cc1dc11d7033e097dffc7d6f3d54a5e2b7333425b7a64"},
     {file = "imagecodecs-2024.12.30-cp311-cp311-win_amd64.whl", hash = "sha256:7acf874924cc49bb501c9194e6d9d12db95c83a06cd9bc3f9ed1adfe5f1b493f"},
     {file = "imagecodecs-2024.12.30-cp311-cp311-win_arm64.whl", hash = "sha256:8bd17f6dcd0cc5b7bffcebd0d965d0158957c8fe0fe97e41c7b69e1284787cbf"},
     {file = "imagecodecs-2024.12.30-cp312-cp312-macosx_10_14_x86_64.whl", hash = "sha256:d296f144b2f2ef1c33fd397941a77f2dc79ebdf9a9169a377eccca8bb074c5c9"},
     {file = "imagecodecs-2024.12.30-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:65d480431a2e99a9ecfb340f960e98ed70a634cd617dac274fddd855a9cac9a5"},
     {file = "imagecodecs-2024.12.30-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4018bccb0c905c9e1f7a84bed23ca21ad60ec05771ff7fe904d5bd264743cbd2"},
     {file = "imagecodecs-2024.12.30-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b03211f1853a184a0f5e78eef5b5d121ba59c6b00cf73abb83c1561cc7edafb6"},
-    {file = "imagecodecs-2024.12.30-cp312-cp312-win32.whl", hash = "sha256:3971078c5f2960c5086c5d63a0bb6db53000b959bc87ab418e4c7b6e715116bf"},
     {file = "imagecodecs-2024.12.30-cp312-cp312-win_amd64.whl", hash = "sha256:758ba651f74f0c6fc86e6d741e385121721610830eb4421703fbb69c2638ce8a"},
     {file = "imagecodecs-2024.12.30-cp312-cp312-win_arm64.whl", hash = "sha256:1dd4d32b6c8cdc3117687324f5b79b14e0378d496289b20dd82c724c56e7b082"},
     {file = "imagecodecs-2024.12.30-cp313-cp313-macosx_10_14_x86_64.whl", hash = "sha256:cf4431927ebf59278d3f10047e164f2977b5e4f47a404dabd8a99f7490cc12d8"},
@@ -2744,7 +2753,6 @@ files = [
     {file = "imagecodecs-2024.12.30-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:8c6e02e8081ac947d093f8578cf87c07c1b34231d3adf1120571f3c8e68fa8ce"},
     {file = "imagecodecs-2024.12.30-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:993dd1aa2fea1bd0956bc35c57523e8d327b7218d308c161dc9351541f7320b9"},
     {file = "imagecodecs-2024.12.30-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e92b74e23ccb9fa58158bb8735e555a7aca97455e791f6f9fddce198dfde674c"},
-    {file = "imagecodecs-2024.12.30-cp39-cp39-win32.whl", hash = "sha256:a7e8e42aeaffe8fcfb8c6052e48b49414840aaa2bc2d48abc59014db61a76129"},
     {file = "imagecodecs-2024.12.30-cp39-cp39-win_amd64.whl", hash = "sha256:422b22ed51c5de6127e388db765f27c1cefe562dda4f866f6230c471b12b0676"},
     {file = "imagecodecs-2024.12.30.tar.gz", hash = "sha256:4c88f745719313cabea6dd5f1e69c9f93346de91c0f1e770eb969f2232247f21"},
 ]
@@ -2796,7 +2804,7 @@ description = "Image Hashing library"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"analyzers\" or extra == \"all\""
+markers = "extra == \"all\" or extra == \"analyzers\""
 files = [
     {file = "ImageHash-4.3.2-py2.py3-none-any.whl", hash = "sha256:02b0f965f8c77cd813f61d7d39031ea27d4780e7ebcad56c6cd6a709acc06e5f"},
     {file = "ImageHash-4.3.2.tar.gz", hash = "sha256:e54a79805afb82a34acde4746a16540503a9636fd1ffb31d8e099b29bbbf8156"},
@@ -3514,7 +3522,7 @@ description = "A fast implementation of the Cassowary constraint solver"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_version < \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version < \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "kiwisolver-1.4.7-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:8a9c83f75223d5e48b0bc9cb1bf2776cf01563e00ade8775ffe13b0b6e1af3a6"},
     {file = "kiwisolver-1.4.7-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:58370b1ffbd35407444d57057b57da5d6549d2d854fa30249771775c63b5fe17"},
@@ -3639,7 +3647,7 @@ description = "A fast implementation of the Cassowary constraint solver"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version >= \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "kiwisolver-1.4.9-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:b4b4d74bda2b8ebf4da5bd42af11d02d04428b2c32846e4c2c93219df8a7987b"},
     {file = "kiwisolver-1.4.9-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:fb3b8132019ea572f4611d770991000d7f58127560c4889729248eb5852a102f"},
@@ -4221,7 +4229,7 @@ description = "Python plotting package"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version < \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version < \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "matplotlib-3.9.4-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:c5fdd7abfb706dfa8d307af64a87f1a862879ec3cd8d0ec8637458f0885b9c50"},
     {file = "matplotlib-3.9.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:d89bc4e85e40a71d1477780366c27fb7c6494d293e1617788986f74e2a03d7ff"},
@@ -4288,7 +4296,7 @@ description = "Python plotting package"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version >= \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "matplotlib-3.10.8-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:00270d217d6b20d14b584c521f810d60c5c78406dc289859776550df837dcda7"},
     {file = "matplotlib-3.10.8-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:37b3c1cc42aa184b3f738cfa18c1c1d72fd496d85467a6cf7b807936d39aa656"},
@@ -6570,7 +6578,7 @@ description = "pyparsing - Classes and methods to define and execute parsing gra
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"analyzers\" or extra == \"all\""
+markers = "extra == \"all\" or extra == \"analyzers\""
 files = [
     {file = "pyparsing-3.3.1-py3-none-any.whl", hash = "sha256:023b5e7e5520ad96642e2c6db4cb683d3970bd640cdf7115049a6e9c3682df82"},
     {file = "pyparsing-3.3.1.tar.gz", hash = "sha256:47fad0f17ac1e2cad3de3b458570fbc9b03560aa029ed5e16ee5554da9a2251c"},
@@ -6722,7 +6730,7 @@ description = "PyWavelets, wavelet transform module"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version < \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version < \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "pywavelets-1.6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ddc1ff5ad706313d930f857f9656f565dfb81b85bbe58a9db16ad8fa7d1537c5"},
     {file = "pywavelets-1.6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:78feab4e0c25fa32034b6b64cb854c6ce15663b4f0ffb25d8f0ee58915300f9b"},
@@ -6769,7 +6777,7 @@ description = "PyWavelets, wavelet transform module"
 optional = true
 python-versions = ">=3.11"
 groups = ["main"]
-markers = "python_version >= \"3.11\" and (extra == \"analyzers\" or extra == \"all\")"
+markers = "python_version >= \"3.11\" and (extra == \"all\" or extra == \"analyzers\")"
 files = [
     {file = "pywavelets-1.9.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:54662cce4d56f0d6beaa6ebd34b2960f3aa4a43c83c9098a24729e9dc20a4be2"},
     {file = "pywavelets-1.9.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:0d8ed4b4d1eab9347e8fe0c5b45008ce5a67225ce5b05766b8b1fa923a5f8b34"},
@@ -6884,6 +6892,13 @@ optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
 files = [
+    {file = "PyYAML-6.0.3-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:c2514fceb77bc5e7a2f7adfaa1feb2fb311607c9cb518dbc378688ec73d8292f"},
+    {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9c57bb8c96f6d1808c030b1687b9b5fb476abaa47f0db9c0101f5e9f394e97f4"},
+    {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_s390x.manylinux_2_17_s390x.manylinux_2_28_s390x.whl", hash = "sha256:efd7b85f94a6f21e4932043973a7ba2613b059c4a000551892ac9f1d11f5baf3"},
+    {file = "PyYAML-6.0.3-cp38-cp38-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:22ba7cfcad58ef3ecddc7ed1db3409af68d023b7f940da23c6c2a1890976eda6"},
+    {file = "PyYAML-6.0.3-cp38-cp38-musllinux_1_2_x86_64.whl", hash = "sha256:6344df0d5755a2c9a276d4473ae6b90647e216ab4757f8426893b5dd2ac3f369"},
+    {file = "PyYAML-6.0.3-cp38-cp38-win32.whl", hash = "sha256:3ff07ec89bae51176c0549bc4c63aa6202991da2d9a6129d7aef7f1407d3f295"},
+    {file = "PyYAML-6.0.3-cp38-cp38-win_amd64.whl", hash = "sha256:5cf4e27da7e3fbed4d6c3d8e797387aaad68102272f8f9752883bc32d61cb87b"},
     {file = "pyyaml-6.0.3-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:214ed4befebe12df36bcc8bc2b64b396ca31be9304b8f59e25c11cf94a4c033b"},
     {file = "pyyaml-6.0.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:02ea2dfa234451bbb8772601d7b8e426c2bfa197136796224e50e35a78777956"},
     {file = "pyyaml-6.0.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b30236e45cf30d2b8e7b3e85881719e98507abed1011bf463a8fa23e9c3e98a8"},
@@ -8485,7 +8500,7 @@ description = "Pretty-print tabular data"
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"analyzers\" or extra == \"all\""
+markers = "extra == \"all\" or extra == \"analyzers\""
 files = [
     {file = "tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f"},
     {file = "tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c"},
@@ -9375,14 +9390,14 @@ dev = ["flake8", "flake8-annotations", "flake8-bandit", "flake8-bugbear", "flake
 
 [[package]]
 name = "urllib3"
-version = "2.6.2"
+version = "2.6.3"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "urllib3-2.6.2-py3-none-any.whl", hash = "sha256:ec21cddfe7724fc7cb4ba4bea7aa8e2ef36f607a4bab81aa6ce42a13dc3f03dd"},
-    {file = "urllib3-2.6.2.tar.gz", hash = "sha256:016f9c98bb7e98085cb2b4b17b87d2c702975664e4f060c6532e64d1c1a5e797"},
+    {file = "urllib3-2.6.3-py3-none-any.whl", hash = "sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4"},
+    {file = "urllib3-2.6.3.tar.gz", hash = "sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed"},
 ]
 
 [package.dependencies]
