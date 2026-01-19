@@ -404,6 +404,8 @@ jobs:
               with:
                   path: ${{ steps.setup-python-and-poetry.outputs.pip-cache-dir }}
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
+            - name: '🎬 Install FFmpeg'
+              uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6
             - name: '📤 Restore Spotlight'
               uses: actions/download-artifact@v6
               with:
