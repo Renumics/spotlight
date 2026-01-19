@@ -406,6 +406,7 @@ jobs:
                   key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
             - name: '🎬 Install FFmpeg'
               uses: AnimMouse/setup-ffmpeg@ae28d57dabbb148eff63170b6bf7f2b60062cbae
+            - run: ffmpeg -version
             - name: '📤 Restore Spotlight'
               uses: actions/download-artifact@v6
               with:
