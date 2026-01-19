@@ -2,6 +2,7 @@
 """
 generate the api spec
 """
+
 import json
 
 import click

@@ -3,6 +3,7 @@
 """
 generate spotlight test dataset
 """
+
 from pathlib import Path
 
 import click

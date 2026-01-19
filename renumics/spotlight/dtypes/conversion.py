@@ -92,12 +92,10 @@ class ConversionFailed(Problem):
     ) -> None:
         super().__init__(
             title="Conversion failed",
-            detail=inspect.cleandoc(
-                f"""
+            detail=inspect.cleandoc(f"""
                Failed to convert value of type {type(value)} to dtype {dtype}.
                {"" if reason is None else reason}
-            """
-            ),
+            """),
             status_code=422,
         )
 

@@ -46,16 +46,14 @@ else:
                     rows=rows,
                     severity="medium",
                     columns=[column_name],
-                    description=inspect.cleandoc(
-                        """
+                    description=inspect.cleandoc("""
                         There are outliers in one of your embedding columns.
 
                         Here are a few issues that outliers might indicate:
                         1. Data entry or measurement errors
                         2. Feature engineering issues, like missing normalization
                         3. Sampling bias in your dataset
-                    """
-                    ),
+                    """),
                 )
 
     def _calculate_outlier_scores(embeddings: np.ndarray) -> np.ndarray:
