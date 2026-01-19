@@ -64,7 +64,7 @@ def _get_python_runtime() -> str:
     python_runtime = "python"
     try:
         try:
-            ipython_kernel = get_ipython()  # type:ignore
+            ipython_kernel = get_ipython()  # type: ignore
             python_runtime = "ipython"
             if "google.colab" in str(ipython_kernel):
                 python_runtime += "_colab"

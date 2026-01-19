@@ -2,6 +2,7 @@
 """
 Command line entrypoint for the renumics-spotlight python package
 """
+
 import os
 import platform
 import signal
