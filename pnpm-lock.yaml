@@ -108,8 +108,8 @@ importers:
         specifier: ^1.10.0
         version: 1.10.0
       lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
+        specifier: ^4.17.23
+        version: 4.17.23
       micromatch:
         specifier: 4.0.8
         version: 4.0.8
@@ -3413,6 +3413,9 @@ packages:
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
+  lodash@4.17.23:
+    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
+
   log-symbols@4.1.0:
     resolution: {integrity: sha512-8XPvpAA8uyhfteu8pIvQxpJZ7SYYdpUivZpGy6sFsBuKRY/7rQGavedeB8aK+Zkyq6upMFVL/9AW6vOYzfRyLg==}
     engines: {node: '>=10'}
@@ -5558,7 +5561,7 @@ snapshots:
       '@rushstack/rig-package': 0.4.0
       '@rushstack/ts-command-line': 4.15.1
       colors: 1.2.5
-      lodash: 4.17.21
+      lodash: 4.17.23
       resolve: 1.22.4
       semver: 7.5.4
       source-map: 0.6.1
@@ -6531,7 +6534,7 @@ snapshots:
       '@babel/helper-annotate-as-pure': 7.22.5
       '@babel/helper-module-imports': 7.22.5
       babel-plugin-syntax-jsx: 6.18.0
-      lodash: 4.17.21
+      lodash: 4.17.23
       picomatch: 2.3.1
       styled-components: 5.3.9(react-dom@18.2.0(react@18.2.0))(react-is@18.2.0)(react@18.2.0)
 
@@ -6828,7 +6831,7 @@ snapshots:
     dependencies:
       chalk: 4.1.2
       date-fns: 2.30.0
-      lodash: 4.17.21
+      lodash: 4.17.23
       rxjs: 6.6.7
       spawn-command: 0.0.2-1
       supports-color: 8.1.1
@@ -7911,7 +7914,7 @@ snapshots:
       cli-width: 3.0.0
       external-editor: 3.1.0
       figures: 3.2.0
-      lodash: 4.17.21
+      lodash: 4.17.23
       mute-stream: 0.0.8
       ora: 5.4.1
       run-async: 2.4.1
@@ -8509,6 +8512,8 @@ snapshots:
 
   lodash@4.17.21: {}
 
+  lodash@4.17.23: {}
+
   log-symbols@4.1.0:
     dependencies:
       chalk: 4.1.2
@@ -9061,7 +9066,7 @@ snapshots:
 
   react-resize-detector@7.1.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.23
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
@@ -9172,7 +9177,7 @@ snapshots:
     dependencies:
       classnames: 2.3.2
       eventemitter3: 4.0.7
-      lodash: 4.17.21
+      lodash: 4.17.23
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
