@@ -60,7 +60,7 @@
         "fuse.js": "^6.6.2",
         "immer": "^9.0.19",
         "localforage": "^1.10.0",
-        "lodash": "^4.17.21",
+        "lodash": "^4.17.23",
         "micromatch": "4.0.8",
         "moment": "^2.29.4",
         "numbro": "^2.3.6",
