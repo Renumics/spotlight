@@ -24,14 +24,6 @@ clean: ## clean project
 	rm -rf build/ .pytest_cache/ .ruff_cache/ .mypy_cache/
 	rm -rf node_modules
 
-.PHONY: audit
-audit: ## Audit project dependencies
-	# Explanations to the ignored vulnerabilities:
-	# 73323 (cleanlab): package is still affected, no fixes provided
-	poetry export --without-hashes --all-extras --without dev --without playbook \
-	    | poetry run safety check --full-report --stdin --ignore 73323
-	pnpm audit --prod
-
 .PHONY: check-format
 check-format: ## Check code formatting
 	poetry run black --check .
