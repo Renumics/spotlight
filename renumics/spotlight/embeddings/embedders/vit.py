@@ -20,7 +20,7 @@ else:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model_name = "google/vit-base-patch16-224"
         processor = transformers.AutoImageProcessor.from_pretrained(model_name)
-        model = transformers.ViTModel.from_pretrained(model_name).to(device)
+        model = transformers.ViTModel.from_pretrained(model_name).to(device)  # type: ignore[arg-type]
 
         for batch in batches:
             images = [image.convert("RGB") for image in batch]
