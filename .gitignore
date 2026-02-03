@@ -16,6 +16,7 @@ test_install/
 
 # Cache
 __pycache__/
+.poetry/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
