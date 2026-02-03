@@ -17,13 +17,6 @@ permissions:
 # the right package version.
 
 jobs:
-    dummy:
-        name: '🧪 Dummy'
-        runs-on: ubuntu-latest
-        steps:
-            - name: Dummy
-              run: echo "Dummy"
-            - run: echo ${{ github.event.pull_request.head.repo.full_name }}
     # Prepare stage
     prepare-python:
         name: '🐍 Prepare Python'
