@@ -63,7 +63,7 @@ dependencies = [
     "imageio (>=2.18.0)",
     "pygltflib (>=1.15.1)",
     "scikit-learn",
-    "pandas",
+    "pandas (>=2.0.0,<3.0.0)",
     "importlib_resources (<5.8.0)",
     "scikit-image",
     "imagecodecs ; platform_machine != 'arm64'",
