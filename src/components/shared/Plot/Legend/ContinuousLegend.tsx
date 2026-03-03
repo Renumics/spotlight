@@ -101,8 +101,10 @@ export const ContinuousLegend = ({
     );
 };
 
-interface ContinuousTransferFunctionLegendProps
-    extends Omit<ContinuousProps, 'steps' | 'domain'> {
+interface ContinuousTransferFunctionLegendProps extends Omit<
+    ContinuousProps,
+    'steps' | 'domain'
+> {
     transferFunction: ContinuousTransferFunction;
 }
 

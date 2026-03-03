@@ -1,5 +1,6 @@
 import { ReactElement } from 'react';
-import { toast, TypeOptions } from 'react-toastify';
+import { toast } from 'react-toastify';
+import type { TypeOptions } from 'react-toastify';
 import 'twin.macro';
 import { Problem } from './types';
 

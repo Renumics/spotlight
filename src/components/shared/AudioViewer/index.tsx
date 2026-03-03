@@ -362,7 +362,7 @@ const AudioViewer = ({
 
             const start = isNaN(window[0]) ? 0 : window[0];
             const end = isNaN(window[1])
-                ? waveform.current?.getDuration() ?? 0
+                ? (waveform.current?.getDuration() ?? 0)
                 : window[1];
 
             waveform.current.regions.add({
@@ -447,7 +447,9 @@ const AudioViewer = ({
         const window = windows[0];
 
         const start = isNaN(window[0]) ? 0 : window[0];
-        const end = isNaN(window[1]) ? waveform.current?.getDuration() ?? 0 : window[1];
+        const end = isNaN(window[1])
+            ? (waveform.current?.getDuration() ?? 0)
+            : window[1];
 
         const duration = waveform.current.getDuration();
 
