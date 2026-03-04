@@ -42,7 +42,8 @@ const WordCloudView: Widget = () => {
     const cloudByColumnKey =
         _cloudByColumnKey && ploaceableColumnsKeys.includes(_cloudByColumnKey)
             ? _cloudByColumnKey
-            : columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key)[0] ?? '';
+            : (columns.filter((c) => isAllowedColumn(c)).map(({ key }) => key)[0] ??
+              '');
 
     const [minWordLength, setMinWordLength] = useWidgetConfig<number>(
         'minWordLength',

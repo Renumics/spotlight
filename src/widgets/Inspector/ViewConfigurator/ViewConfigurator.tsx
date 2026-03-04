@@ -210,7 +210,7 @@ const ViewConfigurator = (): JSX.Element => {
                     onChange={setView}
                     value={compatibleView}
                     label={(viewKey) =>
-                        viewKey ? lenses[viewKey].displayName ?? viewKey : ''
+                        viewKey ? (lenses[viewKey].displayName ?? viewKey) : ''
                     }
                     isDisabled={!compatibleViews.length}
                 />

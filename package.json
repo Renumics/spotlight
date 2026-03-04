@@ -37,7 +37,7 @@
         "@types/dompurify": "^3.0.2",
         "@uiw/react-json-view": "2.0.0-alpha.7",
         "bleu-score": "^1.0.4",
-        "chroma-js": "^2.4.2",
+        "chroma-js": "2.4.2",
         "comlink": "^4.4.1",
         "cropperjs": "^1.5.13",
         "d3": "^7.8.2",
@@ -76,7 +76,7 @@
         "react-player": "^2.11.2",
         "react-select": "^5.7.0",
         "react-slider": "^2.0.4",
-        "react-toastify": "^9.1.1",
+        "react-toastify": "9.1.1",
         "react-virtualized-auto-sizer": "^1.0.20",
         "react-window": "^1.8.8",
         "recharts": "^2.4.3",
@@ -96,7 +96,7 @@
         "zustand": "^4.3.3"
     },
     "devDependencies": {
-        "@openapitools/openapi-generator-cli": "^2.7.0",
+        "@openapitools/openapi-generator-cli": "^2.30.1",
         "@testing-library/react": "^14.0.0",
         "@types/chroma-js": "^2.4.0",
         "@types/d3": "^7.4.0",
@@ -139,8 +139,8 @@
         "twin.macro": "^3.3.0",
         "typescript": "^5.1.6",
         "vite": "^5.4.21",
-        "vite-plugin-dts": "^3.5.2",
-        "vite-plugin-node-polyfills": "^0.14.0"
+        "vite-plugin-dts": "^3.9.1",
+        "vite-plugin-node-polyfills": "^0.14.1"
     },
     "babelMacros": {
         "twin": {

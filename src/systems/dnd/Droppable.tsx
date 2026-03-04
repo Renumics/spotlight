@@ -32,7 +32,7 @@ export default function Droppable<Data extends DragData>({
 
     const data = active?.data.current;
     const isActive = useMemo(
-        () => (!data ? false : accepts?.(data as Data) ?? true),
+        () => (!data ? false : (accepts?.(data as Data) ?? true)),
         [accepts, data]
     );
 

@@ -57,8 +57,10 @@ export const CategoricalLegend: React.FunctionComponent<CategoricalProps> = ({
     );
 };
 
-interface CategoricalTransferFunctionLegendProps
-    extends Omit<CategoricalProps, 'colorMap'> {
+interface CategoricalTransferFunctionLegendProps extends Omit<
+    CategoricalProps,
+    'colorMap'
+> {
     transferFunction: CategoricalTransferFunction;
 }
 
@@ -68,7 +70,7 @@ export const CategoricalTransferFunctionLegend: React.FunctionComponent<
     const colorMap = React.useMemo((): { label: string; color: Color }[] => {
         const map = transferFunction.domain.map((v) => {
             const label = isCategorical(transferFunction.dType)
-                ? transferFunction.dType.invertedCategories[v] ?? 'None'
+                ? (transferFunction.dType.invertedCategories[v] ?? 'None')
                 : v === null
                   ? 'null'
                   : v.toString();

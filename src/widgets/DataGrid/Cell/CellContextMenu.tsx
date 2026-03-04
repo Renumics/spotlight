@@ -100,7 +100,7 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
             textToCopy =
                 isCategorical(column?.type) && value !== undefined
                     ? column.type.invertedCategories[value]
-                    : value?.toString() ?? '';
+                    : (value?.toString() ?? '');
         }
 
         navigator.clipboard
