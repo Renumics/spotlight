@@ -125,8 +125,12 @@ jobs:
                       include:
                           - os: windows-latest
                             python-version: 3.12
+                          - os: windows-latest
+                            python-version: 3.13
                           - os: macos-latest
                             python-version: 3.12
+                          - os: macos-latest
+                            python-version: 3.13
             - name: '🧱 Build test matrix for development branch'
               if: env.MATRIX == ''
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
@@ -386,7 +390,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
-        continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.python-version == '3.13' }}
+        continue-on-error: false
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout code
