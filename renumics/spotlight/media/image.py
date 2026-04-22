@@ -1,5 +1,5 @@
 import io
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import imageio.v3 as iio
 import numpy as np
@@ -109,7 +109,7 @@ class Image(FileMediaType):
     @classmethod
     def decode(cls, value: Union[np.ndarray, np.void]) -> "Image":
         if isinstance(value, np.void):
-            buffer = io.BytesIO(value.tolist())
+            buffer = io.BytesIO(cast(bytes, value.tolist()))
             return cls(iio.imread(buffer, extension=".png", index=False))
         raise TypeError(
             f"`value` should be a `numpy.void` instance, but {type(value)} "

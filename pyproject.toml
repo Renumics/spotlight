@@ -99,7 +99,7 @@ dev = [
     "mypy (>=1.8.0)",
     "types-setuptools (>=57.4.14)",
     "types-requests (>=2.27.20)",
-    "black (>=24.1.1)",
+    "black[jupyter]",
     "pytest (>=7.4.2)",
     "ipython (>=8.10.0)",
     "watchdog (>=2.1.7)",
@@ -122,6 +122,7 @@ dev = [
     "notebook",
     "torch (>=2.0.0)",
     "pip-audit (>=2.9.0,<3.0.0)",
+    "soundfile (>=0.13.1,<0.14.0)",
 ]
 playbook = [
     "annoy (>=1.17.2)",

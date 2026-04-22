@@ -2,10 +2,12 @@
 Test `renumics.spotlight.media.Embedding` class.
 """
 
+from typing import Any, cast
+
 import numpy as np
 import pytest
 
-from renumics.spotlight.media import Embedding
+from renumics.spotlight.media import Array1dLike, Embedding
 
 from ...integration.helpers import approx
 from .data import SEED
@@ -49,13 +51,13 @@ def test_zero_length_embedding_fails(input_type: str) -> None:
     """
     Test if `Embedding` fails with zero-length data.
     """
-    array = np.empty(0)
+    array: Any = np.empty(0)
     if input_type == "list":
         array = array.tolist()
     elif input_type == "tuple":
-        array = tuple(array.tolist())  # type: ignore
+        array = tuple(array.tolist())
     with pytest.raises(ValueError):
-        _ = Embedding(array)
+        _ = Embedding(cast(Array1dLike, array))
 
 
 @pytest.mark.parametrize("num_dims", [0, 2, 3, 4])

@@ -911,7 +911,7 @@ def test_import_csv_with_dtype() -> None:
             )
             for _ in range(10)
         ]
-        df["datetime"] = df["datetime1"] = np.arange(
+        df["datetime"] = df["datetime1"] = np.arange(  # type: ignore[call-overload]
             "2002-10-27T04:30", 10 * 60, 60, np.datetime64
         )
         df["array"] = df["array1"] = df["array2"] = df["array3"] = np.random.randint(

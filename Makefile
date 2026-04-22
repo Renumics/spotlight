@@ -26,12 +26,12 @@ clean: ## clean project
 
 .PHONY: check-format
 check-format: ## Check code formatting
-	poetry run black --check .
+	poetry run black --check --target-version py312 .
 	npx prettier --check 'src/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: format
 format: ## Fix code formatting
-	poetry run black .
+	poetry run black --target-version py312 .
 	npx prettier --write 'src/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: typecheck
@@ -44,7 +44,7 @@ typecheck: ## Typecheck all source files
 
 .PHONY: lint
 lint: ## Lint all source files
-	poetry run ruff check renumics tests scripts/*.py
+	poetry run ruff check  --fix --exit-non-zero-on-fix --show-fixes renumics tests scripts/*.py
 	pnpm run lint
 
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"

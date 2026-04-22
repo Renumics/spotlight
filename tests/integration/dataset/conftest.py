@@ -148,7 +148,7 @@ def simple_data() -> List[ColumnData]:
         ColumnData(
             "datetime1",
             "datetime",
-            np.arange("2002-10-27T04:30", 6 * 60, 60, np.datetime64),
+            np.arange("2002-10-27T04:30", 6 * 60, 60, np.datetime64),  # type: ignore[call-overload]
             description="np.datetime64 column",
         ),
     ]

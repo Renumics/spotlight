@@ -73,7 +73,7 @@ class Video(FileMediaType):
     @classmethod
     def decode(cls, value: Union[np.ndarray, np.void]) -> "Video":
         if isinstance(value, np.void):
-            return cls(value.tolist())
+            return cls(value.tolist())  # type: ignore[arg-type]
         raise TypeError(
             f"`value` should be a `numpy.void` instance, but {type(value)} "
             f"received."
