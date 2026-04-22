@@ -84,7 +84,8 @@ dependencies = [
     "pydantic-settings (>=2.0.0,<3.0.0)",
     "transformers",
     "packaging",
-    "pyarrow"
+    "pyarrow",
+    "torchcodec"
 ]
 
 [project.optional-dependencies]
