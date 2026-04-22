@@ -113,7 +113,6 @@ dev = [
     "types-appdirs (>=1.4.3.1)",
     "types-tqdm (>=4.64.7.11)",
     "pdoc3 (>=0.10.0)",
-    "nptyping (>=2.5.0)",
     "types-toml (>=0.10.8.6)",
     "types-pillow (>=10.0.0.1)",
     "pandas-stubs (>=2.0.2.230605)",
