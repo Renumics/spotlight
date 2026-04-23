@@ -29,6 +29,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
     get_args,
     get_origin,
 )
@@ -366,18 +367,18 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
 
 @convert("Image", simple=False)
 def _(value: Union[np.ndarray, list], _: dtypes.DType) -> bytes:
-    return media.Image(value).encode().tolist()
+    return cast(bytes, media.Image(value).encode().tolist())
 
 
 @convert("Image", simple=False)
 def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.image_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
     except InvalidFile:
         try:
             obj = ast.literal_eval(value)
-            return media.Image(obj).encode().tolist()
+            return cast(bytes, media.Image(obj).encode().tolist())
         except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
             raise ConversionError()
     raise ConversionError()
@@ -387,7 +388,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.image_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
         else:
             raise ConversionError()
     except InvalidFile:
@@ -396,7 +397,7 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 @convert("Image", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
-    return media.Image.from_bytes(value).encode().tolist()
+    return cast(bytes, media.Image.from_bytes(value).encode().tolist())
 
 
 @convert("Image", simple=False)
@@ -410,7 +411,7 @@ def _(value: PIL.Image.Image, _: dtypes.DType) -> bytes:
 def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.audio_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
     except (InvalidFile, IndexError, ValueError):
         raise ConversionError()
     raise ConversionError()
@@ -420,7 +421,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.audio_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
         else:
             raise ConversionError()
     except InvalidFile:
@@ -429,14 +430,14 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 @convert("Audio", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
-    return media.Audio.from_bytes(value).encode().tolist()
+    return cast(bytes, media.Audio.from_bytes(value).encode().tolist())
 
 
 @convert("Video", simple=False)
 def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.video_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
     except InvalidFile:
         raise ConversionError()
     raise ConversionError()
@@ -446,7 +447,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.video_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
         else:
             raise ConversionError()
     except InvalidFile:
@@ -455,14 +456,14 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 @convert("Video", simple=False)
 def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
-    return media.Video.from_bytes(value).encode().tolist()
+    return cast(bytes, media.Video.from_bytes(value).encode().tolist())
 
 
 @convert("Mesh", simple=False)
 def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.mesh_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
     except InvalidFile:
         raise ConversionError()
     raise ConversionError()
@@ -472,7 +473,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.mesh_dtype):
-            return data.tolist()
+            return cast(bytes, data.tolist())
         else:
             raise ConversionError()
     except InvalidFile:
@@ -487,7 +488,7 @@ def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
 # this should not be necessary
 @convert("Mesh", simple=False)  # type: ignore
 def _(value: trimesh.Trimesh, _: dtypes.DType) -> bytes:
-    return media.Mesh.from_trimesh(value).encode().tolist()
+    return cast(bytes, media.Mesh.from_trimesh(value).encode().tolist())
 
 
 @convert("Sequence", simple=False)

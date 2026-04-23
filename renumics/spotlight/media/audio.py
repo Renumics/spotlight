@@ -1,5 +1,5 @@
 import io
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, cast
 
 import numpy as np
 
@@ -112,7 +112,7 @@ class Audio(FileMediaType):
     @classmethod
     def decode(cls, value: Union[np.ndarray, np.void]) -> "Audio":
         if isinstance(value, np.void):
-            buffer = io.BytesIO(value.tolist())
+            buffer = io.BytesIO(cast(bytes, value.tolist()))
             data, sampling_rate = audio.read_audio(buffer)
             return cls(sampling_rate, data)
         raise TypeError(

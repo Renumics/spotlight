@@ -1,5 +1,7 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+default_install_hook_types: [pre-commit, pre-push]
+
 repos:
     # local hooks
     - repo: local
@@ -42,7 +44,7 @@ repos:
 
     # third-pary hooks
     - repo: https://github.com/psf/black
-      rev: 26.1.0
+      rev: 26.3.1
       hooks:
           - id: black
           - id: black-jupyter
@@ -52,12 +54,12 @@ repos:
           - id: prettier
             exclude: (\.secret\.)|(pnpm-lock.yaml)
     - repo: https://github.com/pre-commit/mirrors-eslint
-      rev: v10.0.0-rc.0
+      rev: v10.2.1
       hooks:
           - id: eslint
             files: src
     - repo: https://github.com/python-jsonschema/check-jsonschema
-      rev: 0.36.0
+      rev: 0.37.1
       hooks:
           - id: check-github-actions
           - id: check-github-workflows
@@ -67,6 +69,6 @@ repos:
           - id: shellcheck
           - id: shfmt
     - repo: https://github.com/kynan/nbstripout
-      rev: 0.9.0
+      rev: 0.9.1
       hooks:
           - id: nbstripout

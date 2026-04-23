@@ -3365,7 +3365,7 @@ class Dataset:
             raise exceptions.InvalidDTypeError(
                 f'Values for non-optional {dtype} column "{column_name}" '
                 f"should be one of {allowed_types} instances, but value "
-                f"{value} of type `{type(value)}` received."
+                f"{value!r} of type `{type(value)}` received."
             )
 
     def _decode_value(
