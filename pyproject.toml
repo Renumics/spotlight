@@ -1,6 +1,6 @@
 [project]
 name = "renumics-spotlight"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
 homepage = "https://spotlight.renumics.com/"
 documentation = "https://spotlight.renumics.com/"
@@ -88,6 +88,10 @@ dependencies = [
 
 [project.optional-dependencies]
 analyzers = [
+  "cleanlab",
+  "cleanvision"
+]
+all = [
   "cleanlab",
   "cleanvision"
 ]
@@ -204,10 +208,23 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = [
-  "renumics/spotlight",
-  "renumics/spotlight_plugins"
+  "renumics"
 ]
 
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.hooks.version]
+path = "renumics/spotlight/__version__.py"
+template = '''
+"""
+Package version.
+"""
+
+__version__ = "{version}"
+
+'''
+
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
