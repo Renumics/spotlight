@@ -393,6 +393,8 @@ jobs:
               uses: actions/checkout@v5
               with:
                   fetch-depth: 0
+            - name: '🎥 Set up FFMpeg'
+              uses: FedericoCarboni/setup-ffmpeg@v3
             - name: '🐍 Set up Poetry'
               id: setup-python-and-poetry
               uses: ./.github/actions/setup-python-and-poetry
