@@ -284,8 +284,9 @@ class SpotlightApp(FastAPI):
             request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
         ) -> Any:
             response = templates.TemplateResponse(
-                "index.html",
-                {
+                request=request,
+                name="index.html",
+                context={
                     "request": request,
                     "dev": settings.dev,
                     "dev_location": get_project_info().type,
