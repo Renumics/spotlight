@@ -1,6 +1,6 @@
 [project]
 name = "renumics-spotlight"
-dynamic = ["version"]
+version = "0.1.0"
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
 homepage = "https://spotlight.renumics.com/"
 documentation = "https://spotlight.renumics.com/"
@@ -36,7 +36,7 @@ authors = [
     { name = "Renumics GmbH", email = "info@renumics.com" }
 ]
 license = "MIT"
-requires-python = ">=3.9, <4.0"
+requires-python = ">=3.10, <4.0"
 dependencies = [
     "numpy",
     "tqdm",
@@ -87,8 +87,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-analyzers = ["cleanlab", "cleanvision"]
-all = ["cleanlab", "cleanvision"]
+analyzers = [
+  "cleanlab",
+  "cleanvision"
+]
+cpu = [
+  "torch>=2.0.0",
+  "torchcodec",
+]
+gpu = [
+  "torch>=2.0.0",
+  "torchcodec",
+]
 
 [project.scripts]
 spotlight = "renumics.spotlight.cli:main"
@@ -117,40 +127,12 @@ dev = [
     "ruff (>=0.2.1)",
     "check-wheel-contents (>=0.6.0)",
     "ray[data]",
-    "notebook",
-    "torch (>=2.0.0)",
-    "pip-audit (>=2.9.0,<3.0.0)",
+    "notebook"
 ]
 playbook = [
     "annoy (>=1.17.2)",
-    "cleanlab (>=2.4.0)",
-    "torch (>=2.0.0)"
+    "cleanlab (>=2.4.0)"
 ]
-
-[tool.poetry]
-name = "spotlight"
-packages = [{ include = "renumics", from = "." }]
-exclude = []
-version = "0.0.0"
-
-[[tool.poetry.source]]
-name = "torch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
-
-[tool.poetry.group.dev.dependencies]
-torch = {source = "torch-cpu"}
-
-[tool.poetry.group.playbook.dependencies]
-torch = {source = "torch-cpu"}
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "semver"
-
-[tool.poetry-dynamic-versioning.substitution]
-files = ["renumics/spotlight/__version__.py"]
 
 [tool.ruff.lint]
 extend-select = ["I"]
@@ -192,6 +174,30 @@ ignore_missing_imports = true
 [tool.check-wheel-contents]
 ignore = ["W002"]
 
+[tool.uv]
+conflicts = [
+  [
+    { extra = "cpu" },
+    { extra = "gpu" },
+  ],
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+]
+torchcodec = [
+  { index = "pytorch-cpu", extra = "cpu" },
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["renumics/spotlight", "renumics/spotlight_plugins"]
+
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

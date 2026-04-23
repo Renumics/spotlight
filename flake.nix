@@ -15,7 +15,7 @@
         name="spotlight-dev-shell";
         packages = with pkgs; [
           python312
-          poetry
+          uv
           pre-commit
           nodejs_20
           pnpm

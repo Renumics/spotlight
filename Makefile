@@ -12,12 +12,17 @@ help: ## Print this help message
 
 .PHONY: init
 init: ## Locally install all dev dependencies
-	poetry install --all-extras --without playbook
+	uv sync --extra analyzers --extra cpu --no-group playbook
+	pnpm install
+
+.PHONY: init-gpu
+init-gpu: ## Locally install all dev dependencies with GPU support
+	uv sync --extra analyzers --extra gpu --no-group playbook
 	pnpm install
 
 .PHONY: init-playbook
 init-playbook: ## Locally install all playbook dev dependencies
-	poetry install --all-extras
+	uv sync --extra analyzers --extra cpu --all-groups
 
 .PHONY: clean
 clean: ## clean project
