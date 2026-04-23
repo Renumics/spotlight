@@ -127,7 +127,8 @@ dev = [
     "ruff (>=0.2.1)",
     "check-wheel-contents (>=0.6.0)",
     "ray[data]",
-    "notebook"
+    "notebook",
+    "pyright>=1.1.409",
 ]
 playbook = [
     "annoy (>=1.17.2)",
@@ -195,8 +196,17 @@ torchcodec = [
   { index = "pytorch-cpu", extra = "cpu" },
 ]
 
+[tool.hatch.build.targets.sdist]
+include = [
+  "/renumics/spotlight",
+  "/renumics/spotlight_plugins",
+]
+
 [tool.hatch.build.targets.wheel]
-packages = ["renumics/spotlight", "renumics/spotlight_plugins"]
+packages = [
+  "renumics/spotlight",
+  "renumics/spotlight_plugins"
+]
 
 [build-system]
 requires = ["hatchling"]

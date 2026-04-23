@@ -8,22 +8,22 @@ repos:
       hooks:
           - id: ruff
             name: ruff
-            entry: poetry run ruff check --fix --exit-non-zero-on-fix --show-fixes
+            entry: uv run ruff check --fix --exit-non-zero-on-fix --show-fixes
             language: system
             types: [python]
             require_serial: true
           - id: mypy
             name: mypy
-            entry: poetry run mypy
+            entry: uv run mypy
             language: system
             types: [python]
             files: ^(renumics|scripts)/
             require_serial: true
-          - id: dynamic-versioning
-            name: dynamic-versioning
-            language: system
-            entry: poetry run scripts/check_dynamic_versioning.py
-            files: pyproject.toml
+          # - id: dynamic-versioning
+          #   name: dynamic-versioning
+          #   language: system
+          #   entry: uv run scripts/check_dynamic_versioning.py
+          #   files: pyproject.toml
 
     # "official" pre-commit hooks
     - repo: https://github.com/pre-commit/pre-commit-hooks

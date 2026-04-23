@@ -4,7 +4,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-export VERSION := $(shell poetry version -s)
+export VERSION := $(shell uv version --short)
 
 .PHONY: help
 help: ## Print this help message
@@ -92,7 +92,7 @@ build-wheel: ## Build installable python package
 	trap onexit EXIT
 	rm renumics/spotlight/backend/statics
 	cp -Tr build/frontend renumics/spotlight/backend/statics
-	poetry build -f wheel
+	uv build
 	mkdir -p build/dist/
 	mv dist/*.whl build/dist/
 
