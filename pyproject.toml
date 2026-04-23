@@ -79,11 +79,12 @@ dependencies = [
     "numba",
     "pillow (>=10.0.0)",
     "httpx (>=0.23.0)",
-    "datasets[audio] (>=2.12.0,<4.0.0)",
+    "datasets (>=2.12.0)",
     "pydantic-settings (>=2.0.0,<3.0.0)",
     "transformers",
     "packaging",
     "pyarrow",
+    "torchcodec",
 ]
 
 [project.optional-dependencies]
@@ -120,7 +121,6 @@ dev = [
     "ray[data]",
     "notebook",
     "torch (>=2.0.0)",
-    "pip-audit (>=2.9.0,<3.0.0)",
 ]
 playbook = [
     "annoy (>=1.17.2)",
