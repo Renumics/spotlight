@@ -6,17 +6,25 @@
     "files": [
         "build/frontend"
     ],
+    "types": "./build/frontend/lib.d.ts",
     "exports": {
         ".": {
-            "import": "./src/lib.js"
+            "types": "./build/frontend/lib.d.ts",
+            "import": "./src/lib.ts"
         },
         "./icons": {
-            "import": "./src/icons/index.js"
+            "types": "./build/frontend/icons/index.d.ts",
+            "import": "./src/icons/index.ts"
+        },
+        "./datatypes": {
+            "types": "./build/frontend/datatypes.d.ts"
         }
     },
     "scripts": {
         "dev": "vite",
-        "build": "tsc && vite build",
+        "build:types": "tsc -p tsconfig.types.json",
+        "prepare": "pnpm run build:types",
+        "build": "pnpm run build:types && tsc && vite build",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
         "typecheck:watch": "tsc --noEmit --watch",
@@ -25,7 +33,6 @@
         "api-test": "jest api-tests",
         "audit": "pnpm audit"
     },
-    "types": "index.d.ts",
     "dependencies": {
         "@dnd-kit/core": "^6.1.0",
         "@floating-ui/react": "^0.19.2",

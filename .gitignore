@@ -1,6 +1,7 @@
 # IDEs
 .vscode/
 .idea/
+.codex/
 
 # Build
 dist/
