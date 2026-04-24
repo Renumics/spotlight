@@ -79,7 +79,7 @@ dependencies = [
     "numba",
     "pillow (>=10.0.0)",
     "httpx (>=0.23.0)",
-    "datasets[audio] (>=2.12.0,<4.0.0)",
+    "datasets (>=2.12.0)",
     "pydantic-settings (>=2.0.0,<3.0.0)",
     "transformers",
     "packaging",
