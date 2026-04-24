@@ -83,13 +83,13 @@ jobs:
                   ignore_paths: .venv node_modules
             - name: Check code formatting
               if: success() || steps.setup.outcome == 'success'
-              run: make check-format
-            - name: Check code types
-              if: success() || steps.setup.outcome == 'success'
-              run: make typecheck
+              run: make format
             - name: Lint code
               if: success() || steps.setup.outcome == 'success'
               run: make lint
+            - name: Check code types
+              if: success() || steps.setup.outcome == 'success'
+              run: make typecheck
     # Build stage
     build-test-matrix:
         name: '🧱 Build test matrix'
@@ -418,7 +418,7 @@ jobs:
               run: python -m pip install --upgrade pip setuptools wheel
             - name: Install Spotlight
               id: setup
-              run: python -m pip install --find-links build/dist/ renumics-spotlight[all]==${{ needs.prepare-python.outputs.version }}
+              run: python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }}
             - run: pip list
             - name: Test Spotlight start (Windows)
               if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
