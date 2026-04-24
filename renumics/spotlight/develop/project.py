@@ -55,7 +55,9 @@ def get_project_info() -> ProjectInfo:
 
     pyproject_content = toml.load(pyproject_toml)
 
-    project_name = pyproject_content["tool"]["poetry"]["name"]
+    project_name = pyproject_content.get("project", {}).get("name")
+    if project_name is None:
+        project_name = pyproject_content["tool"]["poetry"]["name"]
 
     if project_name == "renumics-spotlight":
         project_type = "core"

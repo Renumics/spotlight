@@ -10,13 +10,13 @@ export const METRICS: Record<string, Metric> = {
         signature: {
             X: ['int', 'float', 'bool'],
         },
-        compute: ([values]) => +_(values).reject(_.isNaN).sum() ?? NaN,
+        compute: ([values]) => +_(values).reject(_.isNaN).sum(),
     },
     mean: {
         signature: {
             X: ['int', 'float', 'bool'],
         },
-        compute: ([values]) => +_(values).reject(_.isNaN).mean() ?? NaN,
+        compute: ([values]) => +_(values).reject(_.isNaN).mean(),
     },
     min: {
         signature: {
