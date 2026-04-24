@@ -113,7 +113,7 @@ def spotlight_version() -> str:
     """get Spotlight version"""
     return (
         subprocess.check_output(
-            ["poetry", "version", "-s"],
+            ["uvx", "uv-dynamic-versioning"],
             stderr=subprocess.DEVNULL,
         )
         .decode("ascii")
