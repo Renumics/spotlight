@@ -6,12 +6,18 @@
     "files": [
         "build/frontend"
     ],
+    "types": "./build/frontend/index.d.ts",
     "exports": {
         ".": {
+            "types": "./build/frontend/index.d.ts",
             "import": "./src/lib.js"
         },
         "./icons": {
+            "types": "./build/frontend/icons/index.d.ts",
             "import": "./src/icons/index.js"
+        },
+        "./datatypes": {
+            "types": "./build/frontend/datatypes.d.ts"
         }
     },
     "scripts": {
@@ -25,7 +31,6 @@
         "api-test": "jest api-tests",
         "audit": "pnpm audit"
     },
-    "types": "index.d.ts",
     "dependencies": {
         "@dnd-kit/core": "^6.1.0",
         "@floating-ui/react": "^0.19.2",
