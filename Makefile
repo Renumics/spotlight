@@ -84,7 +84,9 @@ build-wheel: ## Build installable python package
 	[ -d "build/frontend" ] || (echo "Frontend directory missing! Build frontend first."; exit 1)
 	function onexit {
 		# remove local dist directory
-		rm -rf dist || true
+		rm -rf dist
+		# reset version file
+		sed -i 's/^\(__version__ = \).*/\1"0.0.0"/' renumics/spotlight/__version__.py
 		# reset symlink for frontend
 		rm -rf renumics/spotlight/backend/statics
 		ln -nsf ../../../build/frontend renumics/spotlight/backend/statics

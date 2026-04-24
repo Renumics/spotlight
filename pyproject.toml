@@ -222,7 +222,6 @@ Package version.
 """
 
 __version__ = "{version}"
-
 '''
 
 [build-system]

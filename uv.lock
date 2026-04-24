@@ -5203,7 +5203,6 @@ wheels = [
 
 [[package]]
 name = "renumics-spotlight"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
@@ -5260,6 +5259,10 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+all = [
+    { name = "cleanlab" },
+    { name = "cleanvision" },
+]
 analyzers = [
     { name = "cleanlab" },
     { name = "cleanvision" },
@@ -5315,7 +5318,9 @@ requires-dist = [
     { name = "aiofiles" },
     { name = "appdirs" },
     { name = "av" },
+    { name = "cleanlab", marker = "extra == 'all'" },
     { name = "cleanlab", marker = "extra == 'analyzers'" },
+    { name = "cleanvision", marker = "extra == 'all'" },
     { name = "cleanvision", marker = "extra == 'analyzers'" },
     { name = "click" },
     { name = "databases", extras = ["sqlite"], specifier = ">=0.1.3" },
@@ -5365,7 +5370,7 @@ requires-dist = [
     { name = "validators" },
     { name = "websockets" },
 ]
-provides-extras = ["analyzers", "cpu", "gpu"]
+provides-extras = ["all", "analyzers", "cpu", "gpu"]
 
 [package.metadata.requires-dev]
 dev = [
