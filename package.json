@@ -6,15 +6,15 @@
     "files": [
         "build/frontend"
     ],
-    "types": "./build/frontend/index.d.ts",
+    "types": "./build/frontend/lib.d.ts",
     "exports": {
         ".": {
-            "types": "./build/frontend/index.d.ts",
-            "import": "./src/lib.js"
+            "types": "./build/frontend/lib.d.ts",
+            "import": "./src/lib.ts"
         },
         "./icons": {
             "types": "./build/frontend/icons/index.d.ts",
-            "import": "./src/icons/index.js"
+            "import": "./src/icons/index.ts"
         },
         "./datatypes": {
             "types": "./build/frontend/datatypes.d.ts"
@@ -22,7 +22,9 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "tsc && vite build",
+        "build:types": "tsc -p tsconfig.types.json",
+        "prepare": "pnpm run build:types",
+        "build": "pnpm run build:types && tsc && vite build",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
         "typecheck:watch": "tsc --noEmit --watch",
