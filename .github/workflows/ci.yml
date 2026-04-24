@@ -90,6 +90,9 @@ jobs:
             - name: Check code types
               if: success() || steps.setup.outcome == 'success'
               run: make typecheck
+            - name: Check code types2
+              if: success() || steps.setup.outcome == 'success'
+              run: uv run pre-commit run mypy --all-files --verbose
     # Build stage
     build-test-matrix:
         name: '🧱 Build test matrix'
