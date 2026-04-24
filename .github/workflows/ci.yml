@@ -395,6 +395,7 @@ jobs:
                   fetch-depth: 0
             - name: '🎥 Set up FFMpeg'
               uses: FedericoCarboni/setup-ffmpeg@v3
+            - run: ffmpeg -version
             - name: '🐍 Set up uv'
               id: setup-python-and-uv
               uses: ./.github/actions/setup-python-and-uv
