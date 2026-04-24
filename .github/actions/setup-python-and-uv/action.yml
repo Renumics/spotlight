@@ -42,7 +42,7 @@ runs:
                   pyproject.toml
               prune-cache: true
         - name: Install dependencies
-          if: inputs.install-dependencies != 'false' && steps.setup-uv-and-python.outputs.cache-hit != 'true'
+          if: inputs.install-dependencies != 'false'
           run: uv sync --all-extras --no-group playbook --locked
           shell: bash
         - name: Get Spotlight version
