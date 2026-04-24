@@ -127,7 +127,6 @@ dev = [
     "check-wheel-contents (>=0.6.0)",
     "ray[data]",
     "notebook",
-    "pyright>=1.1.409",
 ]
 playbook = [
     "annoy (>=1.17.2)",
@@ -179,6 +178,9 @@ ignore_missing_imports = true
 [tool.check-wheel-contents]
 ignore = ["W002"]
 
+[tool.uv]
+exclude-newer = "3 days"
+
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
@@ -205,16 +207,6 @@ packages = [
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
-
-[tool.hatch.build.hooks.version]
-path = "renumics/spotlight/__version__.py"
-template = '''
-"""
-Package version.
-"""
-
-__version__ = "{version}"
-'''
 
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning"]

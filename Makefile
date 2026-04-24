@@ -78,6 +78,7 @@ build-wheel: ## Build installable python package
 		ln -nsf ../../../build/frontend renumics/spotlight/backend/statics
 	}
 	trap onexit EXIT
+	sed -i 's/^\(__version__ = \).*/\1"$(VERSION)"/' renumics/spotlight/__version__.py
 	rm renumics/spotlight/backend/statics
 	cp -Tr build/frontend renumics/spotlight/backend/statics
 	uv build
