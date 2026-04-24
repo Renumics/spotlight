@@ -43,7 +43,7 @@ runs:
               prune-cache: true
         - name: Install dependencies
           if: inputs.install-dependencies != 'false' && steps.setup-uv-and-python.outputs.cache-hit != 'true'
-          run: uv sync --all-extras --without playbook --locked
+          run: uv sync --all-extras --no-group playbook --locked
           shell: bash
         - name: Get Spotlight version
           id: get-package-version
