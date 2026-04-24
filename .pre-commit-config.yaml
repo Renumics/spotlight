@@ -20,7 +20,7 @@ repos:
             files: ^(renumics|scripts|tests)/
           - id: mypy
             name: mypy
-            entry: uv run mypy
+            entry: uv run mypy --show-traceback
             language: system
             types: [python]
             files: ^(renumics|scripts|tests)/
