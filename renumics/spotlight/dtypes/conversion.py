@@ -76,7 +76,7 @@ class ConversionError(Exception):
     raise in Converter on errors or invalid input data
     """
 
-    def __init__(self, reason: Optional[str] = None):
+    def __init__(self, reason: Optional[str] = None) -> None:
         self.reason = reason
 
 
@@ -296,8 +296,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
         if array.shape != (2,):
             raise ValueError
         return array
-    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
-        raise ConversionError("Cannot interpret string as a window")
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as e:
+        raise ConversionError("Cannot interpret string as a window") from e
 
 
 def _sanitize_bounding_box(value: np.ndarray) -> np.ndarray:
@@ -324,8 +324,8 @@ def _(value: np.ndarray, _: dtypes.DType) -> np.ndarray:
 def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
-    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
-        raise ConversionError("Cannot interpret string as an array")
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as e:
+        raise ConversionError("Cannot interpret string as an array") from e
     return _sanitize_bounding_box(np.array(obj, dtype=np.float64))
 
 
@@ -347,8 +347,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
         if array.ndim != 1 or array.size == 0:
             raise ValueError
         return array
-    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
-        raise ConversionError("Cannot interpret string as an embedding")
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as e:
+        raise ConversionError("Cannot interpret string as an embedding") from e
 
 
 @convert("Sequence1D", simple=False)
@@ -361,8 +361,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
         return media.Sequence1D(obj).encode()
-    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
-        raise ConversionError("Cannot interpret string as a 1D sequence")
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as e:
+        raise ConversionError("Cannot interpret string as a 1D sequence") from e
 
 
 @convert("Image", simple=False)
@@ -379,8 +379,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
         try:
             obj = ast.literal_eval(value)
             return cast(bytes, media.Image(obj).encode().tolist())
-        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
-            raise ConversionError()
+        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as e:
+            raise ConversionError() from e
     raise ConversionError()
 
 
@@ -391,8 +391,8 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
             return cast(bytes, data.tolist())
         else:
             raise ConversionError()
-    except InvalidFile:
-        raise ConversionError()
+    except InvalidFile as e:
+        raise ConversionError() from e
 
 
 @convert("Image", simple=False)
@@ -412,8 +412,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.audio_dtype):
             return cast(bytes, data.tolist())
-    except (InvalidFile, IndexError, ValueError):
-        raise ConversionError()
+    except (InvalidFile, IndexError, ValueError) as e:
+        raise ConversionError() from e
     raise ConversionError()
 
 
@@ -424,8 +424,8 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
             return cast(bytes, data.tolist())
         else:
             raise ConversionError()
-    except InvalidFile:
-        raise ConversionError()
+    except InvalidFile as e:
+        raise ConversionError() from e
 
 
 @convert("Audio", simple=False)
@@ -438,8 +438,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.video_dtype):
             return cast(bytes, data.tolist())
-    except InvalidFile:
-        raise ConversionError()
+    except InvalidFile as e:
+        raise ConversionError() from e
     raise ConversionError()
 
 
@@ -450,8 +450,8 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
             return cast(bytes, data.tolist())
         else:
             raise ConversionError()
-    except InvalidFile:
-        raise ConversionError()
+    except InvalidFile as e:
+        raise ConversionError() from e
 
 
 @convert("Video", simple=False)
@@ -464,8 +464,8 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.mesh_dtype):
             return cast(bytes, data.tolist())
-    except InvalidFile:
-        raise ConversionError()
+    except InvalidFile as e:
+        raise ConversionError() from e
     raise ConversionError()
 
 
@@ -476,8 +476,8 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
             return cast(bytes, data.tolist())
         else:
             raise ConversionError()
-    except InvalidFile:
-        raise ConversionError()
+    except InvalidFile as e:
+        raise ConversionError() from e
 
 
 @convert("Mesh", simple=False)
@@ -638,4 +638,5 @@ def _decode_external_value(
         return media.Mesh.from_file(path_or_url).encode(target_format)
     if dtypes.is_video_dtype(dtype):
         return media.Video.from_file(path_or_url).encode(target_format)
-    assert False
+
+    raise TypeError(f"Unsupported dtype: {dtype}")

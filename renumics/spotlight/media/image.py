@@ -112,8 +112,7 @@ class Image(FileMediaType):
             buffer = io.BytesIO(cast(bytes, value.tolist()))
             return cls(iio.imread(buffer, extension=".png", index=False))
         raise TypeError(
-            f"`value` should be a `numpy.void` instance, but {type(value)} "
-            f"received."
+            f"`value` should be a `numpy.void` instance, but {type(value)} received."
         )
 
     def encode(self, _target: Optional[str] = None) -> np.void:

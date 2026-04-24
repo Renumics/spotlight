@@ -154,7 +154,9 @@ def test_conversion_to_window(value: Any, target_value: np.ndarray) -> None:
     Convert values to window
     """
     assert np.array_equal(
-        convert_to_dtype(value, dtypes.window_dtype), target_value, equal_nan=True  # type: ignore
+        convert_to_dtype(value, dtypes.window_dtype),  # type: ignore[arg-type]
+        target_value,
+        equal_nan=True,
     )
 
 
@@ -191,7 +193,8 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     Convert values to sequence
     """
     assert np.array_equal(
-        convert_to_dtype(value, dtypes.sequence_1d_dtype), target_value  # type: ignore
+        convert_to_dtype(value, dtypes.sequence_1d_dtype),  # type: ignore[arg-type]
+        target_value,
     )
 
 

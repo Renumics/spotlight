@@ -36,7 +36,9 @@ def preprocess_audio_batch(
     for raw_data in raw_values:
         with av.open(io.BytesIO(raw_data), "r") as container:
             resampler = av.AudioResampler(
-                format="dbl", layout="mono", rate=sampling_rate  # type: ignore
+                format="dbl",
+                layout="mono",
+                rate=sampling_rate,  # type: ignore
             )
             data = []
             for frame in container.decode(audio=0):

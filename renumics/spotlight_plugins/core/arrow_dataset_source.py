@@ -45,7 +45,7 @@ def iter_batched(values: Iterable, n: int) -> Iterable[tuple]:
 @datasource(pyarrow.dataset.Dataset)
 @datasource(pyarrow.dataset.FileSystemDataset)
 class ArrowDatasetSource(DataSource):
-    def __init__(self, source: pyarrow.dataset.Dataset):
+    def __init__(self, source: pyarrow.dataset.Dataset) -> None:
         self._dataset = source
         self._intermediate_dtypes: spotlight_dtypes.DTypeMap = self._convert_schema()
 

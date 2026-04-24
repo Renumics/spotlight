@@ -178,7 +178,7 @@ def histogram(
     name: Optional[str] = None,
     column: Optional[str] = None,
     stack_by_column: Optional[str] = None,
-    filter: bool = False,
+    filter_: bool = False,
 ) -> Histogram:
     """
     Add configured histogram to Spotlight layout.
@@ -189,7 +189,7 @@ def histogram(
         config=HistogramConfig(
             column=column,
             stack_by_column=stack_by_column,
-            filter=filter,
+            filter=filter_,
         ),
     )
 
@@ -254,7 +254,7 @@ def scatterplot(
     y_column: Optional[str] = None,
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
-    filter: bool = False,
+    filter_: bool = False,
 ) -> Scatterplot:
     """
     Add configured scatter plot to Spotlight layout.
@@ -267,7 +267,7 @@ def scatterplot(
             y_column=y_column,
             color_by_column=color_by_column,
             size_by_column=size_by_column,
-            filter=filter,
+            filter=filter_,
         ),
     )
 
@@ -287,7 +287,7 @@ def similaritymap(
     reduction_method: Literal[None] = None,
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
-    filter: bool = False,
+    filter_: bool = False,
 ) -> Similaritymap: ...
 
 
@@ -298,7 +298,7 @@ def similaritymap(
     reduction_method: Literal["umap"] = "umap",
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
-    filter: bool = False,
+    filter_: bool = False,
     *,
     umap_metric: Optional[_UmapMetric] = None,
     umap_balance: Optional[_UmapBalance] = None,
@@ -312,7 +312,7 @@ def similaritymap(
     reduction_method: Literal["pca"] = "pca",
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
-    filter: bool = False,
+    filter_: bool = False,
     *,
     pca_normalization: Optional[_PCANormalization] = None,
 ) -> Similaritymap: ...
@@ -324,7 +324,7 @@ def similaritymap(
     reduction_method: Optional[_ReductionMethod] = None,
     color_by_column: Optional[str] = None,
     size_by_column: Optional[str] = None,
-    filter: bool = False,
+    filter_: bool = False,
     *,
     umap_metric: Optional[_UmapMetric] = None,
     umap_balance: Optional[_UmapBalance] = None,
@@ -349,7 +349,7 @@ def similaritymap(
             reduction_method=reduction_method,
             color_by_column=color_by_column,
             size_by_column=size_by_column,
-            filter=filter,
+            filter=filter_,
             umap_metric=umap_metric,
             umap_balance=umap_balance_float,
             pca_normalization=pca_normalization,
@@ -413,7 +413,7 @@ def wordcloud(
     stop_words: Optional[Iterable[str]] = None,
     scaling: Optional[_WordCloudScaling] = None,
     max_word_count: Optional[int] = None,
-    filter: Optional[bool] = None,
+    filter_: Optional[bool] = None,
 ) -> WordCloud:
     """
     Add configured confusion matrix to Spotlight layout.
@@ -436,7 +436,7 @@ def wordcloud(
             stop_words=None if stop_words is None else list(stop_words),
             scaling=scaling,
             max_word_count=max_word_count,
-            filter=filter,
+            filter=filter_,
         ),
     )
 

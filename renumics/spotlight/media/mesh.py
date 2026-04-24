@@ -54,7 +54,7 @@ class Mesh(FileMediaType):
         point_attributes: Optional[Dict[str, np.ndarray]] = None,
         triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
         point_displacements: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
-    ):
+    ) -> None:
         self._point_attributes = {}
         self._point_displacements = []
         self._set_points_triangles(points, triangles)
@@ -122,7 +122,10 @@ class Mesh(FileMediaType):
         Import a `trimesh.Trimesh` mesh.
         """
         return cls(
-            mesh.vertices, mesh.faces, mesh.vertex_attributes, mesh.face_attributes  # type: ignore
+            mesh.vertices,
+            mesh.faces,
+            mesh.vertex_attributes,  # type: ignore
+            mesh.face_attributes,  # type: ignore
         )
 
     @classmethod
@@ -480,7 +483,7 @@ def triangulate(
                     (attr, quadrangle_attr, quadrangle_attr), axis=1
                 )
 
-    for attr_name, attr in attrs.items():
+    for attr in attrs.values():
         if attr.shape[1] != len(trias):
             raise ValueError(
                 f"Values of attributes should have the same length as "

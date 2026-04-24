@@ -116,8 +116,7 @@ class Audio(FileMediaType):
             data, sampling_rate = audio.read_audio(buffer)
             return cls(sampling_rate, data)
         raise TypeError(
-            f"`value` should be a `numpy.void` instance, but {type(value)} "
-            f"received."
+            f"`value` should be a `numpy.void` instance, but {type(value)} received."
         )
 
     def encode(self, target: Optional[str] = None) -> np.void:

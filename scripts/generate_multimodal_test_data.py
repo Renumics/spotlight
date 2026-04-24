@@ -42,7 +42,10 @@ def _random_ints(num_rows: int, seed: int) -> np.ndarray:
     dtype = "int32"
     np.random.seed(seed)
     return np.random.randint(
-        np.iinfo(dtype).min, np.iinfo(dtype).max, size=num_rows, dtype=dtype  # type: ignore
+        np.iinfo(dtype).min,
+        np.iinfo(dtype).max,
+        size=num_rows,
+        dtype=dtype,  # type: ignore
     )
 
 
@@ -82,7 +85,7 @@ def _random_datetimes(num_rows: int, seed: int) -> np.ndarray:
     microseconds = np.random.randint(0, 999999, num_rows).tolist()
     min_datetime = datetime.datetime.min
     datetimes = []
-    for day, second, microsecond in zip(days, seconds, microseconds):
+    for day, second, microsecond in zip(days, seconds, microseconds, strict=True):
         datetimes.append(min_datetime + datetime.timedelta(day, second, microsecond))
     data = np.array(datetimes, dtype=object)
     null_indices = np.random.randint(0, num_rows, num_rows // 10)

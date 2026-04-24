@@ -6,19 +6,24 @@ repos:
     # local hooks
     - repo: local
       hooks:
-          - id: ruff
-            name: ruff
-            entry: uv run ruff check --fix --exit-non-zero-on-fix --show-fixes
+          - id: ruff-format
+            name: ruff format
+            entry: uv run ruff format --exit-non-zero-on-format
+            language: system
+            types_or: [python, jupyter]
+            files: ^(playbook|renumics|scripts|tests)/
+          - id: ruff-check
+            name: ruff check
+            entry: uv run ruff check --fix --show-fixes --exit-non-zero-on-fix
             language: system
             types: [python]
-            require_serial: true
+            files: ^(renumics|scripts|tests)/
           - id: mypy
             name: mypy
             entry: uv run mypy
             language: system
             types: [python]
-            files: ^(renumics|scripts)/
-            require_serial: true
+            files: ^(renumics|scripts|tests)/
 
     # "official" pre-commit hooks
     - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -38,11 +43,6 @@ repos:
           - id: check-symlinks
 
     # third-pary hooks
-    - repo: https://github.com/psf/black
-      rev: 26.3.1
-      hooks:
-          - id: black
-          - id: black-jupyter
     - repo: https://github.com/pre-commit/mirrors-prettier
       rev: v4.0.0-alpha.8
       hooks:

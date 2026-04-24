@@ -40,7 +40,7 @@ class HuggingfaceDataSource(DataSource):
     _intermediate_dtypes: spotlight_dtypes.DTypeMap
     _guessed_dtypes: spotlight_dtypes.DTypeMap
 
-    def __init__(self, source: datasets.Dataset):
+    def __init__(self, source: datasets.Dataset) -> None:
         self._dataset = source
         self._intermediate_dtypes = {
             col: _get_intermediate_dtype(feat)

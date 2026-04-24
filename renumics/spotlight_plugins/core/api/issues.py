@@ -22,7 +22,7 @@ class AnalysisInfo:
     issues: List[DataIssue]
 
 
-@router.get("/", response_model=AnalysisInfo, operation_id="get_all")
+@router.get("/", operation_id="get_all")
 async def get_all(request: Request) -> AnalysisInfo:
     """
     Get all data issues.

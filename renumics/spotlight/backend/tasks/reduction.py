@@ -51,7 +51,8 @@ def align_data(
         elif dtypes.is_category_dtype(dtype):
             na_mask = np.array(column_values) == -1
             one_hot_values = preprocessing.label_binarize(
-                column_values, classes=sorted(set(column_values).difference({-1}))  # type: ignore
+                column_values,
+                classes=sorted(set(column_values).difference({-1})),  # type: ignore
             ).astype(float)
             one_hot_values[na_mask] = np.nan
             aligned_values.append(one_hot_values)

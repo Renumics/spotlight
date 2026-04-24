@@ -33,7 +33,7 @@ class DataSource(ABC):
     """abstract base class for different data sources"""
 
     @abstractmethod
-    def __init__(self, source: Any):
+    def __init__(self, source: Any) -> None:
         """
         Create Data Source from matching source and dtype mapping.
         """

@@ -26,7 +26,7 @@ class Hdf5DataSource(DataSource):
     access h5 table data
     """
 
-    def __init__(self, source: Path):
+    def __init__(self, source: Path) -> None:
         self._path = source
         self._open()
 

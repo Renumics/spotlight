@@ -25,7 +25,7 @@ class Plugin(BaseModel):
     entrypoint: Optional[str]
 
 
-@router.get("/", response_model=List[Plugin], operation_id="get_plugins")
+@router.get("/", operation_id="get_plugins")
 async def _() -> List[Plugin]:
     """
     Get a list of all the installed spotlight plugins

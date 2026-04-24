@@ -103,8 +103,7 @@ class Sequence1D(MediaType):
     def decode(cls, value: Union[np.ndarray, np.void]) -> "Sequence1D":
         if not isinstance(value, np.ndarray):
             raise TypeError(
-                f"`value` argument should be a numpy array, but {type(value)} "
-                f"received."
+                f"`value` argument should be a numpy array, but {type(value)} received."
             )
         if value.ndim != 2 or value.shape[1] != 2:
             raise ValueError(

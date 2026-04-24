@@ -13,9 +13,7 @@ from renumics.spotlight.app import CURRENT_LAYOUT_KEY, SpotlightApp
 router = APIRouter()
 
 
-@router.get(
-    "/", tags=["layout"], response_model=Optional[Dict], operation_id="get_layout"
-)
+@router.get("/", tags=["layout"], operation_id="get_layout")
 async def get_layout(
     request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
 ) -> Optional[Dict]:
@@ -28,7 +26,6 @@ async def get_layout(
 @router.put(
     "/reset",
     tags=["layout"],
-    response_model=Dict,
     operation_id="reset_layout",
 )
 async def reset_layout(
@@ -58,7 +55,7 @@ class SetLayoutRequest(BaseModel):
     layout: Dict
 
 
-@router.put("/", tags=["layout"], response_model=Dict, operation_id="set_layout")
+@router.put("/", tags=["layout"], operation_id="set_layout")
 async def set_layout(
     request: Request,
     set_layout_request: SetLayoutRequest,

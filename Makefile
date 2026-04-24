@@ -21,30 +21,21 @@ init-playbook: ## Locally install all playbook dev dependencies
 
 .PHONY: clean
 clean: ## clean project
-	rm -rf build/ .pytest_cache/ .ruff_cache/ .mypy_cache/
-	rm -rf node_modules
-
-.PHONY: check-format
-check-format: ## Check code formatting
-	uv run black --check --target-version py312 .
-	npx prettier --check 'src/**/*.{js,ts,tsx,json,yaml,css}'
+	rm -rf build/ .pytest_cache/ .ruff_cache/ .mypy_cache/ node_modules/
 
 .PHONY: format
 format: ## Fix code formatting
-	uv run black --target-version py312 .
+	uv run pre-commit run ruff-format --all-files
 	npx prettier --write 'src/**/*.{js,ts,tsx,json,yaml,css}'
 
 .PHONY: typecheck
 typecheck: ## Typecheck all source files
-	uv run mypy -p renumics.spotlight
-	uv run mypy -p renumics.spotlight_plugins.core
-	uv run mypy scripts
-	uv run mypy tests
+	uv run pre-commit run mypy --all-files
 	pnpm run typecheck
 
 .PHONY: lint
 lint: ## Lint all source files
-	uv run ruff check  --fix --exit-non-zero-on-fix --show-fixes renumics tests scripts/*.py
+	uv run pre-commit run ruff-check --all-files
 	pnpm run lint
 
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"

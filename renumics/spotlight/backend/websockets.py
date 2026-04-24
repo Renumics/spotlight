@@ -120,7 +120,7 @@ class WebsocketConnection:
                 message.model_dump(), option=orjson.OPT_SERIALIZE_NUMPY
             ).decode()
         except TypeError as e:
-            raise SerializationError(str(e))
+            raise SerializationError(str(e)) from e
         try:
             await self.websocket.send_text(json_text)
         except WebSocketDisconnect:

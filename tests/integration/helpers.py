@@ -83,7 +83,9 @@ def approx(
             and all(
                 approx(expected_displacement, actual_displacement, "array")
                 for actual_displacement, expected_displacement in zip(
-                    actual.point_displacements, expected.point_displacements
+                    actual.point_displacements,
+                    expected.point_displacements,
+                    strict=True,
                 )
             )
             and actual.point_attributes.keys() == expected.point_attributes.keys()
