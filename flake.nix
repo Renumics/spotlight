@@ -21,8 +21,14 @@
           pnpm
           shellcheck
           shfmt
+          stdenv.cc.cc.lib
         ];
         shellHook = ''
+          unset SOURCE_DATE_EPOCH
+          export UV_PYTHON=${pkgs.python312}/bin/python
+          export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
+            pkgs.stdenv.cc.cc.lib
+          ]}:$LD_LIBRARY_PATH
           echo "Welcome to the Spotlight Development Environment!"
         '';
       };
