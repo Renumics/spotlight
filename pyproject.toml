@@ -36,7 +36,7 @@ authors = [
     { name = "Renumics GmbH", email = "info@renumics.com" }
 ]
 license = "MIT"
-requires-python = ">=3.10, <4.0"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "tqdm",
@@ -95,11 +95,7 @@ all = [
   "cleanlab",
   "cleanvision"
 ]
-cpu = [
-  "torch>=2.0.0",
-  "torchcodec",
-]
-gpu = [
+torch = [
   "torch>=2.0.0",
   "torchcodec",
 ]
@@ -136,7 +132,6 @@ dev = [
 ]
 playbook = [
     "annoy (>=1.17.2)",
-    "cleanlab (>=2.4.0)"
 ]
 
 [tool.ruff.lint]
@@ -179,14 +174,6 @@ ignore_missing_imports = true
 [tool.check-wheel-contents]
 ignore = ["W002"]
 
-[tool.uv]
-conflicts = [
-  [
-    { extra = "cpu" },
-    { extra = "gpu" },
-  ],
-]
-
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
@@ -194,10 +181,10 @@ explicit = true
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cpu", extra = "torch" },
 ]
 torchcodec = [
-  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cpu", extra = "torch" },
 ]
 
 [tool.hatch.build.targets.sdist]
