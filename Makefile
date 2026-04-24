@@ -4,7 +4,7 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-export VERSION := $(shell uv version --short)
+export VERSION := $(shell uvx uv-dynamic-versioning)
 
 .PHONY: help
 help: ## Print this help message
