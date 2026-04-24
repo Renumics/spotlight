@@ -3,13 +3,31 @@ author: Renumics GmbH
 description: |
     Set up Python and uv environment as specified in .tool-versions file,
     cache/restore dependencies
+inputs:
+    python-version:
+        description: Python version to set up (overrides .tool-versions)
+        required: false
+    install-dependencies:
+        description: Whether to install and cache/restore dependencies
+        default: 'true'
+outputs:
+    package-version:
+        description: Spotlight version
+        value: ${{ steps.get-package-version.outputs.package-version }}
+    pip-cache-dir:
+        description: Pip cache directory path of the current Python installation
+        value: ${{ steps.get-package-version.outputs.pip-cache-dir }}
 runs:
     using: composite
     steps:
         - name: Extract versions from .tool-versions
           id: tool-versions
           run: |
-              echo "python-version=$(awk '/^python / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              if [[ -n "${{ inputs.python-version }}" ]]; then
+                echo "python-version=${{ inputs.python-version }}" >> "$GITHUB_OUTPUT"
+              else
+                echo "python-version=$(awk '/^python / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              fi
               echo "uv-version=$(awk '/^uv / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
           shell: bash
         - name: Set up uv ${{ steps.tool-versions.outputs.uv-version }} and Python ${{ steps.tool-versions.outputs.python-version }}
@@ -18,13 +36,18 @@ runs:
           with:
               version: ${{ steps.tool-versions.outputs.uv-version }}
               python-version: ${{ steps.tool-versions.outputs.python-version }}
-              working-directory: backend
-              enable-cache: true
+              enable-cache: ${{ inputs.install-dependencies != 'false' }}
               cache-dependency-glob: |
                   uv.lock
                   pyproject.toml
               prune-cache: true
         - name: Install dependencies
-          run: uv sync --locked --no-install-project
-          working-directory: backend
+          if: inputs.install-dependencies != 'false' && steps.setup-uv-and-python.outputs.cache-hit != 'true'
+          run: uv sync --all-extras --without playbook --locked
+          shell: bash
+        - name: Get Spotlight version
+          id: get-package-version
+          run: |
+              echo "package-version=$(uvx uv-dynamic-versioning)" >> $GITHUB_OUTPUT
+              echo "pip-cache-dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
           shell: bash
