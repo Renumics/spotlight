@@ -396,8 +396,8 @@ jobs:
             # - name: '🎥 Set up FFMpeg'
             #   uses: FedericoCarboni/setup-ffmpeg@v3
             - run: |
-                  apt-get update
-                  apt-get install -y ffmpeg
+                  sudo apt-get update
+                  sudo apt-get install -y ffmpeg
             - run: ffmpeg -version
             - name: '🐍 Set up uv'
               id: setup-python-and-uv
