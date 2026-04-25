@@ -433,7 +433,12 @@ jobs:
             - name: Install Spotlight
               id: setup
               run: python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }}
-            - run: pip list
+            - run: |
+                  pip list
+                  which pip
+                  which python
+                  python --version
+                  pip --version
             - name: Test Spotlight start (Windows)
               if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
               run: ./scripts/Test-SpotlightStart.ps1
