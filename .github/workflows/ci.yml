@@ -393,26 +393,21 @@ jobs:
               uses: actions/checkout@v5
               with:
                   fetch-depth: 0
-            - run: echo $PATH
-            - if: matrix.os == 'windows-latest'
-              run: $env:path -split ";"
-            - name: '🎥 Set up FFMpeg'
+            - name: '🎥 Set up FFMpeg (Windows)'
               if: matrix.os == 'windows-latest'
               uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
               with:
                   linking-type: shared
-            - if: matrix.os == 'ubuntu-latest'
+            - name: '🎥 Set up FFMpeg (Ubuntu)'
+              if: matrix.os == 'ubuntu-latest'
               run: |
                   sudo apt-get update
                   sudo apt-get install -y ffmpeg
-            - if: matrix.os == 'macos-latest'
+            - name: '🎥 Set up FFMpeg (MacOS)'
+              if: matrix.os == 'macos-latest'
               run: |
                   brew update
                   brew install ffmpeg
-            - run: ffmpeg -version
-            - run: echo $PATH
-            - if: matrix.os == 'windows-latest'
-              run: $env:path -split ";"
             - name: '🐍 Set up uv'
               id: setup-python-and-uv
               uses: ./.github/actions/setup-python-and-uv
@@ -463,8 +458,7 @@ jobs:
             - name: Execute integration tests
               if: success() || steps.setup-tests.outcome == 'success'
               run: |
-                  # pytest --durations=5 tests/integration
-                  pytest --durations=5 tests/integration/huggingface
+                  pytest --durations=5 tests/integration
     # Release stage
     release:
         name: '🚀 Release Spotlight'

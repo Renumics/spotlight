@@ -107,7 +107,7 @@ doc-test: ## Execute doc tests
 .PHONY: integration-test
 integration-test: ## Execute integration-tests
 	export SPOTLIGHT_DEV=False
-	uv run pytest --durations=3 tests/integration
+	uv run pytest --durations=5 tests/integration
 
 .PHONY: ui-test
 ui-test: ## Execute ui tests
