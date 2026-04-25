@@ -386,7 +386,6 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
-        continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.python-version == '3.13' }}
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout code
