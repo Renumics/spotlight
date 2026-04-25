@@ -394,6 +394,8 @@ jobs:
               with:
                   fetch-depth: 0
             - run: echo $PATH
+            - if: matrix.os == 'windows-latest'
+              run: $env:path -split ";"
             - name: '🎥 Set up FFMpeg'
               if: matrix.os == 'windows-latest'
               uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
@@ -409,6 +411,8 @@ jobs:
                   brew install ffmpeg
             - run: ffmpeg -version
             - run: echo $PATH
+            - if: matrix.os == 'windows-latest'
+              run: $env:path -split ";"
             - name: '🐍 Set up uv'
               id: setup-python-and-uv
               uses: ./.github/actions/setup-python-and-uv
