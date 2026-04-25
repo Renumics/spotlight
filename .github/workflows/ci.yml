@@ -396,7 +396,7 @@ jobs:
             - run: echo $PATH
             - name: '🎥 Set up FFMpeg'
               if: matrix.os == 'windows-latest'
-              uses: FedericoCarboni/setup-ffmpeg@v3
+              uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
               with:
                   ffmpeg-version: 7
                   # linking-type: shared
