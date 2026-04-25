@@ -397,9 +397,8 @@ jobs:
             - name: '🎥 Set up FFMpeg'
               if: matrix.os == 'windows-latest'
               uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
-              with:
-                  ffmpeg-version: '<8.0'
-                  # linking-type: shared
+              # with:
+              #     linking-type: shared
             - if: matrix.os == 'ubuntu-latest'
               run: |
                   sudo apt-get update
