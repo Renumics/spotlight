@@ -398,7 +398,7 @@ jobs:
               if: matrix.os == 'windows-latest'
               uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
               with:
-                  ffmpeg-version: 7
+                  ffmpeg-version: '7.1'
                   # linking-type: shared
             - if: matrix.os == 'ubuntu-latest'
               run: |
