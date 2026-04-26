@@ -30,6 +30,10 @@ runs:
               fi
               echo "uv-version=$(awk '/^uv / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
           shell: bash
+        - name: Set up Python ${{ steps.tool-versions.outputs.python-version }}
+          uses: actions/setup-python@v6
+          with:
+              python-version: ${{ steps.tool-versions.outputs.python-version }}
         - name: Set up uv ${{ steps.tool-versions.outputs.uv-version }} and Python ${{ steps.tool-versions.outputs.python-version }}
           id: setup-uv-and-python
           uses: astral-sh/setup-uv@5a7eac68fb9809dea845d802897dc5c723910fa3
