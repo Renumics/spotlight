@@ -98,7 +98,7 @@ Get started by installing Spotlight and loading your first dataset.
 
 #### What you'll need
 
--   [Python](https://www.python.org/downloads/) version 3.9-3.13
+- [Python](https://www.python.org/downloads/) version 3.10 or higher
 
 #### Install Spotlight via [pip](https://packaging.python.org/en/latest/key_projects/#pip)
 
@@ -107,6 +107,27 @@ pip install renumics-spotlight
 ```
 
 > We recommend installing Spotlight and everything you need to work on your data in a separate [virtual environment](https://docs.python.org/3/tutorial/venv.html).
+
+To use optional analyzers, install Spotlight with `analyzers` extra:
+
+```bash
+pip install renumics-spotlight[analyzers]
+```
+
+To use optional embeddings, install Spotlight with `torch` extra:
+
+```bash
+# CPU support
+pip install --extra-index-url https://download.pytorch.org/whl/cpu renumics-spotlight[torch]
+# Default installation
+pip install renumics-spotlight[torch]
+# Specific CUDA version support
+pip install --extra-index-url https://download.pytorch.org/whl/cu128 renumics-spotlight[torch]
+```
+
+See [torch installation](https://pytorch.org/get-started/locally/) for more details.
+
+> If you are using Spotlight with Hugging Face `datasets` of version 4 (current default), you'll also need to install `torch` extra to use audio data and have [FFmpeg](https://www.ffmpeg.org/) installed on your system. See [here](https://github.com/meta-pytorch/torchcodec#installing-torchcodec) for more details.
 
 #### Load a dataset and start exploring
 
@@ -143,15 +164,15 @@ We have added crash report and performance collection. We do NOT collect user da
 
 ## We are very happy to hear your feedback
 
--   Open an issue on [Github](https://github.com/renumics)
--   Have a [coffee talk](https://calendly.com/stefan-suwelack/dcai-intro-30-min) with us
--   Join our channel on [Discord](https://discord.gg/VAQdFCU5YD)
+- Open an issue on [Github](https://github.com/renumics)
+- Have a [coffee talk](https://calendly.com/stefan-suwelack/dcai-intro-30-min) with us
+- Join our channel on [Discord](https://discord.gg/VAQdFCU5YD)
 
 ## Learn more about unstructured data workflows
 
--   🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets
--   🏀 [Playbook](https://renumics.com/docs/data-centric-ai/playbook) for data-centric AI workflows
--   🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
+- 🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets
+- 🏀 [Playbook](https://renumics.com/docs/data-centric-ai/playbook) for data-centric AI workflows
+- 🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
 
 ## Contribute
 

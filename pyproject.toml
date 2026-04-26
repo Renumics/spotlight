@@ -89,13 +89,15 @@ dependencies = [
 [project.optional-dependencies]
 analyzers = [
   "cleanlab",
-  "cleanvision"
+  "cleanvision",
+]
+torch = [
+  "torch>=2.0.0",
+  "torchcodec",
 ]
 all = [
   "cleanlab",
-  "cleanvision"
-]
-torch = [
+  "cleanvision",
   "torch>=2.0.0",
   "torchcodec",
 ]
