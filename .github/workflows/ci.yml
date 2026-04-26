@@ -461,6 +461,7 @@ jobs:
             - build-datasets
             - build-spotlight
             - check-wheel-contents
+            - doc-test
             - unit-test
             - integration-test
             - ui-test
