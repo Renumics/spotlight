@@ -14,9 +14,6 @@ outputs:
     package-version:
         description: Spotlight version
         value: ${{ steps.get-package-version.outputs.package-version }}
-    pip-cache-dir:
-        description: Pip cache directory path of the current Python installation
-        value: ${{ steps.get-package-version.outputs.pip-cache-dir }}
 runs:
     using: composite
     steps:
@@ -53,5 +50,4 @@ runs:
           id: get-package-version
           run: |
               echo "package-version=$(uvx uv-dynamic-versioning)" >> $GITHUB_OUTPUT
-              echo "pip-cache-dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
           shell: bash

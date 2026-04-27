@@ -32,7 +32,6 @@ jobs:
               uses: ./.github/actions/setup-python-and-uv
         outputs:
             version: ${{ steps.setup-python-and-uv.outputs.package-version }}
-            pip-cache-dir: ${{ steps.setup-python-and-uv.outputs.pip-cache-dir }}
     prepare-node:
         name: '⬢ Prepare Node.js'
         if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
