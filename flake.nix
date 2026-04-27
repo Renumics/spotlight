@@ -47,6 +47,14 @@
           export UV_ACTIVE=1
           export VIRTUAL_ENV
 
+          pre-commit install -f
+
+          export SPOTLIGHT_DEV=True
+          export SPOTLIGHT_VERBOSE=True
+          export SPOTLIGHT_OPT_OUT=True
+          VERSION="$(uv run uv-dynamic-versioning)"
+          export VERSION
+
           echo "Welcome to the Spotlight Development Environment!"
         '';
       };
