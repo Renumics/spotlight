@@ -13,7 +13,7 @@ from renumics.spotlight.backend.config import ConfigValue
 router = APIRouter(tags=["config"])
 
 
-@router.get("/{name}", response_model=Optional[ConfigValue], operation_id="get_value")
+@router.get("/{name}", operation_id="get_value")
 async def get_value(
     request: Request,
     name: str,

@@ -50,7 +50,7 @@ def test_write_audio(
     elif dtype.startswith("u"):
         data = ((y + 1) * np.iinfo(dtype).max / 2).astype(dtype)
     else:
-        assert False
+        raise TypeError(f"Unhandled dtype: {dtype}")
     if channels > 1:
         data = np.broadcast_to(data[:, np.newaxis], (len(data), channels))
     with tempfile.TemporaryDirectory() as tempdir:

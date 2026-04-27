@@ -78,5 +78,8 @@ def test_startpage(
 
         time.sleep(3.0)
         take_and_diff_snapshot(
-            webdriver, "gui", pytest.browser_name, pytest.results_folder  # type: ignore
+            webdriver,
+            "gui",
+            pytest.browser_name,  # type: ignore[attr-defined]
+            pytest.results_folder,  # type: ignore[attr-defined]
         )

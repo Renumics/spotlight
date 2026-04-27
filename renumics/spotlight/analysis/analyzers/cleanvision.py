@@ -23,7 +23,6 @@ try:
 except ImportError:
     logger.warning("Cleanvision analyzer requires `cleanvision` to be installed.")
 else:
-
     _issue_types: Dict[str, Tuple[str, Severity, str]] = {
         "is_light_issue": (
             "Bright images",

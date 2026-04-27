@@ -32,7 +32,7 @@ class PandasDataSource(DataSource):
     _name: str
     _intermediate_dtypes: dtypes.DTypeMap
 
-    def __init__(self, source: Union[Path, pd.DataFrame]):
+    def __init__(self, source: Union[Path, pd.DataFrame]) -> None:
         if isinstance(source, Path):
             self._name = source.name
             if source.is_dir():
@@ -185,10 +185,10 @@ class PandasDataSource(DataSource):
             return column.to_numpy()
         try:
             return column.astype(str).to_numpy()
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as e:
             raise TypeError(
                 f"`pandas` column with dtype {column.dtype} is not supported."
-            )
+            ) from e
 
     def get_column_metadata(self, _: str) -> ColumnMetadata:
         return ColumnMetadata(nullable=True, editable=True)

@@ -13,7 +13,7 @@ permissions:
 
 # As long as we use local actions, checkout should be made in workflow before
 # and not in the local actions. Otherwise, no action file found.
-# Checkout with `fetch-depth: 0` is needed by `poetry-dynamic-versioning` to get
+# Checkout with `fetch-depth: 0` is needed by `uv-dynamic-versioning` to get
 # the right package version.
 
 jobs:
@@ -24,22 +24,21 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              id: setup-python-and-poetry
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              id: setup-python-and-uv
+              uses: ./.github/actions/setup-python-and-uv
         outputs:
-            version: ${{ steps.setup-python-and-poetry.outputs.package-version }}
-            pip-cache-dir: ${{ steps.setup-python-and-poetry.outputs.pip-cache-dir }}
+            version: ${{ steps.setup-python-and-uv.outputs.package-version }}
     prepare-node:
         name: '⬢ Prepare Node.js'
         if: github.event.pull_request.head.repo.full_name != 'Renumics/spotlight'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
             - name: '⬢ Set up pnpm environment'
@@ -68,11 +67,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '⬢ Set up pnpm environment'
               id: setup
               uses: ./.github/actions/setup-node-and-pnpm
@@ -83,13 +82,13 @@ jobs:
                   ignore_paths: .venv node_modules
             - name: Check code formatting
               if: success() || steps.setup.outcome == 'success'
-              run: make check-format
-            - name: Check code types
-              if: success() || steps.setup.outcome == 'success'
-              run: make typecheck
+              run: make format
             - name: Lint code
               if: success() || steps.setup.outcome == 'success'
               run: make lint
+            - name: Check code types
+              if: success() || steps.setup.outcome == 'success'
+              run: make typecheck
     # Build stage
     build-test-matrix:
         name: '🧱 Build test matrix'
@@ -100,28 +99,28 @@ jobs:
         # action, so use it as check.
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
             - name: '🧱 Build test matrix for pull request'
               if: needs.check-pr.outputs.is-pr == 'true'
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
-                      python-version: [3.9, 3.10, 3.11, 3.12, 3.13]
+                      python-version: [3.10, 3.11, 3.12, 3.13, 3.14]
             - name: '🧱 Build test matrix for release'
               if: env.MATRIX == '' && startsWith(github.ref, 'refs/tags/v')
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest, windows-latest, macos-latest]
-                      python-version: [3.9, 3.10, 3.11, 3.12, 3.13]
+                      python-version: [3.10, 3.11, 3.12, 3.13, 3.14]
             - name: '🧱 Build test matrix for main branch'
               if: env.MATRIX == '' && github.ref == 'refs/heads/main'
               uses: druzsan/setup-matrix@dda6d0cfa6d875b9a4dadffdbfc4993f7790bf79
               with:
                   matrix: |
                       os: [ubuntu-latest]
-                      python-version: [3.9, 3.10, 3.11, 3.12, 3.13]
+                      python-version: [3.10, 3.11, 3.12, 3.13, 3.14]
                       include:
                           - os: windows-latest
                             python-version: 3.12
@@ -148,15 +147,15 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '📝 Build API docs'
               run: make docs
             - name: '📥 Store API docs'
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@v7
               with:
                   name: docs-${{ needs.prepare-python.outputs.version }}
                   path: build/docs/api/
@@ -168,11 +167,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '🗃 Build datasets'
               if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/v')
               run: make datasets
@@ -180,7 +179,7 @@ jobs:
               if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
               run: make all-datasets
             - name: '📥 Store datasets'
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@v7
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
@@ -193,11 +192,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv'
+              uses: ./.github/actions/setup-python-and-uv
               with:
                   install-dependencies: false
             - name: '⬢ Set up pnpm environment'
@@ -205,7 +204,7 @@ jobs:
             - name: '🧱 Build frontend'
               run: make build-frontend
             - name: '📥 Store frontend'
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@v7
               with:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
@@ -213,7 +212,7 @@ jobs:
             - name: Build Spotlight
               run: make build-wheel
             - name: '📥 Store Spotlight'
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@v7
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist/renumics_spotlight*.whl
@@ -227,13 +226,13 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '📤 Restore Spotlight Wheel'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
@@ -247,11 +246,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute unit tests
@@ -264,11 +263,11 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute doc tests
@@ -288,18 +287,18 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry environment'
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🐍 Set up uv environment'
+              uses: ./.github/actions/setup-python-and-uv
             - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
             - name: '📤 Restore frontend'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
@@ -371,7 +370,7 @@ jobs:
                   success()
                   || steps.setup-chromedriver.outcome == 'success'
                   || steps.setup-geckodriver.outcome == 'success'
-              uses: actions/upload-artifact@v5
+              uses: actions/upload-artifact@v7
               with:
                   name: .ui-test-${{ matrix.browser }}-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
@@ -386,40 +385,47 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
-        continue-on-error: ${{ matrix.os == 'windows-latest' && matrix.python-version == '3.13' }}
         runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up Poetry'
-              id: setup-python-and-poetry
-              uses: ./.github/actions/setup-python-and-poetry
+            - name: '🎥 Set up FFMpeg (Ubuntu)'
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y ffmpeg
+            - name: '🎥 Set up FFMpeg (Windows)'
+              if: runner.os == 'Windows'
+              uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
+              with:
+                  linking-type: shared
+            - name: '🎥 Set up FFMpeg (MacOS)'
+              if: runner.os == 'macOS'
+              run: |
+                  brew update
+                  brew install ffmpeg
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v6
               with:
                   python-version: ${{ matrix.python-version }}
-                  install-dependencies: false
-            - name: '♻️ Cache pip cache folder'
-              uses: actions/cache@v4
-              with:
-                  path: ${{ steps.setup-python-and-poetry.outputs.pip-cache-dir }}
-                  key: pip-cache-${{ runner.os }}-python-${{ matrix.python-version }}
+                  cache: 'pip'
             - name: '📤 Restore Spotlight'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
             - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
-            - name: Upgrade system packages
-              run: python -m pip install --upgrade pip setuptools wheel
             - name: Install Spotlight
               id: setup
-              run: python -m pip install --find-links build/dist/ renumics-spotlight[all]==${{ needs.prepare-python.outputs.version }}
-            - run: pip list
+              run: |
+                  pip install --upgrade pip setuptools wheel
+                  pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }} pytest
             - name: Test Spotlight start (Windows)
               if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
               run: ./scripts/Test-SpotlightStart.ps1
@@ -437,11 +443,8 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Install pytest
-              id: setup-tests
-              run: python -m pip install pytest
             - name: Execute integration tests
-              if: success() || steps.setup-tests.outcome == 'success'
+              if: success() || steps.setup.outcome == 'success'
               run: pytest --durations=5 tests/integration
     # Release stage
     release:
@@ -457,17 +460,18 @@ jobs:
             - build-datasets
             - build-spotlight
             - check-wheel-contents
+            - doc-test
             - unit-test
             - integration-test
             - ui-test
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
             - name: '📤 Restore core Spotlight'
-              uses: actions/download-artifact@v6
+              uses: actions/download-artifact@v8
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: dist

@@ -192,8 +192,7 @@ def get_format_codec(file: FileType) -> Tuple[str, str]:
     file = prepare_input_file(file)
     with av.open(file, "r") as input_container:
         stream = input_container.streams.audio[0]
-        return input_container.format.name, stream.name  # type: ignore
-    assert False  # unnecessary, but mypy fails otherwise
+        return input_container.format.name, cast(str, stream.name)
 
 
 def get_waveform(file: FileType) -> np.ndarray:

@@ -34,7 +34,7 @@ def test_lossless_audio(
     elif dtype.startswith("u"):
         data = ((y + 1) * np.iinfo(dtype).max / 2).astype(dtype)
     else:
-        assert False
+        raise TypeError(f"Unhandled dtype: {dtype}")
     if channels > 1:
         data = np.broadcast_to(data[:, np.newaxis], (len(data), channels))
     audio = Audio(sampling_rate, data)
@@ -68,7 +68,7 @@ def test_lossy_audio(
     elif dtype.startswith("u"):
         data = ((y + 1) * np.iinfo(dtype).max / 2).astype(dtype)
     else:
-        assert False
+        raise TypeError(f"Unhandled dtype: {dtype}")
     if channels > 1:
         data = np.broadcast_to(data[:, np.newaxis], (len(data), channels))
     audio = Audio(sampling_rate, data)

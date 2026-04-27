@@ -272,7 +272,7 @@ class Dataset:
             return np.full(4, np.nan)
         return None
 
-    def __init__(self, filepath: PathType, mode: str):
+    def __init__(self, filepath: PathType, mode: str) -> None:
         self._filepath = os.path.abspath(filepath)
         self._check_mode(mode)
         self._mode = mode
@@ -2185,6 +2185,7 @@ class Dataset:
                     zip(
                         column_attrs.get("category_keys"),
                         column_attrs.get("category_values"),
+                        strict=True,
                     )
                 )
         elif "lookup" in attrs:
@@ -2194,6 +2195,7 @@ class Dataset:
                     for key, ref in zip(
                         column_attrs.get("lookup_keys"),
                         column_attrs.get("lookup_values"),
+                        strict=True,
                     )
                 }
             else:
@@ -2490,7 +2492,7 @@ class Dataset:
         for column_repr in column_reprs:
             column_repr.extend([""] * (column_repr_length - len(column_repr)))
         for column_name, column_repr, column in zip(
-            column_names, column_reprs, columns
+            column_names, column_reprs, columns, strict=True
         ):
             type_name = column.attrs["type"]
             column_repr.extend(_format(value, type_name) for value in column)
@@ -2863,7 +2865,7 @@ class Dataset:
         length = max(length_modes, default=0)
         column_names = {
             column_name
-            for column_name, column_length in zip(names, lengths)
+            for column_name, column_length in zip(names, lengths, strict=True)
             if column_length == length
         }
         if len(column_names) < len(names):
@@ -3092,13 +3094,12 @@ class Dataset:
         if values.keys() == self._column_names:
             return values
         error_message = (
-            "Keys of `values` mismatch column names, even with updated "
-            "default values."
+            "Keys of `values` mismatch column names, even with updated default values."
         )
         missing_keys = self._column_names - set(values.keys())
         if missing_keys:
             error_message += (
-                '\n\tKeys "' + '", "'.join(missing_keys) + '" missing in ' "`values`."
+                '\n\tKeys "' + '", "'.join(missing_keys) + '" missing in `values`.'
             )
         excessive_keys = set(values.keys()) - self._column_names
         if excessive_keys:
@@ -3304,7 +3305,7 @@ class Dataset:
                 value = spotlight_dtypes.Video.from_bytes(value)
             assert isinstance(value, spotlight_dtypes.Video)
             return value.encode(column.attrs.get("format", None))
-        assert False
+        raise TypeError(f"Unsupported dtype: {dtype}")
 
     def _encode_external_value(self, value: PathOrUrlType, column: h5py.Dataset) -> str:
         """
@@ -3466,7 +3467,10 @@ class Dataset:
         """
         internal_column_values = [self._get_username(), get_current_datetime()]
         for column_name, value, dtype in zip(
-            INTERNAL_COLUMN_NAMES, internal_column_values, INTERNAL_COLUMN_DTYPES
+            INTERNAL_COLUMN_NAMES,
+            internal_column_values,
+            INTERNAL_COLUMN_DTYPES,
+            strict=True,
         ):
             try:
                 column = self._h5_file[column_name]
@@ -3506,7 +3510,9 @@ class Dataset:
             self._get_username(),
             get_current_datetime().isoformat(),
         ]
-        for column_name, value in zip(INTERNAL_COLUMN_NAMES, internal_column_values):
+        for column_name, value in zip(
+            INTERNAL_COLUMN_NAMES, internal_column_values, strict=True
+        ):
             if column_name not in self._h5_file:
                 continue
             column = self._h5_file[column_name]
@@ -3567,7 +3573,13 @@ class Dataset:
         type_name = x["type"]
         if type_name == "Category":
             return spotlight_dtypes.CategoryDType(
-                dict(zip(x.get("category_keys", []), x.get("category_values", [])))
+                dict(
+                    zip(
+                        x.get("category_keys", []),
+                        x.get("category_values", []),
+                        strict=True,
+                    )
+                )
             )
         if type_name == "Sequence1D":
             return spotlight_dtypes.Sequence1DDType(

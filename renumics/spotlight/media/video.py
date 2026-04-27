@@ -75,8 +75,7 @@ class Video(FileMediaType):
         if isinstance(value, np.void):
             return cls(value.tolist())  # type: ignore[arg-type]
         raise TypeError(
-            f"`value` should be a `numpy.void` instance, but {type(value)} "
-            f"received."
+            f"`value` should be a `numpy.void` instance, but {type(value)} received."
         )
 
     def encode(self, _target: Optional[str] = None) -> np.void:

@@ -49,7 +49,7 @@ __all__ = [
 class DType:
     _name: str
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self._name = name
 
     def __str__(self) -> str:
@@ -110,7 +110,7 @@ class CategoryDType(DType):
 
     def __init__(
         self, categories: Optional[Union[Iterable[str], Dict[str, int]]] = None
-    ):
+    ) -> None:
         super().__init__("Category")
         if isinstance(categories, dict):
             self._categories = dict(sorted(categories.items(), key=lambda x: x[1]))
@@ -193,7 +193,7 @@ class ArrayDType(DType):
 
     shape: Optional[Tuple[Optional[int], ...]]
 
-    def __init__(self, shape: Optional[Tuple[Optional[int], ...]] = None):
+    def __init__(self, shape: Optional[Tuple[Optional[int], ...]] = None) -> None:
         super().__init__("array")
         self.shape = shape
 
@@ -242,7 +242,7 @@ class EmbeddingDType(DType):
 
     length: Optional[int]
 
-    def __init__(self, length: Optional[int] = None):
+    def __init__(self, length: Optional[int] = None) -> None:
         super().__init__("Embedding")
         if length is not None and length < 0:
             raise ValueError(f"Length must be non-negative, but {length} received.")
@@ -288,7 +288,7 @@ class Sequence1DDType(DType):
     x_label: str
     y_label: str
 
-    def __init__(self, x_label: str = "x", y_label: str = "y"):
+    def __init__(self, x_label: str = "x", y_label: str = "y") -> None:
         super().__init__("Sequence1D")
         self.x_label = x_label
         self.y_label = y_label
@@ -313,7 +313,7 @@ class SequenceDType(DType):
     dtype: DType
     length: Optional[int]
 
-    def __init__(self, dtype: DType, length: Optional[int] = None):
+    def __init__(self, dtype: DType, length: Optional[int] = None) -> None:
         super().__init__("Sequence")
         self.dtype = dtype
         if length is not None and length < 0:

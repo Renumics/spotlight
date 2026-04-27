@@ -43,8 +43,7 @@ class Folder(BaseModel):
 @router.get(
     "/{path:path}",
     tags=["filebrowser"],
-    summary="File Browser APi",
-    response_model=Folder,
+    summary="File Browser API",
     operation_id="get_folder",
 )
 async def get_folder(path: str, request: Request) -> Folder:

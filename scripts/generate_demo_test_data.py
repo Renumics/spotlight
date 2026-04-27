@@ -60,7 +60,7 @@ def generate_tallymarks_dataset(
         dataset.append_mesh_column("mesh", optional=True, description="optional")
 
         for image, label, encoded_row in list(
-            zip(digits.images, digits.target, encoded)
+            zip(digits.images, digits.target, encoded, strict=True)
         )[:number_of_images]:
             dataset.append_row(
                 number=int(label) if label > 0 else None,
@@ -143,7 +143,7 @@ def generate_tallymarks_dataset(
             videos_lookup[i + 2] = os.path.join("data/videos", filename)
 
         for image, label, encoded_row in list(
-            zip(digits.images, digits.target, encoded)
+            zip(digits.images, digits.target, encoded, strict=True)
         )[:number_of_images]:
             mesh_interpolated = _mesh(label, animate=True)
             mesh_interpolated.interpolate_point_displacements(20)

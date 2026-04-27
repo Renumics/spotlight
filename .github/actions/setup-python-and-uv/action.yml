@@ -1,0 +1,53 @@
+name: Setup Python and uv
+author: Renumics GmbH
+description: |
+    Set up Python and uv environment as specified in .tool-versions file,
+    cache/restore dependencies
+inputs:
+    python-version:
+        description: Python version to set up (overrides .tool-versions)
+        required: false
+    install-dependencies:
+        description: Whether to install and cache/restore dependencies
+        default: 'true'
+outputs:
+    package-version:
+        description: Spotlight version
+        value: ${{ steps.get-package-version.outputs.package-version }}
+runs:
+    using: composite
+    steps:
+        - name: Extract versions from .tool-versions
+          id: tool-versions
+          run: |
+              if [[ -n "${{ inputs.python-version }}" ]]; then
+                echo "python-version=${{ inputs.python-version }}" >> "$GITHUB_OUTPUT"
+              else
+                echo "python-version=$(awk '/^python / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+              fi
+              echo "uv-version=$(awk '/^uv / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
+          shell: bash
+        - name: Set up Python ${{ steps.tool-versions.outputs.python-version }}
+          uses: actions/setup-python@v6
+          with:
+              python-version: ${{ steps.tool-versions.outputs.python-version }}
+        - name: Set up uv ${{ steps.tool-versions.outputs.uv-version }}
+          id: setup-uv-and-python
+          uses: astral-sh/setup-uv@5a7eac68fb9809dea845d802897dc5c723910fa3
+          with:
+              version: ${{ steps.tool-versions.outputs.uv-version }}
+              python-version: ${{ steps.tool-versions.outputs.python-version }}
+              enable-cache: ${{ inputs.install-dependencies != 'false' }}
+              cache-dependency-glob: |
+                  uv.lock
+                  pyproject.toml
+              prune-cache: true
+        - name: Install dependencies
+          if: inputs.install-dependencies != 'false'
+          run: uv sync --all-extras --no-group playbook --locked
+          shell: bash
+        - name: Get Spotlight version
+          id: get-package-version
+          run: |
+              echo "package-version=$(uv run uv-dynamic-versioning)" >> $GITHUB_OUTPUT
+          shell: bash

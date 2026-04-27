@@ -45,7 +45,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async getLayoutRaw(
         requestParameters: GetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<object>> {
+    ): Promise<runtime.ApiResponse<{ [key: string]: any }>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -70,7 +70,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async getLayout(
         requestParameters: GetLayoutRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<object> {
+    ): Promise<{ [key: string]: any }> {
         const response = await this.getLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -82,7 +82,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async resetLayoutRaw(
         requestParameters: ResetLayoutRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<object>> {
+    ): Promise<runtime.ApiResponse<{ [key: string]: any }>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -107,7 +107,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async resetLayout(
         requestParameters: ResetLayoutRequest = {},
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<object> {
+    ): Promise<{ [key: string]: any }> {
         const response = await this.resetLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -119,7 +119,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async setLayoutRaw(
         requestParameters: SetLayoutOperationRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<runtime.ApiResponse<object>> {
+    ): Promise<runtime.ApiResponse<{ [key: string]: any }>> {
         if (
             requestParameters.setLayoutRequest === null ||
             requestParameters.setLayoutRequest === undefined
@@ -157,7 +157,7 @@ export class LayoutApi extends runtime.BaseAPI {
     async setLayout(
         requestParameters: SetLayoutOperationRequest,
         initOverrides?: RequestInit | runtime.InitOverrideFunction
-    ): Promise<object> {
+    ): Promise<{ [key: string]: any }> {
         const response = await this.setLayoutRaw(requestParameters, initOverrides);
         return await response.value();
     }

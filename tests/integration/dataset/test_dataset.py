@@ -291,7 +291,9 @@ def test_append_common_column(
                 dtype_name = sample.dtype_name
                 assert dataset.get_dtype(sample.name).name == dtype_name
                 dataset_values = dataset[sample.name]
-                for value, dataset_value in zip(sample.values, dataset_values):
+                for value, dataset_value in zip(
+                    sample.values, dataset_values, strict=True
+                ):
                     assert approx(value, dataset_value, dtype_name)
 
 
@@ -449,7 +451,9 @@ def test_rename_column(
                 assert name in dataset.keys()
                 dataset_values = dataset[name]
                 column_type = sample.dtype_name
-                for value, dataset_value in zip(sample.values, dataset_values):
+                for value, dataset_value in zip(
+                    sample.values, dataset_values, strict=True
+                ):
                     assert approx(value, dataset_value, column_type)
 
 
@@ -478,7 +482,7 @@ def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                 # Test `dataset[column_name]` getter.
                 dataset_values = list(dataset[column_name])
                 assert len(dataset_values) == len(values)
-                for dataset_value, value in zip(dataset_values, values):
+                for dataset_value, value in zip(dataset_values, values, strict=True):
                     approx(value, dataset_value, dtype.name)
 
             for i in range(-len(dataset), len(dataset)):
@@ -539,7 +543,9 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                     dataset[i, key] = dataset[key, i]
                     dataset[i, key] = dataset[i, key]
                 column_values = dataset[key]
-                for i, value in zip(range(-1, -len(dataset) - 1, -1), column_values):
+                for i, value in zip(
+                    range(-1, -len(dataset) - 1, -1), column_values, strict=True
+                ):
                     dataset[key, i] = value
 
 
@@ -625,7 +631,7 @@ def test_iterrows(
                 values = sample.values
                 dtype_name = dataset.get_dtype(sample.name).name
                 dataset_values = dataset.iterrows(sample.name)
-                for value, dataset_value in zip(values, dataset_values):
+                for value, dataset_value in zip(values, dataset_values, strict=True):
                     dataset_value = cast(Optional[OutputType], dataset_value)
                     assert approx(value, dataset_value, dtype_name)
 
@@ -743,7 +749,9 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
                 dtype = dataset.get_dtype(name)
                 actual_values = dataset.pop(name)
                 for target, actual in zip(
-                    next((x.values for x in data if x.name == name)), actual_values
+                    next((x.values for x in data if x.name == name)),
+                    actual_values,
+                    strict=True,
                 ):
                     assert approx(target, actual, dtype.name)
                 assert set(dataset.keys()) == names.difference({name})

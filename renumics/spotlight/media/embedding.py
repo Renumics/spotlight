@@ -51,8 +51,7 @@ class Embedding(MediaType):
     def decode(cls, value: Union[np.ndarray, np.void]) -> "Embedding":
         if not isinstance(value, np.ndarray):
             raise TypeError(
-                f"`value` argument should be a numpy array, but {type(value)} "
-                f"received."
+                f"`value` argument should be a numpy array, but {type(value)} received."
             )
         return cls(value)
 

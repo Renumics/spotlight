@@ -172,7 +172,7 @@ class DataStore:
         guessed_dtypes = self._data_source.semantic_dtypes.copy()
 
         # guess missing dtypes from intermediate dtypes
-        for col, dtype in self._data_source.intermediate_dtypes.items():
+        for col in self._data_source.intermediate_dtypes.keys():
             if col not in guessed_dtypes:
                 guessed_dtypes[col] = self._guess_dtype(col)
 
@@ -188,12 +188,10 @@ class DataStore:
 
         # determine categories for _automatic_ CategoryDtypes
         for column_name, dtype in dtypes.items():
-
-            def values() -> Iterable[NormalizedValue]:
-                yield from self._data_source.get_column_values(column_name)
-
             dtypes[column_name] = self._refine_dtype(
-                values(), guessed_dtypes[column_name], dtype
+                self._data_source.get_column_values(column_name),
+                guessed_dtypes[column_name],
+                dtype,
             )
 
         self._dtypes = dtypes

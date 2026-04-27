@@ -52,7 +52,7 @@ router = APIRouter()
 
 
 class NoDataSource(Problem):
-    def __init__(self, filebrowsing_allowed: bool):
+    def __init__(self, filebrowsing_allowed: bool) -> None:
         if filebrowsing_allowed:
             text = "No dataset provided. Please select a dataset with `.show(dataset)` or with the filebrowser."
         else:
