@@ -26,17 +26,17 @@ clean: ## clean project
 .PHONY: format
 format: ## Fix code formatting
 	uv run pre-commit run ruff-format --all-files
-	npx prettier --write 'src/**/*.{js,ts,tsx,json,yaml,css}'
+	uv run pre-commit run prettier --all-files
 
 .PHONY: lint
 lint: ## Lint all source files
 	uv run pre-commit run ruff-check --all-files
-	pnpm run lint
+	uv run pre-commit run eslint --all-files
 
 .PHONY: typecheck
 typecheck: ## Typecheck all source files
 	uv run pre-commit run mypy --all-files
-	pnpm run typecheck
+	pnpm exec tsc --noEmit
 
 TABLE_FILE ?= "data/tables/tallymarks-small.h5"
 .PHONY: dev

@@ -25,6 +25,22 @@ repos:
             types: [python]
             files: ^(renumics|scripts|tests)/
             require_serial: true
+          - id: prettier
+            name: prettier
+            language: system
+            entry: pnpm exec prettier --write
+            files: ^.*\.(js|jsx|ts|tsx|json|yaml|css)$
+          - id: eslint
+            name: eslint
+            language: system
+            entry: pnpm exec eslint
+            files: ^src/.*\.(js|jsx|ts|tsx)$
+          - id: tsc
+            name: tsc
+            language: system
+            entry: pnpm exec tsc --noEmit
+            pass_filenames: false
+            stages: [pre-push]
 
     # "official" pre-commit hooks
     - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -44,16 +60,6 @@ repos:
           - id: check-symlinks
 
     # third-pary hooks
-    - repo: https://github.com/pre-commit/mirrors-prettier
-      rev: v4.0.0-alpha.8
-      hooks:
-          - id: prettier
-            exclude: (\.secret\.)|(pnpm-lock.yaml)
-    - repo: https://github.com/pre-commit/mirrors-eslint
-      rev: v10.2.1
-      hooks:
-          - id: eslint
-            files: src
     - repo: https://github.com/python-jsonschema/check-jsonschema
       rev: 0.37.1
       hooks:

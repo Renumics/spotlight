@@ -67,7 +67,7 @@
         "fuse.js": "^6.6.2",
         "immer": "^9.0.19",
         "localforage": "^1.10.0",
-        "lodash": "^4.17.23",
+        "lodash": "^4.18.1",
         "micromatch": "4.0.8",
         "moment": "^2.29.4",
         "numbro": "^2.3.6",
@@ -94,11 +94,11 @@
         "showdown": "^2.1.0",
         "simple-statistics": "^7.8.3",
         "styled-components": "^5.3.9",
-        "three": "^0.149.0",
+        "three": "^0.184.0",
         "three-stdlib": "^2.21.8",
         "tippy.js": "^6.3.7",
         "unique-names-generator": "^4.7.1",
-        "uuid": "^9.0.0",
+        "uuid": "^9.0.1",
         "wavesurfer.js": "^6.4.0",
         "zustand": "^4.3.3"
     },
@@ -147,7 +147,7 @@
         "typescript": "^5.1.6",
         "vite": "^5.4.21",
         "vite-plugin-dts": "^3.9.1",
-        "vite-plugin-node-polyfills": "^0.14.1"
+        "vite-plugin-node-polyfills": "^0.26.0"
     },
     "babelMacros": {
         "twin": {
