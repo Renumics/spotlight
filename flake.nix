@@ -22,6 +22,7 @@
           shellcheck
           shfmt
           stdenv.cc.cc.lib
+          ffmpeg-headless
         ];
         shellHook = ''
           unset SOURCE_DATE_EPOCH
