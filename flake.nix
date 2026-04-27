@@ -24,15 +24,15 @@
           jdk21
           stdenv.cc.cc.lib
           ffmpeg-headless
+          zlib
         ];
         shellHook = ''
           unset SOURCE_DATE_EPOCH
 
           export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
-            pkgs.stdenv.cc.cc.lib
+            pkgs.stdenv.cc.cc.lib pkgs.zlib
           ]}:$LD_LIBRARY_PATH
 
-          export UV_PYTHON=${pkgs.python312}/bin/python
           export PIP_IGNORE_INSTALLED=1
 
           if [[ -d "./.venv" ]]; then
@@ -40,7 +40,7 @@
           fi
 
           if [[ -z ''${VIRTUAL_ENV:-} || ! -d ''${VIRTUAL_ENV:-} ]]; then
-            uv venv
+            uv venv -p "$(command -v python3)"
             VIRTUAL_ENV="$(pwd)/.venv"
           fi
 
