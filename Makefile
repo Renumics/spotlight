@@ -21,7 +21,7 @@ init-playbook: ## Locally install all playbook dev dependencies
 
 .PHONY: clean
 clean: ## clean project
-	rm -rf build/ .pytest_cache/ .ruff_cache/ .mypy_cache/ node_modules/
+	rm -rf build/ .pytest_cache/ .ruff_cache/ .mypy_cache/ .venv/ node_modules/
 
 .PHONY: format
 format: ## Fix code formatting
