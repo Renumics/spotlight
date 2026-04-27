@@ -21,10 +21,10 @@ import { exists, mapValues } from '../runtime';
 export interface SetLayoutRequest {
     /**
      *
-     * @type {object}
+     * @type {{ [key: string]: any; }}
      * @memberof SetLayoutRequest
      */
-    layout: object;
+    layout: { [key: string]: any };
 }
 
 /**

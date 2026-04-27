@@ -44,6 +44,18 @@ export interface ValidationError {
      * @memberof ValidationError
      */
     type: string;
+    /**
+     *
+     * @type {any}
+     * @memberof ValidationError
+     */
+    input?: any | null;
+    /**
+     *
+     * @type {object}
+     * @memberof ValidationError
+     */
+    ctx?: object;
 }
 
 /**
@@ -73,6 +85,8 @@ export function ValidationErrorFromJSONTyped(
         loc: (json['loc'] as Array<any>).map(LocationInnerFromJSON),
         msg: json['msg'],
         type: json['type'],
+        input: !exists(json, 'input') ? undefined : json['input'],
+        ctx: !exists(json, 'ctx') ? undefined : json['ctx'],
     };
 }
 
@@ -87,5 +101,7 @@ export function ValidationErrorToJSON(value?: ValidationError | null): any {
         loc: (value.loc as Array<any>).map(LocationInnerToJSON),
         msg: value.msg,
         type: value.type,
+        input: value.input,
+        ctx: value.ctx,
     };
 }

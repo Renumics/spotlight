@@ -31,7 +31,7 @@ export interface GetFolderRequest {
 export class FilebrowserApi extends runtime.BaseAPI {
     /**
      * fetch a folder
-     * File Browser APi
+     * File Browser API
      */
     async getFolderRaw(
         requestParameters: GetFolderRequest,
@@ -68,7 +68,7 @@ export class FilebrowserApi extends runtime.BaseAPI {
 
     /**
      * fetch a folder
-     * File Browser APi
+     * File Browser API
      */
     async getFolder(
         requestParameters: GetFolderRequest,

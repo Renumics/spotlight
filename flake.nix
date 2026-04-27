@@ -21,6 +21,7 @@
           pnpm
           shellcheck
           shfmt
+          jdk21
           stdenv.cc.cc.lib
           ffmpeg-headless
         ];
