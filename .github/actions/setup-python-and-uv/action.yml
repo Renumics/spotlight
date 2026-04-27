@@ -31,7 +31,7 @@ runs:
           uses: actions/setup-python@v6
           with:
               python-version: ${{ steps.tool-versions.outputs.python-version }}
-        - name: Set up uv ${{ steps.tool-versions.outputs.uv-version }} and Python ${{ steps.tool-versions.outputs.python-version }}
+        - name: Set up uv ${{ steps.tool-versions.outputs.uv-version }}
           id: setup-uv-and-python
           uses: astral-sh/setup-uv@5a7eac68fb9809dea845d802897dc5c723910fa3
           with:
