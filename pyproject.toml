@@ -84,6 +84,9 @@ dependencies = [
     "transformers",
     "packaging",
     "pyarrow",
+    "soundfile>=0.12.1",
+    "librosa>=0.11.0",
+    "soxr>=0.4.0",
 ]
 
 [project.optional-dependencies]
