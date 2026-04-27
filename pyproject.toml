@@ -129,6 +129,7 @@ dev = [
     "check-wheel-contents (>=0.6.0)",
     "notebook",
     "uv-dynamic-versioning>=0.14.0",
+    "ray[data]>=2.55.1",
 ]
 playbook = [
     "annoy (>=1.17.2)",
