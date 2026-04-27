@@ -189,12 +189,8 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-torch = [
-  { index = "pytorch-cpu" },
-]
-torchcodec = [
-  { index = "pytorch-cpu" },
-]
+torch = { index = "pytorch-cpu" }
+torchcodec = { index = "pytorch-cpu" }
 
 [tool.hatch.build.targets.sdist]
 include = [
