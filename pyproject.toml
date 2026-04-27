@@ -190,10 +190,10 @@ explicit = true
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cpu", extra = "torch" },
+  { index = "pytorch-cpu" },
 ]
 torchcodec = [
-  { index = "pytorch-cpu", extra = "torch" },
+  { index = "pytorch-cpu" },
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -204,7 +204,7 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = [
-  "renumics"
+  "renumics",
 ]
 
 [tool.hatch.version]
