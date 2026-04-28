@@ -195,4 +195,4 @@ api-client: ## Generate API Spec and CLient
 	# replace existing code
 	rsync -a --delete /tmp/spotlight-api-client/ "./src/client"
 	# auto format generated code
-	npx prettier --write './src/client/**/*.{js,ts,tsx,json,yaml,css}'
+	pnpm exec prettier --write './src/client/**/*.{js,jsx,ts,tsx,json,yaml,css}'
