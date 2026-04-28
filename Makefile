@@ -96,13 +96,13 @@ test: unit-test doc-test integration-test ui-test
 .PHONY: unit-test
 unit-test: ## Execute unit tests
 	export SPOTLIGHT_DEV=False
-	uv run pytest --durations=3 tests/unit
+	uv run pytest --durations=5 tests/unit
 	pnpm run test
 
 .PHONY: doc-test
 doc-test: ## Execute doc tests
 	export SPOTLIGHT_DEV=False
-	uv run pytest --durations=3 --doctest-modules --pyargs renumics
+	uv run pytest --durations=5 --doctest-modules --pyargs renumics
 
 .PHONY: integration-test
 integration-test: ## Execute integration-tests
@@ -115,11 +115,11 @@ ui-test: ui-test-chrome ui-test-firefox
 
 .PHONY: .ui-test-chrome
 .ui-test-chrome:
-	uv run pytest --durations=3 -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} tests/ui
+	uv run pytest --durations=5 -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} tests/ui
 
 .PHONY: .ui-test-firefox
 .ui-test-firefox:
-	uv run pytest --durations=3 -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox tests/ui
+	uv run pytest --durations=5 -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox tests/ui
 
 .PHONY: ui-test-%
 ui-test-%:
