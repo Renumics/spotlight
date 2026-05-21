@@ -98,7 +98,7 @@
         "three-stdlib": "^2.21.8",
         "tippy.js": "^6.3.7",
         "unique-names-generator": "^4.7.1",
-        "uuid": "^9.0.1",
+        "uuid": "^14.0.0",
         "wavesurfer.js": "^6.4.0",
         "zustand": "^4.3.3"
     },
