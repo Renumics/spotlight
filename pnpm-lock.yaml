@@ -3933,8 +3933,8 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
-  qs@6.15.0:
-    resolution: {integrity: sha512-mAZTtNCeetKMH+pSjrb76NAM8V9a05I9aBZOHztWy/UqcJdQYNsf59vrRKWnojAT9Y+GbIvoTBC++CPHqpDBhQ==}
+  qs@6.15.2:
+    resolution: {integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==}
     engines: {node: '>=0.6'}
 
   querystring-es3@0.2.1:
@@ -9242,7 +9242,7 @@ snapshots:
 
   pure-rand@6.1.0: {}
 
-  qs@6.15.0:
+  qs@6.15.2:
     dependencies:
       side-channel: 1.1.0
 
@@ -10190,7 +10190,7 @@ snapshots:
   url@0.11.4:
     dependencies:
       punycode: 1.4.1
-      qs: 6.15.0
+      qs: 6.15.2
 
   use-isomorphic-layout-effect@1.2.1(@types/react@18.0.27)(react@18.3.1):
     dependencies:
