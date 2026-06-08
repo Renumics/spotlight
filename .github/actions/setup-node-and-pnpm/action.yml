@@ -13,7 +13,7 @@ runs:
               echo "pnpm-version=$(awk '/^pnpm / { print $2 }' .tool-versions)" >> "$GITHUB_OUTPUT"
           shell: bash
         - name: Install pnpm ${{ steps.tool-versions.outputs.pnpm-version }}
-          uses: pnpm/action-setup@v4
+          uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061
           with:
               version: ${{ steps.tool-versions.outputs.pnpm-version }}
         - name: Set up Node.js ${{ steps.tool-versions.outputs.nodejs-version }}
