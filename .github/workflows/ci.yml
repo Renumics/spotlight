@@ -485,10 +485,8 @@ jobs:
                   password: ${{ secrets.PYPI_API_TOKEN }}
     deploy-docs:
         name: '📖 Deploy API docs to GitHub Pages'
-        # TEMPORARY (debug): deploy docs from any branch.
-        # TODO: revert to `if: startsWith(github.ref, 'refs/tags/v') ...`
-        # and `needs: [release]` once GitHub Pages deployment is verified.
-        if: github.repository == 'Renumics/spotlight'
+        # Deploy the latest API docs on every push to main.
+        if: github.ref == 'refs/heads/main' && github.repository == 'Renumics/spotlight'
         needs:
             - build-docs
         permissions:
