@@ -1,5 +1,0 @@
-index.md
-layout/index.md
-layout/lenses.md
-dataset/index.md
-dtypes/index.md

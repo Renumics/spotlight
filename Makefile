@@ -152,13 +152,14 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 	wget --delete-after "$${URL}/api/table/number/42?generation_id=$${GENERATION_ID}"
 
 .PHONY: docs
-docs: ## Generate API docs
+docs: ## Generate API docs as a static HTML site (for GitHub Pages)
 	rm -rf build/docs/api
-	uv run pdoc --template-dir docs/templates -o build/docs/api renumics.spotlight
-	DOCS_WHITELIST=$$(sed -z 's/\n/|/g' docs/whitelist.txt)
-	find build/docs/api/renumics/spotlight -type f -regextype egrep -not \
-		-regex "build/docs/api/renumics/spotlight/($$DOCS_WHITELIST)" -delete
-	find build/docs/api/renumics/spotlight -type d -empty -delete
+	uv run pdoc --html --force -o build/docs/api renumics.spotlight
+	# Flatten the site so `renumics.spotlight` is the root of the published site
+	# (i.e. build/docs/api/index.html is the top-level module page).
+	mv build/docs/api/renumics/spotlight build/docs/site
+	rm -rf build/docs/api
+	mv build/docs/site build/docs/api
 
 AZURE_FOLDER_URL ?= "https://spotlightpublic.blob.core.windows.net/github-public/Renumics/spotlight-temp"
 .PHONY: old-screenshots
