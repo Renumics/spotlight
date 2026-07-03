@@ -160,13 +160,6 @@ docs: ## Generate API docs
 		-regex "build/docs/api/renumics/spotlight/($$DOCS_WHITELIST)" -delete
 	find build/docs/api/renumics/spotlight -type d -empty -delete
 
-DOCS_REPOSITORY ?= ../spotlight-docs
-.PHONY: dist-docs
-dist-docs: ## Copy API docs to docs repository
-dist-docs: docs
-	[ -d "$(DOCS_REPOSITORY)" ] || (echo "Docs repository not found. Clone it to $(DOCS_REPOSITORY) or set its path to the DOCS_REPOSITORY variable."; exit 1)
-	rsync -a --delete build/docs/api/renumics/spotlight/ "$(DOCS_REPOSITORY)/docs/api/spotlight"
-
 AZURE_FOLDER_URL ?= "https://spotlightpublic.blob.core.windows.net/github-public/Renumics/spotlight-temp"
 .PHONY: old-screenshots
 old-screenshots: ## Generate the API spec and migrations
