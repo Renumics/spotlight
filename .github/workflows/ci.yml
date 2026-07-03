@@ -160,6 +160,10 @@ jobs:
                   name: docs-${{ needs.prepare-python.outputs.version }}
                   path: build/docs/api/
                   if-no-files-found: error
+            - name: '📦 Upload GitHub Pages artifact'
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: build/docs/api/
     build-datasets:
         name: '🗃 Build datasets'
         needs:
@@ -479,3 +483,20 @@ jobs:
               uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
               with:
                   password: ${{ secrets.PYPI_API_TOKEN }}
+    deploy-docs:
+        name: '📖 Deploy API docs to GitHub Pages'
+        # Deploy the latest API docs on every push to main.
+        if: github.ref == 'refs/heads/main' && github.repository == 'Renumics/spotlight'
+        needs:
+            - build-docs
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: '📖 Deploy to GitHub Pages'
+              id: deployment
+              uses: actions/deploy-pages@v4
