@@ -22,7 +22,7 @@ Serving a CSV file:
     >>> import pandas as pd
     >>> from renumics import spotlight
     >>> from renumics.spotlight import dtypes
-    >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+    >>> df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
     >>> viewer = spotlight.show(
     ...     df,
     ...     dtype={"image": dtypes.image_dtype},
@@ -62,7 +62,7 @@ Serving multiple datasets:
     >>> from renumics import spotlight
     >>> spotlight.viewers()
     []
-    >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+    >>> df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
     >>> df_viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> ds = datasets.load_dataset("mnist", split="test")
@@ -81,7 +81,7 @@ Reuse the dataset `Viewer`:
     >>> import datasets
     >>> import pandas as pd
     >>> from renumics import spotlight
-    >>> df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+    >>> df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
     >>> viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> ds = datasets.load_dataset("mnist", split="test")
