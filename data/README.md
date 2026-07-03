@@ -25,3 +25,16 @@ Mesh saved in different file formats.
 Video by [Javier Lemus](https://pixabay.com/users/javlemus-12694742/) on
 [Pixabay](https://pixabay.com/), shortened and saved in different file formats,
 including animation.
+
+# MNIST
+
+Contains a tiny subset (30 samples) of the MNIST database of handwritten digits
+by Yann LeCun and Corinna Cortes, licensed under
+[Creative Commons Attribution-Share Alike 3.0](http://creativecommons.org/licenses/by-sa/3.0/).
+
+The samples were extracted from the original dataset, converted to PNG images and
+paired with generated embeddings. As required by the license, this derivative is
+distributed under the same
+[CC BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.0/) terms.
+
+See [mnist/README.md](mnist/README.md) for details.
