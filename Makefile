@@ -153,16 +153,15 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 
 .PHONY: docs
 docs: ## Generate API docs as a static HTML site (for GitHub Pages)
-	rm -rf build/docs/api
-	uv run pdoc --html --force -o build/docs/api renumics.spotlight
+	rm -rf build/docs/api build/docs/tmp
+	uv run pdoc --html --force -o build/docs/tmp renumics.spotlight
 	# Show the current version above the table of contents in the sidebar.
-	find build/docs/api -name '*.html' -exec \
+	find build/docs/tmp -name '*.html' -exec \
 		sed -i 's|<ul id="index">|<p class="version">version: $(VERSION)</p>\n<ul id="index">|' {} +
-	# Flatten the site so `renumics.spotlight` is the root of the published site
+	# Publish `renumics.spotlight` as the root of the site
 	# (i.e. build/docs/api/index.html is the top-level module page).
-	mv build/docs/api/renumics/spotlight build/docs/site
-	rm -rf build/docs/api
-	mv build/docs/site build/docs/api
+	mv build/docs/tmp/renumics/spotlight build/docs/api
+	rm -rf build/docs/tmp
 
 AZURE_FOLDER_URL ?= "https://spotlightpublic.blob.core.windows.net/github-public/Renumics/spotlight-temp"
 .PHONY: old-screenshots
