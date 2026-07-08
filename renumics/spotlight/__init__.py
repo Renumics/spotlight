@@ -30,7 +30,7 @@ We try to support a wide range of data sources, such as CSV, Parquet, ORC and
 Hugging Face datasets.
 
 ```python
-df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
 spotlight.show(df, dtype={"image": dtypes.image_dtype})
 
 import datasets
@@ -56,7 +56,7 @@ To show an updated dataset change some viewer settings (e.g. provide custom
 types), you can reuse the viewer instance returned by [`spotlight.show`](#show()).
 
 ```python
-df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
 viewer = spotlight.show(df)
 df["str"] = "foo"
 viewer.show(df)
