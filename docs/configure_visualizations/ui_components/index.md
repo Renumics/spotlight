@@ -11,7 +11,7 @@ slug: /docs/configure-visualizations/ui-components
 === "mnist"
 
     ```bash
-    curl https://renumics.com/docs/data/mnist/mnist-tiny.csv -o mnist-tiny.csv
+    curl https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv -o mnist-tiny.csv
     spotlight mnist-tiny.csv --dtype image=Image --dtype embedding=Embedding --dtype label=Category
     ```
 

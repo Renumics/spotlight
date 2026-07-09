@@ -37,7 +37,7 @@ You can directly load your dataframe either via the Python API or the command li
     import pandas as pd
     from renumics import spotlight
 
-    df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+    df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
     spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
     ```
 
@@ -48,7 +48,7 @@ You can directly load your dataframe either via the Python API or the command li
 === "CLI"
 
     ```bash
-    curl https://renumics.com/data/mnist/mnist-tiny.csv -o mnist-tiny.csv
+    curl https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv -o mnist-tiny.csv
     spotlight mnist-tiny.csv --dtype image=Image --dtype embedding=Embedding
     ```
 

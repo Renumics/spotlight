@@ -1,4 +1,4 @@
-<p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
+<p align="center"><a href="https://renumics.github.io/spotlight/"><img src="static/img/spotlight.svg" alt="Gray shape shifter" height="60"/></a></p>
 <h1 align="center">Renumics Spotlight</h1>
 <p align="center">Interactively explore unstructured datasets from your dataframe.</p>
 
@@ -9,13 +9,13 @@
 </p>
 
   <h3 align="center">
-   <a href="https://spotlight.renumics.com"><b>Documentation</b></a> &bull;
-   <a href="https://renumics.com/docs/data-centric-ai/playbook"><b>Playbook</b></a> &bull;
+   <a href="https://renumics.github.io/spotlight/"><b>Documentation</b></a> &bull;
+   <a href="https://renumics.github.io/spotlight/data-centric_ai/playbook/"><b>Playbook</b></a> &bull;
    <a href="https://renumics.com/blog/"><b>Blog</b></a> &bull;
-   <a href="https://renumics.com/api/spotlight/"><b>API Reference</b></a>
+   <a href="https://renumics.github.io/spotlight/API/"><b>API Reference</b></a>
  </h3>
 
-<p align="center"><a href="https://spotlight.renumics.com"><img src="static/img/spotlight_video.gif" width="100%"/></a></p>
+<p align="center"><a href="https://renumics.github.io/spotlight/"><img src="static/img/spotlight_video.gif" width="100%"/></a></p>
 
 Spotlight helps you to **understand unstructured datasets** fast. You can quickly create **interactive visualizations** and leverage data enrichments (e.g. embeddings, prediction, uncertainties) to **identify critical clusters** in your data.
 
@@ -49,7 +49,7 @@ Machine learning and engineering teams use Spotlight to understand and communica
             <td rowspan="3">🖼️ Image</td>
 	    <td rowspan="3">[Classification]</td>
             <td>Find Issues in Any Image Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/image-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a> <a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
+            <td><a href="https://renumics.github.io/spotlight/use_cases/computer_vision/image_classification/">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a> <a href="https://huggingface.co/spaces/renumics/sliceguard-unstructured-data">🕹️</a></td>
         </tr>
         <tr>
             <td>Find data issues in the CIFAR-100 image dataset</td>
@@ -57,13 +57,13 @@ Machine learning and engineering teams use Spotlight to understand and communica
         </tr>
         <tr>
             <td>Fine-tuning image classification models from Bing image search</td>
-            <td><a href="https://renumics.com/next/docs/use-cases/image-fine-tuning">👨‍💻</a><a href="https://medium.com/@markus.stoll/image-classification-in-2023-8ab7dc552115">📝</a></td>
+            <td><a href="https://renumics.github.io/spotlight/use_cases/computer_vision/image_fine-tune/">👨‍💻</a><a href="https://medium.com/@markus.stoll/image-classification-in-2023-8ab7dc552115">📝</a></td>
         </tr>
         <tr>
             <td rowspan="3">🔊 Audio</td>
 	    <td rowspan="3">[Classification]</td>
             <td>Find Issues in Any Audio Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/audio-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a><a href="https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues">🕹️</a></td>
+            <td><a href="https://renumics.github.io/spotlight/use_cases/Audio/audio_classification/">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a><a href="https://huggingface.co/spaces/renumics/whisper-commonvoice-speaker-issues">🕹️</a></td>
         </tr>
         <tr>
             <td>Debug pre-trained gender detection models on the emodb dataset</td>
@@ -77,7 +77,7 @@ Machine learning and engineering teams use Spotlight to understand and communica
             <td rowspan="1">📝 Text</td>
 	    <td rowspan="1">[Classification]</td>
             <td>Find Issues in Any Text Classification Dataset</td>
-            <td><a href="https://www.renumics.com/next/docs/use-cases/text-classification">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
+            <td><a href="https://renumics.github.io/spotlight/use_cases/NLP/text_classification/">👨‍💻</a> <a href="https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a">📝</a></td>
         </tr>
         <tr>
             <td rowspan="2">📈🖼️ Mixed</td>
@@ -171,13 +171,13 @@ We have added crash report and performance collection. We do NOT collect user da
 ## Learn more about unstructured data workflows
 
 - 🤗 [Huggingface](https://huggingface.co/renumics) example spaces and datasets
-- 🏀 [Playbook](https://renumics.com/docs/data-centric-ai/playbook) for data-centric AI workflows
+- 🏀 [Playbook](https://renumics.github.io/spotlight/data-centric_ai/playbook/) for data-centric AI workflows
 - 🍰 [Sliceguard](https://github.com/Renumics/sliceguard) library for automatic slice detection
 
 ## Contribute
 
 We are currently participating in the running [Hacktoberfest 2023](https://hacktoberfest.com/).
 
-If you would like to contribute to Spotlight, the easiest way is to have a look at our [Contribution Docs](https://renumics.com/docs/development) and the [CONTRIBUTING.md](./CONTRIBUTING.md).
+If you would like to contribute to Spotlight, the easiest way is to have a look at our [Contribution Docs](https://renumics.github.io/spotlight/contributions/) and the [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 We are also equally happy about non-code contributions -- whether it's reporting bugs, suggesting features, contributing design ideas, or offering feedback, every non-code contribution is highly valued and helps make our project better for everyone.

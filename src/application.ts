@@ -25,7 +25,7 @@ const application: Application = {
     version: import.meta.env.VITE_VERSION ?? 'dev',
     publicUrl: import.meta.env.VITE_PUBLIC_URL ?? globalThis.location.origin,
     apiUrl: import.meta.env.VITE_API_BASE_PATH ?? globalThis.location.origin,
-    docsUrl: 'https://spotlight.renumics.com',
+    docsUrl: 'https://renumics.github.io/spotlight/',
     repositoryUrl: 'https://github.com/renumics/spotlight',
     filebrowsingAllowed: window.__filebrowsing_allowed__,
 } as const;
