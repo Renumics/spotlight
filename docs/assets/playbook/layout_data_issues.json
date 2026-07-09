@@ -1,0 +1,127 @@
+{
+    "orientation": "horizontal",
+    "children": [
+        {
+            "kind": "split",
+            "weight": 44.24966799468792,
+            "orientation": "vertical",
+            "children": [
+                {
+                    "kind": "tab",
+                    "weight": 33.54784241752236,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Table",
+                            "type": "table",
+                            "config": {
+                                "tableView": "full",
+                                "visibleColumns": [
+                                    "label",
+                                    "label_score",
+                                    "near_duplicate_score",
+                                    "pred",
+                                    "outlier_score"
+                                ],
+                                "sorting": null,
+                                "orderByRelevance": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "tab",
+                    "weight": 23.686809949341544,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Issues",
+                            "type": "IssuesWidget",
+                            "config": null
+                        }
+                    ]
+                },
+                {
+                    "kind": "tab",
+                    "weight": 42.765347633136095,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Inspector",
+                            "type": "inspector",
+                            "config": {
+                                "views": [
+                                    {
+                                        "view": "ImageView",
+                                        "columns": ["full_image"],
+                                        "name": "full_image",
+                                        "key": "7hA9fgoBXsKTCCFVYZfhRb"
+                                    },
+                                    {
+                                        "view": "TextLens",
+                                        "columns": ["label"],
+                                        "name": "view",
+                                        "key": "a7fedf96-f36e-4836-9ffe-7b249c16db46"
+                                    },
+                                    {
+                                        "view": "TextLens",
+                                        "columns": ["pred"],
+                                        "name": "view",
+                                        "key": "527a66c2-b3d4-4be0-9879-8749ee4fd0ed"
+                                    }
+                                ],
+                                "visibleColumns": 8
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "tab",
+            "weight": 55.75033200531208,
+            "children": [
+                {
+                    "kind": "widget",
+                    "name": "Similarity Map",
+                    "type": "similaritymap",
+                    "config": {
+                        "placeBy": null,
+                        "reductionMethod": null,
+                        "colorBy": "label",
+                        "sizeBy": "is_label_issue",
+                        "filter": false,
+                        "umapNNeighbors": 20,
+                        "umapMetric": "cosine",
+                        "umapMinDist": 0.15,
+                        "pcaNormalization": null,
+                        "umapMenuLocalGlobalBalance": null,
+                        "umapMenuIsAdvanced": false
+                    }
+                },
+                {
+                    "kind": "widget",
+                    "name": "Scatter Plot",
+                    "type": "scatterplot",
+                    "config": {
+                        "xAxisColumn": null,
+                        "yAxisColumn": null,
+                        "colorBy": null,
+                        "sizeBy": null,
+                        "filter": false
+                    }
+                },
+                {
+                    "kind": "widget",
+                    "name": "Histogram",
+                    "type": "histogram",
+                    "config": {
+                        "columnKey": null,
+                        "stackByColumnKey": null,
+                        "filter": false
+                    }
+                }
+            ]
+        }
+    ]
+}
