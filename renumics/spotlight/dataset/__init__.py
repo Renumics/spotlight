@@ -805,7 +805,7 @@ class Dataset:
         """
         Args:
             filepath: Path of csv file to read.
-            dtype: Optional dict with mapping `column name -> column type` with
+            dtypes: Optional dict with mapping `column name -> column type` with
                 column types allowed by Spotlight.
             columns: Optional columns to read from csv. If not set, read all
                 columns.
@@ -1714,6 +1714,7 @@ class Dataset:
             attrs: Optional arguments for the respective append column method.
 
         Example:
+            ```pycon
             >>> from renumics.spotlight import Dataset
             >>> with Dataset("docs/example.h5", "w") as dataset:
             ...     dataset.append_column("int", int, range(5))
@@ -1731,6 +1732,8 @@ class Dataset:
             [0 1 2 3 4]
             [ True  True  True  True  True]
             [1. 1. 1. 1. 1.]
+
+            ```
         """
         dtype = spotlight_dtypes.create_dtype(dtype)
 
@@ -1854,6 +1857,7 @@ class Dataset:
         Insert a row into the dataset at the given index.
 
         Example:
+            ```pycon
             >>> from renumics.spotlight import Dataset
             >>> with Dataset("example.h5", "w") as dataset:
             ...     dataset.append_float_column("floats", [-1.0, 0.0, 1.0])
@@ -1873,6 +1877,8 @@ class Dataset:
             5
             [-1.    3.14  0.     nan  1.  ]
             [   -1 -1000     0  1000     2]
+
+            ```
         """
         self._assert_is_writable()
         self._assert_index_exists(index, check_type=True)

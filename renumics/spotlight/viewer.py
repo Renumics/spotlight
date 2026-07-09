@@ -173,7 +173,7 @@ class Viewer:
         Args:
             dataset: Dataset file or pandas.DataFrame (df) to open.
             folder: Root folder for filebrowser and lookup of dataset files.
-            layout: Optional Spotlight [layout](./layout).
+            layout: Optional Spotlight [layout][renumics.spotlight.layout].
             no_browser: Do not show Spotlight in browser.
             allow_filebrowsing: Whether to allow users to browse and open datasets.
                 If "auto" (default), allow to browse if `dataset_or_folder` is a path.
@@ -421,7 +421,7 @@ def show(
         host: optional host to run Spotlight at.
         port: optional port to run Spotlight at.
             If "auto" (default), automatically choose a random free port.
-        layout: optional Spotlight [layout](./layout).
+        layout: optional Spotlight [layout][renumics.spotlight.layout].
         no_browser: do not show Spotlight in browser.
         allow_filebrowsing: Whether to allow users to browse and open datasets.
             If "auto" (default), allow to browse if `dataset_or_folder` is a path.
