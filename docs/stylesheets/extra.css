@@ -1,0 +1,8 @@
+/* White background + border around the header logo icon */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 4px;
+    padding: 3px;
+    box-sizing: content-box;
+}

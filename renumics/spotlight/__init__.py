@@ -1,7 +1,7 @@
 """
 Renumics Spotlight allows you to quickly explore your datasets.
 
-To serve an interactive view of your dataset, simply pass it to [`spotlight.show`](#show()).
+To serve an interactive view of your dataset, simply pass it to [`spotlight.show`][renumics.spotlight.show].
 
 ```python
 import pandas as pd
@@ -19,8 +19,8 @@ spotlight.show(df)
 
 Spotlight tries to infer supported column types from your data, but you can
 overwrite these column types. Supply your custom mapping as `dtype` parameter to
-[`spotlight.show`](#show()). For detailed overview of all the supported data types, see
-[`renumics.spotlight.dtypes`](./dtypes).
+[`spotlight.show`][renumics.spotlight.show]. For detailed overview of all the supported data types, see
+[`renumics.spotlight.dtypes`][renumics.spotlight.dtypes].
 
 ```python
 viewer = spotlight.show(df, dtype={"int": "float", "str": "category"})
@@ -30,7 +30,7 @@ We try to support a wide range of data sources, such as CSV, Parquet, ORC and
 Hugging Face datasets.
 
 ```python
-df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
 spotlight.show(df, dtype={"image": dtypes.image_dtype})
 
 import datasets
@@ -39,7 +39,7 @@ spotlight.show(ds)
 ```
 
 As an alternative that fully supports and persist our column types you can use
-our custom [H5 dataset](./dataset).
+our custom [H5 dataset][renumics.spotlight.dataset].
 
 ```python
 from datetime import datetime
@@ -53,10 +53,10 @@ spotlight.show("docs/example.h5")
 ```
 
 To show an updated dataset change some viewer settings (e.g. provide custom
-types), you can reuse the viewer instance returned by [`spotlight.show`](#show()).
+types), you can reuse the viewer instance returned by [`spotlight.show`][renumics.spotlight.show].
 
 ```python
-df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
 viewer = spotlight.show(df)
 df["str"] = "foo"
 viewer.show(df)

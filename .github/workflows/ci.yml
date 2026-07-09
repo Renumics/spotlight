@@ -141,7 +141,7 @@ jobs:
         outputs:
             matrix: ${{ steps.set-matrix.outputs.matrix }}
     build-docs:
-        name: '📝 Build API docs'
+        name: '📝 Build docs'
         needs:
             - prepare-python
         runs-on: ubuntu-latest
@@ -152,18 +152,18 @@ jobs:
                   fetch-depth: 0
             - name: '🐍 Set up uv environment'
               uses: ./.github/actions/setup-python-and-uv
-            - name: '📝 Build API docs'
+            - name: '📝 Build docs'
               run: make docs
-            - name: '📥 Store API docs'
+            - name: '📥 Store docs'
               uses: actions/upload-artifact@v7
               with:
                   name: docs-${{ needs.prepare-python.outputs.version }}
-                  path: build/docs/api/
+                  path: build/docs/site/
                   if-no-files-found: error
             - name: '📦 Upload GitHub Pages artifact'
               uses: actions/upload-pages-artifact@v3
               with:
-                  path: build/docs/api/
+                  path: build/docs/site/
     build-datasets:
         name: '🗃 Build datasets'
         needs:
@@ -484,8 +484,8 @@ jobs:
               with:
                   password: ${{ secrets.PYPI_API_TOKEN }}
     deploy-docs:
-        name: '📖 Deploy API docs to GitHub Pages'
-        # Deploy the latest API docs on every push to main.
+        name: '📖 Deploy docs to GitHub Pages'
+        # Deploy the latest docs on every push to main.
         if: github.ref == 'refs/heads/main' && github.repository == 'Renumics/spotlight'
         needs:
             - build-docs

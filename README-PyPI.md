@@ -49,7 +49,7 @@ See [torch installation](https://pytorch.org/get-started/locally/) for more deta
 import pandas as pd
 from renumics import spotlight
 
-df = pd.read_csv("https://github.com/Renumics/spotlight/raw/main/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
 spotlight.show(df, dtype={"image": spotlight.Image, "embedding": spotlight.Embedding})
 ```
 

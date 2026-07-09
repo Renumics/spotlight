@@ -2,17 +2,17 @@
 Spotlight data types.
 
 The most dtypes are non-customazable and can be used through simple importing
-the respective module variables (e.g. [`float_dtype`](#float_dtype),
-[`image_dtype`](#image_dtype)).
+the respective module variables (e.g. [`float_dtype`][renumics.spotlight.dtypes.float_dtype],
+[`image_dtype`][renumics.spotlight.dtypes.image_dtype]).
 
 Some dtypes are customazable and only their default versions can be defined
-through the respective module variables (e.g. [`category_dtype`](#category_dtype),
-[`embedding_dtype`](#embedding_dtype)). For more info, see the module classes.
+through the respective module variables (e.g. [`category_dtype`][renumics.spotlight.dtypes.category_dtype],
+[`embedding_dtype`][renumics.spotlight.dtypes.embedding_dtype]). For more info, see the module classes.
 
 In the most usage cases string or object aliases can be used instead of the
 default dtypes. For more info, see the module classes.
 
-The main usage of the dtypes is customizing the [`spotlight.show`](../#show()).
+The main usage of the dtypes is customizing the [`spotlight.show`][renumics.spotlight.show].
 """
 
 from datetime import datetime
@@ -80,7 +80,7 @@ class CategoryDType(DType):
 
     Category names and codes are assured to be unique. Empty categories mean to
     be defined later (in this case, equivalent to the
-    [`category_dtype`](#category_dtype) module variable).
+    [`category_dtype`][renumics.spotlight.dtypes.category_dtype] module variable).
 
     Using with category names:
         >>> from renumics.spotlight import dtypes
