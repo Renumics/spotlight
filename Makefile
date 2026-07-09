@@ -152,16 +152,12 @@ test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 	wget --delete-after "$${URL}/api/table/number/42?generation_id=$${GENERATION_ID}"
 
 .PHONY: docs
-docs: ## Generate API docs as a static HTML site (for GitHub Pages)
-	rm -rf build/docs/api build/docs/tmp
-	uv run pdoc --html --force -o build/docs/tmp renumics.spotlight
-	# Show the current version above the table of contents in the sidebar.
-	find build/docs/tmp -name '*.html' -exec \
-		sed -i 's|<ul id="index">|<p class="version">version: $(VERSION)</p>\n<ul id="index">|' {} +
-	# Publish `renumics.spotlight` as the root of the site
-	# (i.e. build/docs/api/index.html is the top-level module page).
-	mv build/docs/tmp/renumics/spotlight build/docs/api
-	rm -rf build/docs/tmp
+docs: ## Build the documentation site (MkDocs) into build/docs/site
+	uv run mkdocs build
+
+.PHONY: docs-serve
+docs-serve: ## Serve the documentation site locally with live reload
+	uv run mkdocs serve
 
 AZURE_FOLDER_URL ?= "https://spotlightpublic.blob.core.windows.net/github-public/Renumics/spotlight-temp"
 .PHONY: old-screenshots

@@ -1,0 +1,120 @@
+site_name: Renumics Spotlight
+site_description: Interactively explore unstructured datasets.
+site_url: https://renumics.github.io/spotlight/
+repo_url: https://github.com/Renumics/spotlight
+repo_name: Renumics/spotlight
+
+docs_dir: docs
+site_dir: build/docs/site
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/video-autoplay.js
+
+theme:
+  name: material
+  logo: assets/spotlight.svg
+  favicon: assets/spotlight.svg
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            members_order: source
+            filters: ["!^_"]
+            heading_level: 2
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started/index.md
+  - Loading Data:
+      - loading_data/index.md
+      - Pandas: loading_data/loading_pandas_data.md
+      - Hugging Face: loading_data/loading_huggingface_data.md
+      - Spotlight HDF5: loading_data/loading_hdf5_data.md
+      - Supported data types: loading_data/supported_data_types.md
+  - Configure Visualizations:
+      - configure_visualizations/index.md
+      - UI Components:
+          - configure_visualizations/ui_components/index.md
+          - Layout: configure_visualizations/ui_components/layout.md
+          - Inspector: configure_visualizations/ui_components/inspector_view.md
+          - Similarity Map: configure_visualizations/ui_components/similarity_map.md
+          - Scatter Plot: configure_visualizations/ui_components/scatter_plot.md
+          - Data Table: configure_visualizations/ui_components/table_view.md
+          - Histogram: configure_visualizations/ui_components/histogram.md
+          - Filter Bar: configure_visualizations/ui_components/filter_bar.md
+      - Layout API: configure_visualizations/layout_api/index.md
+      - Data Issues: configure_visualizations/issue_widget/index.md
+  - Use Cases:
+      - use_cases/index.md
+      - 🎙️ Audio: use_cases/Audio/audio_classification.md
+      - 📺 Computer Vision:
+          - Image Classification: use_cases/computer_vision/image_classification.md
+          - Fine-tune a ViT: use_cases/computer_vision/image_fine-tune.md
+      - 📖 NLP: use_cases/NLP/text_classification.md
+      - 🖼️ 📈 Multimodal: use_cases/Multimodal/motorsports_telemetry.md
+  - Data-centric AI:
+      - Glossary: data-centric_ai/glossary/index.md
+      - Playbook:
+          - data-centric_ai/playbook/index.md
+          - Create embeddings with Hugging Face: data-centric_ai/playbook/create_huggingface_embedding.md
+          - Create embeddings with Towhee: data-centric_ai/playbook/create_towhee_embedding.md
+          - Detect decision boundaries: data-centric_ai/playbook/detect_decision_boundary.md
+          - Detect duplicates with Annoy: data-centric_ai/playbook/detect_duplicates_annoy.md
+          - Detect leakage with Annoy: data-centric_ai/playbook/detect_leakage_annoy.md
+          - Detect data drift: data-centric_ai/playbook/drift_kcore.md
+          - Find label errors: data-centric_ai/playbook/label_errors_cleanlab.md
+          - Find outliers: data-centric_ai/playbook/outlier_cleanlab.md
+          - Find image issues: data-centric_ai/playbook/cv_issues.md
+          - Find data slices: data-centric_ai/playbook/find_data_slices_sliceguard.md
+  - Contribution Guidelines:
+      - contributions/index.md
+      - Create your first Lens: contributions/create_lense.md
+  - API Reference:
+      - API/index.md
+      - Dataset: API/dataset.md
+      - Data types: API/dtypes.md
+      - Layout: API/layout.md
