@@ -2,8 +2,8 @@
 name = "renumics-spotlight"
 dynamic = ["version"]
 description = "Visualize and maintain datasets to develop and understand data-driven algorithms."
-homepage = "https://spotlight.renumics.com/"
-documentation = "https://spotlight.renumics.com/"
+homepage = "https://renumics.github.io/spotlight/"
+documentation = "https://renumics.github.io/spotlight/API/"
 readme = "README-PyPI.md"
 repository = "https://github.com/renumics/spotlight"
 keywords = [

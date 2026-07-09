@@ -11,14 +11,14 @@ slug: /docs/configure-visualizations/ui-components
 === "mnist"
 
     ```bash
-    curl https://renumics.com/docs/data/mnist/mnist-tiny.csv -o mnist-tiny.csv
+    curl https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv -o mnist-tiny.csv
     spotlight mnist-tiny.csv --dtype image=Image --dtype embedding=Embedding --dtype label=Category
     ```
 
 === "fsd50k"
 
     ```bash
-    curl https://spotlight.renumics.com/data/fsd50k/fsd50k-tiny.csv -o fsd50k-tiny.csv
+    curl https://raw.githubusercontent.com/Renumics/spotlight/main/data/fsd50k/fsd50k-tiny.csv -o fsd50k-tiny.csv
     spotlight fsd50k-tiny.csv --dtype window=Window --dtype embedding=Embedding --dtype audio=Audio
     ```
 

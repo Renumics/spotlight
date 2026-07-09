@@ -63,7 +63,7 @@ df["prediction"], df["probs"], df["embeddings"] = generate_image_pred_probs_embe
 )
 # Check the result and detect problematic clusters
 spotlight.show(
-    df, layout="https://spotlight.renumics.com/resources/image_classification_v1.0.json"
+    df, layout="https://raw.githubusercontent.com/Renumics/spotlight/main/docs/assets/playbook/image_classification_v1.0.json"
 )
 ```
 

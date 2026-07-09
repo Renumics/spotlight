@@ -1,0 +1,132 @@
+{
+    "orientation": "vertical",
+    "children": [
+        {
+            "kind": "split",
+            "weight": 50.828729281767956,
+            "orientation": "horizontal",
+            "children": [
+                {
+                    "kind": "tab",
+                    "weight": 52.124874118831826,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Table",
+                            "type": "table",
+                            "config": {
+                                "tableView": "full",
+                                "visibleColumns": null,
+                                "sorting": null,
+                                "orderByRelevance": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "tab",
+                    "weight": 23.53457366549008,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Similarity Map First",
+                            "type": "similaritymap",
+                            "config": {
+                                "placeBy": null,
+                                "reductionMethod": "pca",
+                                "colorBy": null,
+                                "sizeBy": null,
+                                "filter": false,
+                                "umapNNeighbors": 20,
+                                "umapMetric": null,
+                                "umapMinDist": 0.15,
+                                "pcaNormalization": null,
+                                "umapMenuLocalGlobalBalance": null,
+                                "umapMenuIsAdvanced": false
+                            }
+                        },
+                        {
+                            "kind": "widget",
+                            "name": "Scatter Plot",
+                            "type": "scatterplot",
+                            "config": {
+                                "xAxisColumn": null,
+                                "yAxisColumn": null,
+                                "colorBy": null,
+                                "sizeBy": null,
+                                "filter": false
+                            }
+                        },
+                        {
+                            "kind": "widget",
+                            "name": "Histogram",
+                            "type": "histogram",
+                            "config": {
+                                "columnKey": null,
+                                "stackByColumnKey": null,
+                                "filter": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "tab",
+                    "weight": 24.340552215678095,
+                    "children": [
+                        {
+                            "kind": "widget",
+                            "name": "Similarity Map Last",
+                            "type": "similaritymap",
+                            "config": {
+                                "umapNNeighbors": 20,
+                                "umapMinDist": 0.15,
+                                "placeBy": ["pca_last"],
+                                "reductionMethod": "pca"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "tab",
+            "weight": 49.171270718232044,
+            "children": [
+                {
+                    "kind": "widget",
+                    "name": "Inspector",
+                    "type": "inspector",
+                    "config": {
+                        "views": [
+                            {
+                                "view": "ImageView",
+                                "key": "f2Jm5RJh968a68gBSVzM5G",
+                                "name": "image",
+                                "columns": ["image"]
+                            },
+                            {
+                                "view": "TextLens",
+                                "columns": ["label_str"],
+                                "name": "view",
+                                "key": "cd9286a9-7ed6-4a2d-b3b0-62e045615ae0"
+                            },
+                            {
+                                "view": "ScalarView",
+                                "columns": ["scores_first"],
+                                "name": "view",
+                                "key": "029989eb-72fe-4419-8655-f8ebba425b10"
+                            },
+                            {
+                                "view": "ScalarView",
+                                "columns": ["scores_last"],
+                                "name": "view",
+                                "key": "1c47d19b-d17f-447c-a0c5-149631477b22"
+                            }
+                        ],
+                        "visibleColumns": 8
+                    }
+                }
+            ]
+        }
+    ]
+}

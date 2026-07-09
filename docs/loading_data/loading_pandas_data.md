@@ -16,7 +16,7 @@ In this basic example, we load a dataframe froma .csv file and load it into Spot
 import pandas as pd
 from renumics import spotlight
 
-df = pd.read_csv("https://renumics.com/data/mnist/mnist-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
 spotlight.show(df, dtype={"image": spotlight.Image})
 ```
 

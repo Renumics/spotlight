@@ -84,7 +84,7 @@ import pandas as pd
 from renumics import spotlight
 from renumics.spotlight import layout
 
-df = pd.read_csv("https://spotlight.renumics.com/data/fsd50k/fsd50k-tiny.csv")
+df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/main/data/fsd50k/fsd50k-tiny.csv")
 spotlight.show(
     df,
     dtype={"audio": spotlight.Audio, "embedding": spotlight.Embedding},
