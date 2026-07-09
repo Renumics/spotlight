@@ -18,7 +18,7 @@ slug: /docs/configure-visualizations/ui-components
 === "fsd50k"
 
     ```bash
-    curl https://spotlight.renumics.com/data/fsd50k/fsd50k-tiny.csv -o fsd50k-tiny.csv
+    curl https://raw.githubusercontent.com/Renumics/spotlight/main/data/fsd50k/fsd50k-tiny.csv -o fsd50k-tiny.csv
     spotlight fsd50k-tiny.csv --dtype window=Window --dtype embedding=Embedding --dtype audio=Audio
     ```
 

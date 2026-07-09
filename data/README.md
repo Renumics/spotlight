@@ -38,3 +38,21 @@ distributed under the same
 [CC BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.0/) terms.
 
 See [mnist/README.md](mnist/README.md) for details.
+
+# FSD50K
+
+Contains a tiny subset (20 samples) of FSD50K, an open dataset of
+human-labeled sound events by Eduardo Fonseca, Xavier Favory, Jordi Pons,
+Frederic Font and Xavier Serra, built from audio clips uploaded to
+[Freesound.org](https://freesound.org) and released as a collective work
+under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/).
+Each underlying clip additionally keeps its own individual Creative Commons
+license.
+
+The samples were extracted from the original dataset and paired with
+generated predictions and embeddings. As required by the license, this
+derivative is distributed under the same
+[CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) terms, with
+attribution to each clip's original author.
+
+See [fsd50k/README.md](fsd50k/README.md) for details.
