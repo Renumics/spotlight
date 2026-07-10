@@ -23,7 +23,7 @@ from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.settings import settings
 
-ANALYTICS_URL = "https://analytics.renumics.com/v1/spotlight"
+ANALYTICS_URL: Optional[str] = None
 
 
 def _get_node() -> str:
@@ -43,9 +43,13 @@ TOKEN = _get_node()
 
 def skip_analytics() -> bool:
     """
-    analytics will be skipped when opt_in is false and opt_out is true
-    or CI environment variable is set
+    analytics will be skipped when opt_in is false and opt_out is true,
+    the CI environment variable is set, or no analytics URL is configured
     """
+
+    if ANALYTICS_URL is None:
+        logger.debug("analytics skipped because no analytics URL is configured")
+        return True
 
     if environ.get("CI", False):
         logger.debug("analytics skipped because CI environment variable is set")
@@ -143,11 +147,15 @@ def report_event(event: Dict[str, Any]) -> None:
 
     logger.debug("sending analytics event")
 
+    # skip_analytics() guarantees ANALYTICS_URL is set at this point
+    assert ANALYTICS_URL is not None
+    analytics_url = ANALYTICS_URL
+
     def _post_request() -> None:
         try:
             # post request to analytics server with minimal timeout (to prevent blocking)
             requests.post(
-                ANALYTICS_URL,
+                analytics_url,
                 json={"events": [encoded]},
                 timeout=20,
             )
