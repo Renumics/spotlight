@@ -12,7 +12,7 @@ The spotlight backend is a [FastAPI](https://fastapi.tiangolo.com/em/) server wr
 and the frontend.<br />
 The frontend is a [React](https://reactjs.org/) application written in `typescript`.
 
-Therefore, for development, you'll need to install both `python` together with `poetry`
+Therefore, for development, you'll need to install both `python` together with `uv`
 and `nodejs` with `pnpm` to get started.
 
 !!! info
@@ -25,12 +25,12 @@ and `nodejs` with `pnpm` to get started.
 
 #### Developing on Linux
 
-Install [python3](https://www.python.org/) together with [poetry](https://python-poetry.org/docs/)
+Install [python3](https://www.python.org/) together with [uv](https://docs.astral.sh/uv/)
 
 ```bash
 sudo apt update
 sudo apt install python3 python3-dev
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 Install [nodejs](https://nodejs.org/en/) together with [pnpm](https://pnpm.io/)
@@ -47,6 +47,21 @@ We recommend using at least node version 18.
 In order to install the latest version check out [NodeSource on Github](https://github.com/nodesource/distributions)
 
 You might need to restart your terminal in order to use `pnpm` as a command.
+
+#### Using asdf
+
+Alternatively, you can manage all of `python`, `uv`, `nodejs` and `pnpm` with a single
+tool using [asdf](https://asdf-vm.com/).
+
+```bash
+asdf plugin add python
+asdf plugin add uv
+asdf plugin add nodejs
+asdf plugin add pnpm
+asdf install
+```
+
+The versions are read from the `.tool-versions` file in the spotlight repository.
 
 ### Setup Spotlight Repository
 
@@ -79,8 +94,8 @@ that the hooks successfully ran for the added changes.<br />
 This can be verified by creating a commit and checking if automated tests are run before the commit is created.
 
 ```bash
-poetry run pre-commit install --hook-type pre-commit
-poetry run pre-commit install --hook-type pre-push
+uv run pre-commit install --hook-type pre-commit
+uv run pre-commit install --hook-type pre-push
 ```
 
 Submit your improvements, fixes and new features to Spotlight by creating a
@@ -92,4 +107,4 @@ In order to make development easier [direnv](https://direnv.net/) can be used to
 on entering the spotlight folder.
 
 The provided [.envrc](https://github.com/Renumics/spotlight/blob/main/.envrc) file automatically activates
-the poetry environment and sets environment variables in .env and .env.local.
+the uv environment and sets environment variables in .env and .env.local.
