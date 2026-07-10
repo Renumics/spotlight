@@ -11,15 +11,7 @@ We use embeddings to detect duplicates by computing nearest neighbors with the A
 
 > Use Chrome to run Spotlight in Colab. Due to Colab restrictions (e.g. no websocket support), the performance is limited. Run the notebook locally for the full Spotlight experience.
 
-<a
-    target="_blank"
-    href="https://colab.research.google.com/github/Renumics/spotlight/blob/main/playbook/veteran/duplicates_annoy.ipynb"
->
-    <img
-        src="https://colab.research.google.com/assets/colab-badge.svg"
-        alt="Open In Colab"
-    />
-</a>
+[Open In Colab](https://colab.research.google.com/github/Renumics/spotlight/blob/main/playbook/veteran/duplicates_annoy.ipynb)
 
 === "inputs"
 
