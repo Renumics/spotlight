@@ -88,7 +88,7 @@ df = pd.concat([df, df_cv], axis=1)
 
 ```python
 df_show = df.drop(columns=['embedding', 'probabilities'])
-layout_url = "https://raw.githubusercontent.com/Renumics/spotlight/playbook_initial_draft/playbook/rookie/cv_issues.json"
+layout_url = "https://raw.githubusercontent.com/Renumics/spotlight/playbook/playbook/rookie/cv_issues.json"
 response = requests.get(layout_url)
 layout = spotlight.layout.nodes.Layout(**json.loads(response.text))
 spotlight.show(df_show, dtype={"image": spotlight.Image, "embedding_reduced": spotlight.Embedding}, layout=layout)
