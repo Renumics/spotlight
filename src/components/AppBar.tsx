@@ -223,7 +223,7 @@ const NumberMenu = () => {
 
 const UpgradeButton = (): JSX.Element => {
     return (
-        <a href="https://renumics.com/product/pricing" target="_blank" rel="noreferrer">
+        <a href="mailto:info@renumics.com">
             <Button tw="text-xs font-bold bg-blue-500 text-white p-1 ml-1 rounded w-auto disabled:bg-gray-200 disabled:hover:bg-gray-200 disabled:text-gray-500 disabled:hover:text-gray-500 hover:bg-green-200 hover:text-white whitespace-nowrap">
                 Get PRO
             </Button>

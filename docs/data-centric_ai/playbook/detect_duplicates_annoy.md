@@ -104,7 +104,7 @@ df = pd.concat([df, df_nn], axis=1)
 
 ```python
 df_show = df.drop(columns=['embedding', 'probabilities'])
-layout_url = "https://raw.githubusercontent.com/Renumics/spotlight/playbook_initial_draft/playbook/rookie/duplicates_annoy.json"
+layout_url = "https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/playbook/veteran/duplicates_annoy.json"
 response = requests.get(layout_url)
 layout = spotlight.layout.nodes.Layout(**json.loads(response.text))
 spotlight.show(df_show, dtype={"image": spotlight.Image, "embedding_reduced": spotlight.Embedding}, layout=layout)
