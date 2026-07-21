@@ -40,6 +40,11 @@ export default defineConfig(({ mode }) => {
                     index: 'src/lib.ts',
                     'icons/index': 'src/icons',
                 },
+                // In library mode Vite names the bundled CSS after the package
+                // ("spotlight.css"), but the served template links "style.css".
+                // Pin the name so the built stylesheet (cropper.css, tippy.css,
+                // react-toastify.css, ...) is actually loaded in production.
+                cssFileName: 'style',
             },
             rollupOptions: {
                 input: ['src/main.tsx', 'src/lib.ts'],
