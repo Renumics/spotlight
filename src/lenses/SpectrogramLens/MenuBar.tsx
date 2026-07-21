@@ -20,28 +20,35 @@ interface Props {
     className?: string;
     availableFreqScales: string[];
     availableAmpScales: string[];
+    availableChannels: number[];
     freqScale: string;
     ampScale: string;
+    channel: number;
     onChangeFreqScale: (scale: string) => void;
     onChangeAmpScale: (scale: string) => void;
+    onChangeChannel: (channel: number) => void;
 }
 
 const MenuBar: FunctionComponent<Props> = ({
     className,
     availableFreqScales,
     availableAmpScales,
+    availableChannels,
     freqScale,
     ampScale,
+    channel,
     onChangeFreqScale,
     onChangeAmpScale,
+    onChangeChannel,
 }) => {
     const selectFreqScale = (newFreqScale?: string) =>
         onChangeFreqScale(newFreqScale || '');
     const selectAmpScale = (newAmpScale?: string) =>
         onChangeAmpScale(newAmpScale || '');
+    const selectChannel = (newChannel?: number) => onChangeChannel(newChannel ?? 0);
 
     const content = (
-        <Menu>
+        <Menu tw="w-32">
             <Menu.Title>Frequency Scale</Menu.Title>
             <Select
                 onChange={selectFreqScale}
@@ -54,6 +61,17 @@ const MenuBar: FunctionComponent<Props> = ({
                 value={ampScale}
                 options={[...availableAmpScales]}
             />
+            {availableChannels.length > 1 && (
+                <>
+                    <Menu.Title>Channel</Menu.Title>
+                    <Select
+                        onChange={selectChannel}
+                        value={channel}
+                        options={[...availableChannels]}
+                        label={(v) => `${(v ?? 0) + 1}`}
+                    />
+                </>
+            )}
         </Menu>
     );
 

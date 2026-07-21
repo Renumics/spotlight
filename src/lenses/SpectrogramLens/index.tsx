@@ -130,6 +130,8 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
 
     const [freqScale, setFreqScale] = useSetting('freqScale', 'linear');
     const [ampScale, setAmpScale] = useSetting('ampScale', 'decibel');
+    const [channel, setChannel] = useSetting('channel', 0);
+    const [numChannels, setNumChannels] = useState(1);
     const [size, setSize] = useState([0, 0]);
 
     const colorPalette = useColors(colorPaletteSelector);
@@ -150,12 +152,24 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     });
 
     useEffect(() => {
+        let workerInstance: Worker;
+        if (import.meta.env.DEV) {
+            // In dev, modules are served by the Vite dev server on a separate
+            // origin, but a Worker script must be same-origin as the document.
+            // Load it from the current origin instead; the backend reverse-proxies
+            // /src and /node_modules to Vite (see the dev routes in app.py).
+            workerInstance = new Worker(
+                `${globalThis.location.origin}/src/lenses/SpectrogramLens/SpectrogramWorker.ts?worker_file&type=module`,
+                { type: 'module' }
+            );
+        } else {
+            workerInstance = new Worker(
+                new URL('./SpectrogramWorker.ts', import.meta.url),
+                { type: 'module' }
+            );
+        }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const worker: any = Comlink.wrap(
-            new Worker(new URL('./SpectrogramWorker.ts', import.meta.url), {
-                type: 'module',
-            })
-        );
+        const worker: any = Comlink.wrap(workerInstance);
 
         const drawSpectrogram = async () => {
             if (!waveform.current) return;
@@ -186,13 +200,18 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 return;
             }
 
+            // Clamp the selected channel to what this buffer actually has, so a
+            // channel index carried over from a multichannel file can't produce
+            // an out-of-range read on a mono (or fewer-channel) buffer.
+            const safeChannel = Math.min(channel, buffer.numberOfChannels - 1);
+
             const frequenciesData = await worker(
                 FFT_SAMPLES,
                 backend.windowFunc,
                 backend.alpha,
                 width,
                 FFT_SAMPLES,
-                buffer.getChannelData(0).slice(start, end)
+                buffer.getChannelData(safeChannel).slice(start, end)
             );
 
             setIsComputing(false);
@@ -339,9 +358,12 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         }
 
         return () => {
-            worker.terminate();
+            // Terminate the real Worker, not the Comlink proxy: calling
+            // `.terminate()` on the proxy would dispatch it as a remote method
+            // call (which the worker doesn't expose) instead of stopping it.
+            workerInstance.terminate();
         };
-    }, [window, freqScale, ampScale, colorPalette, size]);
+    }, [window, freqScale, ampScale, channel, colorPalette, size]);
 
     const handleFreqScaleChange = useCallback(
         (scale: string) => {
@@ -361,9 +383,22 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
         [setAmpScale]
     );
 
+    const handleChannelChange = useCallback(
+        (newChannel: number) => {
+            setChannel(newChannel);
+        },
+        [setChannel]
+    );
+
     useEffect(() => {
         waveform?.current?.on('ready', () => {
             const backend = waveform.current?.backend as unknown as WebAudio_;
+
+            // Expose the decoded channel count so the menu can offer a channel
+            // selector for multichannel audio. An out-of-range persisted channel
+            // is handled at render time (see `safeChannel` in drawSpectrogram)
+            // and simply hides the selector for mono audio.
+            setNumChannels(backend.buffer?.numberOfChannels ?? 1);
 
             // Draw initial scale
             drawScale(
@@ -496,6 +531,9 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
                 availableAmpScales={['decibel', 'linear']}
                 ampScale={ampScale}
                 onChangeAmpScale={handleAmpScaleChange}
+                availableChannels={Array.from({ length: numChannels }, (_, i) => i)}
+                channel={channel}
+                onChangeChannel={handleChannelChange}
             />
         </Container>
     );
