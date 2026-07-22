@@ -152,22 +152,10 @@ const SpectrogramLens: Lens = ({ columns, urls, values }) => {
     });
 
     useEffect(() => {
-        let workerInstance: Worker;
-        if (import.meta.env.DEV) {
-            // In dev, modules are served by the Vite dev server on a separate
-            // origin, but a Worker script must be same-origin as the document.
-            // Load it from the current origin instead; the backend reverse-proxies
-            // /src and /node_modules to Vite (see the dev routes in app.py).
-            workerInstance = new Worker(
-                `${globalThis.location.origin}/src/lenses/SpectrogramLens/SpectrogramWorker.ts?worker_file&type=module`,
-                { type: 'module' }
-            );
-        } else {
-            workerInstance = new Worker(
-                new URL('./SpectrogramWorker.ts', import.meta.url),
-                { type: 'module' }
-            );
-        }
+        const workerInstance = new Worker(
+            new URL('./SpectrogramWorker.ts', import.meta.url),
+            { type: 'module' }
+        );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const worker: any = Comlink.wrap(workerInstance);
 

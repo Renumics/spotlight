@@ -15,14 +15,15 @@ from threading import Thread
 from typing import Any, Dict, List, Literal, Optional, Union, cast
 
 import pandas as pd
-from fastapi import Cookie, FastAPI, Request, status
+from fastapi import Cookie, FastAPI, Request, WebSocket, status
 from fastapi.datastructures import Headers
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from httpx import URL, AsyncClient
 from typing_extensions import Annotated
+from websockets.asyncio.client import connect as connect_websocket
+from websockets.typing import Subprotocol
 
 from renumics.spotlight import dtypes as spotlight_dtypes
 from renumics.spotlight import layouts
@@ -255,7 +256,6 @@ class SpotlightApp(FastAPI):
         )
 
         async def _reverse_proxy(request: Request) -> Response:
-            http_server = AsyncClient(base_url=request.app.vite_url)
             url = URL(path=request.url.path, query=request.url.query.encode("utf-8"))
 
             # URL-encoding is not accepted by vite. Use unencoded path instead.
@@ -264,14 +264,19 @@ class SpotlightApp(FastAPI):
 
             body = await request.body()
 
-            rp_req = http_server.build_request(
-                request.method,
-                url,
-                headers=request.headers.raw,
-                content=body,
-            )
+            # Initial Vite transforms can take longer than HTTPX's five-second
+            # default timeout, especially before dependency optimization is warm.
+            async with AsyncClient(
+                base_url=request.app.vite_url, timeout=None
+            ) as http_server:
+                rp_req = http_server.build_request(
+                    request.method,
+                    url,
+                    headers=request.headers.raw,
+                    content=body,
+                )
 
-            rp_resp = await http_server.send(rp_req, stream=False)
+                rp_resp = await http_server.send(rp_req, stream=False)
 
             return Response(
                 content=rp_resp.content,
@@ -290,7 +295,6 @@ class SpotlightApp(FastAPI):
                     "request": request,
                     "dev": settings.dev,
                     "dev_location": get_project_info().type,
-                    "vite_url": request.app.vite_url,
                     "filebrowsing_allowed": request.app.filebrowsing_allowed,
                 },
             )
@@ -304,28 +308,63 @@ class SpotlightApp(FastAPI):
 
         if settings.dev:
             logger.info("Running in dev mode")
-            self.add_middleware(
-                CORSMiddleware,
-                allow_origins=["*"],
-                allow_credentials=True,
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
             add_timing_middleware(self)
 
-            # Reverse proxy routes for webworker loading in dev mode
-            self.add_route("/src/{path:path}", _reverse_proxy, ["POST", "GET"])
-            self.add_route(
-                "/node_modules/.vite/dist/client/{path:path}",
-                _reverse_proxy,
-                ["POST", "GET"],
-            )
-            self.add_route(
-                "/node_modules/.vite/deps/{path:path}", _reverse_proxy, ["POST", "GET"]
-            )
-            self.add_route(
-                "/node_modules/.pnpm/{path:path}", _reverse_proxy, ["POST", "GET"]
-            )
+            # Routes registered above keep precedence. Everything else belongs
+            # to Vite's module graph or public development assets.
+            self.add_route("/{path:path}", _reverse_proxy, ["GET", "POST", "HEAD"])
+
+            async def _vite_websocket(websocket: WebSocket) -> None:
+                """Proxy Vite's HMR websocket through the backend."""
+                vite_url = cast(str, websocket.app.vite_url)
+                websocket_url = vite_url.replace("http", "ws", 1)
+                websocket_url += websocket.url.path
+                if websocket.url.query:
+                    websocket_url += f"?{websocket.url.query}"
+
+                requested_protocol = websocket.headers.get("sec-websocket-protocol")
+                subprotocol = (
+                    Subprotocol("vite-hmr")
+                    if requested_protocol == "vite-hmr"
+                    else None
+                )
+                subprotocols = [subprotocol] if subprotocol else None
+
+                async with connect_websocket(
+                    websocket_url, subprotocols=subprotocols
+                ) as vite_websocket:
+                    await websocket.accept(subprotocol=subprotocol)
+
+                    async def to_vite() -> None:
+                        while True:
+                            message = await websocket.receive()
+                            if message["type"] == "websocket.disconnect":
+                                return
+                            if message.get("text") is not None:
+                                await vite_websocket.send(message["text"])
+                            elif message.get("bytes") is not None:
+                                await vite_websocket.send(message["bytes"])
+
+                    async def from_vite() -> None:
+                        async for message in vite_websocket:
+                            if isinstance(message, str):
+                                await websocket.send_text(message)
+                            else:
+                                await websocket.send_bytes(message)
+
+                    tasks = [
+                        asyncio.create_task(to_vite()),
+                        asyncio.create_task(from_vite()),
+                    ]
+                    _, pending = await asyncio.wait(
+                        tasks, return_when=asyncio.FIRST_COMPLETED
+                    )
+                    for task in pending:
+                        task.cancel()
+                    await asyncio.gather(*pending, return_exceptions=True)
+
+            self.add_api_websocket_route("/", _vite_websocket)
+            self.add_api_websocket_route("/{path:path}", _vite_websocket)
 
     def update(self, config: AppConfig) -> None:
         """

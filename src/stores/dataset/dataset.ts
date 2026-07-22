@@ -435,18 +435,9 @@ export const useDataset = create(
                 set({ lastFocusedRow: row });
             },
             relevanceWorker: Comlink.wrap(
-                // In dev, modules are served by the Vite dev server on a separate
-                // origin, but a Worker script must be same-origin as the document.
-                // Load it from the current origin instead; the backend
-                // reverse-proxies /src and /node_modules to Vite (see app.py).
-                import.meta.env.DEV
-                    ? new Worker(
-                          `${globalThis.location.origin}/src/stores/dataset/relevanceWorker.ts?worker_file&type=module`,
-                          { type: 'module' }
-                      )
-                    : new Worker(new URL('./relevanceWorker.ts', import.meta.url), {
-                          type: 'module',
-                      })
+                new Worker(new URL('./relevanceWorker.ts', import.meta.url), {
+                    type: 'module',
+                })
             ),
             isComputingRelevance: false,
             recomputeColumnRelevance: async () => {

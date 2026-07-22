@@ -41,12 +41,11 @@ const usePluginStore = create<State>()((set) => ({
 
             if (pluginInfo.entrypoint) {
                 const moduleUrl = pluginInfo.dev
-                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      `${(globalThis as any).__vite__url__}/src/main.tsx`
+                    ? '/src/main.tsx'
                     : pluginInfo.entrypoint;
 
                 try {
-                    const { default: mod } = await import(moduleUrl /* @vite-ignore */);
+                    const { default: mod } = await import(/* @vite-ignore */ moduleUrl);
                     plugin.module = mod as unknown as PluginModule;
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } catch (e: any) {
