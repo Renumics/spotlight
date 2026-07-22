@@ -14,21 +14,19 @@
         </script>
         {% if dev %}
         <script type="module">
-            import RefreshRuntime from '{{vite_url}}/@react-refresh';
+            import RefreshRuntime from '/@react-refresh';
             RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
             window.$RefreshSig$ = () => (type) => type;
             window.__vite_plugin_react_preamble_installed__ = true;
-
-            window.__vite__url__ = '{{vite_url}}';
         </script>
-        <script type="module" src="{{vite_url}}/@vite/client"></script>
+        <script type="module" src="/@vite/client"></script>
         {% if dev_location == "core" %}
-        <script type="module" src="{{vite_url}}/src/main.tsx"></script>
+        <script type="module" src="/src/main.tsx"></script>
         {% else %}
         <script
             type="module"
-            src="{{vite_url}}/node_modules/@renumics/spotlight/src/main.tsx"
+            src="/node_modules/@renumics/spotlight/src/main.tsx"
         ></script>
         {% endif %} {% endif %}
     </head>

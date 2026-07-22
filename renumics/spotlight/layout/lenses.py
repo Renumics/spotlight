@@ -238,18 +238,27 @@ def spectrogram(
     *,
     frequency_scale: SpectrogramFrequencyScale = "linear",
     amplitude_scale: SpectrogramAmplitudeScale = "decibel",
+    channel: int = 0,
 ) -> Lens:
     """
     Add audio spectrogram viewer to Spotlight inspector widget.
 
     Supports a single column of type `spotlight.Audio` with optional second
     column of type `spotlight.Window`.
+
+    For multichannel audio, `channel` selects the (zero-based) channel to
+    visualize; it falls back to the first channel if the audio has fewer
+    channels.
     """
     return Lens(
         type="SpectrogramView",
         columns=[column] if window_column is None else [column, window_column],
         name=name,
-        settings={"freqScale": frequency_scale, "ampScale": amplitude_scale},
+        settings={
+            "freqScale": frequency_scale,
+            "ampScale": amplitude_scale,
+            "channel": channel,
+        },
     )
 
 

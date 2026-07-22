@@ -7,6 +7,11 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 export default defineConfig(({ mode }) => {
     return {
         base: './',
+        server: {
+            watch: {
+                ignored: ['**/.venv/**', '**/build/**', '**/dist/**'],
+            },
+        },
         esbuild: {
             // https://github.com/vitejs/vite/issues/8644#issuecomment-1159308803
             logOverride: { 'this-is-undefined-in-esm': 'silent' },
@@ -35,6 +40,11 @@ export default defineConfig(({ mode }) => {
                     index: 'src/lib.ts',
                     'icons/index': 'src/icons',
                 },
+                // In library mode Vite names the bundled CSS after the package
+                // ("spotlight.css"), but the served template links "style.css".
+                // Pin the name so the built stylesheet (cropper.css, tippy.css,
+                // react-toastify.css, ...) is actually loaded in production.
+                cssFileName: 'style',
             },
             rollupOptions: {
                 input: ['src/main.tsx', 'src/lib.ts'],
