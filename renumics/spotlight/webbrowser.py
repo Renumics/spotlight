@@ -14,9 +14,9 @@ def wait_for(url: str) -> None:
     """Wait until the service at url is reachable."""
     while True:
         try:
-            requests.head(url, timeout=10, verify=False)
+            requests.get(url, timeout=10, verify=False)
             break
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.RequestException:
             time.sleep(0.5)
 
 

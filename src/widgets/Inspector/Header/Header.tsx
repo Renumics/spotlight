@@ -1,3 +1,5 @@
+import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
+import type { DragEndEvent } from '@dnd-kit/react';
 import _ from 'lodash';
 import * as React from 'react';
 import {
@@ -8,21 +10,13 @@ import {
     useImperativeHandle,
     useRef,
 } from 'react';
-import { Droppable, DragDropContext } from 'react-beautiful-dnd';
-import type {
-    DraggableProvided,
-    DraggableRubric,
-    DraggableStateSnapshot,
-    DroppableProvided,
-    DropResult,
-} from 'react-beautiful-dnd';
 import { VariableSizeList } from 'react-window';
 import type { ListOnScrollProps } from 'react-window';
 import { styled } from 'twin.macro';
 import getScrollbarSize from '../../../browser';
 import { RowHeightContext } from '../rowHeightContext';
 import { State as StoreState, useStore } from '../store';
-import Row, { DroppableRowItem as RowItem } from './Row';
+import Row, { RowItem } from './Row';
 
 const SCROLL_BORDER_OFFSET = 15;
 
@@ -50,26 +44,17 @@ export type Ref = {
 };
 
 const moveViewsSelector = (state: StoreState) => state.moveLens;
+const lensesSelector = (state: StoreState) => state.lenses;
 
-const renderClone = (
-    provided: DraggableProvided,
-    _snapshot: DraggableStateSnapshot,
-    rubric: DraggableRubric
-) => (
-    <RowItem
-        style={{ margin: 0 }}
-        index={rubric.source.index}
-        provided={provided}
-        isDropped={true}
-    />
-);
 const Header: React.ForwardRefRenderFunction<Ref, Props> = (
     { height, width, itemCount, onScroll },
     ref
 ) => {
     const moveView = useStore(moveViewsSelector);
+    const lenses = useStore(lensesSelector);
     const { rowHeight } = useContext(RowHeightContext);
     const rowHeights = useRef<number[]>([]);
+    const lensKeys = lenses.map(({ key }) => key);
 
     useEffect(() => {
         rowHeights.current = Array(itemCount)
@@ -122,39 +107,48 @@ const Header: React.ForwardRefRenderFunction<Ref, Props> = (
     );
 
     const onDragEnd = useCallback(
-        (result: DropResult) => {
-            const sourceIndex = result.source.index;
-            const destinationIndex = result.destination?.index;
-            if (destinationIndex === undefined) return;
+        (event: DragEndEvent) => {
+            const { source, target } = event.operation;
+            if (event.canceled || !source || !target || source.id === target.id) return;
+
+            const sourceIndex = lensKeys.indexOf(String(source.id));
+            const destinationIndex = lensKeys.indexOf(String(target.id));
+            if (sourceIndex === -1 || destinationIndex === -1) return;
+
             moveView(sourceIndex, destinationIndex);
         },
-        [moveView]
+        [lensKeys, moveView]
     );
 
     return (
-        <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable
-                droppableId="droppableDetailsList"
-                mode="virtual"
-                renderClone={renderClone}
+        <DragDropProvider onDragEnd={onDragEnd}>
+            <StyledList
+                ref={detailsList}
+                height={height - scrollbarHeight}
+                itemCount={itemCount * 2}
+                itemSize={headerRowHeight}
+                width={width}
+                onScroll={onScroll}
             >
-                {(droppableProvided: DroppableProvided) => {
-                    return (
-                        <StyledList
-                            ref={detailsList}
-                            height={height - scrollbarHeight}
-                            itemCount={itemCount * 2}
-                            itemSize={headerRowHeight}
-                            width={width}
-                            onScroll={onScroll}
-                            outerRef={droppableProvided.innerRef}
-                        >
-                            {Row}
-                        </StyledList>
+                {Row}
+            </StyledList>
+            <DragOverlay tw="shadow pointer-events-none">
+                {(source) => {
+                    const index = lensKeys.indexOf(String(source.id));
+                    return index === -1 ? null : (
+                        <RowItem
+                            index={index}
+                            style={{
+                                height: rowHeights.current[index],
+                                margin: 0,
+                                width,
+                            }}
+                            isOverlay={true}
+                        />
                     );
                 }}
-            </Droppable>
-        </DragDropContext>
+            </DragOverlay>
+        </DragDropProvider>
     );
 };
 

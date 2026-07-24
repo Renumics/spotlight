@@ -1,9 +1,16 @@
+import { useSortable } from '@dnd-kit/react/sortable';
 import XIcon from '../../../icons/X';
 import Button from '../../../components/ui/Button';
 import Tooltip from '../../../components/ui/Tooltip';
-import { CSSProperties, FunctionComponent, useCallback, useContext } from 'react';
-import { Draggable } from 'react-beautiful-dnd';
-import type { DraggableProvided } from 'react-beautiful-dnd';
+import {
+    CSSProperties,
+    forwardRef,
+    FunctionComponent,
+    HTMLAttributes,
+    MouseEvent,
+    useCallback,
+    useContext,
+} from 'react';
 import type { ListChildComponentProps as RowProps } from 'react-window';
 import { Dataset, useDataset } from '../../../stores/dataset';
 import tw, { styled } from 'twin.macro';
@@ -11,9 +18,9 @@ import { shallow } from 'zustand/shallow';
 import { RowHeightContext } from '../rowHeightContext';
 import { State as StoreState, useStore } from '../store';
 
-const RowItemWrapper = styled.div(({ isDropped = false }: { isDropped?: boolean }) => [
+const RowItemWrapper = styled.div(({ isOverlay = false }: { isOverlay?: boolean }) => [
     tw`flex flex-col items-center border-b border-r border-gray-400 bg-gray-100`,
-    isDropped && tw`border-none shadow`,
+    isOverlay && tw`border-none shadow`,
 ]);
 
 const ViewNameWrapper = styled.div`
@@ -44,7 +51,7 @@ const RowResizer: FunctionComponent<RowProps> = ({ index, style }) => {
     const { startResize } = useContext(RowHeightContext);
 
     const onMouseDown = useCallback(
-        (event: React.MouseEvent<HTMLDivElement>) => {
+        (event: MouseEvent<HTMLDivElement>) => {
             startResize(index, event.screenY);
         },
         [index, startResize]
@@ -67,43 +74,37 @@ const Row: FunctionComponent<RowProps> = ({ index, style }) => {
         [index]
     );
     const view = useStore(viewSelector);
-    return (
-        <Draggable index={index} draggableId={view.key} key={view.key}>
-            {(provided: DraggableProvided) => (
-                <DroppableRowItem index={index} style={style} provided={provided} />
-            )}
-        </Draggable>
-    );
-};
+    const { isDragging, ref } = useSortable({
+        id: view.key,
+        index,
+    });
 
-type DroppableItemProps = {
-    index: number;
-    style: CSSProperties;
-    provided: DraggableProvided;
-    isDropped?: boolean;
-};
-
-export const DroppableRowItem: FunctionComponent<DroppableItemProps> = ({
-    provided,
-    index,
-    style,
-    isDropped,
-}) => {
     return (
-        <RowItemWrapper
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            ref={provided.innerRef}
+        <RowItem
+            ref={ref}
+            index={index}
             style={{
                 ...style,
-                ...provided.draggableProps.style,
+                opacity: isDragging ? 0 : 1,
             }}
-            isDropped={isDropped}
-        >
-            <RowItem index={index} />
-        </RowItemWrapper>
+        />
     );
 };
+
+type RowItemProps = HTMLAttributes<HTMLDivElement> & {
+    index: number;
+    style: CSSProperties;
+    isOverlay?: boolean;
+};
+
+export const RowItem = forwardRef<HTMLDivElement, RowItemProps>(
+    ({ index, style, isOverlay, ...props }, ref) => (
+        <RowItemWrapper {...props} ref={ref} style={style} isOverlay={isOverlay}>
+            <RowContent index={index} />
+        </RowItemWrapper>
+    )
+);
+RowItem.displayName = 'RowItem';
 
 type ItemProps = {
     index: number;
@@ -111,7 +112,7 @@ type ItemProps = {
 
 const removeViewSelector = (state: StoreState) => state.removeLens;
 
-const RowItem: FunctionComponent<ItemProps> = ({ index }) => {
+const RowContent: FunctionComponent<ItemProps> = ({ index }) => {
     const viewSelector = useCallback(
         (state: StoreState) => state.lenses[index],
         [index]

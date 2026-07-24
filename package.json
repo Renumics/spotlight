@@ -24,7 +24,7 @@
         "dev": "vite",
         "build:types": "tsc -p tsconfig.types.json",
         "prepare": "pnpm run build:types",
-        "build": "pnpm run build:types && tsc && vite build",
+        "build": "vite build && pnpm run build:types",
         "preview": "vite preview",
         "typecheck": "tsc --noEmit",
         "typecheck:watch": "tsc --noEmit --watch",
@@ -34,7 +34,8 @@
         "audit": "pnpm audit"
     },
     "dependencies": {
-        "@dnd-kit/core": "^6.1.0",
+        "@dnd-kit/helpers": "^0.5.0",
+        "@dnd-kit/react": "^0.5.0",
         "@floating-ui/react": "^0.19.2",
         "@react-hook/resize-observer": "^1.2.6",
         "@react-three/drei": "^9.56.25",
@@ -73,7 +74,6 @@
         "numbro": "^2.3.6",
         "prop-types": "^15.8.1",
         "react": "^18.2.0",
-        "react-beautiful-dnd": "^13.1.1",
         "react-cropper": "^2.3.3",
         "react-dom": "^18.2.0",
         "react-error-boundary": "^3.1.4",
@@ -103,7 +103,11 @@
         "zustand": "^4.3.3"
     },
     "devDependencies": {
+        "@babel/core": "^7.29.0",
+        "@babel/plugin-transform-runtime": "^7.29.0",
+        "@babel/runtime": "^7.29.0",
         "@openapitools/openapi-generator-cli": "^2.30.1",
+        "@rolldown/plugin-babel": "^0.2.3",
         "@testing-library/react": "^14.0.0",
         "@types/chroma-js": "^2.4.0",
         "@types/d3": "^7.4.0",
@@ -112,10 +116,9 @@
         "@types/file-saver": "^2.0.5",
         "@types/jest": "^29.4.0",
         "@types/lodash": "^4.14.191",
-        "@types/node": "^18.14.1",
+        "@types/node": "^20.19.0",
         "@types/node-fetch": "^2.1.0",
         "@types/react": "^18.0.27",
-        "@types/react-beautiful-dnd": "^13.1.3",
         "@types/react-dom": "^18.0.10",
         "@types/react-slider": "^1.3.1",
         "@types/react-virtualized-auto-sizer": "^1.0.1",
@@ -129,7 +132,7 @@
         "@types/wavesurfer.js": "^6.0.3",
         "@typescript-eslint/eslint-plugin": "^5.53.0",
         "@typescript-eslint/parser": "^5.53.0",
-        "@vitejs/plugin-react": "^4.0.4",
+        "@vitejs/plugin-react": "6.0.3",
         "babel-plugin-macros": "^3.1.0",
         "babel-plugin-styled-components": "^2.0.7",
         "eslint": "^8.57.0",
@@ -144,10 +147,8 @@
         "tailwindcss": "^3.3.1",
         "ts-jest": "^29.0.5",
         "twin.macro": "^3.3.0",
-        "typescript": "^5.1.6",
-        "vite": "^6.4.3",
-        "vite-plugin-dts": "^3.9.1",
-        "vite-plugin-node-polyfills": "^0.26.0"
+        "typescript": "^5.9.3",
+        "vite": "^8.1.5"
     },
     "babelMacros": {
         "twin": {
