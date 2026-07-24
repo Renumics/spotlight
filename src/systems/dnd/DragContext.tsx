@@ -1,13 +1,6 @@
-import {
-    DndContext,
-    type DragStartEvent,
-    type DragEndEvent,
-    DragOverlay,
-    useSensors,
-    useSensor,
-    PointerSensor,
-} from '@dnd-kit/core';
-import React, { useState } from 'react';
+import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
+import type { DragEndEvent } from '@dnd-kit/react';
+import React from 'react';
 import 'twin.macro';
 import OverlayFactory from './OverlayFactory';
 import { DragData, DropData } from './types';
@@ -17,40 +10,23 @@ interface Props {
 }
 
 export default function DragContext({ children }: Props): JSX.Element {
-    const [activeData, setActiveData] = useState<DragData>();
-
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 12,
-            },
-        })
-    );
-
-    const handleDragStart = (event: DragStartEvent) => {
-        const data = event.active.data.current as DragData;
-        setActiveData(data);
-    };
-
     const handleDragEnd = (event: DragEndEvent) => {
-        const data = event.active.data.current as DragData;
-        const target = event.over?.data.current as DropData;
-        if (target && target.accepts(data)) {
-            target.onDrop(data);
+        const { source, target } = event.operation;
+        if (event.canceled || !source || !target) return;
+
+        const data = source.data as DragData;
+        const dropData = target.data as DropData;
+        if (dropData.accepts(data)) {
+            dropData.onDrop(data);
         }
-        setActiveData(undefined);
     };
 
     return (
-        <DndContext
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-        >
+        <DragDropProvider onDragEnd={handleDragEnd}>
             {children}
             <DragOverlay style={{ width: 'auto' }} tw="shadow-lg touch-none">
-                {activeData ? <OverlayFactory data={activeData} /> : null}
+                {(source) => <OverlayFactory data={source.data as DragData} />}
             </DragOverlay>
-        </DndContext>
+        </DragDropProvider>
     );
 }

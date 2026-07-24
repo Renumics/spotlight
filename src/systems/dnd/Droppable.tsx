@@ -1,4 +1,4 @@
-import { useDroppable } from '@dnd-kit/core';
+import { useDragOperation, useDroppable } from '@dnd-kit/react';
 import { ReactNode, useId, useMemo } from 'react';
 import { DragData } from './types';
 import tw from 'twin.macro';
@@ -25,12 +25,14 @@ export default function Droppable<Data extends DragData>({
         accepts: accepts ?? acceptsAll,
     };
 
-    const { setNodeRef, isOver, active } = useDroppable({
+    const { ref, isDropTarget } = useDroppable({
         id,
         data: dropData,
+        accept: ({ data }) => dropData.accepts(data as DragData),
     });
 
-    const data = active?.data.current;
+    const { source } = useDragOperation();
+    const data = source?.data;
     const isActive = useMemo(
         () => (!data ? false : (accepts?.(data as Data) ?? true)),
         [accepts, data]
@@ -39,10 +41,10 @@ export default function Droppable<Data extends DragData>({
     return (
         <div
             className={className}
-            ref={setNodeRef}
+            ref={ref}
             css={[
                 isActive && tw`ring-2 ring-blue-500/25 ring-inset`,
-                isActive && isOver && tw`ring-green-500/50 ring-2`,
+                isActive && isDropTarget && tw`ring-green-500/50 ring-2`,
             ]}
         >
             {children}
