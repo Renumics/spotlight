@@ -1,5 +1,5 @@
 direnv 2.35.0
 python 3.12.13
 uv 0.11.7
-nodejs 20.14.0
+nodejs 20.20.2
 pnpm 9.4.0
