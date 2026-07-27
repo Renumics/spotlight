@@ -23,9 +23,8 @@ export interface Props {
     onLoad?: (scene: THREE.Group, attributes: MeshAttribute[]) => void;
 }
 
-// a global clock for synced animations
-const globalClock = new THREE.Clock();
-globalClock.start();
+// a global timer for synced animations
+const globalTimer = new THREE.Timer();
 
 type TypedArray =
     | Int8Array
@@ -208,6 +207,9 @@ const GltfScene = ({
     }, [showWireframe, meshes]);
 
     useFrame(() => {
+        globalTimer.update();
+        const elapsedTime = globalTimer.getElapsed();
+
         for (const mesh of meshes) {
             // update morph target influences
             if (mesh.morphTargetInfluences) {
@@ -219,10 +221,7 @@ const GltfScene = ({
                 // determine current interpolation position
                 const duration = 2.0;
                 const at =
-                    calculateMorphPosition(
-                        globalClock.getElapsedTime() / duration,
-                        morphStyle
-                    ) *
+                    calculateMorphPosition(elapsedTime / duration, morphStyle) *
                     (targetCount - 1);
 
                 // lerp between the two closest morph targets

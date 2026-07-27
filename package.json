@@ -127,7 +127,7 @@
         "@types/shallowequal": "^1.1.1",
         "@types/showdown": "^2.0.1",
         "@types/styled-components": "^5.1.26",
-        "@types/three": "^0.149.0",
+        "@types/three": "^0.184.0",
         "@types/uuid": "^9.0.1",
         "@types/wavesurfer.js": "^6.0.3",
         "@typescript-eslint/eslint-plugin": "^5.53.0",
