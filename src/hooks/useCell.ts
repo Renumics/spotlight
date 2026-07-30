@@ -68,7 +68,9 @@ function _getCell(
             const keyIter = cellCache.keys();
             const removeCount = Math.ceil(cellCacheCapacity / 10);
             for (let i = 0; i < removeCount; i++) {
-                cellCache.delete(keyIter.next().value);
+                const key = keyIter.next().value;
+                if (key === undefined) break;
+                cellCache.delete(key);
             }
         }
 

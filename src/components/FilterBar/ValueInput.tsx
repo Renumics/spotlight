@@ -28,7 +28,8 @@ const CategoricalInput = ({
 }: Props<CategoricalDataType>): JSX.Element => {
     const keys = Object.values(type?.categories || {});
     const options = type.optional ? [...keys, null] : keys;
-    const renderLabel = (val?: number) => type?.invertedCategories[val ?? NaN] ?? '';
+    const renderLabel = (val?: number | null) =>
+        type?.invertedCategories[val ?? NaN] ?? '';
 
     return (
         <div tw="min-w-[4rem]">

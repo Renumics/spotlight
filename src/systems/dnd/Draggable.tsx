@@ -1,4 +1,4 @@
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable } from '@dnd-kit/react';
 import { ReactNode, useId } from 'react';
 import { DragData } from './types';
 
@@ -9,19 +9,11 @@ interface Props {
 
 export default function Draggable({ data, children }: Props) {
     const id = useId();
-    const { attributes, listeners, setNodeRef } = useDraggable({
+    const { ref } = useDraggable({
         id,
         data,
+        type: data.kind,
     });
 
-    // remove tabIndex from attributes
-    // as it prevents the keyboard controls of our table from working correctly
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { tabIndex, ...neededAttributes } = attributes;
-
-    return (
-        <div ref={setNodeRef} {...listeners} {...neededAttributes}>
-            {children}
-        </div>
-    );
+    return <div ref={ref}>{children}</div>;
 }

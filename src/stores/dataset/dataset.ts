@@ -3,7 +3,7 @@ import { DataType, isCategorical, isScalar } from '../../datatypes';
 import { TransferFunction } from '../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useColors } from '../colors';
-import { create } from 'zustand';
+import { createWithEqualityFn } from 'zustand/traditional';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { shallow } from 'zustand/shallow';
 import {
@@ -161,7 +161,7 @@ const fetchTable = async (): Promise<{
     };
 };
 
-export const useDataset = create(
+export const useDataset = createWithEqualityFn(
     subscribeWithSelector<Dataset>((set, get) => {
         return {
             loading: false,

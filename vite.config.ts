@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import dts from 'vite-plugin-dts';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import babel from '@rolldown/plugin-babel';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -12,21 +11,11 @@ export default defineConfig(({ mode }) => {
                 ignored: ['**/.venv/**', '**/build/**', '**/dist/**'],
             },
         },
-        esbuild: {
-            // https://github.com/vitejs/vite/issues/8644#issuecomment-1159308803
-            logOverride: { 'this-is-undefined-in-esm': 'silent' },
-        },
         plugins: [
-            react({
-                babel: {
-                    plugins: ['babel-plugin-macros', 'babel-plugin-styled-components'],
-                    compact: false,
-                },
-            }),
-            nodePolyfills(),
-            dts({
-                insertTypesEntry: true,
-                copyDtsFiles: true,
+            react(),
+            babel({
+                plugins: ['babel-plugin-macros', 'babel-plugin-styled-components'],
+                compact: false,
             }),
         ],
         build: {
@@ -45,8 +34,9 @@ export default defineConfig(({ mode }) => {
                 // Pin the name so the built stylesheet (cropper.css, tippy.css,
                 // react-toastify.css, ...) is actually loaded in production.
                 cssFileName: 'style',
+                formats: ['es'],
             },
-            rollupOptions: {
+            rolldownOptions: {
                 input: ['src/main.tsx', 'src/lib.ts'],
                 output: {
                     name: 'Spotlight',

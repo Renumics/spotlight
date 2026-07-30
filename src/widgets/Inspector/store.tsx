@@ -1,3 +1,4 @@
+import { arrayMove } from '@dnd-kit/helpers';
 import _ from 'lodash';
 import {
     Dispatch,
@@ -49,14 +50,7 @@ const createInspectorStore = (
             });
         },
         moveLens: (source: number, target: number) => {
-            const newLenses = get().lenses.slice();
-
-            const draggedView = newLenses[source];
-            newLenses.splice(source, 1);
-
-            newLenses.splice(target, 0, draggedView);
-
-            set({ lenses: newLenses });
+            set({ lenses: arrayMove(get().lenses, source, target) });
         },
         changeLens: (key, lens) => {
             set((prev) => {
