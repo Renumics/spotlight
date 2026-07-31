@@ -6,6 +6,7 @@ import Plot, {
     ZoomHandle,
 } from '../../components/shared/Plot';
 import Brush from '../../components/shared/Plot/Brush';
+import Lasso from '../../components/shared/Plot/Lasso';
 import Legend from '../../components/shared/Plot/Legend';
 import Tooltip from '../../components/shared/Plot/Tooltip';
 import XAxis from '../../components/shared/Plot/XAxis';
@@ -15,6 +16,7 @@ import { DataType } from '../../datatypes';
 import { createConstantTransferFunction } from '../../hooks/useColorTransferFunction';
 import _ from 'lodash';
 import { useCallback, useMemo, useRef } from 'react';
+import { useAppSettings } from '../../stores/appSettings';
 import { Dataset, useDataset } from '../../stores/dataset';
 import tw, { styled } from 'twin.macro';
 import {
@@ -106,6 +108,8 @@ const ScatterplotView: Widget = () => {
     const [colorByKey, setColorByKey] = useWidgetConfig<string>('colorBy', '');
     const [sizeByKey, setSizeByKey] = useWidgetConfig<string>('sizeBy', '');
     const [filter, setFilter] = useWidgetConfig<boolean>('filter', false);
+    // the selection tool is a global setting, see the app bar
+    const selectionMode = useAppSettings((s) => s.selectionMode);
 
     const columnStatsAll = useDataset(columnStatsSelector);
 
@@ -377,7 +381,11 @@ const ScatterplotView: Widget = () => {
                             onClick={handleClick}
                         />
                         <Tooltip content={getTooltip} />
-                        <Brush hidden={hidden} onSelect={handleSelect} />
+                        {selectionMode === 'lasso' ? (
+                            <Lasso hidden={hidden} onSelect={handleSelect} />
+                        ) : (
+                            <Brush hidden={hidden} onSelect={handleSelect} />
+                        )}
                         <XAxis caption={xAxisColumnKey} />
                         <YAxis caption={yAxisColumnKey} />
                     </Plot>
