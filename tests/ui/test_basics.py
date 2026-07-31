@@ -104,6 +104,11 @@ def test_tagged_elements_available(
                 DataTestTags.GLOBAL_LOADING_INDICATOR,
                 DataTestTags.MESHVIEW_SETTINGS_DROPDOWN,
                 DataTestTags.SEQUENCEVIEW_SETTINGS_DROPDOWN,
+                # these are rendered only while the selection tool menu in the
+                # app bar is open, and clicking them would change the global
+                # selection mode for all following tests
+                DataTestTags.SELECTION_MODE_RECTANGULAR,
+                DataTestTags.SELECTION_MODE_LASSO,
             ]:
                 element = wait_for_tagged_element(webdriver, tag, 1)
                 if "dropdown" in tag or "button" in tag:
