@@ -19,3 +19,9 @@ Simply select `x-Axis` and `y-Axis` from the dropdowns in settings. The points w
 </video>
 
 _fsd50k_ - place datapoints on the **similarity map** based on a column
+
+## Selection
+
+Selection works exactly as it does for the
+[similarity map](similarity_map.md#selection), including the rectangular and lasso
+tools offered by the `Selection Tool` menu in the top bar.

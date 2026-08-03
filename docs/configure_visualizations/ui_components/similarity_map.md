@@ -56,7 +56,17 @@ In order to select a single point simply click on it. This will reset any select
 To add a point to a selection click on it while pressing `shift` and to remove it press `ctrl` while clicking on it.
 
 These steps also apply for multiple points. By pressing the left mouse button and moving the mouse,
-a selection rectangle will be shown. On releasing the left mouse button, the selection will be applied in the same fashion as it is done for a single point.
+a selection shape will be shown. On releasing the left mouse button, the selection will be applied in the same fashion as it is done for a single point.
+
+Two selection tools are available and can be switched at any time through the
+`Selection Tool` menu in the top bar:
+
+- **Rectangular selection** (default): drag with the left mouse button to select every point inside the resulting rectangle.
+- **Lasso selection**: drag with the left mouse button to draw a freehand outline. Every point enclosed by the outline is selected once the mouse button is released. This is useful for irregularly shaped clusters that a rectangle cannot isolate.
+
+The `shift` and `ctrl` modifiers behave identically for both tools. The selected tool
+is a global setting: it applies to the similarity map and the
+[scatter plot](scatter_plot.md) alike and is remembered across sessions.
 
 <video controls muted loop playsinline preload="metadata" poster="../../../assets/data/docs/ui-components/similarity-map/selection-720.jpg">
   <source src="../../../assets/data/docs/ui-components/similarity-map/selection-720.webm" type="video/webm" />

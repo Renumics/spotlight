@@ -6,6 +6,7 @@ import Plot, {
     ZoomHandle,
 } from '../../components/shared/Plot';
 import Brush from '../../components/shared/Plot/Brush';
+import Lasso from '../../components/shared/Plot/Lasso';
 import Legend from '../../components/shared/Plot/Legend';
 import Tooltip from '../../components/shared/Plot/Tooltip';
 import { createConstantTransferFunction } from '../../hooks/useColorTransferFunction';
@@ -13,6 +14,7 @@ import _ from 'lodash';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dataService, { PCANormalization, UmapMetric } from '../../services/data';
 import shallowequal from 'shallowequal';
+import { useAppSettings } from '../../stores/appSettings';
 import { Dataset, useDataset } from '../../stores/dataset';
 import tw, { styled } from 'twin.macro';
 import {
@@ -87,6 +89,8 @@ const SimilarityMap: Widget = () => {
         useWidgetConfig<string[]>('placeBy');
 
     const [filter, setFilter] = useWidgetConfig('filter', false);
+    // the selection tool is a global setting, see the app bar
+    const selectionMode = useAppSettings((s) => s.selectionMode);
     const [storedColorByKey, setStoredColorByKey] = useWidgetConfig<string>('colorBy');
     const [sizeByKey, setSizeByKey] = useWidgetConfig<string>('sizeBy');
     const [reductionMethod, setReductionMethod] = useWidgetConfig<
@@ -519,7 +523,11 @@ const SimilarityMap: Widget = () => {
                             onClick={handleClick}
                         />
                         <Tooltip content={getTooltip} />
-                        <Brush hidden={hidden} onSelect={handleSelect} />
+                        {selectionMode === 'lasso' ? (
+                            <Lasso hidden={hidden} onSelect={handleSelect} />
+                        ) : (
+                            <Brush hidden={hidden} onSelect={handleSelect} />
+                        )}
                     </Plot>
                     {colorByKey && (
                         <Legend

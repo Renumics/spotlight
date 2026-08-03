@@ -5,7 +5,11 @@ import HelpIcon from '../icons/Help';
 import OpenFolderIcon from '../icons/OpenFolder';
 import ColorPaletteIcon from '../icons/ColorPalette';
 import NumberIcon from '../icons/Number';
+import SelectionIcon from '../icons/Selection';
+import LassoIcon from '../icons/Lasso';
+import RectangularSelectionIcon from '../icons/RectangularSelection';
 import Button from './ui/Button';
+import ToggleButton from './ui/ToggleButton';
 import Dialog from './ui/Dialog';
 import Dropdown, { DropdownContext } from './ui/Dropdown';
 import Tooltip from './ui/Tooltip';
@@ -24,6 +28,7 @@ import ColorPaletteSelect from './ui/ColorPaletteSelect';
 import { categoricalPalettes, continuousPalettes } from '../palettes';
 import Select from './ui/Select';
 import { Notation, notations, useAppSettings } from '../stores/appSettings';
+import { SelectionMode } from './shared/Plot';
 
 const NavBar = tw.nav`py-0.5 px-1 bg-gray-200 flex items-center w-full top-0 z-10 border-b border-gray-400`;
 
@@ -193,6 +198,65 @@ const ColorMenu = () => {
     );
 };
 
+const SelectionMenuContent = (): JSX.Element => {
+    const selectionMode = useAppSettings((s) => s.selectionMode);
+    const setSelectionMode = useAppSettings((s) => s.setSelectionMode);
+    const dropdown = useContext(DropdownContext);
+
+    // close the menu after picking a tool, otherwise it keeps covering the plot
+    const selectMode = useCallback(
+        (mode: SelectionMode) => {
+            setSelectionMode(mode);
+            dropdown.hide();
+        },
+        [setSelectionMode, dropdown]
+    );
+
+    return (
+        <Menu tw="w-44">
+            <Menu.Title>Selection Tool</Menu.Title>
+            <Menu.Item>
+                <ToggleButton
+                    tw="w-full"
+                    data-test-tag="selection-mode-rectangular"
+                    checked={selectionMode === 'rectangular'}
+                    onChange={() => selectMode('rectangular')}
+                >
+                    <div tw="flex flex-row font-normal w-full items-center content-center">
+                        <RectangularSelectionIcon />
+                        <span tw="ml-1 text-sm">Rectangular</span>
+                    </div>
+                </ToggleButton>
+            </Menu.Item>
+            <Menu.Item>
+                <ToggleButton
+                    tw="w-full"
+                    data-test-tag="selection-mode-lasso"
+                    checked={selectionMode === 'lasso'}
+                    onChange={() => selectMode('lasso')}
+                >
+                    <div tw="flex flex-row font-normal w-full items-center content-center">
+                        <LassoIcon />
+                        <span tw="ml-1 text-sm">Lasso</span>
+                    </div>
+                </ToggleButton>
+            </Menu.Item>
+        </Menu>
+    );
+};
+
+const SelectionMenu = () => {
+    const content = <SelectionMenuContent />;
+
+    return (
+        <div data-test-tag="selection-mode-dropdown">
+            <Dropdown content={content} tooltip="Selection Tool">
+                <SelectionIcon />
+            </Dropdown>
+        </div>
+    );
+};
+
 const NumberMenu = () => {
     const notation = useAppSettings((s) => s.numberNotation);
     const onChangeNotation = (value?: Notation) => {
@@ -250,6 +314,7 @@ const AppBar = (): JSX.Element => {
             </Tooltip>
             <FileBar tw="flex-grow" />
             <div tw="flex items-center">
+                <SelectionMenu />
                 <ColorMenu />
                 <NumberMenu />
                 <HelpMenu />

@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import PlotContext from './PlotContext';
 import { MergeStrategy, Point2d } from './types';
 
@@ -20,15 +20,39 @@ function findOrCreateGroup(svgElement: SVGSVGElement) {
 const Brush = ({ hidden, onSelect }: Props): JSX.Element => {
     const { svgRef, transformRef, xScale, yScale, points } = useContext(PlotContext);
 
+    // The behaviour is created once so that the group it is attached to survives
+    // changes of the data or the scales. Recreating the group would move it to
+    // the end of the svg and thereby change the hit testing order against the
+    // axes, which are appended after it.
+    const [brush] = useState(() =>
+        d3
+            .brush()
+            .filter(({ button, altKey }) => button === 0 && !altKey)
+            .keyModifiers(false)
+    );
+
+    useEffect(() => {
+        const svgElement = svgRef.current;
+        if (!svgElement) return;
+
+        const brushGroup = findOrCreateGroup(svgElement);
+        brushGroup.call(brush);
+
+        return () => {
+            // Detach the handlers before dropping the group. The listeners of a
+            // gesture that is still in flight live on the window and cannot be
+            // removed from here, so clearing the dispatch is what stops a stale
+            // onSelect from firing after the component has unmounted.
+            brush.on('start brush end', null);
+            brushGroup.on('.brush', null);
+            brushGroup.remove();
+        };
+    }, [svgRef, brush]);
+
     useEffect(() => {
         const svgElement = svgRef.current;
         if (!svgElement) return;
         if (!transformRef.current) return;
-
-        const brush = d3
-            .brush()
-            .filter(({ button, altKey }) => button === 0 && !altKey)
-            .keyModifiers(false);
 
         const brushGroup = findOrCreateGroup(svgElement);
 
@@ -86,8 +110,7 @@ const Brush = ({ hidden, onSelect }: Props): JSX.Element => {
         };
 
         brush.on('end', handleBrush);
-        brushGroup.call(brush);
-    }, [svgRef, transformRef, xScale, yScale, points, hidden, onSelect]);
+    }, [brush, svgRef, transformRef, xScale, yScale, points, hidden, onSelect]);
 
     return <></>;
 };
