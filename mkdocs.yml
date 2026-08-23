@@ -95,7 +95,9 @@ nav:
           - Image Classification: use_cases/computer_vision/image_classification.md
           - Fine-tune a ViT: use_cases/computer_vision/image_fine-tune.md
       - 📖 NLP: use_cases/NLP/text_classification.md
-      - 🖼️ 📈 Multimodal: use_cases/Multimodal/motorsports_telemetry.md
+      - 🖼️ 📈 Multimodal:
+          - Motorsports telemetry: use_cases/Multimodal/motorsports_telemetry.md
+          - Physical-AI episode review with HFlow: use_cases/Multimodal/hflow_robotics_review.md
   - Data-centric AI:
       - Glossary: data-centric_ai/glossary/index.md
       - Playbook:
