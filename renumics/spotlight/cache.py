@@ -54,6 +54,7 @@ class Cache:
 
 
 external_data_cache = Cache("external-data")
+reduction_cache = Cache("reduction")
 
 
 def clear(name: str) -> None:
