@@ -5,7 +5,8 @@ import useCellValue from '../hooks/useCellValue';
 import CategoricalCell from './CategoricalCell';
 import DefaultCell from './DefaultCell';
 import NumberCell from './NumberCell';
-import { CellDragData, Draggable } from '../../../systems/dnd';
+import type { CellDragData } from '../../../systems/dnd';
+import DraggableCell from './DraggableCell';
 import useSort from '../hooks/useSort';
 
 interface Props {
@@ -36,9 +37,9 @@ const CellFactory: FunctionComponent<Props> = ({ columnIndex, rowIndex }) => {
     };
 
     return (
-        <Draggable data={dragData}>
+        <DraggableCell data={dragData}>
             <CellComponent column={column} value={value} />
-        </Draggable>
+        </DraggableCell>
     );
 };
 
