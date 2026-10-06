@@ -22,6 +22,7 @@ import { notifyAPIError, notifyError } from '../../notify';
 import { makeColumnsColorTransferFunctions } from './colorTransferFunctionFactory';
 import { makeColumn } from './columnFactory';
 import { makeColumnsStats } from './statisticsFactory';
+import { uniqueIndices } from './uniqueIndices';
 import websocketService from '../../services/websocket';
 
 export type CallbackOrData<T> = ((data: T) => T) | T;
@@ -374,7 +375,10 @@ export const useDataset = createWithEqualityFn(
                 });
             },
             selectRows: (rowIndices) => {
-                const selectedIndices = Int32Array.from(
+                // a row is selected once, also if the new selection names it twice, as
+                // adding the rows from the last selected one to a clicked one does
+                // where the rows in between hold a selected row
+                const selectedIndices = uniqueIndices(
                     typeof rowIndices === 'function'
                         ? rowIndices(get().selectedIndices)
                         : rowIndices
