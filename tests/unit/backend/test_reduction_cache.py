@@ -139,6 +139,24 @@ def test_other_data_is_computed_again(
     assert len(FakeUMAP.fits) == 3  # two columns are shown as they are, not by UMAP
 
 
+def test_data_of_another_type_is_computed_again(
+    monkeypatch: pytest.MonkeyPatch, data: np.ndarray
+) -> None:
+    """
+    Test data is hashed as it is (embeddings of 32 bits are not copied to 64 bits for the
+    key): the same data of 32 bits is found again, and is not the data of 64 bits.
+    """
+    data32 = data.astype(np.float32)
+    use_data(monkeypatch, data32, INDICES)
+    compute()
+    compute()
+    assert len(FakeUMAP.fits) == 1
+
+    use_data(monkeypatch, data32.astype(np.float64), INDICES)
+    compute()
+    assert len(FakeUMAP.fits) == 2
+
+
 def test_scaled_metrics_use_the_scaled_data(
     monkeypatch: pytest.MonkeyPatch, data: np.ndarray
 ) -> None:

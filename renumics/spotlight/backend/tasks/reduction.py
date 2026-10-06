@@ -104,9 +104,11 @@ def _umap_cache_key(
         "min_dist": min_dist,
         "seed": SEED,
         "shape": list(data.shape),
+        "dtype": data.dtype.str,
     }
     hasher.update(json.dumps(parameters, sort_keys=True).encode())
-    hasher.update(np.ascontiguousarray(data, dtype=np.float64).tobytes())
+    # the bytes of the data as they are, without a copy: embeddings can be large
+    hasher.update(np.ascontiguousarray(data))
     hasher.update(np.asarray(indices, dtype=np.int64).tobytes())
     return hasher.hexdigest()
 
