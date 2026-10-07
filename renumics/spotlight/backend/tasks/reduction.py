@@ -2,15 +2,23 @@
 Taks for dimensionality reduction
 """
 
+import hashlib
+import json
+from importlib import metadata
 from typing import List, Tuple, cast
 
 import numpy as np
 import pandas as pd
 
 from renumics.spotlight import dtypes
+from renumics.spotlight.cache import reduction_cache
 from renumics.spotlight.data_store import DataStore
 
 SEED = 42
+
+#: Version of the cache entries of `compute_umap`. Increase it when the result for
+#: the same input changes without a change of the input or of the UMAP version.
+_UMAP_CACHE_VERSION = 1
 
 
 class ColumnNotEmbeddable(Exception):
@@ -68,6 +76,43 @@ def align_data(
     return data[mask], (np.array(indices)[mask]).tolist()
 
 
+def _umap_version() -> str:
+    try:
+        return metadata.version("umap-learn")
+    except metadata.PackageNotFoundError:
+        return "unknown"
+
+
+def _umap_cache_key(
+    data: np.ndarray,
+    indices: List[int],
+    n_neighbors: int,
+    metric: str,
+    min_dist: float,
+) -> str:
+    """
+    Hash the input of UMAP (scaled data, the table rows they are from and all
+    parameters) to a cache key. Equal input gives the same embeddings, because
+    the seed is fixed.
+    """
+    hasher = hashlib.sha256()
+    parameters = {
+        "cache_version": _UMAP_CACHE_VERSION,
+        "umap_version": _umap_version(),
+        "n_neighbors": n_neighbors,
+        "metric": metric,
+        "min_dist": min_dist,
+        "seed": SEED,
+        "shape": list(data.shape),
+        "dtype": data.dtype.str,
+    }
+    hasher.update(json.dumps(parameters, sort_keys=True).encode())
+    # the bytes of the data as they are, without a copy: embeddings can be large
+    hasher.update(np.ascontiguousarray(data))
+    hasher.update(np.asarray(indices, dtype=np.int64).tobytes())
+    return hasher.hexdigest()
+
+
 def compute_umap(
     data_store: DataStore,
     column_names: List[str],
@@ -96,11 +141,20 @@ def compute_umap(
     if data.shape[1] == 2:
         return data, indices
 
+    # UMAP takes minutes on large tables and the page asks for it on every load, so
+    # remember the result. It is stored on disk, to survive restarts of the app.
+    cache_key = _umap_cache_key(data, indices, n_neighbors, metric, min_dist)
+    try:
+        return cast(Tuple[np.ndarray, List[int]], reduction_cache[cache_key])
+    except KeyError:
+        pass
+
     import umap
 
     embeddings = umap.UMAP(
         n_neighbors=n_neighbors, metric=metric, min_dist=min_dist, random_state=SEED
     ).fit_transform(data)
+    reduction_cache[cache_key] = (embeddings, indices)
     return cast(np.ndarray, embeddings), indices
 
 
