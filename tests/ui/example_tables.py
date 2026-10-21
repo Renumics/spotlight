@@ -42,7 +42,6 @@ def write_selection_example_table(path: Union[str, Path], row_count: int = 40) -
     an id, an integer, a float, a category, a text and a video column.
     """
     path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     texts = selection_example_texts(row_count)
     with Dataset(path, "w") as dataset:
         dataset.append_string_column("id")

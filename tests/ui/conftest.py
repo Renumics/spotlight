@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Generator
 
@@ -184,11 +185,22 @@ def loaded_image_example_dataset(pytestconfig: pytest.Config) -> None:
 
 
 @pytest.fixture(scope="session")
-def selection_example_table_path(pytestconfig: pytest.Config) -> Path:
-    """write a small table of made-up data (with videos) once for all tests"""
-    return write_selection_example_table(
-        Path(pytestconfig.getoption("testDataPath")) / "selection_example.h5"
-    )
+def selection_example_table_path(
+    pytestconfig: pytest.Config,
+) -> Generator[Path, None, None]:
+    """
+    write a small table of made-up data (with videos) once for all tests into a
+    temporary folder, which is removed after the tests
+
+    The folder is created inside the test data folder, since the backend only opens
+    tables inside its project root.
+    """
+    data_folder = Path(pytestconfig.getoption("testDataPath"))
+    data_folder.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        dir=data_folder, ignore_cleanup_errors=True
+    ) as temp_folder:
+        yield write_selection_example_table(Path(temp_folder) / "selection_example.h5")
 
 
 @pytest.fixture()
