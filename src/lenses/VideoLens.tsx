@@ -1,10 +1,21 @@
 import React, { ComponentProps, useRef, useState } from 'react';
 import { BsPauseCircle, BsPlayCircle, BsStopCircle } from 'react-icons/bs';
-import ReactPlayer from 'react-player';
+import ReactPlayerModule from 'react-player';
 import tw, { styled, theme } from 'twin.macro';
 import BaseButton from '../components/ui/Button';
 import ToggleButton from '../components/ui/ToggleButton';
 import { Lens, LensProps } from '../types';
+
+// react-player is a CommonJS module that sets `exports.default`. Because our
+// package.json has `"type": "module"`, the production bundler imports CommonJS
+// modules the way Node does: the default import is the whole `module.exports`
+// object, not its `default` property. Rendering that object as a component
+// fails with React error #130 and the video never plays. The dev server and
+// the type checker see the player class itself, so accept both shapes.
+type ReactPlayerClass = typeof ReactPlayerModule;
+const ReactPlayer: ReactPlayerClass =
+    (ReactPlayerModule as unknown as { default?: ReactPlayerClass }).default ??
+    ReactPlayerModule;
 
 type ProgressCallback = ComponentProps<typeof ReactPlayer>['onProgress'];
 
@@ -24,7 +35,7 @@ const Note = styled.p`
 // player from playing, hence this interface.
 // See https://github.com/cookpete/react-player/issues/1085
 // for an explanation.
-interface VideoPlayer extends ReactPlayer {
+interface VideoPlayer extends InstanceType<ReactPlayerClass> {
     pause: () => void;
     player: VideoPlayer;
 }
