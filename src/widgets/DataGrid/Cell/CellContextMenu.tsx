@@ -18,6 +18,7 @@ import 'twin.macro';
 import { DataColumn, IndexArray, PredicateFilter } from '../../../types';
 import { useColumn, useVisibleColumns } from '../context/columnContext';
 import useCellValue from '../hooks/useCellValue';
+import useSort from '../hooks/useSort';
 import NeedsUpgradeButton from '../../../components/ui/NeedsUpgradeButton';
 import { notify } from '../../../notify';
 import api from '../../../api';
@@ -55,6 +56,7 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
 
     const [, , hideColumn] = useVisibleColumns();
     const value = useCellValue(column.key, rowIndex);
+    const { getOriginalIndex } = useSort();
 
     const addFilter = useDataset((d) => d.addFilter);
     const { hide: hideContextMenu } = useContextMenu();
@@ -91,9 +93,11 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
     const onClickCopyCellValue = useCallback(async () => {
         let textToCopy: string;
         if (column.type.kind === 'str') {
+            // the row of the view is not the row of the dataset when the view is
+            // sorted, filtered or shows the selected rows only
             textToCopy = await api.table.getCell({
                 column: column.key,
-                row: rowIndex,
+                row: getOriginalIndex(rowIndex),
                 generationId: useDataset.getState().generationID,
             });
         } else {
@@ -108,7 +112,7 @@ const CellContextMenu: FunctionComponent<Props> = ({ columnIndex, rowIndex }) =>
             .then(() => notify('Cell Value Copied to Clipboard'))
             .catch((error) => console.error(error));
         hideContextMenu();
-    }, [column?.key, column?.type, rowIndex, value, hideContextMenu]);
+    }, [column?.key, column?.type, rowIndex, getOriginalIndex, value, hideContextMenu]);
 
     if (!column) return <></>;
 
