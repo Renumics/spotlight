@@ -11,6 +11,7 @@ from selenium import webdriver as wd
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from .example_tables import write_selection_example_table
 from .generate_ui_test_elements import generate_ui_test_elements_py
 
 
@@ -178,6 +179,26 @@ def loaded_image_example_dataset(pytestconfig: pytest.Config) -> None:
     requests.post(
         pytestconfig.getoption("frontendBaseUrl")
         + "/api/table/open/build/datasets/tallymarks_dataset_small.h5",
+        timeout=5,
+    )
+
+
+@pytest.fixture(scope="session")
+def selection_example_table_path(pytestconfig: pytest.Config) -> Path:
+    """write a small table of made-up data (with videos) once for all tests"""
+    return write_selection_example_table(
+        Path(pytestconfig.getoption("testDataPath")) / "selection_example.h5"
+    )
+
+
+@pytest.fixture()
+def loaded_selection_example_dataset(
+    pytestconfig: pytest.Config, selection_example_table_path: Path
+) -> None:
+    """replace the loaded dataset with the small table of made-up data"""
+    path = selection_example_table_path
+    requests.post(
+        pytestconfig.getoption("frontendBaseUrl") + f"/api/table/open/{path}",
         timeout=5,
     )
 
