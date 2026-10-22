@@ -22,7 +22,7 @@ def get_listed_ids(driver: WebDriver) -> List[str]:
     cells = driver.find_elements(
         by=By.CSS_SELECTOR, value=f"div[data-columnindex='{id_column}']"
     )
-    rows = [(int(cell.get_attribute("data-rowindex")), cell.text) for cell in cells]
+    rows = [(int(cell.get_dom_attribute("data-rowindex")), cell.text) for cell in cells]
     return [text for row, text in sorted(rows) if row >= 0]
 
 

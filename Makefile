@@ -125,11 +125,14 @@ ui-test: ui-test-chrome ui-test-firefox
 ui-test-%:
 	export SPOTLIGHT_DEV=False
 	function teardown {
-		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
+		# stop the server and wait for it to exit
+		kill -INT $${SERVER_PID:-} 2>/dev/null || true
+		wait $${SERVER_PID:-} 2>/dev/null || true
 	}
 	trap teardown EXIT
 	PORT="5005"
 	uv run spotlight --host 127.0.0.1 --port $$PORT --no-browser  --folder . &
+	SERVER_PID=$$!
 	export BACKEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	export FRONTEND_BASE_URL="http://127.0.0.1:$${PORT}"
 	wget -q -t20 -w0.5 --retry-connrefused --delete-after "$$BACKEND_BASE_URL"
@@ -140,11 +143,14 @@ ui-test-%:
 test-spotlight-start: ## Test Spotlight start (Spotlight should be installed)
 	export SPOTLIGHT_DEV=False
 	function teardown {
-		while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
+		# stop the server and wait for it to exit
+		kill -INT $${SERVER_PID:-} 2>/dev/null || true
+		wait $${SERVER_PID:-} 2>/dev/null || true
 	}
 	trap teardown EXIT
 	PORT="5005"
 	spotlight --host 127.0.0.1 --port $$PORT --no-browser data/tables/tallymarks-small.h5 &
+	SERVER_PID=$$!
 	URL="http://127.0.0.1:$${PORT}"
 	wget -q -t20 -w0.5 --retry-connrefused --delete-after $$URL
 	sleep 0.5
