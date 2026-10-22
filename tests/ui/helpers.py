@@ -11,6 +11,7 @@ from selenium.common.exceptions import (
     NoSuchElementException,
     StaleElementReferenceException,
 )
+from selenium.webdriver.chromium.webdriver import ChromiumDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -50,9 +51,10 @@ def screenshot_exception(webdriver: WebDriver) -> Iterator[None]:
         print(e)
         print("=== browser logs ===")
         try:
-            log = list(webdriver.get_log("browser"))
-            for entry in log:
-                print(entry)
+            # only Chromium-based drivers provide the browser logs
+            if isinstance(webdriver, ChromiumDriver):
+                for entry in webdriver.get_log("browser"):
+                    print(entry)
         except:  # noqa: E722
             pass
         print("=========================================")
@@ -157,7 +159,7 @@ def get_column_index(webdriver: WebDriver, name: str) -> int:
         by=By.CSS_SELECTOR, value="div[data-rowindex='-1']"
     ):
         if header.text.strip() == name:
-            return int(header.get_attribute("data-columnindex"))
+            return int(header.get_dom_attribute("data-columnindex"))
     raise ElementNotAvailable(f"Could not find the column '{name}'")
 
 
@@ -167,7 +169,7 @@ def get_visible_column_names(webdriver: WebDriver) -> List[str]:
     headers = webdriver.find_elements(
         by=By.CSS_SELECTOR, value="div[data-rowindex='-1']"
     )
-    headers.sort(key=lambda header: int(header.get_attribute("data-columnindex")))
+    headers.sort(key=lambda header: int(header.get_dom_attribute("data-columnindex")))
     return [header.text.strip() for header in headers]
 
 
