@@ -25,15 +25,23 @@
           stdenv.cc.cc.lib
           ffmpeg-headless
           zlib
+          chromium
+          chromedriver
+          firefox
+          geckodriver
         ];
         shellHook = ''
           unset SOURCE_DATE_EPOCH
 
           export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
-            pkgs.stdenv.cc.cc.lib pkgs.zlib
+            pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ffmpeg-headless
           ]}:$LD_LIBRARY_PATH
 
           export PIP_IGNORE_INSTALLED=1
+
+          # browsers matching the webdrivers above, used by the UI tests
+          export CHROME_BIN=${pkgs.chromium}/bin/chromium
+          export FIREFOX_BIN=${pkgs.firefox}/bin/firefox
 
           if [[ -d "./.venv" ]]; then
             VIRTUAL_ENV="$(pwd)/.venv"
