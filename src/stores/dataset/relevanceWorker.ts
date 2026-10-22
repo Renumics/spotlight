@@ -1,11 +1,13 @@
 import * as Comlink from 'comlink';
 import * as d3 from 'd3';
+// Import from the module that has the types, not from the index of all types:
+// that pulls the whole app into the worker, and the worker fails on start
 import {
     DataColumn,
     isCategoricalColumn,
     isNumberColumn,
     TableData,
-} from '../../types';
+} from '../../types/dataset';
 import distances from '../../math/distances';
 
 const worker = {
