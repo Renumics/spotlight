@@ -256,8 +256,8 @@ jobs:
                   path: build/dist
             - name: Check wheel contents
               run: make check-wheel
-    unit-test:
-        name: '🧪 Unit Test'
+    test-unit:
+        name: '🧪 Test Unit'
         needs:
             - prepare-python
             - prepare-node
@@ -272,9 +272,9 @@ jobs:
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute unit tests
-              run: make unit-test
-    doc-test:
-        name: '🧪 Doc Test'
+              run: make test-unit
+    test-docs:
+        name: '🧪 Test Docs'
         needs:
             - prepare-python
             - prepare-node
@@ -289,9 +289,9 @@ jobs:
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute doc tests
-              run: make doc-test
-    ui-test:
-        name: '🧪 UI Test'
+              run: make test-docs
+    test-ui:
+        name: '🧪 Test UI'
         needs:
             - prepare-python
             - build-frontend
@@ -342,7 +342,7 @@ jobs:
                   cd build/ui_tests/old-screenshots
                   curl -fLO ${AZURE_FOLDER_URL}/${COMMIT_SHA}/screenshots/gui-${{ matrix.browser }}.png
             - name: '🍱 Test UI on ${{ matrix.browser }}'
-              run: make ui-test-${{ matrix.browser }}
+              run: make test-ui-${{ matrix.browser }}
             - name: Prepare GUI screenshots
               if: |
                   success()
@@ -387,8 +387,8 @@ jobs:
                   name: .ui-test-${{ matrix.browser }}-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
                   if-no-files-found: error
-    integration-test:
-        name: '🧪 Integration Test'
+    test-integration:
+        name: '🧪 Test Integration'
         needs:
             - prepare-python
             - build-test-matrix
@@ -424,8 +424,8 @@ jobs:
               run: uv run pytest --durations=5 tests/integration
               env:
                   SPOTLIGHT_DEV: 'False'
-    installation-test:
-        name: '📦 Installation Test'
+    test-installation:
+        name: '📦 Test Installation'
         needs:
             - prepare-python
             - build-test-matrix
@@ -486,11 +486,11 @@ jobs:
             - build-frontend
             - build-wheel
             - check-wheel-contents
-            - doc-test
-            - unit-test
-            - integration-test
-            - installation-test
-            - ui-test
+            - test-docs
+            - test-unit
+            - test-integration
+            - test-installation
+            - test-ui
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code

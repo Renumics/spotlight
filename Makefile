@@ -91,38 +91,38 @@ check-wheel: ## Check wheel content
 
 .PHONY: test
 test: ## Execute all tests (unit/doc/integration/ui)
-test: unit-test doc-test integration-test ui-test
+test: test-unit test-docs test-integration test-ui
 
-.PHONY: unit-test
-unit-test: ## Execute unit tests
+.PHONY: test-unit
+test-unit: ## Execute unit tests
 	export SPOTLIGHT_DEV=False
 	uv run pytest --durations=5 tests/unit
 	pnpm run test
 
-.PHONY: doc-test
-doc-test: ## Execute doc tests
+.PHONY: test-docs
+test-docs: ## Execute doc tests
 	export SPOTLIGHT_DEV=False
 	uv run pytest --durations=5 --doctest-modules --pyargs renumics
 
-.PHONY: integration-test
-integration-test: ## Execute integration-tests
+.PHONY: test-integration
+test-integration: ## Execute integration tests
 	export SPOTLIGHT_DEV=False
 	uv run pytest --durations=5 tests/integration
 
-.PHONY: ui-test
-ui-test: ## Execute ui tests
-ui-test: ui-test-chrome ui-test-firefox
+.PHONY: test-ui
+test-ui: ## Execute ui tests
+test-ui: test-ui-chrome test-ui-firefox
 
-.PHONY: .ui-test-chrome
-.ui-test-chrome:
+.PHONY: .test-ui-chrome
+.test-ui-chrome:
 	uv run pytest --durations=5 -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} tests/ui
 
-.PHONY: .ui-test-firefox
-.ui-test-firefox:
+.PHONY: .test-ui-firefox
+.test-ui-firefox:
 	uv run pytest --durations=5 -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox tests/ui
 
-.PHONY: ui-test-%
-ui-test-%:
+.PHONY: test-ui-%
+test-ui-%:
 	export SPOTLIGHT_DEV=False
 	function teardown {
 		# stop the server and wait for it to exit
