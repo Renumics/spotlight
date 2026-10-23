@@ -5,6 +5,7 @@ from typing import Any
 
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from .example_tables import VIDEO_FILES
 from .helpers import (
     screenshot_exception,
     wait_for_css_element,
@@ -28,7 +29,10 @@ def test_video_lens_shows_video_player(
         wait_for_tagged_element(webdriver, DataTestTags.HELP_BUTTON)
         time.sleep(1)
 
-        wait_for_css_element(webdriver, "div[data-rowindex='0']").click()
+        # Firefox plays H.264 only with a system FFmpeg, which CI runners lack,
+        # so open a row with a WebM video that all browsers play natively.
+        row = next(i for i, path in enumerate(VIDEO_FILES) if path.endswith(".webm"))
+        wait_for_css_element(webdriver, f"div[data-rowindex='{row}']").click()
 
         wait_for_css_element(webdriver, "video")
         assert "Error Creating Video Player" not in webdriver.page_source

@@ -437,11 +437,14 @@ jobs:
               if: runner.os != 'Windows' && (success() || steps.setup.outcome == 'success')
               run: |
                   function teardown {
-                      while kill -INT %% 2>/dev/null; do sleep 0; done  # kill all child processes
+                      # stop the server and wait for it to exit
+                      kill -INT ${SERVER_PID:-} 2>/dev/null || true
+                      wait ${SERVER_PID:-} 2>/dev/null || true
                   }
                   trap teardown EXIT
                   PORT="5005"
                   spotlight --host 127.0.0.1 --port $PORT --no-browser data/tables/tallymarks-small.h5 &
+                  SERVER_PID=$!
                   URL="http://127.0.0.1:${PORT}"
                   wget -t20 -w0.5 --retry-connrefused --delete-after $URL
                   sleep 0.5

@@ -14,6 +14,15 @@ interface Props {
     children?: ReactNode;
 }
 
+/**
+ * Get the table row (in the current view) of an event target, -1 if the target
+ * is not in a row, e.g. the grid itself or its scrollbar.
+ */
+const getRowIndex = (target: EventTarget): number => {
+    const el = (target as HTMLElement).closest('div[data-rowindex]') as HTMLElement;
+    return +(el?.dataset?.rowindex ?? -1);
+};
+
 const MouseControls = ({ children }: Props): JSX.Element => {
     const element = useRef<HTMLDivElement>(null);
 
@@ -40,15 +49,27 @@ const MouseControls = ({ children }: Props): JSX.Element => {
         dehighlightAll();
     }, [dehighlightAll]);
 
+    // The row a mouse button was pressed on, -1 if there was none.
+    const pressedRowIndex = useRef(-1);
+
+    const onMouseDown = useCallback((event: MouseEvent<HTMLElement>) => {
+        pressedRowIndex.current = getRowIndex(event.target);
+    }, []);
+
     const onClick = useCallback(
         (event: MouseEvent<HTMLElement>) => {
-            const el = (event.target as HTMLElement).closest(
-                'div[data-rowindex]'
-            ) as HTMLElement;
-
-            const rowIndex = +(el?.dataset?.rowindex ?? -1);
+            let rowIndex = getRowIndex(event.target);
+            if (rowIndex < 0) {
+                // The press and the release were in different cells, so the browser
+                // dispatches the click to the grid around them, which is in no row.
+                // The row that was pressed is the one meant.
+                rowIndex = pressedRowIndex.current;
+            }
+            pressedRowIndex.current = -1;
+            if (rowIndex < 0) return;
 
             const originalRowIndex = getOriginalIndex(rowIndex);
+            if (originalRowIndex === undefined) return;
 
             const shiftKey = event.shiftKey;
             const ctrlKey = event.ctrlKey;
@@ -123,6 +144,7 @@ const MouseControls = ({ children }: Props): JSX.Element => {
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
         <div
             ref={element}
+            onMouseDown={onMouseDown}
             onClick={onClick}
             onMouseMove={onHover}
             onMouseLeave={onLeave}

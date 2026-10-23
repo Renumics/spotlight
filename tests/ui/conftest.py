@@ -1,6 +1,7 @@
 """conftest for ui-tests"""
 
 import json
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -9,7 +10,6 @@ from typing import Any, Dict, Generator
 import pytest
 import requests
 from selenium import webdriver as wd
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from .example_tables import write_selection_example_table
@@ -147,6 +147,10 @@ def webdriver(pytestconfig: pytest.Config) -> Generator[WebDriver, None, None]:
     browser = pytestconfig.getoption("browser")
     if browser == "firefox":
         ff_options = wd.FirefoxOptions()
+        # Selenium Manager only detects system-wide installed browsers, so use
+        # an explicitly given one (e.g. from the Nix dev shell) if available.
+        if os.environ.get("FIREFOX_BIN"):
+            ff_options.binary_location = os.environ["FIREFOX_BIN"]
         if pytestconfig.getoption("headless"):
             ff_options.add_argument("--headless")
         ff_options.add_argument("-height 720")
@@ -157,6 +161,8 @@ def webdriver(pytestconfig: pytest.Config) -> Generator[WebDriver, None, None]:
         return
 
     chrome_options = wd.ChromeOptions()
+    if os.environ.get("CHROME_BIN"):
+        chrome_options.binary_location = os.environ["CHROME_BIN"]
     if pytestconfig.getoption("headless"):
         chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
@@ -165,10 +171,9 @@ def webdriver(pytestconfig: pytest.Config) -> Generator[WebDriver, None, None]:
     chrome_options.add_argument("--window-size=1280,720")
 
     # enable browser logging
-    capabilities = DesiredCapabilities.CHROME
-    capabilities["loggingPrefs"] = {"browser": "ALL"}  # type: ignore
+    chrome_options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
-    chrome = wd.Chrome(options=chrome_options, desired_capabilities=capabilities)
+    chrome = wd.Chrome(options=chrome_options)
     chrome.set_page_load_timeout(20)
     yield chrome
     chrome.quit()
