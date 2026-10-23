@@ -25,6 +25,10 @@ However, there also are advanced settings available in order give more control o
 
 At the moment the samples can be placed by number columns and Embedding/Array columns.
 
+UMAP can take minutes on a large dataset, so its result is stored on disk, together with the data and the settings it was computed from.
+Opening the same dataset again, reloading the page or restarting Spotlight shows the map at once, as long as the data and the settings of the reduction did not change.
+The stored results are removed by `spotlight.clear_caches()`.
+
 <video controls muted loop playsinline preload="metadata" poster="../../../assets/data/docs/ui-components/similarity-map/placement-720.jpg">
   <source src="../../../assets/data/docs/ui-components/similarity-map/placement-720.webm" type="video/webm" />
   <source src="../../../assets/data/docs/ui-components/similarity-map/placement-720.mp4" type="video/mp4" />
