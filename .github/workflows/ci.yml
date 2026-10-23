@@ -185,8 +185,8 @@ jobs:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
                   if-no-files-found: error
-    build-spotlight:
-        name: '🧱 Build Spotlight'
+    build-frontend:
+        name: '🧱 Build frontend'
         needs:
             - prepare-python
             - prepare-node
@@ -210,6 +210,26 @@ jobs:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
                   if-no-files-found: error
+    build-wheel:
+        name: '🧱 Build Spotlight'
+        needs:
+            - prepare-python
+            - build-frontend
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+            - name: '🐍 Set up uv'
+              uses: ./.github/actions/setup-python-and-uv
+              with:
+                  install-dependencies: false
+            - name: '📤 Restore frontend'
+              uses: actions/download-artifact@v8
+              with:
+                  name: .frontend-${{ needs.prepare-python.outputs.version }}
+                  path: build/frontend/
             - name: Build Spotlight
               run: make build-wheel
             - name: '📥 Store Spotlight'
@@ -223,7 +243,7 @@ jobs:
         name: '🔍 Check wheel contents'
         needs:
             - prepare-python
-            - build-spotlight
+            - build-wheel
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -277,7 +297,7 @@ jobs:
         name: '🧪 UI Test'
         needs:
             - prepare-python
-            - build-spotlight
+            - build-frontend
         strategy:
             fail-fast: false
             matrix:
@@ -375,7 +395,7 @@ jobs:
         needs:
             - prepare-python
             - build-test-matrix
-            - build-spotlight
+            - build-wheel
         strategy:
             fail-fast: false
             matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
@@ -450,7 +470,8 @@ jobs:
             - build-test-matrix
             - build-docs
             - build-datasets
-            - build-spotlight
+            - build-frontend
+            - build-wheel
             - check-wheel-contents
             - doc-test
             - unit-test
