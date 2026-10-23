@@ -393,7 +393,6 @@ jobs:
         needs:
             - prepare-python
             - build-test-matrix
-            - build-wheel
         strategy:
             fail-fast: false
             matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
@@ -418,6 +417,27 @@ jobs:
               run: |
                   brew update
                   brew install ffmpeg
+            - name: '🐍 Set up uv environment with Python ${{ matrix.python-version }}'
+              uses: ./.github/actions/setup-python-and-uv
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Execute integration tests
+              run: uv run pytest --durations=5 tests/integration
+              env:
+                  SPOTLIGHT_DEV: 'False'
+    installation-test:
+        name: '📦 Installation Test'
+        needs:
+            - prepare-python
+            - build-test-matrix
+            - build-wheel
+        strategy:
+            fail-fast: false
+            matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
             - name: '🐍 Set up Python ${{ matrix.python-version }}'
               uses: actions/setup-python@v6
               with:
@@ -429,15 +449,14 @@ jobs:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
             - name: Install Spotlight
-              id: setup
               run: |
                   pip install --upgrade pip setuptools wheel
-                  pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }} pytest
+                  pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }}
             - name: Test Spotlight start (Windows)
-              if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
+              if: runner.os == 'Windows'
               run: ./scripts/Test-SpotlightStart.ps1
             - name: Test Spotlight start (Ubuntu, MacOS)
-              if: runner.os != 'Windows' && (success() || steps.setup.outcome == 'success')
+              if: runner.os != 'Windows'
               run: |
                   function teardown {
                       # stop the server and wait for it to exit
@@ -453,9 +472,6 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Execute integration tests
-              if: success() || steps.setup.outcome == 'success'
-              run: pytest --durations=5 tests/integration
     # Release stage
     release:
         name: '🚀 Release Spotlight'
@@ -474,6 +490,7 @@ jobs:
             - doc-test
             - unit-test
             - integration-test
+            - installation-test
             - ui-test
         runs-on: ubuntu-latest
         steps:
