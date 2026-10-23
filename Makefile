@@ -44,16 +44,15 @@ dev: ## Start dev setup
 	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} uv run spotlight --analyze-all
 
 .PHONY: datasets
-datasets: ## Build datasets (only needed for UI tests)
-	mkdir -p build/datasets/
+datasets: ## Build sample and benchmark datasets for manual testing
+datasets: hdf5-datasets
 	uv run python ./scripts/generate_test_csv.py -o build/datasets/
+
+.PHONY: hdf5-datasets
+hdf5-datasets: ## Build HDF5 datasets only
+	mkdir -p build/datasets/
 	uv run python ./scripts/generate_demo_test_data.py -o build/datasets/
 	uv run python ./scripts/generate_performance_test_data.py -o build/datasets/
-
-.PHONY: all-datasets
-all-datasets: ## Build all datasets
-all-datasets: datasets
-	mkdir -p build/datasets/
 	uv run python ./scripts/generate_multimodal_test_data.py -o build/datasets/
 	uv run python ./scripts/generate_demo_test_data_ultra.py -o build/datasets/
 

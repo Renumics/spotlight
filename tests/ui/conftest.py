@@ -12,7 +12,11 @@ import requests
 from selenium import webdriver as wd
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from .example_tables import write_selection_example_table
+from .example_tables import (
+    write_image_example_table,
+    write_performance_table,
+    write_selection_example_table,
+)
 from .generate_ui_test_elements import generate_ui_test_elements_py
 
 
@@ -179,33 +183,51 @@ def webdriver(pytestconfig: pytest.Config) -> Generator[WebDriver, None, None]:
     chrome.quit()
 
 
-@pytest.fixture()
-def loaded_image_example_dataset(pytestconfig: pytest.Config) -> None:
-    """replace the loaded dataset with the given dataset"""
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl")
-        + "/api/table/open/build/datasets/tallymarks_dataset_small.h5",
+def open_table(pytestconfig: pytest.Config, path: Path) -> None:
+    """replace the loaded dataset with the given table"""
+    response = requests.post(
+        pytestconfig.getoption("frontendBaseUrl") + f"/api/table/open/{path}",
         timeout=5,
     )
+    response.raise_for_status()
 
 
 @pytest.fixture(scope="session")
-def selection_example_table_path(
-    pytestconfig: pytest.Config,
-) -> Generator[Path, None, None]:
+def test_data_folder(pytestconfig: pytest.Config) -> Generator[Path, None, None]:
     """
-    write a small table of made-up data (with videos) once for all tests into a
-    temporary folder, which is removed after the tests
+    a temporary folder for the tables written by the tests, which is removed after
+    the tests
 
     The folder is created inside the test data folder, since the backend only opens
-    tables inside its project root.
+    tables inside its project root. Its path is relative, since the backend rejects
+    absolute paths (`tempfile` returns them) when its project root is relative.
     """
     data_folder = Path(pytestconfig.getoption("testDataPath"))
     data_folder.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
         dir=data_folder, ignore_cleanup_errors=True
     ) as temp_folder:
-        yield write_selection_example_table(Path(temp_folder) / "selection_example.h5")
+        yield Path(os.path.relpath(temp_folder))
+
+
+@pytest.fixture(scope="session")
+def image_example_table_path(test_data_folder: Path) -> Path:
+    """write a table of hand-written digits once for all tests"""
+    return write_image_example_table(test_data_folder / "image_example.h5")
+
+
+@pytest.fixture()
+def loaded_image_example_dataset(
+    pytestconfig: pytest.Config, image_example_table_path: Path
+) -> None:
+    """replace the loaded dataset with the table of hand-written digits"""
+    open_table(pytestconfig, image_example_table_path)
+
+
+@pytest.fixture(scope="session")
+def selection_example_table_path(test_data_folder: Path) -> Path:
+    """write a small table of made-up data (with videos) once for all tests"""
+    return write_selection_example_table(test_data_folder / "selection_example.h5")
 
 
 @pytest.fixture()
@@ -213,58 +235,52 @@ def loaded_selection_example_dataset(
     pytestconfig: pytest.Config, selection_example_table_path: Path
 ) -> None:
     """replace the loaded dataset with the small table of made-up data"""
-    path = selection_example_table_path
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl") + f"/api/table/open/{path}",
-        timeout=5,
-    )
+    open_table(pytestconfig, selection_example_table_path)
 
 
 @pytest.fixture
-def default_performance_dataset(pytestconfig: pytest.Config) -> None:
-    """replace the loaded dataset with the given dataset"""
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl")
-        + "/api/table/open/build/datasets/default.h5",
-        timeout=5,
+def default_performance_dataset(
+    pytestconfig: pytest.Config, test_data_folder: Path
+) -> None:
+    """replace the loaded dataset with a large table with 3 small embedding columns"""
+    path = write_performance_table(
+        test_data_folder / "default.h5", embedding_column_count=3, embedding_size=32
     )
+    open_table(pytestconfig, path)
 
 
 @pytest.fixture
-def many_cols_performance_dataset(pytestconfig: pytest.Config) -> None:
-    """replace the loaded dataset with the given dataset"""
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl")
-        + "/api/table/open/build/datasets/many_cols.h5",
-        timeout=5,
+def many_cols_performance_dataset(
+    pytestconfig: pytest.Config, test_data_folder: Path
+) -> None:
+    """replace the loaded dataset with a large table with 21 small embedding columns"""
+    path = write_performance_table(
+        test_data_folder / "many_cols.h5", embedding_column_count=21, embedding_size=32
     )
+    open_table(pytestconfig, path)
 
 
 @pytest.fixture
-def large_embeddings_performance_dataset(pytestconfig: pytest.Config) -> None:
-    """replace the loaded dataset with the given dataset"""
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl")
-        + "/api/table/open/build/datasets/large_embeddings.h5",
-        timeout=5,
+def large_embeddings_performance_dataset(
+    pytestconfig: pytest.Config, test_data_folder: Path
+) -> None:
+    """replace the loaded dataset with a large table with 3 large embedding columns"""
+    path = write_performance_table(
+        test_data_folder / "large_embeddings.h5",
+        embedding_column_count=3,
+        embedding_size=320,
     )
+    open_table(pytestconfig, path)
 
 
 @pytest.fixture
-def many_cols_large_embeddings_performance_dataset(pytestconfig: pytest.Config) -> None:
-    """replace the loaded dataset with the given dataset"""
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl")
-        + "/api/table/open/build/datasets/many_cols_large_embeddings.h5",
-        timeout=5,
+def many_cols_large_embeddings_performance_dataset(
+    pytestconfig: pytest.Config, test_data_folder: Path
+) -> None:
+    """replace the loaded dataset with a large table with 7 medium embedding columns"""
+    path = write_performance_table(
+        test_data_folder / "many_cols_large_embeddings.h5",
+        embedding_column_count=7,
+        embedding_size=96,
     )
-
-
-@pytest.fixture
-def tallymarks_dataset(pytestconfig: pytest.Config) -> None:
-    """replace the loaded dataset with the given dataset"""
-    requests.post(
-        pytestconfig.getoption("frontendBaseUrl")
-        + "/api/table/open/build/datasets/tallymarks_dataset_small.h5",
-        timeout=5,
-    )
+    open_table(pytestconfig, path)
