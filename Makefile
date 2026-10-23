@@ -4,8 +4,6 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-export VERSION := $(shell uv run uv-dynamic-versioning)
-
 .PHONY: help
 help: ## Print this help message
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
@@ -77,7 +75,8 @@ build-wheel: ## Build installable python package
 		ln -nsf ../../../build/frontend renumics/spotlight/backend/statics
 	}
 	trap onexit EXIT
-	sed -i 's/^\(__version__ = \).*/\1"$(VERSION)"/' renumics/spotlight/__version__.py
+	VERSION="$$(uv run uv-dynamic-versioning)"
+	sed -i "s/^\(__version__ = \).*/\1\"$${VERSION}\"/" renumics/spotlight/__version__.py
 	rm renumics/spotlight/backend/statics
 	cp -Tr build/frontend renumics/spotlight/backend/statics
 	uv build

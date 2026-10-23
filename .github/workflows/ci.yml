@@ -196,10 +196,6 @@ jobs:
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - name: '🐍 Set up uv'
-              uses: ./.github/actions/setup-python-and-uv
-              with:
-                  install-dependencies: false
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: '🧱 Build frontend'
