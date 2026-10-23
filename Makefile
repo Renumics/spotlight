@@ -60,6 +60,8 @@ build: build-frontend build-wheel
 
 .PHONY: build-frontend
 build-frontend: ## Build react frontend
+	# the version is shown in the frontend (see `.env`), compute it unless given
+	export VERSION="$${VERSION:-$$(uv run uv-dynamic-versioning)}"
 	NODE_OPTIONS=--max-old-space-size=32768 pnpm run build
 
 .PHONY: build-wheel

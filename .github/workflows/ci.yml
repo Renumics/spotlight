@@ -200,6 +200,8 @@ jobs:
               uses: ./.github/actions/setup-node-and-pnpm
             - name: '🧱 Build frontend'
               run: make build-frontend
+              env:
+                  VERSION: ${{ needs.prepare-python.outputs.version }}
             - name: '📥 Store frontend'
               uses: actions/upload-artifact@v7
               with:
