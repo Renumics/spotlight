@@ -177,7 +177,7 @@ jobs:
             - name: '🐍 Set up uv environment'
               uses: ./.github/actions/setup-python-and-uv
             - name: '🗃 Build datasets'
-              run: make datasets-hdf5
+              run: make hdf5-datasets
             - name: '📥 Store datasets'
               uses: actions/upload-artifact@v7
               with:
