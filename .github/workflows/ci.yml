@@ -419,21 +419,16 @@ jobs:
                   linking-type: shared
             - name: '🎥 Set up FFMpeg (MacOS)'
               if: runner.os == 'macOS'
-              run: |
-                  brew update
-                  brew install ffmpeg
+              env:
+                  HOMEBREW_NO_AUTO_UPDATE: '1'
+                  HOMEBREW_NO_INSTALL_CLEANUP: '1'
+                  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: '1'
+                  HOMEBREW_NO_ANALYTICS: '1'
+              run: brew install --quiet ffmpeg
             - name: '🐍 Set up uv environment with Python ${{ matrix.python-version }}'
               uses: ./.github/actions/setup-python-and-uv
               with:
                   python-version: ${{ matrix.python-version }}
-            - name: '🎥 Check FFMpeg'
-              shell: bash
-              run: |
-                  echo "ffmpeg: $(command -v ffmpeg || echo 'not on PATH')"
-                  ffmpeg -hide_banner -version | head -n 1 || true
-                  echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
-                  # fails early if `torchcodec` cannot load the FFmpeg libraries
-                  uv run python -c "from torchcodec._core import get_ffmpeg_library_versions; print(get_ffmpeg_library_versions())"
             - name: Execute integration tests
               run: uv run pytest --durations=5 tests/integration
               env:
