@@ -831,10 +831,10 @@ def test_set_attributes_column(
 
 def test_import_export_pandas() -> None:
     """
-    Test `Dataset.from_pandas` and `Dataset.to_pandas` methods on australian
-    weather dataset.
+    Test `Dataset.from_pandas` and `Dataset.to_pandas` methods on a small multimodal
+    dataset.
     """
-    df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
+    df = pd.read_csv("data/csv/multimodal-random-small.csv")
     df["category"] = df["category"].astype("category")
     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
     for name, dtype in df.dtypes.items():
@@ -856,7 +856,7 @@ def test_import_pandas_with_dtype() -> None:
     """
     Test `Dataset.import_pandas` with defined `dtype` argument.
     """
-    df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
+    df = pd.read_csv("data/csv/multimodal-random-small.csv")
     dtypes = {
         "audio": "str",
         "image": "str",
@@ -885,7 +885,7 @@ def test_import_csv() -> None:
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as dataset:
-            dataset.from_csv("build/datasets/multimodal-random-1000.csv")
+            dataset.from_csv("data/csv/multimodal-random-small.csv")
             # A few columns are dropped because of incompatible values,
             # so just check that some are imported for now
             assert dataset.keys()

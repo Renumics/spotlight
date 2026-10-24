@@ -6,6 +6,7 @@ import tempfile
 from typing import Iterator, Tuple
 from urllib.parse import urljoin
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -14,10 +15,27 @@ from renumics import spotlight
 BASE_URL = "https://spotlightpublic.blob.core.windows.net/internal-test-data/"
 
 
+def _example_df(row_count: int = 50) -> pd.DataFrame:
+    """
+    a dataframe with an integer, a text and an embedding column, every tenth
+    embedding is missing
+    """
+    rng = np.random.default_rng(42)
+    return pd.DataFrame(
+        {
+            "number": range(row_count),
+            "even_text": ["even" if i % 2 == 0 else "odd" for i in range(row_count)],
+            "encoded": [
+                None if i % 10 == 0 else rng.normal(size=12) for i in range(row_count)
+            ],
+        }
+    )
+
+
 @pytest.fixture()
 def viewer_csv_df() -> Iterator[spotlight.Viewer]:
     """setup a viewer with loaded dataframe"""
-    csv_df = pd.read_csv("build/datasets/multimodal-random-1000.csv")
+    csv_df = pd.read_csv("data/csv/multimodal-random-small.csv")
     viewer = spotlight.show(
         csv_df,
         host="127.0.0.1",
@@ -39,10 +57,8 @@ def viewer_csv_df() -> Iterator[spotlight.Viewer]:
 
 @pytest.fixture()
 def viewer_tally_df() -> Iterator[spotlight.Viewer]:
-    """setup a viewer with exported dataframe"""
-    with spotlight.Dataset("build/datasets/tallymarks_dataset.h5", "r") as dataset:
-        df = dataset.to_pandas()
-        df["encoded"] = dataset["encoded"]
+    """setup a viewer with a dataframe with external audio and images"""
+    df = _example_df()
 
     # Valid external data
     df["audio"] = None
@@ -77,23 +93,27 @@ def viewer_tally_df() -> Iterator[spotlight.Viewer]:
 
 @pytest.fixture()
 def viewer_double_tally_df() -> Iterator[Tuple[spotlight.Viewer, spotlight.Viewer]]:
-    """setup a viewer with exported dataframe"""
-    with spotlight.Dataset("build/datasets/tallymarks_dataset.h5", "r") as dataset:
-        df = dataset.to_pandas()
-        df["encoded"] = [
-            embedding if embedding is not None else None
-            for embedding in dataset["encoded"]
-        ]
-    viewer = spotlight.show(df, "127.0.0.1", no_browser=True, port="auto", wait=False)
+    """setup two viewers with different dataframes"""
+    df = _example_df()
+    viewer = spotlight.show(
+        df,
+        "127.0.0.1",
+        no_browser=True,
+        port="auto",
+        wait=False,
+        dtype={"encoded": spotlight.Embedding},
+    )
 
-    with spotlight.Dataset("build/datasets/tallymarks_dataset.h5", "r") as dataset:
-        df2 = dataset.to_pandas()
-        df2["encoded"] = [
-            embedding if embedding is not None else None
-            for embedding in dataset["encoded"]
-        ]
+    df2 = _example_df()
     df2["number"] = df2["number"] + 2000
-    viewer2 = spotlight.show(df2, "127.0.0.1", no_browser=True, port="auto", wait=False)
+    viewer2 = spotlight.show(
+        df2,
+        "127.0.0.1",
+        no_browser=True,
+        port="auto",
+        wait=False,
+        dtype={"encoded": spotlight.Embedding},
+    )
     yield viewer, viewer2
     viewer.close()
     viewer2.close()

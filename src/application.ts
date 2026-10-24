@@ -22,7 +22,8 @@ const application: Application = {
         name: 'Community',
         shorthand: 'CE',
     },
-    version: import.meta.env.VITE_VERSION ?? 'dev',
+    // `VITE_VERSION` is empty if the frontend was built without `VERSION`
+    version: import.meta.env.VITE_VERSION || 'unknown',
     publicUrl: import.meta.env.VITE_PUBLIC_URL ?? globalThis.location.origin,
     apiUrl: import.meta.env.VITE_API_BASE_PATH ?? globalThis.location.origin,
     docsUrl: 'https://renumics.github.io/spotlight/',

@@ -177,22 +177,41 @@ jobs:
             - name: '🐍 Set up uv environment'
               uses: ./.github/actions/setup-python-and-uv
             - name: '🗃 Build datasets'
-              if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/v')
-              run: make datasets
-            - name: '🗃🗃 Build all datasets'
-              if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-              run: make all-datasets
+              run: make hdf5-datasets
             - name: '📥 Store datasets'
               uses: actions/upload-artifact@v7
               with:
                   name: datasets-${{ needs.prepare-python.outputs.version }}
                   path: build/datasets/
                   if-no-files-found: error
-    build-spotlight:
-        name: '🧱 Build Spotlight'
+    build-frontend:
+        name: '🧱 Build frontend'
         needs:
             - prepare-python
             - prepare-node
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+            - name: '⬢ Set up pnpm environment'
+              uses: ./.github/actions/setup-node-and-pnpm
+            - name: '🧱 Build frontend'
+              run: make build-frontend
+              env:
+                  VERSION: ${{ needs.prepare-python.outputs.version }}
+            - name: '📥 Store frontend'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: .frontend-${{ needs.prepare-python.outputs.version }}
+                  path: build/frontend/
+                  if-no-files-found: error
+    build-wheel:
+        name: '🧱 Build Spotlight'
+        needs:
+            - prepare-python
+            - build-frontend
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -203,16 +222,11 @@ jobs:
               uses: ./.github/actions/setup-python-and-uv
               with:
                   install-dependencies: false
-            - name: '⬢ Set up pnpm environment'
-              uses: ./.github/actions/setup-node-and-pnpm
-            - name: '🧱 Build frontend'
-              run: make build-frontend
-            - name: '📥 Store frontend'
-              uses: actions/upload-artifact@v7
+            - name: '📤 Restore frontend'
+              uses: actions/download-artifact@v8
               with:
                   name: .frontend-${{ needs.prepare-python.outputs.version }}
                   path: build/frontend/
-                  if-no-files-found: error
             - name: Build Spotlight
               run: make build-wheel
             - name: '📥 Store Spotlight'
@@ -226,7 +240,7 @@ jobs:
         name: '🔍 Check wheel contents'
         needs:
             - prepare-python
-            - build-spotlight
+            - build-wheel
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -242,8 +256,8 @@ jobs:
                   path: build/dist
             - name: Check wheel contents
               run: make check-wheel
-    unit-test:
-        name: '🧪 Unit Test'
+    test-unit:
+        name: '🧪 Test Unit'
         needs:
             - prepare-python
             - prepare-node
@@ -258,9 +272,9 @@ jobs:
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute unit tests
-              run: make unit-test
-    doc-test:
-        name: '🧪 Doc Test'
+              run: make test-unit
+    test-docs:
+        name: '🧪 Test Docs'
         needs:
             - prepare-python
             - prepare-node
@@ -275,13 +289,12 @@ jobs:
             - name: '⬢ Set up pnpm environment'
               uses: ./.github/actions/setup-node-and-pnpm
             - name: Execute doc tests
-              run: make doc-test
-    ui-test:
-        name: '🧪 UI Test'
+              run: make test-docs
+    test-ui:
+        name: '🧪 Test UI'
         needs:
             - prepare-python
-            - build-datasets
-            - build-spotlight
+            - build-frontend
         strategy:
             fail-fast: false
             matrix:
@@ -296,11 +309,6 @@ jobs:
                   fetch-depth: 0
             - name: '🐍 Set up uv environment'
               uses: ./.github/actions/setup-python-and-uv
-            - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v8
-              with:
-                  name: datasets-${{ needs.prepare-python.outputs.version }}
-                  path: build/datasets/
             - name: '📤 Restore frontend'
               uses: actions/download-artifact@v8
               with:
@@ -334,7 +342,7 @@ jobs:
                   cd build/ui_tests/old-screenshots
                   curl -fLO ${AZURE_FOLDER_URL}/${COMMIT_SHA}/screenshots/gui-${{ matrix.browser }}.png
             - name: '🍱 Test UI on ${{ matrix.browser }}'
-              run: make ui-test-${{ matrix.browser }}
+              run: make test-ui-${{ matrix.browser }}
             - name: Prepare GUI screenshots
               if: |
                   success()
@@ -379,13 +387,11 @@ jobs:
                   name: .ui-test-${{ matrix.browser }}-${{ needs.prepare-python.outputs.version }}
                   path: build/ui_tests
                   if-no-files-found: error
-    integration-test:
-        name: '🧪 Integration Test'
+    test-integration:
+        name: '🧪 Test Integration'
         needs:
             - prepare-python
             - build-test-matrix
-            - build-datasets
-            - build-spotlight
         strategy:
             fail-fast: false
             matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
@@ -397,9 +403,15 @@ jobs:
                   fetch-depth: 0
             - name: '🎥 Set up FFMpeg (Ubuntu)'
               if: runner.os == 'Linux'
+              env:
+                  FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n8.1.3-9-g29e619e767-linux64-lgpl-shared-8.1.tar.xz
               run: |
-                  sudo apt-get update
-                  sudo apt-get install -y ffmpeg
+                  FFMPEG_DIR="${RUNNER_TEMP}/ffmpeg"
+                  mkdir -p "$FFMPEG_DIR"
+                  curl -fsSL --retry 5 --retry-all-errors -o "${RUNNER_TEMP}/ffmpeg.tar.xz" "$FFMPEG_URL"
+                  tar -xJf "${RUNNER_TEMP}/ffmpeg.tar.xz" -C "$FFMPEG_DIR" --strip-components=1
+                  echo "${FFMPEG_DIR}/bin" >> "$GITHUB_PATH"
+                  echo "LD_LIBRARY_PATH=${FFMPEG_DIR}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" >> "$GITHUB_ENV"
             - name: '🎥 Set up FFMpeg (Windows)'
               if: runner.os == 'Windows'
               uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
@@ -410,6 +422,35 @@ jobs:
               run: |
                   brew update
                   brew install ffmpeg
+            - name: '🐍 Set up uv environment with Python ${{ matrix.python-version }}'
+              uses: ./.github/actions/setup-python-and-uv
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: '🎥 Check FFMpeg'
+              shell: bash
+              run: |
+                  echo "ffmpeg: $(command -v ffmpeg || echo 'not on PATH')"
+                  ffmpeg -hide_banner -version | head -n 1 || true
+                  echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
+                  # fails early if `torchcodec` cannot load the FFmpeg libraries
+                  uv run python -c "from torchcodec._core import get_ffmpeg_library_versions; print(get_ffmpeg_library_versions())"
+            - name: Execute integration tests
+              run: uv run pytest --durations=5 tests/integration
+              env:
+                  SPOTLIGHT_DEV: 'False'
+    test-installation:
+        name: '📦 Test Installation'
+        needs:
+            - prepare-python
+            - build-test-matrix
+            - build-wheel
+        strategy:
+            fail-fast: false
+            matrix: ${{fromJson(needs.build-test-matrix.outputs.matrix)}}
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
             - name: '🐍 Set up Python ${{ matrix.python-version }}'
               uses: actions/setup-python@v6
               with:
@@ -420,21 +461,15 @@ jobs:
               with:
                   name: renumics-spotlight-${{ needs.prepare-python.outputs.version }}
                   path: build/dist
-            - name: '📤 Restore datasets'
-              uses: actions/download-artifact@v8
-              with:
-                  name: datasets-${{ needs.prepare-python.outputs.version }}
-                  path: build/datasets/
             - name: Install Spotlight
-              id: setup
               run: |
                   pip install --upgrade pip setuptools wheel
-                  pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }} pytest
+                  pip install --extra-index-url https://download.pytorch.org/whl/cpu --find-links build/dist/ renumics-spotlight[analyzers,torch]==${{ needs.prepare-python.outputs.version }}
             - name: Test Spotlight start (Windows)
-              if: runner.os == 'Windows' && (success() || steps.setup.outcome == 'success')
+              if: runner.os == 'Windows'
               run: ./scripts/Test-SpotlightStart.ps1
             - name: Test Spotlight start (Ubuntu, MacOS)
-              if: runner.os != 'Windows' && (success() || steps.setup.outcome == 'success')
+              if: runner.os != 'Windows'
               run: |
                   function teardown {
                       # stop the server and wait for it to exit
@@ -450,9 +485,6 @@ jobs:
                   sleep 0.5
                   GENERATION_ID=$(wget -qO- "${URL}/api/table/" | jq ".generation_id")
                   wget --delete-after "${URL}/api/table/number/42?generation_id=${GENERATION_ID}"
-            - name: Execute integration tests
-              if: success() || steps.setup.outcome == 'success'
-              run: pytest --durations=5 tests/integration
     # Release stage
     release:
         name: '🚀 Release Spotlight'
@@ -465,12 +497,14 @@ jobs:
             - build-test-matrix
             - build-docs
             - build-datasets
-            - build-spotlight
+            - build-frontend
+            - build-wheel
             - check-wheel-contents
-            - doc-test
-            - unit-test
-            - integration-test
-            - ui-test
+            - test-docs
+            - test-unit
+            - test-integration
+            - test-installation
+            - test-ui
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
