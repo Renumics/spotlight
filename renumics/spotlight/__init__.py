@@ -93,5 +93,4 @@ def clear_caches() -> None:
     """
     Clear all cached data.
     """
-    cache.clear("external-data")
-    cache.clear("reduction")
+    cache.clear_all()
