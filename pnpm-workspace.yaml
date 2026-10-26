@@ -1,0 +1,4 @@
+allowBuilds:
+    '@nestjs/core': false
+    '@openapitools/openapi-generator-cli': false
+minimumReleaseAge: 4320
