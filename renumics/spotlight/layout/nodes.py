@@ -2,14 +2,13 @@
 Implementation of layout models and interfaces for layout creation.
 """
 
-from typing import Any, List, Optional, Union
+from typing import Any, Literal, TypeAlias
 
 from pydantic import BaseModel, Field, SerializeAsAny, field_validator
-from typing_extensions import Literal
 
 from .widgets import Widget
 
-Orientation = Optional[Literal["horizontal", "vertical"]]
+Orientation: TypeAlias = Literal["horizontal", "vertical"] | None
 
 
 def _validate_widget(value: Any) -> Widget:
@@ -33,8 +32,8 @@ class Tab(BaseModel, extra="forbid"):
     Tab with widgets.
     """
 
-    children: List[SerializeAsAny[Widget]] = Field(default_factory=list)
-    weight: Union[float, int] = 1
+    children: list[SerializeAsAny[Widget]] = Field(default_factory=list)
+    weight: float | int = 1
     kind: Literal["tab"] = "tab"
 
     @field_validator("children", mode="before")
@@ -54,9 +53,9 @@ class Split(BaseModel, extra="forbid"):
     Orientation `None` flips the previous orientation.
     """
 
-    children: List[Union["Split", Tab]] = Field(default_factory=list)
+    children: "list[Split | Tab]" = Field(default_factory=list)
     orientation: Orientation = None
-    weight: Union[float, int] = 1
+    weight: float | int = 1
     kind: Literal["split"] = "split"
 
 
@@ -65,7 +64,7 @@ class Layout(BaseModel, extra="forbid"):
     Root node of layout.
     """
 
-    children: List[Union[Split, Tab]] = Field(default_factory=list)
+    children: list[Split | Tab] = Field(default_factory=list)
     orientation: Orientation = None
 
 

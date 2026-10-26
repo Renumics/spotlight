@@ -5,10 +5,9 @@ For usage examples, see `renumics.spotlight.layout.inspector`.
 """
 
 import uuid
-from typing import List, Optional, Union
+from typing import Literal, TypeAlias
 
 from pydantic import BaseModel, Field
-from typing_extensions import Literal
 
 
 class Lens(BaseModel, populate_by_name=True):
@@ -36,17 +35,17 @@ class Lens(BaseModel, populate_by_name=True):
     """
 
     type: str = Field(..., alias="view")
-    columns: List[str] = Field(..., alias="columns")
-    name: Optional[str] = Field(None, alias="name")
-    settings: Optional[dict] = None
-    id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()), alias="key")
+    columns: list[str] = Field(..., alias="columns")
+    name: str | None = Field(None, alias="name")
+    settings: dict | None = None
+    id: str | None = Field(default_factory=lambda: str(uuid.uuid4()), alias="key")
 
 
 def lens(
     internal_type: str,
-    columns: Union[str, List[str]],
-    name: Optional[str] = None,
-    settings: Optional[dict] = None,
+    columns: str | list[str],
+    name: str | None = None,
+    settings: dict | None = None,
 ) -> Lens:
     """
     Add a viewer to Spotlight inspector widget.
@@ -64,7 +63,7 @@ def lens(
     )
 
 
-def scalar(column: str, name: Optional[str] = None) -> Lens:
+def scalar(column: str, name: str | None = None) -> Lens:
     """
     Add scalar value viewer to Spotlight inspector widget.
 
@@ -74,7 +73,7 @@ def scalar(column: str, name: Optional[str] = None) -> Lens:
     return Lens(type="ScalarView", columns=[column], name=name)
 
 
-def text(column: str, name: Optional[str] = None) -> Lens:
+def text(column: str, name: str | None = None) -> Lens:
     """
     Add text viewer to Spotlight inspector widget.
 
@@ -83,7 +82,7 @@ def text(column: str, name: Optional[str] = None) -> Lens:
     return Lens(type="TextLens", columns=[column], name=name)
 
 
-def html(column: str, name: Optional[str] = None, unsafe: bool = False) -> Lens:
+def html(column: str, name: str | None = None, unsafe: bool = False) -> Lens:
     """
     Add HTML viewer to Spotlight inspector widget.
 
@@ -94,7 +93,7 @@ def html(column: str, name: Optional[str] = None, unsafe: bool = False) -> Lens:
     return Lens(type="SafeHtmlLens", columns=[column], name=name)
 
 
-def markdown(column: str, name: Optional[str] = None) -> Lens:
+def markdown(column: str, name: str | None = None) -> Lens:
     """
     Add markdown viewer to Spotlight inspector widget.
 
@@ -103,7 +102,7 @@ def markdown(column: str, name: Optional[str] = None) -> Lens:
     return Lens(type="MarkdownLens", columns=[column], name=name)
 
 
-def array(column: str, name: Optional[str] = None) -> Lens:
+def array(column: str, name: str | None = None) -> Lens:
     """
     Add array viewer to Spotlight inspector widget.
 
@@ -114,8 +113,8 @@ def array(column: str, name: Optional[str] = None) -> Lens:
 
 
 def sequences(
-    columns: Union[str, List[str]],
-    name: Optional[str] = None,
+    columns: str | list[str],
+    name: str | None = None,
     *,
     multiple_y_axes: bool = False,
 ) -> Lens:
@@ -132,14 +131,14 @@ def sequences(
     )
 
 
-MeshAnimation = Literal["loop", "oscillate"]
+MeshAnimation: TypeAlias = Literal["loop", "oscillate"]
 
 
 def mesh(
     column: str,
-    name: Optional[str] = None,
+    name: str | None = None,
     *,
-    color_attribute: Optional[str] = None,
+    color_attribute: str | None = None,
     wireframe: bool = False,
     transparency: float = 0,
     animation: MeshAnimation = "loop",
@@ -168,7 +167,7 @@ def mesh(
     )
 
 
-def image(column: str, name: Optional[str] = None) -> Lens:
+def image(column: str, name: str | None = None) -> Lens:
     """
     Add image viewer to Spotlight inspector widget.
 
@@ -180,8 +179,8 @@ def image(column: str, name: Optional[str] = None) -> Lens:
 def bounding_box(
     image_column: str,
     bounding_box_column: str,
-    category_column: Optional[str] = None,
-    name: Optional[str] = None,
+    category_column: str | None = None,
+    name: str | None = None,
 ) -> Lens:
     """
     Add bounding box viewer to Spotlight inspector widget.
@@ -196,7 +195,7 @@ def bounding_box(
     return Lens(type="BoundingBoxView", columns=columns, name=name)
 
 
-def video(column: str, name: Optional[str] = None) -> Lens:
+def video(column: str, name: str | None = None) -> Lens:
     """
     Add video viewer to Spotlight inspector widget.
 
@@ -207,8 +206,8 @@ def video(column: str, name: Optional[str] = None) -> Lens:
 
 def audio(
     column: str,
-    window_column: Optional[str] = None,
-    name: Optional[str] = None,
+    window_column: str | None = None,
+    name: str | None = None,
     *,
     repeat: bool = False,
     autoplay: bool = False,
@@ -227,14 +226,14 @@ def audio(
     )
 
 
-SpectrogramFrequencyScale = Literal["linear", "logarithmic"]
-SpectrogramAmplitudeScale = Literal["decibel", "linear"]
+SpectrogramFrequencyScale: TypeAlias = Literal["linear", "logarithmic"]
+SpectrogramAmplitudeScale: TypeAlias = Literal["decibel", "linear"]
 
 
 def spectrogram(
     column: str,
-    window_column: Optional[str] = None,
-    name: Optional[str] = None,
+    window_column: str | None = None,
+    name: str | None = None,
     *,
     frequency_scale: SpectrogramFrequencyScale = "linear",
     amplitude_scale: SpectrogramAmplitudeScale = "decibel",
@@ -262,7 +261,7 @@ def spectrogram(
     )
 
 
-def rouge_score(column: str, reference_column: str, name: Optional[str] = None) -> Lens:
+def rouge_score(column: str, reference_column: str, name: str | None = None) -> Lens:
     """
     Add ROUGE score viewer to Spotlight inspector widget.
 

@@ -3,7 +3,7 @@ Helper methods for tests
 """
 
 import tempfile
-from typing import Iterator, Tuple
+from collections.abc import Iterator
 from urllib.parse import urljoin
 
 import numpy as np
@@ -92,7 +92,7 @@ def viewer_tally_df() -> Iterator[spotlight.Viewer]:
 
 
 @pytest.fixture()
-def viewer_double_tally_df() -> Iterator[Tuple[spotlight.Viewer, spotlight.Viewer]]:
+def viewer_double_tally_df() -> Iterator[tuple[spotlight.Viewer, spotlight.Viewer]]:
     """setup two viewers with different dataframes"""
     df = _example_df()
     viewer = spotlight.show(

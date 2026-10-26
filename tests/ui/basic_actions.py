@@ -1,7 +1,6 @@
 """basic user itections to be used during tests"""
 
 import time
-from typing import List
 
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -104,6 +103,6 @@ def record_clipboard(driver: WebDriver) -> None:
     )
 
 
-def get_copied_texts(driver: WebDriver) -> List[str]:
+def get_copied_texts(driver: WebDriver) -> list[str]:
     """get the texts that were copied since `record_clipboard`"""
     return driver.execute_script("return window.__copiedTexts")  # type: ignore[no-any-return]

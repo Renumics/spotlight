@@ -2,7 +2,6 @@
 
 import datetime
 from pathlib import Path
-from typing import List, Union
 
 import numpy as np
 import trimesh
@@ -64,7 +63,7 @@ def _damped_sine(target: int) -> Sequence1D:
     return Sequence1D(x, np.sin(x) * np.exp(-x / 10) + target)
 
 
-def write_image_example_table(path: Union[str, Path], row_count: int = 50) -> Path:
+def write_image_example_table(path: str | Path, row_count: int = 50) -> Path:
     """
     Write a table with the hand-written digits of scikit-learn for screenshots and
     the similarity map: a column of every common data type and an embedding of the
@@ -107,7 +106,7 @@ def write_image_example_table(path: Union[str, Path], row_count: int = 50) -> Pa
 
 
 def write_performance_table(
-    path: Union[str, Path],
+    path: str | Path,
     embedding_column_count: int,
     embedding_size: int,
     row_count: int = 5000,
@@ -131,7 +130,7 @@ def write_performance_table(
     return path
 
 
-def selection_example_texts(row_count: int) -> List[str]:
+def selection_example_texts(row_count: int) -> list[str]:
     """Texts for the `note` column of the selection example table, some of them
     long (the table payload truncates them), some with commas, quotes and line breaks,
     some with emoji."""
@@ -149,12 +148,12 @@ def selection_example_texts(row_count: int) -> List[str]:
     return texts
 
 
-def selection_example_ids(row_count: int) -> List[str]:
+def selection_example_ids(row_count: int) -> list[str]:
     """Values of the `id` column of the selection example table"""
     return [f"item-{row:04d}" for row in range(row_count)]
 
 
-def write_selection_example_table(path: Union[str, Path], row_count: int = 40) -> Path:
+def write_selection_example_table(path: str | Path, row_count: int = 40) -> Path:
     """
     Write a table with made-up data to test selecting rows, copying and exporting:
     an id, an integer, a float, a category, a text and a video column.

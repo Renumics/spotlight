@@ -1,5 +1,4 @@
 import os
-from typing import Optional, Union
 
 import numpy as np
 import requests
@@ -71,12 +70,12 @@ class Video(FileMediaType):
         return cls(b"\x00")
 
     @classmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "Video":
+    def decode(cls, value: np.ndarray | np.void) -> "Video":
         if isinstance(value, np.void):
             return cls(value.tolist())  # type: ignore[arg-type]
         raise TypeError(
             f"`value` should be a `numpy.void` instance, but {type(value)} received."
         )
 
-    def encode(self, _target: Optional[str] = None) -> np.void:
+    def encode(self, _target: str | None = None) -> np.void:
         return np.void(self.data)

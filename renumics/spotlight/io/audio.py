@@ -4,7 +4,7 @@ This module contains helpers for reading and writing of audio.
 
 import io
 import os
-from typing import IO, Dict, Tuple, Union, cast
+from typing import IO, cast
 
 import av
 import av.audio
@@ -18,7 +18,7 @@ from renumics.spotlight.typing import FileType
 # Some AV warning messages have ERROR level and can be confusing.
 av.logging.set_level(av.logging.CRITICAL)
 
-_PACKET_AV_DATA_FORMATS: Dict[str, str] = {
+_PACKET_AV_DATA_FORMATS: dict[str, str] = {
     value: key
     for key, value in av.audio.frame.format_dtypes.items()
     if key.endswith("p")
@@ -46,8 +46,8 @@ def _channel_num_to_layout(channel_num: int) -> str:
 
 
 def prepare_input_file(
-    file: FileType, timeout: Union[int, float] = 30, reusable: bool = False
-) -> Union[str, IO]:
+    file: FileType, timeout: int | float = 30, reusable: bool = False
+) -> str | IO:
     """
     Prepare an input file depending on its type and value:
         - download URL (`str`) and open it for file-like reading;
@@ -83,7 +83,7 @@ def prepare_input_file(
     return file
 
 
-def read_audio(file: FileType) -> Tuple[np.ndarray, int]:
+def read_audio(file: FileType) -> tuple[np.ndarray, int]:
     """
     Read an audio file or file-like object using AV.
 
@@ -185,7 +185,7 @@ def transcode_audio(
                 output_container.mux(packet)
 
 
-def get_format_codec(file: FileType) -> Tuple[str, str]:
+def get_format_codec(file: FileType) -> tuple[str, str]:
     """
     Get audio format and audio codec of an audio file.
     """

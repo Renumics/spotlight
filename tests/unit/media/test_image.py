@@ -3,7 +3,6 @@ Test `renumics.spotlight.media.Image` class.
 """
 
 import io
-from typing import Optional
 
 import numpy as np
 import pytest
@@ -19,7 +18,7 @@ from .data import IMAGES_FOLDER, SEED
 @pytest.mark.parametrize("dtype", ["float32", "float64", "uint8", "int32"])
 @pytest.mark.parametrize("input_type", ["array", "list", "tuple"])
 def test_image_from_array(
-    size: int, num_channels: Optional[int], dtype: str, input_type: str
+    size: int, num_channels: int | None, dtype: str, input_type: str
 ) -> None:
     """
     Test image creation.

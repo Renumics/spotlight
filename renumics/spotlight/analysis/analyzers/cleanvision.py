@@ -4,10 +4,10 @@ find issues in images
 
 import inspect
 import os
+from collections.abc import Iterable
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, Iterable, List, Tuple
 
 import numpy as np
 
@@ -23,7 +23,7 @@ try:
 except ImportError:
     logger.warning("Cleanvision analyzer requires `cleanvision` to be installed.")
 else:
-    _issue_types: Dict[str, Tuple[str, Severity, str]] = {
+    _issue_types: dict[str, tuple[str, Severity, str]] = {
         "is_light_issue": (
             "Bright images",
             "medium",
@@ -82,7 +82,7 @@ else:
         ),
     }
 
-    def _make_issue(cleanvision_key: str, column: str, rows: List[int]) -> DataIssue:
+    def _make_issue(cleanvision_key: str, column: str, rows: list[int]) -> DataIssue:
         title, severity, description = _issue_types[cleanvision_key]
         return DataIssue(
             title=title,
@@ -94,7 +94,7 @@ else:
 
     @data_analyzer
     def analyze_with_cleanvision(
-        data_store: DataStore, columns: List[str]
+        data_store: DataStore, columns: list[str]
     ) -> Iterable[DataIssue]:
         """
         find image issues using cleanvision

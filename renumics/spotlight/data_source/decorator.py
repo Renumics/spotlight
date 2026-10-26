@@ -1,18 +1,18 @@
-from typing import Callable, Type, Union
+from collections.abc import Callable
 
 from .data_source import DataSource
 from .registry import add_datasource
 
 
 def datasource(
-    source: Union[str, Type],
-) -> Callable[[Type[DataSource]], Type[DataSource]]:
+    source: str | type,
+) -> Callable[[type[DataSource]], type[DataSource]]:
     """
     Decorator to add a data source.
     See `add_datasource`
     """
 
-    def func(klass: Type[DataSource]) -> Type[DataSource]:
+    def func(klass: type[DataSource]) -> type[DataSource]:
         add_datasource(source, klass)
         return klass
 

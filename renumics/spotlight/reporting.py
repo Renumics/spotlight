@@ -8,10 +8,11 @@ import sys
 import threading
 import time
 import traceback
+from collections.abc import Callable
 from functools import wraps
 from os import environ
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, ParamSpec, TypeVar, overload
 from uuid import uuid4
 
 import machineid
@@ -23,7 +24,7 @@ from renumics.spotlight.data_source import DataSource
 from renumics.spotlight.plugin_loader import load_plugins
 from renumics.spotlight.settings import settings
 
-ANALYTICS_URL: Optional[str] = None
+ANALYTICS_URL: str | None = None
 
 
 def _get_node() -> str:
@@ -112,7 +113,7 @@ event_type_key_map = {
 }
 
 
-def report_event(event: Dict[str, Any]) -> None:
+def report_event(event: dict[str, Any]) -> None:
     """
     Report an event to the analytics server.
     """
@@ -200,7 +201,7 @@ def _sanitize_traceback_exception(exc: traceback.TracebackException) -> None:
 
 
 def emit_exception_event(
-    path: Optional[str] = None, datasource: Optional[DataSource] = None
+    path: str | None = None, datasource: DataSource | None = None
 ) -> None:
     """
     Emit an exception event.
@@ -224,12 +225,25 @@ def emit_exception_event(
     )
 
 
-FuncType = Callable[..., Any]
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+@overload
+def emit_timed_event(
+    orig_func: Callable[P, R], *, func_name: str | None = None
+) -> Callable[P, R]: ...
+
+
+@overload
+def emit_timed_event(
+    orig_func: None = None, *, func_name: str | None = None
+) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
 
 
 def emit_timed_event(
-    orig_func: FuncType, *, func_name: Optional[str] = None
-) -> Union[FuncType, Callable[..., FuncType]]:
+    orig_func: Callable[P, R] | None = None, *, func_name: str | None = None
+) -> Callable[P, R] | Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Wrap a function in order to emit a timed event when it completes.
 
@@ -237,9 +251,9 @@ def emit_timed_event(
     it will use the name of the function.
     """
 
-    def _decorator(func: FuncType) -> FuncType:
+    def _decorator(func: Callable[P, R]) -> Callable[P, R]:
         @wraps(func)
-        def _wrapper(*args: Any, **kwargs: Any) -> Any:
+        def _wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             start_time = time.time()
             result = func(*args, **kwargs)
             name = func_name or func.__name__

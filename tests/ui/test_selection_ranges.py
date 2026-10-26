@@ -1,6 +1,6 @@
 """Tests for selecting a range of rows"""
 
-from typing import Any, List
+from typing import Any
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -16,7 +16,7 @@ from .helpers import (
 )
 
 
-def get_listed_ids(driver: WebDriver) -> List[str]:
+def get_listed_ids(driver: WebDriver) -> list[str]:
     """get the ids of the rows the table lists, from the first row down"""
     id_column = get_column_index(driver, "id")
     cells = driver.find_elements(

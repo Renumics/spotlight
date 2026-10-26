@@ -1,5 +1,5 @@
 import io
-from typing import Optional, Tuple, Union, cast
+from typing import cast
 
 import numpy as np
 
@@ -110,7 +110,7 @@ class Audio(FileMediaType):
         return cls(1, np.zeros((1, 2), np.int16))
 
     @classmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "Audio":
+    def decode(cls, value: np.ndarray | np.void) -> "Audio":
         if isinstance(value, np.void):
             buffer = io.BytesIO(cast(bytes, value.tolist()))
             data, sampling_rate = audio.read_audio(buffer)
@@ -119,14 +119,14 @@ class Audio(FileMediaType):
             f"`value` should be a `numpy.void` instance, but {type(value)} received."
         )
 
-    def encode(self, target: Optional[str] = None) -> np.void:
+    def encode(self, target: str | None = None) -> np.void:
         format_, codec = self.get_format_codec(target)
         buffer = io.BytesIO()
         audio.write_audio(buffer, self.data, self.sampling_rate, format_, codec)
         return np.void(buffer.getvalue())
 
     @staticmethod
-    def get_format_codec(target: Optional[str] = None) -> Tuple[str, str]:
+    def get_format_codec(target: str | None = None) -> tuple[str, str]:
         """
         Get an audio format and an audio codec by an `target`.
         """

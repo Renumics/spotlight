@@ -3,7 +3,7 @@ Outlier detection
 """
 
 import inspect
-from typing import Iterable, List
+from collections.abc import Iterable
 
 import numpy as np
 
@@ -22,7 +22,7 @@ else:
 
     @data_analyzer
     def analyze_with_cleanlab(
-        data_store: DataStore, columns: List[str]
+        data_store: DataStore, columns: list[str]
     ) -> Iterable[DataIssue]:
         """
         Find (embedding) outliers with cleanlab

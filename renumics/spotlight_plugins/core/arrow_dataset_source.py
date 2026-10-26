@@ -1,6 +1,6 @@
 import uuid
+from collections.abc import Iterable
 from itertools import islice
-from typing import Iterable, List, Union
 
 import numpy as np
 import orjson
@@ -62,7 +62,7 @@ class ArrowDatasetSource(DataSource):
                         self._semantic_dtypes[name] = spotlight_dtypes.image_dtype
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return self._dataset.schema.names
 
     @property
@@ -88,7 +88,7 @@ class ArrowDatasetSource(DataSource):
     def get_column_values(
         self,
         column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        indices: list[int] | np.ndarray | slice = slice(None),
     ) -> np.ndarray:
         try:
             # Import these arrow extension types to ensure that they are registered.

@@ -1,5 +1,3 @@
-from typing import Optional, Type, Union
-
 import numpy as np
 
 from renumics.spotlight.media.base import Array1dLike, MediaType
@@ -31,7 +29,7 @@ class Embedding(MediaType):
     def __init__(
         self,
         data: Array1dLike,
-        dtype: Optional[Union[str, np.dtype, Type[np.number]]] = None,
+        dtype: str | np.dtype | type[np.number] | None = None,
     ) -> None:
         data_array = np.asarray(data, dtype)
         if data_array.ndim != 1 or data_array.size == 0:
@@ -48,12 +46,12 @@ class Embedding(MediaType):
         self.data = data_array
 
     @classmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "Embedding":
+    def decode(cls, value: np.ndarray | np.void) -> "Embedding":
         if not isinstance(value, np.ndarray):
             raise TypeError(
                 f"`value` argument should be a numpy array, but {type(value)} received."
             )
         return cls(value)
 
-    def encode(self, _target: Optional[str] = None) -> np.ndarray:
+    def encode(self, _target: str | None = None) -> np.ndarray:
         return self.data

@@ -3,7 +3,6 @@ Test `renumics.spotlight.media.Audio` class.
 """
 
 import io
-from typing import Optional
 
 import numpy as np
 import pytest
@@ -19,7 +18,7 @@ from .data import AUDIO_FOLDER
 @pytest.mark.parametrize("dtype", ["f4", "i2", "u1"])
 @pytest.mark.parametrize("target", ["wav", "flac"])
 def test_lossless_audio(
-    sampling_rate: int, channels: int, length: float, dtype: str, target: Optional[str]
+    sampling_rate: int, channels: int, length: float, dtype: str, target: str | None
 ) -> None:
     """
     Test audio creation and lossless saving.

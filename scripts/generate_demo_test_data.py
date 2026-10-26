@@ -7,7 +7,6 @@ generate spotlight test dataset
 import datetime
 import os
 from pathlib import Path
-from typing import Dict, Optional, Union
 
 import click
 import numpy as np
@@ -135,7 +134,7 @@ def generate_tallymarks_dataset(
         )
         dataset.append_video_column("video", optional=True)
 
-        videos_lookup: Dict[int, Union[str, None, Video]] = {
+        videos_lookup: dict[int, str | None | Video] = {
             number: None for number in list(range(1, 10))
         }
         videos_lookup[1] = Video.empty()
@@ -223,7 +222,7 @@ def _sequence_lin(target_number: int) -> Sequence1D:
     return Sequence1D(x, y)
 
 
-def _audio_signal(target_number: int) -> Union[Audio, str]:
+def _audio_signal(target_number: int) -> Audio | str:
     filepath = f"data/audio/{target_number}.wav"
     if target_number % 2:
         return filepath
@@ -255,7 +254,7 @@ def _mesh(length: int, animate: bool = False) -> Mesh:
     )
 
 
-def _image(digits_image: np.ndarray, label: Optional[int] = None) -> Image:
+def _image(digits_image: np.ndarray, label: int | None = None) -> Image:
     image = (np.ones_like(digits_image) * 255 - (digits_image / 16 * 255)).astype(
         np.uint8
     )

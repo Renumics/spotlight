@@ -1,5 +1,5 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
 
@@ -15,14 +15,14 @@ class ColumnData:
 
     name: str
     dtype_name: str
-    values: Union[Sequence[ColumnInputType], np.ndarray]
+    values: Sequence[ColumnInputType] | np.ndarray
     optional: bool = False
     default: ColumnInputType = None
-    description: Optional[str] = None
-    attrs: Dict = field(default_factory=dict)
+    description: str | None = None
+    attrs: dict = field(default_factory=dict)
 
 
-def array_data() -> List[ColumnData]:
+def array_data() -> list[ColumnData]:
     """
     Get a list of array column data.
     """
@@ -72,7 +72,7 @@ def array_data() -> List[ColumnData]:
     ]
 
 
-def embedding_data() -> List[ColumnData]:
+def embedding_data() -> list[ColumnData]:
     """
     Get a list of embedding column data.
     """
@@ -108,7 +108,7 @@ def embedding_data() -> List[ColumnData]:
     ]
 
 
-def image_data() -> List[ColumnData]:
+def image_data() -> list[ColumnData]:
     """
     Get a list of image column data.
     """
@@ -147,7 +147,7 @@ def image_data() -> List[ColumnData]:
     ]
 
 
-def sequence_1d_data() -> List[ColumnData]:
+def sequence_1d_data() -> list[ColumnData]:
     """
     Get a list of 1d-sequence column data.
     """
@@ -196,7 +196,7 @@ def sequence_1d_data() -> List[ColumnData]:
     ]
 
 
-def mesh_data() -> List[ColumnData]:
+def mesh_data() -> list[ColumnData]:
     """
     Get a list of mesh column data.
     """
@@ -236,7 +236,7 @@ def mesh_data() -> List[ColumnData]:
     ]
 
 
-def audio_data() -> List[ColumnData]:
+def audio_data() -> list[ColumnData]:
     """
     Get a list of audio column data.
     """
@@ -274,7 +274,7 @@ def audio_data() -> List[ColumnData]:
     ]
 
 
-def categorical_data() -> List[ColumnData]:
+def categorical_data() -> list[ColumnData]:
     """
     Get a list of categorical column data.
     """
@@ -296,7 +296,7 @@ def categorical_data() -> List[ColumnData]:
     ]
 
 
-def video_data() -> List[ColumnData]:
+def video_data() -> list[ColumnData]:
     """
     Get a list of video column data.
     """
@@ -317,7 +317,7 @@ def video_data() -> List[ColumnData]:
     ]
 
 
-def window_data() -> List[ColumnData]:
+def window_data() -> list[ColumnData]:
     """
     Get a list of window column data.
     """

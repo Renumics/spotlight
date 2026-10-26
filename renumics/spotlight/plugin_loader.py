@@ -4,10 +4,11 @@ Facilities for plugin loading and registration.
 
 import importlib
 import pkgutil
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 from fastapi import FastAPI
 
@@ -31,13 +32,13 @@ class Plugin:
     activate: Callable[[FastAPI], None]
     update: Callable[[FastAPI, AppConfig], None]
     dev: bool
-    frontend_entrypoint: Optional[Path]
+    frontend_entrypoint: Path | None
 
 
-_plugins: Optional[List[Plugin]] = None
+_plugins: list[Plugin] | None = None
 
 
-def load_plugins() -> List[Plugin]:
+def load_plugins() -> list[Plugin]:
     """
     Automatically load, register and initialize plugins
     inside the renumics.spotlight.plugins namespace package.

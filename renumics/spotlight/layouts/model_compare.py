@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 from renumics.spotlight import dtypes, layout
 from renumics.spotlight.layout import (
@@ -25,7 +25,7 @@ def compare_classification(
     model2_prediction: str = "m2_prediction",
     model2_embedding: str = "",
     model2_correct: str = "",
-    inspect: Optional[Dict[str, Any]] = None,
+    inspect: dict[str, Any] | None = None,
 ) -> Layout:
     """This function generates a Spotlight layout for comparing two different machine learning classification models.
 
@@ -118,7 +118,7 @@ def compare_classification(
             )
             column2_list.append(row3)
 
-    column2: Union[Tab, Split]
+    column2: Tab | Split
 
     if len(column2_list) == 1:
         column2 = column2_list[0]

@@ -2,8 +2,6 @@
 Integration Test on API level for h5 data sources
 """
 
-from typing import Type
-
 import httpx
 import numpy as np
 import pytest
@@ -34,7 +32,7 @@ def test_get_table_returns_http_ok(dataset_path: str) -> None:
         ("embedding", np.ndarray),
     ],
 )
-def test_custom_dtypes(dataset_path: str, col: str, dtype: Type[OutputType]) -> None:
+def test_custom_dtypes(dataset_path: str, col: str, dtype: type[OutputType]) -> None:
     """
     Test h5 data source with custom dtypes.
     """

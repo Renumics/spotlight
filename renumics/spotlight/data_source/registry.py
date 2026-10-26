@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import Any, Dict, List, Type, Union
+from typing import Any
 
 from renumics.spotlight.typing import is_pathtype
 
 from .data_source import DataSource
 from .exceptions import InvalidDataSource
 
-data_sources: Dict[Union[str, Type], Type[DataSource]] = {}
+data_sources: dict[str | type, type[DataSource]] = {}
 
 
-def add_datasource(source: Union[str, Type], klass: Type[DataSource]) -> None:
+def add_datasource(source: str | type, klass: type[DataSource]) -> None:
     """
     Add a datasource for the given file extension or type
     """
@@ -21,7 +21,7 @@ def create_datasource(source: Any) -> DataSource:
     open the specified data source
     """
 
-    keys: List[Any] = []
+    keys: list[Any] = []
     if is_pathtype(source):
         path = Path(source)
         if path.exists():

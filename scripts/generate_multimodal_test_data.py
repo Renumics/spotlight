@@ -7,7 +7,6 @@ This script generates multimodal Spotlight dataset for benchmarking.
 import datetime
 import os
 import string
-from typing import Type
 
 import click
 import numpy as np
@@ -124,7 +123,7 @@ def _random_embeddings(
     return data
 
 
-def _random_data(data_type: Type, num_rows: int, seed: int) -> np.ndarray:
+def _random_data(data_type: type, num_rows: int, seed: int) -> np.ndarray:
     if data_type is bool:
         return _random_bools(num_rows, seed)
     if data_type is int:

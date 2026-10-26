@@ -91,13 +91,13 @@ Reuse the dataset `Viewer`:
 """
 
 import time
+from collections.abc import Collection
 from pathlib import Path
-from typing import Any, Collection, Dict, List, Optional, Union
+from typing import Any, Literal
 
 import IPython.display
 import ipywidgets as widgets
 import pandas as pd
-from typing_extensions import Literal
 
 import __main__
 from renumics.spotlight.analysis.typing import DataIssue
@@ -128,21 +128,21 @@ class Viewer:
     """
 
     _host: str
-    _requested_port: Union[int, Literal["auto"]]
-    _ssl_keyfile: Optional[str]
-    _ssl_certfile: Optional[str]
-    _ssl_keyfile_password: Optional[str]
+    _requested_port: int | Literal["auto"]
+    _ssl_keyfile: str | None
+    _ssl_certfile: str | None
+    _ssl_keyfile_password: str | None
     _no_ssl: bool
-    _server: Optional[Server]
-    _df: Optional[pd.DataFrame]
+    _server: Server | None
+    _df: pd.DataFrame | None
 
     def __init__(
         self,
         host: str = "127.0.0.1",
-        port: Union[int, Literal["auto"]] = "auto",
-        ssl_keyfile: Optional[str] = None,
-        ssl_certfile: Optional[str] = None,
-        ssl_keyfile_password: Optional[str] = None,
+        port: int | Literal["auto"] = "auto",
+        ssl_keyfile: str | None = None,
+        ssl_certfile: str | None = None,
+        ssl_keyfile_password: str | None = None,
         no_ssl: bool = False,
     ) -> None:
         self._host = host
@@ -156,16 +156,16 @@ class Viewer:
 
     def show(
         self,
-        dataset: Union[PathType, pd.DataFrame, None] = None,
-        folder: Optional[PathType] = None,
-        layout: Optional[_LayoutLike] = None,
+        dataset: PathType | pd.DataFrame | None = None,
+        folder: PathType | None = None,
+        layout: _LayoutLike | None = None,
         no_browser: bool = False,
-        allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
-        wait: Union[bool, Literal["auto", "forever"]] = "auto",
-        dtype: Optional[Dict[str, Any]] = None,
-        analyze: Optional[Union[List[str], bool]] = None,
-        issues: Optional[Collection[DataIssue]] = None,
-        embed: Optional[Union[List[str], bool]] = None,
+        allow_filebrowsing: bool | Literal["auto"] = "auto",
+        wait: bool | Literal["auto", "forever"] = "auto",
+        dtype: dict[str, Any] | None = None,
+        analyze: list[str] | bool | None = None,
+        issues: Collection[DataIssue] | None = None,
+        embed: list[str] | bool | None = None,
     ) -> None:
         """
         Show a dataset or folder in this spotlight viewer.
@@ -263,7 +263,7 @@ class Viewer:
         if wait:
             self.close(wait)
 
-    def close(self, wait: Union[bool, Literal["forever"]] = False) -> None:
+    def close(self, wait: bool | Literal["forever"] = False) -> None:
         """
         Shutdown the corresponding Spotlight instance.
         """
@@ -313,7 +313,7 @@ class Viewer:
         return self._server is not None and self._server.running
 
     @property
-    def df(self) -> Optional[pd.DataFrame]:
+    def df(self) -> pd.DataFrame | None:
         """
         Get served `DataFrame` if a `DataFrame` is served, `None` otherwise.
         """
@@ -329,7 +329,7 @@ class Viewer:
         return self._host
 
     @property
-    def port(self) -> Optional[int]:
+    def port(self) -> int | None:
         """
         The port the viewer is running on.
         """
@@ -384,10 +384,10 @@ class Viewer:
             print(self)
 
 
-_VIEWERS: List[Viewer] = []
+_VIEWERS: list[Viewer] = []
 
 
-def viewers() -> List[Viewer]:
+def viewers() -> list[Viewer]:
     """
     Get all active Spotlight viewer instances.
     """
@@ -395,21 +395,21 @@ def viewers() -> List[Viewer]:
 
 
 def show(
-    dataset: Union[PathType, pd.DataFrame, None] = None,
-    folder: Optional[PathType] = None,
+    dataset: PathType | pd.DataFrame | None = None,
+    folder: PathType | None = None,
     host: str = "127.0.0.1",
-    port: Union[int, Literal["auto"]] = "auto",
-    layout: Optional[_LayoutLike] = None,
+    port: int | Literal["auto"] = "auto",
+    layout: _LayoutLike | None = None,
     no_browser: bool = False,
-    allow_filebrowsing: Union[bool, Literal["auto"]] = "auto",
-    wait: Union[bool, Literal["auto", "forever"]] = "auto",
-    dtype: Optional[Dict[str, Any]] = None,
-    analyze: Optional[Union[bool, List[str]]] = None,
-    issues: Optional[Collection[DataIssue]] = None,
-    embed: Optional[Union[List[str], bool]] = None,
-    ssl_keyfile: Optional[str] = None,
-    ssl_certfile: Optional[str] = None,
-    ssl_keyfile_password: Optional[str] = None,
+    allow_filebrowsing: bool | Literal["auto"] = "auto",
+    wait: bool | Literal["auto", "forever"] = "auto",
+    dtype: dict[str, Any] | None = None,
+    analyze: bool | list[str] | None = None,
+    issues: Collection[DataIssue] | None = None,
+    embed: list[str] | bool | None = None,
+    ssl_keyfile: str | None = None,
+    ssl_certfile: str | None = None,
+    ssl_keyfile_password: str | None = None,
     no_ssl: bool = False,
 ) -> Viewer:
     """
@@ -470,7 +470,7 @@ def show(
     return viewer
 
 
-def close(port: Union[int, Literal["last"]] = "last") -> None:
+def close(port: int | Literal["last"] = "last") -> None:
     """
     Close an active Spotlight viewer.
 

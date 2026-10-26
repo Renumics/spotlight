@@ -3,7 +3,7 @@ access pandas DataFrame table data
 """
 
 from pathlib import Path
-from typing import List, Union, cast
+from typing import cast
 
 import datasets
 import numpy as np
@@ -32,7 +32,7 @@ class PandasDataSource(DataSource):
     _name: str
     _intermediate_dtypes: dtypes.DTypeMap
 
-    def __init__(self, source: Union[Path, pd.DataFrame]) -> None:
+    def __init__(self, source: Path | pd.DataFrame) -> None:
         if isinstance(source, Path):
             self._name = source.name
             if source.is_dir():
@@ -94,8 +94,8 @@ class PandasDataSource(DataSource):
         }
 
     @property
-    def column_names(self) -> List[str]:
-        column_names: List[str] = []
+    def column_names(self) -> list[str]:
+        column_names: list[str] = []
         for column in self._df.columns:
             if (
                 isinstance(column, tuple)
@@ -144,7 +144,7 @@ class PandasDataSource(DataSource):
     def get_column_values(
         self,
         column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        indices: list[int] | np.ndarray | slice = slice(None),
     ) -> np.ndarray:
         column = cast(pd.Series, self._get_column(column_name).iloc[indices])  # type: ignore
         if pd.api.types.is_bool_dtype(column):

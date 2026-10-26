@@ -3,7 +3,7 @@ Test fancy indexing of `spotlight.Dataset` class.
 """
 
 import datetime
-from typing import Any, List, cast
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -25,7 +25,7 @@ def test_getitem(fancy_indexing_dataset: Dataset) -> None:
     assert (fancy_indexing_dataset[column_name, :] == target[:]).all()
     assert (fancy_indexing_dataset[:, column_name] == target[:]).all()
 
-    good_indices: List[Any] = [[]]
+    good_indices: list[Any] = [[]]
 
     all_indices = np.arange(length)
     for _ in range(3):
@@ -82,7 +82,7 @@ def test_getitem(fancy_indexing_dataset: Dataset) -> None:
         assert (target_ == fancy_indexing_dataset[column_name, indices]).all()
         assert (target_ == fancy_indexing_dataset[indices, column_name]).all()
 
-    bad_indices: List[Any] = [slice(None, None, 0)]
+    bad_indices: list[Any] = [slice(None, None, 0)]
 
     for length_ in [
         1,
@@ -130,7 +130,7 @@ def test_delitem(fancy_indexing_dataset: Dataset) -> None:
 
     _restore_column()
 
-    good_indices: List[Any] = [slice(None, None, None), []]
+    good_indices: list[Any] = [slice(None, None, None), []]
 
     all_indices = np.arange(length)
     for _ in range(3):
@@ -193,7 +193,7 @@ def test_delitem(fancy_indexing_dataset: Dataset) -> None:
         assert (target_ == fancy_indexing_dataset[column_name]).all()
         _restore_column()
 
-    bad_indices: List[Any] = [slice(None, None, 0)]
+    bad_indices: list[Any] = [slice(None, None, 0)]
 
     for length_ in [
         1,
@@ -244,7 +244,7 @@ def test_setitem(fancy_indexing_dataset: Dataset) -> None:
     last_edited_at_column = fancy_indexing_dataset._h5_file["__last_edited_at__"]
     timestamp = _assert_unique_datetime(last_edited_at_column[:])
 
-    good_indices: List[Any] = [slice(None, None, None), []]
+    good_indices: list[Any] = [slice(None, None, None), []]
 
     all_indices = np.arange(length)
     for _ in range(3):
@@ -322,7 +322,7 @@ def test_setitem(fancy_indexing_dataset: Dataset) -> None:
             assert (target == fancy_indexing_dataset[column_name]).all()
 
     target = np.array(fancy_indexing_dataset[column_name])
-    bad_indices: List[Any] = [slice(None, None, 0)]
+    bad_indices: list[Any] = [slice(None, None, 0)]
 
     for length_ in [
         1,

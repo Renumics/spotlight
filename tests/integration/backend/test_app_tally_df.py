@@ -3,7 +3,7 @@ Tests for the renumics spotlight app and in mem data frame serving
 """
 
 import json
-from typing import Any, List
+from typing import Any
 
 import pytest
 import requests
@@ -11,7 +11,7 @@ import requests
 from renumics import spotlight
 
 
-def _column_by_name(columns: List, col_name: str) -> Any:
+def _column_by_name(columns: list, col_name: str) -> Any:
     return [col for col in columns if col["name"] == col_name][0]
 
 

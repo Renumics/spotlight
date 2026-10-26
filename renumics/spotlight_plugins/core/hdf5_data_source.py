@@ -2,9 +2,10 @@
 access h5 table data
 """
 
+from collections.abc import Iterable
 from hashlib import sha1
 from pathlib import Path
-from typing import Iterable, List, Union, cast
+from typing import cast
 
 import h5py
 import numpy as np
@@ -52,7 +53,7 @@ class Hdf5DataSource(DataSource):
         self._table.close()
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         column_names = self._table.keys()
         orders = {
             name: self._table.get_column_attributes(name).get("order") or -1
@@ -97,7 +98,7 @@ class Hdf5DataSource(DataSource):
     def get_column_values(
         self,
         column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        indices: list[int] | np.ndarray | slice = slice(None),
     ) -> Iterable:
         self._table._assert_column_exists(column_name, internal=True)
 

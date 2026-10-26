@@ -4,7 +4,7 @@ intern format to a common format.
 """
 
 import io
-from typing import List, cast
+from typing import cast
 
 import av
 import numpy as np
@@ -18,7 +18,7 @@ def preprocess_batch(raw_values: list) -> list:
     return raw_values
 
 
-def preprocess_image_batch(raw_values: List[bytes]) -> List[PIL.Image.Image]:
+def preprocess_image_batch(raw_values: list[bytes]) -> list[PIL.Image.Image]:
     """
     Preprocess a batch of image data, converts images to pillow image format.
     """
@@ -26,8 +26,8 @@ def preprocess_image_batch(raw_values: List[bytes]) -> List[PIL.Image.Image]:
 
 
 def preprocess_audio_batch(
-    raw_values: List[bytes], sampling_rate: int
-) -> List[np.ndarray]:
+    raw_values: list[bytes], sampling_rate: int
+) -> list[np.ndarray]:
     """
     Preprocess a batch of audio data, returns mono channel audio PCM resampled
     to the given sampling rate as an double array.

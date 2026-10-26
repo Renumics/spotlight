@@ -3,11 +3,10 @@ filebrowser api endpoints
 """
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Literal, TypeAlias
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
-from typing_extensions import Literal
 
 from renumics.spotlight.backend.exceptions import (
     FilebrowsingNotAllowed,
@@ -15,7 +14,7 @@ from renumics.spotlight.backend.exceptions import (
 
 router = APIRouter()
 
-FileType = Literal["file", "folder"]
+FileType: TypeAlias = Literal["file", "folder"]
 
 
 class FileEntry(BaseModel):
@@ -36,8 +35,8 @@ class Folder(BaseModel):
 
     name: str
     path: str
-    parent: Optional[str]
-    files: List[FileEntry]
+    parent: str | None
+    files: list[FileEntry]
 
 
 @router.get(

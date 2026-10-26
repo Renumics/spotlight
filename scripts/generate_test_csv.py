@@ -5,8 +5,8 @@ This script generates multimodal CSV dataset.
 """
 
 import datetime
+from collections.abc import Sequence
 from pathlib import Path
-from typing import List, Optional, Sequence
 
 import click
 import numpy as np
@@ -32,7 +32,7 @@ def _random_sequences(
     seed: int,
     min_length: int = 3,
     max_length: int = 5,
-) -> List[Optional[List[float]]]:
+) -> list[list[float] | None]:
     np.random.seed(seed)
 
     null_mask = np.random.choice([True, False], num_rows, replace=True, p=[0.2, 0.8])
@@ -51,7 +51,7 @@ def _random_sequences(
 
 def _random_embeddings_list(
     count: int, seed: int, dim: int, optional: bool = False
-) -> List[Optional[List[float]]]:
+) -> list[list[float] | None]:
     embeddings = _random_embeddings(count, seed, dim, optional).tolist()
     return [
         embedding.tolist() if isinstance(embedding, np.ndarray) else embedding
@@ -60,8 +60,8 @@ def _random_embeddings_list(
 
 
 def _random_choice(
-    options: Sequence[Optional[str]], count: int, seed: int
-) -> List[Optional[str]]:
+    options: Sequence[str | None], count: int, seed: int
+) -> list[str | None]:
     np.random.seed(seed)
     return np.random.choice(options, count, replace=True).tolist()  # type: ignore
 

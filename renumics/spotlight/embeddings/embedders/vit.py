@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
 
 import numpy as np
 import PIL.Image
@@ -15,8 +15,8 @@ else:
 
     @embed("image")
     def vit(
-        batches: Iterable[List[PIL.Image.Image]],
-    ) -> Iterable[List[Optional[np.ndarray]]]:
+        batches: Iterable[list[PIL.Image.Image]],
+    ) -> Iterable[list[np.ndarray | None]]:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model_name = "google/vit-base-patch16-224"
         processor = transformers.AutoImageProcessor.from_pretrained(model_name)

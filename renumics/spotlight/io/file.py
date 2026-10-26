@@ -5,7 +5,8 @@ File-related IO.
 import contextlib
 import io
 import os
-from typing import IO, Iterator
+from collections.abc import Iterator
+from typing import IO
 
 import requests
 import validators

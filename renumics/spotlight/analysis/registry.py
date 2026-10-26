@@ -2,11 +2,9 @@
 Manage data analyzers available for spotlights automatic dataset analysis.
 """
 
-from typing import Set
-
 from .typing import DataAnalyzer
 
-registered_analyzers: Set[DataAnalyzer] = set()
+registered_analyzers: set[DataAnalyzer] = set()
 
 
 def register_analyzer(analyzer: DataAnalyzer) -> None:

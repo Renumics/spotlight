@@ -4,7 +4,8 @@ Shared types for embeddings
 
 import itertools
 from abc import ABC, abstractmethod
-from typing import Callable, Iterable, List, Optional
+from collections.abc import Callable, Iterable
+from typing import TypeAlias
 
 import numpy as np
 import PIL.Image
@@ -35,13 +36,13 @@ class Embedder(ABC):
         """
 
 
-PreprocessFunc = Callable[[list], list]
-EmbedFunc = Callable[[Iterable[list]], Iterable[List[Optional[np.ndarray]]]]
-EmbedImageFunc = Callable[
-    [Iterable[List[PIL.Image.Image]]], Iterable[List[Optional[np.ndarray]]]
+PreprocessFunc: TypeAlias = Callable[[list], list]
+EmbedFunc: TypeAlias = Callable[[Iterable[list]], Iterable[list[np.ndarray | None]]]
+EmbedImageFunc: TypeAlias = Callable[
+    [Iterable[list[PIL.Image.Image]]], Iterable[list[np.ndarray | None]]
 ]
-EmbedArrayFunc = Callable[
-    [Iterable[List[np.ndarray]]], Iterable[List[Optional[np.ndarray]]]
+EmbedArrayFunc: TypeAlias = Callable[
+    [Iterable[list[np.ndarray]]], Iterable[list[np.ndarray | None]]
 ]
 
 
@@ -59,7 +60,7 @@ class FunctionalEmbedder(Embedder):
     preprocess_func: PreprocessFunc
     embed_func: EmbedFunc
     batch_size: int
-    _occupied_indices: List[int]
+    _occupied_indices: list[int]
 
     def __init__(
         self,

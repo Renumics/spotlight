@@ -2,7 +2,6 @@
 
 import socket
 import subprocess
-from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter, Retry
@@ -34,8 +33,8 @@ class Vite:
     Vite Development Server
     """
 
-    process: Optional[subprocess.Popen]
-    port: Optional[int]
+    process: subprocess.Popen | None
+    port: int | None
 
     def __init__(self) -> None:
         self.port = None

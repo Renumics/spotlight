@@ -1,7 +1,7 @@
 import io
 import math
 import os
-from typing import IO, Dict, List, Optional, Tuple, Union, cast
+from typing import IO, cast
 from urllib.parse import urlparse
 
 import numpy as np
@@ -40,8 +40,8 @@ class Mesh(FileMediaType):
 
     _points: np.ndarray
     _triangles: np.ndarray
-    _point_attributes: Dict[str, np.ndarray]
-    _point_displacements: List[np.ndarray]
+    _point_attributes: dict[str, np.ndarray]
+    _point_displacements: list[np.ndarray]
 
     _point_indices: np.ndarray
     _triangle_indices: np.ndarray
@@ -51,9 +51,9 @@ class Mesh(FileMediaType):
         self,
         points: Array2dLike,
         triangles: Array2dLike,
-        point_attributes: Optional[Dict[str, np.ndarray]] = None,
-        triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
-        point_displacements: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+        point_attributes: dict[str, np.ndarray] | None = None,
+        triangle_attributes: dict[str, np.ndarray] | None = None,
+        point_displacements: np.ndarray | list[np.ndarray] | None = None,
     ) -> None:
         self._point_attributes = {}
         self._point_displacements = []
@@ -80,7 +80,7 @@ class Mesh(FileMediaType):
         return self._triangles
 
     @property
-    def point_attributes(self) -> Dict[str, np.ndarray]:
+    def point_attributes(self) -> dict[str, np.ndarray]:
         """
         Mapping str -> :code:`np.array` with shape `(num_points, ...)`. Point-wise
         attributes corresponding to `points`. All possible shapes of a single
@@ -90,7 +90,7 @@ class Mesh(FileMediaType):
         return self._point_attributes
 
     @property
-    def point_displacements(self) -> List[np.ndarray]:
+    def point_displacements(self) -> list[np.ndarray]:
         """
         List of arrays with shape `(num_points, 3)`. Point-wise relative
         displacements (offsets) over the time corresponding to `points`.
@@ -100,7 +100,7 @@ class Mesh(FileMediaType):
         return self._point_displacements
 
     @point_displacements.setter
-    def point_displacements(self, value: Union[np.ndarray, List[np.ndarray]]) -> None:
+    def point_displacements(self, value: np.ndarray | list[np.ndarray]) -> None:
         array = attribute_to_array(value)
         if array.size == 0:
             self._point_displacements = []
@@ -135,7 +135,7 @@ class Mesh(FileMediaType):
 
         `trimesh` is used inside, so only supported formats are allowed.
         """
-        file: Union[str, IO] = (
+        file: str | IO = (
             str(filepath) if isinstance(filepath, os.PathLike) else filepath
         )
         extension = None
@@ -169,7 +169,7 @@ class Mesh(FileMediaType):
         return cls(np.empty((0, 3)), np.empty((0, 3), np.int64))
 
     @classmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "Mesh":
+    def decode(cls, value: np.ndarray | np.void) -> "Mesh":
         gltf_mesh = pygltflib.GLTF2.load_from_bytes(value.tobytes())
         gltf.check_gltf(gltf_mesh)
         arrays = gltf.decode_gltf_arrays(gltf_mesh)
@@ -188,7 +188,7 @@ class Mesh(FileMediaType):
             points, triangles, point_attributes, point_displacements=point_displacements
         )
 
-    def encode(self, _target: Optional[str] = None) -> np.void:
+    def encode(self, _target: str | None = None) -> np.void:
         bin_data, buffer_views, accessors = gltf.encode_gltf_array(
             self._triangles.flatten(), b"", [], [], pygltflib.ELEMENT_ARRAY_BUFFER
         )
@@ -235,8 +235,8 @@ class Mesh(FileMediaType):
 
     def update_attributes(
         self,
-        point_attributes: Optional[Dict[str, np.ndarray]] = None,
-        triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
+        point_attributes: dict[str, np.ndarray] | None = None,
+        triangle_attributes: dict[str, np.ndarray] | None = None,
     ) -> None:
         """
         Update point and/or triangle attributes dict-like.
@@ -268,7 +268,7 @@ class Mesh(FileMediaType):
             return
 
         def _interpolated_list_access(
-            arrays: List[np.ndarray], index_float: float
+            arrays: list[np.ndarray], index_float: float
         ) -> np.ndarray:
             """access a list equally sized numpy arrays with interpolation between two neighbors"""
             array_left = arrays[math.floor(index_float)]
@@ -328,16 +328,16 @@ class Mesh(FileMediaType):
         self._triangle_attribute_indices[self._triangles[:, 2]] = triangle_indices
 
     def _triangle_attributes_to_point_attributes(
-        self, triangle_attributes: Dict[str, np.ndarray]
-    ) -> Dict[str, np.ndarray]:
+        self, triangle_attributes: dict[str, np.ndarray]
+    ) -> dict[str, np.ndarray]:
         return {
             f"element_{attr_name}": triangle_attr[self._triangle_attribute_indices]
             for attr_name, triangle_attr in triangle_attributes.items()
         }
 
     def _sanitize_point_attributes(
-        self, point_attributes: Dict[str, np.ndarray]
-    ) -> Dict[str, np.ndarray]:
+        self, point_attributes: dict[str, np.ndarray]
+    ) -> dict[str, np.ndarray]:
         if not isinstance(point_attributes, dict):
             raise TypeError(
                 f"`point_attributes` argument should be a dict, but "
@@ -368,8 +368,8 @@ class Mesh(FileMediaType):
         return valid_point_attributes
 
     def _sanitize_triangle_attributes(
-        self, triangle_attributes: Dict[str, np.ndarray]
-    ) -> Dict[str, np.ndarray]:
+        self, triangle_attributes: dict[str, np.ndarray]
+    ) -> dict[str, np.ndarray]:
         if not isinstance(triangle_attributes, dict):
             raise TypeError(
                 f"`triangle_attributes` argument should be a dict, but "
@@ -400,7 +400,7 @@ class Mesh(FileMediaType):
         return valid_triangle_attributes
 
 
-def reindex(point_ids: np.ndarray, *elements: np.ndarray) -> Tuple[np.ndarray, ...]:
+def reindex(point_ids: np.ndarray, *elements: np.ndarray) -> tuple[np.ndarray, ...]:
     """
     Reindex elements which refer to the non-negative unique point ids so that
     they refer to the indices of point ids (`np.arange(len(point_ids))`) in the
@@ -408,7 +408,7 @@ def reindex(point_ids: np.ndarray, *elements: np.ndarray) -> Tuple[np.ndarray, .
     """
     if elements:
         inverse_point_ids = np.full(
-            max((x.max(initial=0) for x in (point_ids, *elements))) + 1,
+            max(x.max(initial=0) for x in (point_ids, *elements)) + 1,
             -1,
             np.int64,
         )
@@ -417,7 +417,7 @@ def reindex(point_ids: np.ndarray, *elements: np.ndarray) -> Tuple[np.ndarray, .
     return ()
 
 
-def attribute_to_array(attribute: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
+def attribute_to_array(attribute: np.ndarray | list[np.ndarray]) -> np.ndarray:
     """
     Encode a single attribute or a list of attribute steps as array with shape
     `(num_steps, n, ...)` and squeeze all dimensions except for 0 and 1.
@@ -432,15 +432,11 @@ def attribute_to_array(attribute: Union[np.ndarray, List[np.ndarray]]) -> np.nda
 
 
 def triangulate(
-    triangles: Optional[np.ndarray] = None,
-    triangle_attributes: Optional[
-        Dict[str, Union[np.ndarray, List[np.ndarray]]]
-    ] = None,
-    quadrangles: Optional[np.ndarray] = None,
-    quadrangle_attributes: Optional[
-        Dict[str, Union[np.ndarray, List[np.ndarray]]]
-    ] = None,
-) -> Tuple[np.ndarray, Dict[str, Union[np.ndarray, List[np.ndarray]]]]:
+    triangles: np.ndarray | None = None,
+    triangle_attributes: dict[str, np.ndarray | list[np.ndarray]] | None = None,
+    quadrangles: np.ndarray | None = None,
+    quadrangle_attributes: dict[str, np.ndarray | list[np.ndarray]] | None = None,
+) -> tuple[np.ndarray, dict[str, np.ndarray | list[np.ndarray]]]:
     """
     Triangulate quadrangles and respective attributes and append them to the
     given triangles/attributes.
@@ -502,15 +498,15 @@ def triangulate(
 def clean(
     points: np.ndarray,
     triangles: np.ndarray,
-    point_attributes: Optional[Dict[str, np.ndarray]] = None,
-    triangle_attributes: Optional[Dict[str, np.ndarray]] = None,
-    point_displacements: Optional[List[np.ndarray]] = None,
-) -> Tuple[
+    point_attributes: dict[str, np.ndarray] | None = None,
+    triangle_attributes: dict[str, np.ndarray] | None = None,
+    point_displacements: list[np.ndarray] | None = None,
+) -> tuple[
     np.ndarray,
     np.ndarray,
-    Dict[str, np.ndarray],
-    Dict[str, np.ndarray],
-    List[np.ndarray],
+    dict[str, np.ndarray],
+    dict[str, np.ndarray],
+    list[np.ndarray],
 ]:
     """
     Remove:

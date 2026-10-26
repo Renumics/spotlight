@@ -8,7 +8,7 @@ import string
 import tempfile
 from datetime import datetime
 from glob import glob
-from typing import List, Optional, cast
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -78,7 +78,7 @@ def test_empty_dataset() -> None:
             print(dataset)
 
 
-def test_initialized_dataset(optional_data: List[ColumnData]) -> None:
+def test_initialized_dataset(optional_data: list[ColumnData]) -> None:
     """
     Test column creation without filling.
     """
@@ -106,7 +106,7 @@ def test_initialized_dataset(optional_data: List[ColumnData]) -> None:
             print(dataset)
 
 
-def test_optional_columns(optional_data: List[ColumnData]) -> None:
+def test_optional_columns(optional_data: list[ColumnData]) -> None:
     """
     Test creation of and writing into optional columns with and without a default value.
     """
@@ -171,7 +171,7 @@ def test_optional_columns(optional_data: List[ColumnData]) -> None:
 
 
 def test_append_row(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test row-wise dataset filling.
@@ -218,7 +218,7 @@ def test_append_row(
 
 
 def test_insert_row(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `Dataset.insert_row` method.
@@ -259,7 +259,7 @@ def test_insert_row(
 
 
 def test_append_common_column(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `append_column` method on all data.
@@ -298,7 +298,7 @@ def test_append_common_column(
 
 
 def test_append_delete_column(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test append/delete column.
@@ -422,7 +422,7 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
 
 
 def test_rename_column(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `Dataset.rename_column` method.
@@ -457,7 +457,7 @@ def test_rename_column(
                     assert approx(value, dataset_value, column_type)
 
 
-def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> None:
+def test_getitem(simple_data: list[ColumnData], complex_data: list[ColumnData]) -> None:
     """
     Test `Dataset.__getitem__` method.
     """
@@ -504,7 +504,7 @@ def test_getitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                     assert approx(value, dataset_value, dtype.name)
 
 
-def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> None:
+def test_setitem(simple_data: list[ColumnData], complex_data: list[ColumnData]) -> None:
     """
     Test `Dataset.__getitem__` method.
     """
@@ -549,7 +549,7 @@ def test_setitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
                     dataset[key, i] = value
 
 
-def test_delitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> None:
+def test_delitem(simple_data: list[ColumnData], complex_data: list[ColumnData]) -> None:
     """
     Test `Dataset.__delitem__` method.
     """
@@ -596,7 +596,7 @@ def test_delitem(simple_data: List[ColumnData], complex_data: List[ColumnData]) 
 
 
 def test_iterrows(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `Dataset.iterrows` method.
@@ -632,12 +632,12 @@ def test_iterrows(
                 dtype_name = dataset.get_dtype(sample.name).name
                 dataset_values = dataset.iterrows(sample.name)
                 for value, dataset_value in zip(values, dataset_values, strict=True):
-                    dataset_value = cast(Optional[OutputType], dataset_value)
+                    dataset_value = cast(OutputType | None, dataset_value)
                     assert approx(value, dataset_value, dtype_name)
 
 
 def test_append_dataset(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `append_dataset` method on all data.
@@ -696,7 +696,7 @@ def test_append_dataset(
 
 
 def test_copy_column(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `append_column` method on all data.
@@ -723,7 +723,7 @@ def test_copy_column(
                 dataset.append_column(f"new {name}", dtype, values, **kwargs)
 
 
-def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> None:
+def test_pop(simple_data: list[ColumnData], complex_data: list[ColumnData]) -> None:
     """
     Test `Dataset.pop` method.
     """
@@ -749,7 +749,7 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
                 dtype = dataset.get_dtype(name)
                 actual_values = dataset.pop(name)
                 for target, actual in zip(
-                    next((x.values for x in data if x.name == name)),
+                    next(x.values for x in data if x.name == name),
                     actual_values,
                     strict=True,
                 ):
@@ -770,7 +770,7 @@ def test_pop(simple_data: List[ColumnData], complex_data: List[ColumnData]) -> N
 
 
 def test_set_attributes_column(
-    simple_data: List[ColumnData], complex_data: List[ColumnData]
+    simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test `set_attributes` method on all data.
@@ -986,7 +986,7 @@ def test_import_csv_with_dtype() -> None:
         df["image3"] = df["image2"]
         df["mesh3"] = df["mesh2"]
         df["video3"] = df["video2"]
-        optional_or_nan_columns: List[str] = list(df.columns.difference(columns))
+        optional_or_nan_columns: list[str] = list(df.columns.difference(columns))
 
         df.loc[indices, optional_or_nan_columns] = ""  # type: ignore
 

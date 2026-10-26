@@ -14,7 +14,7 @@ import subprocess
 import sys
 import threading
 from queue import Empty, Queue
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -40,19 +40,19 @@ class Server:
     _host: str
     _port: int
     _requested_port: int
-    _ssl_keyfile: Optional[str]
-    _ssl_certfile: Optional[str]
-    _ssl_keyfile_password: Optional[str]
+    _ssl_keyfile: str | None
+    _ssl_certfile: str | None
+    _ssl_keyfile_password: str | None
 
-    _vite: Optional[Vite]
+    _vite: Vite | None
 
-    process: Optional[subprocess.Popen]
+    process: subprocess.Popen | None
 
     _startup_event: threading.Event
     _update_complete_event: threading.Event
-    _update_error: Optional[Exception]
+    _update_error: Exception | None
 
-    connection: Optional[multiprocessing.connection.Connection]
+    connection: multiprocessing.connection.Connection | None
     _connection_message_queue: Queue
     _connection_thread: threading.Thread
     _connection_thread_online: threading.Event
@@ -69,9 +69,9 @@ class Server:
         self,
         host: str = "127.0.0.1",
         port: int = 8000,
-        ssl_keyfile: Optional[str] = None,
-        ssl_certfile: Optional[str] = None,
-        ssl_keyfile_password: Optional[str] = None,
+        ssl_keyfile: str | None = None,
+        ssl_certfile: str | None = None,
+        ssl_keyfile_password: str | None = None,
         no_ssl: bool = False,
     ) -> None:
         self.process = None
@@ -274,7 +274,7 @@ class Server:
         if err:
             raise err
 
-    def get_df(self) -> Optional[pd.DataFrame]:
+    def get_df(self) -> pd.DataFrame | None:
         """
         Request and return the current DafaFrame from the server process (if possible)
         """

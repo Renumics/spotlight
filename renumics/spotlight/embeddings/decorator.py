@@ -3,7 +3,8 @@ A decorator for data analysis functions
 """
 
 import functools
-from typing import Any, Callable, Dict, Literal, Optional, Union, overload
+from collections.abc import Callable
+from typing import Any, Literal, overload
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.media import Audio, Embedding, Image, Sequence1D
@@ -19,39 +20,37 @@ from .typing import EmbedArrayFunc, EmbedFunc, EmbedImageFunc, FunctionalEmbedde
 
 @overload
 def embed(
-    dtype: Union[Literal["image", "Image"], Image], *, name: Optional[str] = None
+    dtype: Literal["image", "Image"] | Image, *, name: str | None = None
 ) -> Callable[[EmbedImageFunc], EmbedImageFunc]: ...
 
 
 @overload
 def embed(
-    dtype: Union[Literal["audio", "Audio"], Audio],
+    dtype: Literal["audio", "Audio"] | Audio,
     *,
-    name: Optional[str] = None,
+    name: str | None = None,
     sampling_rate: int,
 ) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]: ...
 
 
 @overload
 def embed(
-    dtype: Union[
-        Literal["embedding", "Embedding", "sequence1d", "Sequence1D"],
-        Embedding,
-        Sequence1D,
-    ],
+    dtype: Literal["embedding", "Embedding", "sequence1d", "Sequence1D"]
+    | Embedding
+    | Sequence1D,
     *,
-    name: Optional[str] = None,
+    name: str | None = None,
 ) -> Callable[[EmbedArrayFunc], EmbedArrayFunc]: ...
 
 
 @overload
 def embed(
-    dtype: Any, *, name: Optional[str] = None, sampling_rate: Optional[int] = None
+    dtype: Any, *, name: str | None = None, sampling_rate: int | None = None
 ) -> Callable[[EmbedFunc], EmbedFunc]: ...
 
 
 def embed(
-    dtype: Any, *, name: Optional[str] = None, sampling_rate: Optional[int] = None
+    dtype: Any, *, name: str | None = None, sampling_rate: int | None = None
 ) -> Callable[[EmbedFunc], EmbedFunc]:
     """
     Decorator for marking an embedding function as an Spotlight embedder for the
@@ -79,14 +78,14 @@ def embed(
     Example of the [JinaAI v2 small](https://huggingface.co/jinaai/jina-embeddings-v2-small-en)
     model:
     ```python
-    from typing import Iterable, List, Optional
+    from collections.abc import Iterable
 
     import numpy as np
     import transformers
     from renumics.spotlight import embed
 
     @embed("str", name="jina-v2-small")
-    def jina_v2_small(batches: Iterable[List[str]]) -> Iterable[List[Optional[np.ndarray]]]:
+    def jina_v2_small(batches: Iterable[list[str]]) -> Iterable[list[np.ndarray | None]]:
         model = AutoModel.from_pretrained('jinaai/jina-embeddings-v2-small-en', trust_remote_code=True)
         for batch in batches:
             embeddings = model.encode(batch)
@@ -95,7 +94,7 @@ def embed(
     """
     dtype = dtypes.create_dtype(dtype)
 
-    kwargs: Dict[str, Any] = {}
+    kwargs: dict[str, Any] = {}
 
     if dtypes.is_image_dtype(dtype):
         kwargs["preprocess_func"] = preprocess_image_batch

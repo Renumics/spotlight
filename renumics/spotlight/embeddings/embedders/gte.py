@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
 
 import numpy as np
 import transformers
@@ -24,7 +24,7 @@ else:
         )
 
     @embed("str")
-    def gte(batches: Iterable[List[str]]) -> Iterable[List[Optional[np.ndarray]]]:
+    def gte(batches: Iterable[list[str]]) -> Iterable[list[np.ndarray | None]]:
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model_name = "thenlper/gte-base"
         tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)

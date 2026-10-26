@@ -2,7 +2,7 @@
 Exceptions to be raised from backend.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import status
 
@@ -69,7 +69,7 @@ class CouldNotOpenTableFile(Problem):
 class NoRowFound(Problem):
     """raised when a row can't be found in the dataset"""
 
-    def __init__(self, index: Optional[IndexType] = None) -> None:
+    def __init__(self, index: IndexType | None = None) -> None:
         if index is None:
             detail = "One of the requested rows does not exist."
         else:

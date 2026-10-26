@@ -3,34 +3,34 @@ Common types and type guards.
 """
 
 import os
-from typing import IO, Any, Iterable, List, Union
+from collections.abc import Iterable
+from typing import IO, Any, TypeAlias, TypeGuard
 
 import numpy as np
-from typing_extensions import TypeGuard
 
-BoolType = Union[bool, np.bool_]
-IntType = Union[int, np.integer]
-FloatType = Union[float, np.floating]
-NumberType = Union[IntType, FloatType]
+BoolType: TypeAlias = bool | np.bool_
+IntType: TypeAlias = int | np.integer
+FloatType: TypeAlias = float | np.floating
+NumberType: TypeAlias = IntType | FloatType
 
-PathType = Union[str, os.PathLike]
-PathOrUrlType = Union[str, os.PathLike]
-FileType = Union[PathOrUrlType, IO]
+PathType: TypeAlias = str | os.PathLike
+PathOrUrlType: TypeAlias = str | os.PathLike
+FileType: TypeAlias = PathOrUrlType | IO
 
-IndexType = Union[int, np.integer]
-Indices1dType = Union[
-    slice, List[int], List[np.integer], List[bool], List[np.bool_], np.ndarray
-]
+IndexType: TypeAlias = int | np.integer
+Indices1dType: TypeAlias = (
+    slice | list[int] | list[np.integer] | list[bool] | list[np.bool_] | np.ndarray
+)
 
 
-def is_bool(x: Any) -> TypeGuard[Union[bool, np.bool_]]:
+def is_bool(x: Any) -> TypeGuard[bool | np.bool_]:
     """
     Check whether `x` is boolean.
     """
     return isinstance(x, (bool, np.bool_))
 
 
-def is_integer(x: Any) -> TypeGuard[Union[int, np.integer]]:
+def is_integer(x: Any) -> TypeGuard[int | np.integer]:
     """
     Check whether `x` is integer.
     """

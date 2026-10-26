@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 
 from renumics.spotlight import dtypes
@@ -9,7 +7,7 @@ from renumics.spotlight.media import Audio, Embedding, Image, Mesh, Sequence1D, 
 
 
 def approx(
-    expected: ColumnInputType, actual: Optional[OutputType], dtype_name: str
+    expected: ColumnInputType, actual: OutputType | None, dtype_name: str
 ) -> bool:
     """
     Check whether expected and actual dataset values are almost equal.
