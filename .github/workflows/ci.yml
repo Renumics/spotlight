@@ -401,6 +401,13 @@ jobs:
               uses: actions/checkout@v6
               with:
                   fetch-depth: 0
+            # FFmpeg is needed by `torchcodec`, which `datasets` uses to encode
+            # audio in the Hugging Face tests. Ubuntu and Windows are pinned to
+            # FFmpeg 9.x, which the locked `torchcodec` supports. MacOS has no
+            # pinnable Homebrew formula yet and gets the latest FFmpeg. If tests
+            # fail there with "Could not load libtorchcodec", the new FFmpeg
+            # version is probably not supported yet: either pin FFmpeg 9 on
+            # MacOS (e.g. via `ffmpeg@9` formula) or update `torchcodec`.
             - name: '🎥 Set up FFMpeg (Ubuntu)'
               if: runner.os == 'Linux'
               env:
@@ -416,6 +423,7 @@ jobs:
               if: runner.os == 'Windows'
               uses: FedericoCarboni/setup-ffmpeg@37062fbf7149fc5578d6c57e08aed62458b375d6 # v3.1
               with:
+                  ffmpeg-version: '9.x'
                   linking-type: shared
             - name: '🎥 Set up FFMpeg (MacOS)'
               if: runner.os == 'macOS'
