@@ -18,7 +18,7 @@
           uv
           pre-commit
           nodejs_24
-          pnpm_10
+          pnpm
           shellcheck
           shfmt
           jdk21
