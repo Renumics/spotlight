@@ -5,7 +5,7 @@ Helper methods for tests
 import os.path
 import tempfile
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pytest
@@ -140,9 +140,9 @@ def simple_data() -> list[ColumnData]:
                 datetime.now(),
                 datetime.now().astimezone(),
                 datetime.now().astimezone(),
-                datetime.utcnow(),
-                datetime.utcnow().astimezone(),
-                datetime.utcnow().astimezone(),
+                datetime.now(timezone.utc).replace(tzinfo=None),
+                datetime.now(timezone.utc),
+                datetime.now(timezone.utc).astimezone(),
             ],
         ),
         ColumnData(

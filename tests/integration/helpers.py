@@ -1,9 +1,22 @@
+from datetime import datetime, timezone
+from typing import Any
+
 import numpy as np
 
 from renumics.spotlight import dtypes
 from renumics.spotlight.dataset import VALUE_TYPE_BY_DTYPE_NAME
 from renumics.spotlight.dataset.typing import ColumnInputType, OutputType
 from renumics.spotlight.media import Audio, Embedding, Image, Mesh, Sequence1D, Video
+
+
+def _as_datetime64(value: Any) -> np.ndarray:
+    """
+    Convert a value to `np.datetime64`. Timezone-aware datetimes are converted
+    to naive UTC first, since `np.datetime64` cannot represent timezones.
+    """
+    if isinstance(value, datetime) and value.tzinfo is not None:
+        value = value.astimezone(timezone.utc).replace(tzinfo=None)
+    return np.array(value, dtype="datetime64")
 
 
 def approx(
@@ -22,8 +35,8 @@ def approx(
         actual_value: np.ndarray = np.array(actual, dtype=value_type)
         return approx(expected_value, actual_value, "array")
     if dtypes.is_datetime_dtype(dtype):
-        expected_datetime = np.array(expected, dtype="datetime64")
-        actual_datetime = np.array(actual, dtype="datetime64")
+        expected_datetime = _as_datetime64(expected)
+        actual_datetime = _as_datetime64(actual)
         return approx(expected_datetime, actual_datetime, "array")
     if dtypes.is_category_dtype(dtype):
         expected_category = np.array(expected, dtype="str")

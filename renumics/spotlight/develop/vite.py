@@ -22,10 +22,10 @@ def wait_for(url: str) -> None:
     Wait for url to become available
     """
 
-    session = requests.Session()
-    retries = Retry(total=100, backoff_factor=0.1)
-    session.mount("http://", HTTPAdapter(max_retries=retries))
-    session.head(url, timeout=30)
+    with requests.Session() as session:
+        retries = Retry(total=100, backoff_factor=0.1)
+        session.mount("http://", HTTPAdapter(max_retries=retries))
+        session.head(url, timeout=30)
 
 
 class Vite:

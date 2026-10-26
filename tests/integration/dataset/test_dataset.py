@@ -839,7 +839,7 @@ def test_import_export_pandas() -> None:
     df["datetime"] = pd.to_datetime(df["datetime"], errors="coerce")
     for name, dtype in df.dtypes.items():
         if dtype is np.dtype(object):
-            df[name].fillna("", inplace=True)
+            df[name] = df[name].fillna("")
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as dataset:

@@ -153,7 +153,7 @@ def generate_tallymarks_dataset(
                 number=int(label) if label > 0 else None,
                 length=float(label) if label > 0 else float("nan"),
                 even_text="even" if label % 2 == 0 else "odd",
-                now=datetime.datetime.utcnow() if label > 0 else None,
+                now=datetime.datetime.now(datetime.timezone.utc) if label > 0 else None,
                 to_number=np.array([float(i) for i in range(label)]),
                 sequence_to_number=_sequence(label) if label > 0 else None,
                 sequence_1_100_to_number=_sequence((1 + label) * 100),

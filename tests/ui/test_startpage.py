@@ -35,13 +35,13 @@ def take_and_diff_snapshot(
 
     if reference_screenshot_path.is_file():
         # make sure both are in the same color mode
-        im1 = Image.open(str(reference_screenshot_path))
-        im2 = Image.open(str(new_screenshot_path))
-        if im1.mode != im2.mode:
-            im1 = im1.convert("RGB")
-            im2 = im2.convert("RGB")
-            im1.save(str(reference_screenshot_path))
-            im2.save(str(new_screenshot_path))
+        with (
+            Image.open(str(reference_screenshot_path)) as im1,
+            Image.open(str(new_screenshot_path)) as im2,
+        ):
+            if im1.mode != im2.mode:
+                im1.convert("RGB").save(str(reference_screenshot_path))
+                im2.convert("RGB").save(str(new_screenshot_path))
 
         diff_ratio = diff(
             str(reference_screenshot_path),
