@@ -4,17 +4,21 @@ Cache for backend files.
 
 from pathlib import Path
 from sqlite3 import OperationalError
-from typing import Any, Optional
+from typing import Any, Optional, Set
 
 import diskcache
 
 from renumics.spotlight import appdirs
+
+_cache_names: Set[str] = set()
 
 
 class Cache:
     """
     A simple wrapper around `diskcache.Cache`, which is opened when it is first used
     (importing the module creates no cache directories).
+
+    The name of every created cache is registered, so that `clear_all` can clear it.
     """
 
     _dir: Path
@@ -23,6 +27,7 @@ class Cache:
     def __init__(self, name: str) -> None:
         self._dir = appdirs.cache_dir / name
         self._cache = None
+        _cache_names.add(name)
 
     def _init_cache(self) -> diskcache.Cache:
         return diskcache.Cache(
@@ -58,6 +63,8 @@ class Cache:
         """
         Clear the whole cache.
         """
+        if self._cache is None and not self._dir.exists():
+            return
         self._open().clear()
 
 
@@ -65,9 +72,9 @@ external_data_cache = Cache("external-data")
 reduction_cache = Cache("reduction")
 
 
-def clear(name: str) -> None:
+def clear_all() -> None:
     """
-    Clear cache by its name.
+    Clear all created caches.
     """
-    cache = Cache(name)
-    cache.clear()
+    for name in list(_cache_names):
+        Cache(name).clear()

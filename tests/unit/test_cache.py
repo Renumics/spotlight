@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 from renumics.spotlight import appdirs
+from renumics.spotlight import cache as cache_module
 from renumics.spotlight.cache import Cache
 
 
@@ -40,17 +41,28 @@ def test_missing_key_is_a_key_error() -> None:
         Cache("missing")["key"]
 
 
-def test_clear_empties_the_cache_of_all_objects() -> None:
+def test_clear_all_empties_all_created_caches() -> None:
     """
-    Test clearing a cache by its name empties it for objects that were opened before.
+    Test clearing all caches empties every cache that was created.
     """
-    from renumics.spotlight import cache as cache_module
-
-    cache = Cache("shared")
-    cache["key"] = 1
-    cache_module.clear("shared")
+    first = Cache("first")
+    second = Cache("second")
+    first["key"] = 1
+    second["key"] = 2
+    cache_module.clear_all()
     with pytest.raises(KeyError):
-        cache["key"]
+        first["key"]
+    with pytest.raises(KeyError):
+        second["key"]
+
+
+def test_clear_all_creates_no_cache_directory(cache_dir: Path) -> None:
+    """
+    Test clearing all caches does not open caches that were never stored to.
+    """
+    Cache("unused")
+    cache_module.clear_all()
+    assert not (cache_dir / "unused").exists()
 
 
 def test_importing_spotlight_creates_no_cache_directory(tmp_path: Path) -> None:
