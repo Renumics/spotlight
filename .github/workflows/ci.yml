@@ -404,7 +404,7 @@ jobs:
             - name: '🎥 Set up FFMpeg (Ubuntu)'
               if: runner.os == 'Linux'
               env:
-                  FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-30-13-08/ffmpeg-n8.1.3-9-g29e619e767-linux64-lgpl-shared-8.1.tar.xz
+                  FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-linux64-lgpl-shared-9.0.tar.xz
               run: |
                   FFMPEG_DIR="${RUNNER_TEMP}/ffmpeg"
                   mkdir -p "$FFMPEG_DIR"
