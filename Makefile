@@ -4,8 +4,6 @@ SHELL := bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-export VERSION := $(shell uv run uv-dynamic-versioning)
-
 .PHONY: help
 help: ## Print this help message
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
@@ -44,16 +42,15 @@ dev: ## Start dev setup
 	SPOTLIGHT_TABLE_FILE=$(TABLE_FILE) SPOTLIGHT_DEV=$${SPOTLIGHT_DEV:-true} uv run spotlight --analyze-all
 
 .PHONY: datasets
-datasets: ## Build datasets (only needed for UI tests)
-	mkdir -p build/datasets/
+datasets: ## Build sample and benchmark datasets for manual testing
+datasets: hdf5-datasets
 	uv run python ./scripts/generate_test_csv.py -o build/datasets/
+
+.PHONY: hdf5-datasets
+hdf5-datasets: ## Build HDF5 datasets only
+	mkdir -p build/datasets/
 	uv run python ./scripts/generate_demo_test_data.py -o build/datasets/
 	uv run python ./scripts/generate_performance_test_data.py -o build/datasets/
-
-.PHONY: all-datasets
-all-datasets: ## Build all datasets
-all-datasets: datasets
-	mkdir -p build/datasets/
 	uv run python ./scripts/generate_multimodal_test_data.py -o build/datasets/
 	uv run python ./scripts/generate_demo_test_data_ultra.py -o build/datasets/
 
@@ -63,6 +60,8 @@ build: build-frontend build-wheel
 
 .PHONY: build-frontend
 build-frontend: ## Build react frontend
+	# the version is shown in the frontend (see `.env`), compute it unless given
+	export VERSION="$${VERSION:-$$(uv run uv-dynamic-versioning)}"
 	NODE_OPTIONS=--max-old-space-size=32768 pnpm run build
 
 .PHONY: build-wheel
@@ -78,7 +77,8 @@ build-wheel: ## Build installable python package
 		ln -nsf ../../../build/frontend renumics/spotlight/backend/statics
 	}
 	trap onexit EXIT
-	sed -i 's/^\(__version__ = \).*/\1"$(VERSION)"/' renumics/spotlight/__version__.py
+	VERSION="$$(uv run uv-dynamic-versioning)"
+	sed -i "s/^\(__version__ = \).*/\1\"$${VERSION}\"/" renumics/spotlight/__version__.py
 	rm renumics/spotlight/backend/statics
 	cp -Tr build/frontend renumics/spotlight/backend/statics
 	uv build
@@ -91,38 +91,38 @@ check-wheel: ## Check wheel content
 
 .PHONY: test
 test: ## Execute all tests (unit/doc/integration/ui)
-test: unit-test doc-test integration-test ui-test
+test: test-unit test-docs test-integration test-ui
 
-.PHONY: unit-test
-unit-test: ## Execute unit tests
+.PHONY: test-unit
+test-unit: ## Execute unit tests
 	export SPOTLIGHT_DEV=False
 	uv run pytest --durations=5 tests/unit
 	pnpm run test
 
-.PHONY: doc-test
-doc-test: ## Execute doc tests
+.PHONY: test-docs
+test-docs: ## Execute doc tests
 	export SPOTLIGHT_DEV=False
 	uv run pytest --durations=5 --doctest-modules --pyargs renumics
 
-.PHONY: integration-test
-integration-test: ## Execute integration-tests
+.PHONY: test-integration
+test-integration: ## Execute integration tests
 	export SPOTLIGHT_DEV=False
 	uv run pytest --durations=5 tests/integration
 
-.PHONY: ui-test
-ui-test: ## Execute ui tests
-ui-test: ui-test-chrome ui-test-firefox
+.PHONY: test-ui
+test-ui: ## Execute ui tests
+test-ui: test-ui-chrome test-ui-firefox
 
-.PHONY: .ui-test-chrome
-.ui-test-chrome:
+.PHONY: .test-ui-chrome
+.test-ui-chrome:
 	uv run pytest --durations=5 -s --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} tests/ui
 
-.PHONY: .ui-test-firefox
-.ui-test-firefox:
+.PHONY: .test-ui-firefox
+.test-ui-firefox:
 	uv run pytest --durations=5 -s -m "not skip_firefox" --backendBaseUrl=$$BACKEND_BASE_URL --frontendBaseUrl=$$FRONTEND_BASE_URL $${CI:+--headless} --browser firefox tests/ui
 
-.PHONY: ui-test-%
-ui-test-%:
+.PHONY: test-ui-%
+test-ui-%:
 	export SPOTLIGHT_DEV=False
 	function teardown {
 		# stop the server and wait for it to exit

@@ -15,7 +15,7 @@ from .helpers import (
 
 def test_tabs_available(
     webdriver: WebDriver,
-    tallymarks_dataset: Any,
+    loaded_image_example_dataset: Any,
     frontend_base_url: str,
     skip_tour: None,
 ) -> None:
@@ -81,7 +81,7 @@ def test_tabs_available(
 
 def test_tagged_elements_available(
     webdriver: WebDriver,
-    tallymarks_dataset: Any,
+    loaded_image_example_dataset: Any,
     frontend_base_url: str,
     skip_tour: None,
 ) -> None:
