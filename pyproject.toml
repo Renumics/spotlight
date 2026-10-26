@@ -50,7 +50,6 @@ dependencies = [
     "h5py>3.0",
     "requests>=2.31",
     "umap-learn",
-    "typing-extensions",
     "httptools",
     "uvloop>=0.17.0; sys_platform == 'Linux' or sys_platform == 'Darwin'",
     "diskcache",
