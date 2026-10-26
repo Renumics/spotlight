@@ -3,7 +3,7 @@ table api endpoints
 """
 
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import ORJSONResponse, Response
@@ -31,9 +31,9 @@ class Column(BaseModel):
     optional: bool
     hidden: bool
     dtype: Any
-    values: Optional[List[Any]]
-    description: Optional[str]
-    tags: Optional[List[str]]
+    values: list[Any] | None
+    description: str | None
+    tags: list[str] | None
     computed: bool
 
 
@@ -44,7 +44,7 @@ class Table(BaseModel):
 
     uid: str
     filename: str
-    columns: List[Column]
+    columns: list[Column]
     generation_id: int
 
 
@@ -159,7 +159,7 @@ async def get_table_cell(
 
 @router.get(
     "/{column}/{row}/waveform",
-    response_model=Optional[List[float]],
+    response_model=list[float] | None,
     tags=["table"],
     operation_id="get_waveform",
 )

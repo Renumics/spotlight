@@ -5,7 +5,7 @@ Taks for dimensionality reduction
 import hashlib
 import json
 from importlib import metadata
-from typing import List, Tuple, cast
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -28,8 +28,8 @@ class ColumnNotEmbeddable(Exception):
 
 
 def align_data(
-    data_store: DataStore, column_names: List[str], indices: List[int]
-) -> Tuple[np.ndarray, List[int]]:
+    data_store: DataStore, column_names: list[str], indices: list[int]
+) -> tuple[np.ndarray, list[int]]:
     """
     Align data from table's columns, remove `NaN`'s.
     """
@@ -85,7 +85,7 @@ def _umap_version() -> str:
 
 def _umap_cache_key(
     data: np.ndarray,
-    indices: List[int],
+    indices: list[int],
     n_neighbors: int,
     metric: str,
     min_dist: float,
@@ -115,12 +115,12 @@ def _umap_cache_key(
 
 def compute_umap(
     data_store: DataStore,
-    column_names: List[str],
-    indices: List[int],
+    column_names: list[str],
+    indices: list[int],
     n_neighbors: int,
     metric: str,
     min_dist: float,
-) -> Tuple[np.ndarray, List[int]]:
+) -> tuple[np.ndarray, list[int]]:
     """
     Prepare data from table and compute U-Map on them.
     """
@@ -145,7 +145,7 @@ def compute_umap(
     # remember the result. It is stored on disk, to survive restarts of the app.
     cache_key = _umap_cache_key(data, indices, n_neighbors, metric, min_dist)
     try:
-        return cast(Tuple[np.ndarray, List[int]], reduction_cache[cache_key])
+        return cast(tuple[np.ndarray, list[int]], reduction_cache[cache_key])
     except KeyError:
         pass
 
@@ -160,10 +160,10 @@ def compute_umap(
 
 def compute_pca(
     data_store: DataStore,
-    column_names: List[str],
-    indices: List[int],
+    column_names: list[str],
+    indices: list[int],
     normalization: str,
-) -> Tuple[np.ndarray, List[int]]:
+) -> tuple[np.ndarray, list[int]]:
     """
     Prepare data from table and compute PCA on them.
     """

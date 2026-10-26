@@ -2,8 +2,9 @@
 This module provides type annotation for Spotlight dataset.
 """
 
+from collections.abc import Sequence
 from datetime import datetime
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import TypeAlias
 
 import numpy as np
 import trimesh
@@ -20,65 +21,76 @@ from renumics.spotlight.media import (
 )
 from renumics.spotlight.typing import BoolType, IntType, NumberType, PathOrUrlType
 
-OutputType = Union[
-    bool, int, float, str, datetime, np.ndarray, Sequence1D, Audio, Image, Mesh, Video
-]
+OutputType: TypeAlias = (
+    bool
+    | int
+    | float
+    | str
+    | datetime
+    | np.ndarray
+    | Sequence1D
+    | Audio
+    | Image
+    | Mesh
+    | Video
+)
 # Only pure types.
-SimpleOutputType = Union[bool, int, float, str, datetime, Embedding]
-RefOutputType = Union[np.ndarray, Embedding, Mesh, Sequence1D, Image, Audio, Video]
-FileBasedOutputType = Union[Audio, Image, Mesh, Video]
-ExternalOutputType = FileBasedOutputType
-ArrayBasedOutputType = Union[Embedding, Image, Sequence1D]
+SimpleOutputType: TypeAlias = bool | int | float | str | datetime | Embedding
+RefOutputType: TypeAlias = (
+    np.ndarray | Embedding | Mesh | Sequence1D | Image | Audio | Video
+)
+FileBasedOutputType: TypeAlias = Audio | Image | Mesh | Video
+ExternalOutputType: TypeAlias = FileBasedOutputType
+ArrayBasedOutputType: TypeAlias = Embedding | Image | Sequence1D
 # Pure types, compatible types and `None`.
-BoolColumnInputType = Optional[BoolType]
-IntColumnInputType = Optional[IntType]
-FloatColumnInputType = Optional[Union[float, np.floating]]
-StringColumnInputType = Optional[str]
-DatetimeColumnInputType = Optional[Union[datetime, np.datetime64]]
-CategoricalColumnInputType = Optional[str]
-WindowColumnInputType = Optional[
-    Union[List[NumberType], Tuple[NumberType, NumberType], np.ndarray]
-]
-BoundingBoxColumnInputType = Optional[
-    Union[
-        List[NumberType],
-        Tuple[NumberType, NumberType, NumberType, NumberType],
-        np.ndarray,
-    ]
-]
-ArrayColumnInputType = Optional[Union[np.ndarray, Sequence]]
-EmbeddingColumnInputType = Optional[Union[Embedding, Array1dLike]]
-AudioColumnInputType = Optional[Union[Audio, PathOrUrlType, bytes]]
-ImageColumnInputType = Optional[Union[Image, ImageLike, PathOrUrlType, bytes]]
-MeshColumnInputType = Optional[Union[Mesh, trimesh.Trimesh, PathOrUrlType]]
-Sequence1DColumnInputType = Optional[Union[Sequence1D, Array1dLike]]
-VideoColumnInputType = Optional[Union[Video, PathOrUrlType, bytes]]
+BoolColumnInputType: TypeAlias = BoolType | None
+IntColumnInputType: TypeAlias = IntType | None
+FloatColumnInputType: TypeAlias = float | np.floating | None
+StringColumnInputType: TypeAlias = str | None
+DatetimeColumnInputType: TypeAlias = datetime | np.datetime64 | None
+CategoricalColumnInputType: TypeAlias = str | None
+WindowColumnInputType: TypeAlias = (
+    list[NumberType] | tuple[NumberType, NumberType] | np.ndarray | None
+)
+BoundingBoxColumnInputType: TypeAlias = (
+    list[NumberType]
+    | tuple[NumberType, NumberType, NumberType, NumberType]
+    | np.ndarray
+    | None
+)
+ArrayColumnInputType: TypeAlias = np.ndarray | Sequence | None
+EmbeddingColumnInputType: TypeAlias = Embedding | Array1dLike | None
+AudioColumnInputType: TypeAlias = Audio | PathOrUrlType | bytes | None
+ImageColumnInputType: TypeAlias = Image | ImageLike | PathOrUrlType | bytes | None
+MeshColumnInputType: TypeAlias = Mesh | trimesh.Trimesh | PathOrUrlType | None
+Sequence1DColumnInputType: TypeAlias = Sequence1D | Array1dLike | None
+VideoColumnInputType: TypeAlias = Video | PathOrUrlType | bytes | None
 # Aggregated input types.
-SimpleColumnInputType = Union[
-    BoolColumnInputType,
-    IntColumnInputType,
-    FloatColumnInputType,
-    StringColumnInputType,
-    DatetimeColumnInputType,
-    CategoricalColumnInputType,
-    WindowColumnInputType,
-    BoundingBoxColumnInputType,
-    EmbeddingColumnInputType,
-]
-RefColumnInputType = Union[
-    ArrayColumnInputType,
-    EmbeddingColumnInputType,
-    Sequence1DColumnInputType,
-    AudioColumnInputType,
-    ImageColumnInputType,
-    MeshColumnInputType,
-    VideoColumnInputType,
-]
-ColumnInputType = Union[SimpleColumnInputType, RefColumnInputType]
-FileColumnInputType = Union[
-    AudioColumnInputType,
-    ImageColumnInputType,
-    MeshColumnInputType,
-    VideoColumnInputType,
-]
-ExternalColumnInputType = Optional[PathOrUrlType]
+SimpleColumnInputType: TypeAlias = (
+    BoolColumnInputType
+    | IntColumnInputType
+    | FloatColumnInputType
+    | StringColumnInputType
+    | DatetimeColumnInputType
+    | CategoricalColumnInputType
+    | WindowColumnInputType
+    | BoundingBoxColumnInputType
+    | EmbeddingColumnInputType
+)
+RefColumnInputType: TypeAlias = (
+    ArrayColumnInputType
+    | EmbeddingColumnInputType
+    | Sequence1DColumnInputType
+    | AudioColumnInputType
+    | ImageColumnInputType
+    | MeshColumnInputType
+    | VideoColumnInputType
+)
+ColumnInputType: TypeAlias = SimpleColumnInputType | RefColumnInputType
+FileColumnInputType: TypeAlias = (
+    AudioColumnInputType
+    | ImageColumnInputType
+    | MeshColumnInputType
+    | VideoColumnInputType
+)
+ExternalColumnInputType: TypeAlias = PathOrUrlType | None

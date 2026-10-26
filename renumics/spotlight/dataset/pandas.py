@@ -4,7 +4,8 @@ Helper for conversion between H5 dataset and `pandas.DataFrame`.
 
 import os.path
 import statistics
-from typing import Any, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 import filetype
 import numpy as np
@@ -21,7 +22,7 @@ from .exceptions import InvalidDTypeError
 
 
 def create_typed_series(
-    dtype: dtypes.DType, values: Optional[Union[Sequence, np.ndarray]] = None
+    dtype: dtypes.DType, values: Sequence | np.ndarray | None = None
 ) -> pd.Series:
     if dtypes.is_category_dtype(dtype):
         if values is None or len(values) == 0:
@@ -172,7 +173,7 @@ def infer_dtype(column: pd.Series) -> dtypes.DType:
     return dtype_mode
 
 
-def infer_value_dtype(value: Any) -> Optional[dtypes.DType]:
+def infer_value_dtype(value: Any) -> dtypes.DType | None:
     """
     Infer dtype for value
     """
@@ -238,7 +239,7 @@ def infer_array_dtype(value: np.ndarray) -> dtypes.DType:
     return dtypes.array_dtype
 
 
-def infer_dtypes(df: pd.DataFrame, dtype: Optional[dtypes.DTypeMap]) -> dtypes.DTypeMap:
+def infer_dtypes(df: pd.DataFrame, dtype: dtypes.DTypeMap | None) -> dtypes.DTypeMap:
     """
     Check column types from the given `dtype` and complete it with auto inferred
     column types for the given `pandas.DataFrame`.

@@ -4,8 +4,8 @@ Helper methods for tests
 
 import os.path
 import tempfile
-from datetime import datetime
-from typing import Iterator, List
+from collections.abc import Iterator
+from datetime import datetime, timezone
 
 import numpy as np
 import pytest
@@ -28,7 +28,7 @@ from .data import (
 
 
 @pytest.fixture
-def optional_data() -> List[ColumnData]:
+def optional_data() -> list[ColumnData]:
     """
     Get a list of optional column data.
     """
@@ -75,7 +75,7 @@ def optional_data() -> List[ColumnData]:
 
 
 @pytest.fixture
-def simple_data() -> List[ColumnData]:
+def simple_data() -> list[ColumnData]:
     """
     Get a list of scalar column data.
     """
@@ -140,9 +140,9 @@ def simple_data() -> List[ColumnData]:
                 datetime.now(),
                 datetime.now().astimezone(),
                 datetime.now().astimezone(),
-                datetime.utcnow(),
-                datetime.utcnow().astimezone(),
-                datetime.utcnow().astimezone(),
+                datetime.now(timezone.utc).replace(tzinfo=None),
+                datetime.now(timezone.utc),
+                datetime.now(timezone.utc).astimezone(),
             ],
         ),
         ColumnData(
@@ -155,7 +155,7 @@ def simple_data() -> List[ColumnData]:
 
 
 @pytest.fixture
-def complex_data() -> List[ColumnData]:
+def complex_data() -> list[ColumnData]:
     """
     Get a list of custom column data.
     """

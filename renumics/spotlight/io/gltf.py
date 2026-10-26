@@ -2,8 +2,6 @@
 This module provides utilities for handling glTF format.
 """
 
-from typing import List, Tuple
-
 import numpy as np
 import pygltflib
 
@@ -96,10 +94,10 @@ def pad_bin_data(bin_data: bytes, bound: int = 4) -> bytes:
 def encode_gltf_array(
     array: np.ndarray,
     bin_data: bytes,
-    buffer_views: List[pygltflib.BufferView],
-    accessors: List[pygltflib.Accessor],
+    buffer_views: list[pygltflib.BufferView],
+    accessors: list[pygltflib.Accessor],
     buffer_view_target: int = pygltflib.ARRAY_BUFFER,
-) -> Tuple[bytes, List[pygltflib.BufferView], List[pygltflib.Accessor]]:
+) -> tuple[bytes, list[pygltflib.BufferView], list[pygltflib.Accessor]]:
     """
     Encode a single array as expected by pygltflib, update binary blob, lists
     with buffer views and accessors.
@@ -149,7 +147,7 @@ def encode_gltf_array(
     return bin_data + pad_bin_data(array_bin_data), buffer_views, accessors
 
 
-def decode_gltf_arrays(gltf: pygltflib.GLTF2) -> List[np.ndarray]:
+def decode_gltf_arrays(gltf: pygltflib.GLTF2) -> list[np.ndarray]:
     """
     Decode all arrays from glTF instance accessors.
 

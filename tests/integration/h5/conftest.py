@@ -4,7 +4,7 @@ Pytest Fixtures for h5 tests
 
 import os.path
 import tempfile
-from typing import Iterator
+from collections.abc import Iterator
 
 import pytest
 

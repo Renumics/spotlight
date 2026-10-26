@@ -3,14 +3,14 @@ Tests for the renumics spotlight app and in mem data frame serving
 """
 
 import json
-from typing import Any, List
+from typing import Any
 
 import requests
 
 from renumics import spotlight
 
 
-def _column_by_name(columns: List, col_name: str) -> Any:
+def _column_by_name(columns: list, col_name: str) -> Any:
     return [col for col in columns if col["name"] == col_name][0]
 
 
@@ -22,7 +22,7 @@ def test_read_table(viewer_csv_df: spotlight.Viewer) -> None:
     response = requests.get(app_url + "/api/table/", timeout=5)
     assert response.status_code == 200
     assert len(response.text) > 1000
-    json_data = json.loads((response.text))
+    json_data = json.loads(response.text)
     assert _column_by_name(json_data["columns"], "bool")["dtype"]["name"] == "bool"
     assert _column_by_name(json_data["columns"], "float")["dtype"]["name"] == "float"
     assert _column_by_name(json_data["columns"], "audio")["dtype"]["name"] == "Audio"

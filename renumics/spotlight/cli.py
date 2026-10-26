@@ -7,7 +7,6 @@ import os
 import platform
 import signal
 import sys
-from typing import Dict, Optional, Tuple, Union
 
 import click
 
@@ -16,15 +15,15 @@ from renumics.spotlight import logging
 
 
 def cli_dtype_callback(
-    _ctx: click.Context, _param: click.Option, value: Tuple[str, ...]
-) -> Optional[Dict[str, str]]:
+    _ctx: click.Context, _param: click.Option, value: tuple[str, ...]
+) -> dict[str, str] | None:
     """
     Parse column types from multiple strings in format
     `COLUMN_NAME=DTYPE` to a dict.
     """
     if not value:
         return None
-    dtypes: Dict[str, str] = {}
+    dtypes: dict[str, str] = {}
     for mapping in value:
         try:
             column_name, dtype = mapping.split("=")
@@ -134,21 +133,21 @@ def cli_dtype_callback(
 @click.option("-v", "--verbose", is_flag=True)
 @click.version_option(spotlight.__version__)
 def main(
-    dataset: Optional[str],
-    folder: Optional[str],
+    dataset: str | None,
+    folder: str | None,
     host: str,
-    port: Union[int, str],
-    layout: Optional[str],
-    dtype: Optional[Dict[str, str]],
+    port: int | str,
+    layout: str | None,
+    dtype: dict[str, str] | None,
     no_browser: bool,
     filebrowsing: bool,
-    analyze: Tuple[str],
+    analyze: tuple[str],
     analyze_all: bool,
-    embed: Tuple[str],
+    embed: tuple[str],
     embed_all: bool,
-    ssl_keyfile: Optional[str],
-    ssl_certfile: Optional[str],
-    ssl_keyfile_password: Optional[str],
+    ssl_keyfile: str | None,
+    ssl_certfile: str | None,
+    ssl_keyfile_password: str | None,
     no_ssl: bool,
     verbose: bool,
 ) -> None:

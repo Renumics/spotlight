@@ -5,7 +5,7 @@ Tests for conversions from source to internal types
 import datetime
 import io
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any
 
 import numpy as np
 import PIL.Image
@@ -115,7 +115,7 @@ def test_conversion_to_datetime(value: Any, target_value: datetime.datetime) -> 
     ],
 )
 def test_conversion_to_category(
-    value: Any, target_value: int, categories: Dict[str, int]
+    value: Any, target_value: int, categories: dict[str, int]
 ) -> None:
     """
     Convert values to category
@@ -208,7 +208,7 @@ def test_conversion_to_sequence(value: Any, target_value: np.ndarray) -> None:
     ],
     ids=["path (str)", "Path", "bytes", "array"],
 )
-def test_conversion_to_image(value: Union[str, bytes]) -> None:
+def test_conversion_to_image(value: str | bytes) -> None:
     """
     Convert values to image
     """
@@ -226,7 +226,7 @@ def test_conversion_to_image(value: Union[str, bytes]) -> None:
     ],
     ids=["path (str)", "Path", "bytes"],
 )
-def test_conversion_to_audio(value: Union[str, bytes]) -> None:
+def test_conversion_to_audio(value: str | bytes) -> None:
     """
     Convert values to audio
     """
@@ -242,7 +242,7 @@ def test_conversion_to_audio(value: Union[str, bytes]) -> None:
     ],
     ids=["path (str)", "Path"],
 )
-def test_conversion_to_video(value: Union[str, bytes]) -> None:
+def test_conversion_to_video(value: str | bytes) -> None:
     """
     Convert values to video
     """
@@ -258,7 +258,7 @@ def test_conversion_to_video(value: Union[str, bytes]) -> None:
     ],
     ids=["path (str)", "Path"],
 )
-def test_conversion_to_mesh(value: Union[str, bytes]) -> None:
+def test_conversion_to_mesh(value: str | bytes) -> None:
     """
     Convert values to mesh
     """

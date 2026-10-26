@@ -4,9 +4,10 @@ This module provides a simple managment class for long running tasks
 
 import asyncio
 import multiprocessing
+from collections.abc import Callable, Sequence
 from concurrent.futures import Future, ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
-from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union
+from typing import Any, TypeVar
 
 from .exceptions import TaskCancelled
 from .task import Task
@@ -19,7 +20,7 @@ class TaskManager:
     Handles task creation, deletion and cleanup
     """
 
-    tasks: List[Task]
+    tasks: list[Task]
     pool: ProcessPoolExecutor
 
     def __init__(self) -> None:
@@ -30,9 +31,9 @@ class TaskManager:
         self,
         func: Callable,
         args: Sequence[Any],
-        kwargs: Optional[Dict[str, Any]] = None,
-        name: Optional[str] = None,
-        tag: Optional[Union[str, int]] = None,
+        kwargs: dict[str, Any] | None = None,
+        name: str | None = None,
+        tag: str | int | None = None,
     ) -> Task:
         """
         create and launch a new task
@@ -63,9 +64,9 @@ class TaskManager:
         self,
         func: Callable[..., T],
         args: Sequence[Any],
-        kwargs: Optional[Dict[str, Any]] = None,
-        name: Optional[str] = None,
-        tag: Optional[Union[str, int]] = None,
+        kwargs: dict[str, Any] | None = None,
+        name: str | None = None,
+        tag: str | int | None = None,
     ) -> T:
         """
         Launch a new task. Await and return result.
@@ -77,9 +78,7 @@ class TaskManager:
         except BrokenProcessPool as e:
             raise TaskCancelled from e
 
-    def cancel(
-        self, name: Optional[str] = None, tag: Optional[Union[str, int]] = None
-    ) -> None:
+    def cancel(self, name: str | None = None, tag: str | int | None = None) -> None:
         """
         Cancel running and queued tasks.
         """

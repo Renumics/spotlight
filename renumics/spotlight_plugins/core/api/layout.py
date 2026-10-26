@@ -2,11 +2,10 @@
 Layout API endpoints
 """
 
-from typing import Dict, Optional, Union
+from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Request
 from pydantic import BaseModel
-from typing_extensions import Annotated
 
 from renumics.spotlight.app import CURRENT_LAYOUT_KEY, SpotlightApp
 
@@ -15,8 +14,8 @@ router = APIRouter()
 
 @router.get("/", tags=["layout"], operation_id="get_layout")
 async def get_layout(
-    request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
-) -> Optional[Dict]:
+    request: Request, browser_id: Annotated[str | None, Cookie()] = None
+) -> dict | None:
     """
     Get layout.
     """
@@ -29,8 +28,8 @@ async def get_layout(
     operation_id="reset_layout",
 )
 async def reset_layout(
-    request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
-) -> Dict:
+    request: Request, browser_id: Annotated[str | None, Cookie()] = None
+) -> dict:
     """
     Get layout.
     """
@@ -52,15 +51,15 @@ class SetLayoutRequest(BaseModel):
     Set layout request model.
     """
 
-    layout: Dict
+    layout: dict
 
 
 @router.put("/", tags=["layout"], operation_id="set_layout")
 async def set_layout(
     request: Request,
     set_layout_request: SetLayoutRequest,
-    browser_id: Annotated[Union[str, None], Cookie()] = None,
-) -> Dict:
+    browser_id: Annotated[str | None, Cookie()] = None,
+) -> dict:
     """
     Get layout.
     """

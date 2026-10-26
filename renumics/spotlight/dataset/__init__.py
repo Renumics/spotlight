@@ -5,22 +5,10 @@ This module provides Spotlight dataset.
 import os
 import shutil
 import uuid
+from collections.abc import Callable, Iterable
 from datetime import datetime
 from tempfile import TemporaryDirectory
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, TypeAlias, TypeGuard, cast, overload
 
 import h5py
 import numpy as np
@@ -30,7 +18,6 @@ import prettytable
 import trimesh
 import validators
 from loguru import logger
-from typing_extensions import TypeGuard
 
 from renumics.spotlight import dtypes as spotlight_dtypes
 from renumics.spotlight.__version__ import __version__
@@ -76,7 +63,9 @@ __all__ = ["Dataset"]
 INTERNAL_COLUMN_NAMES = ["__last_edited_by__", "__last_edited_at__"]
 INTERNAL_COLUMN_DTYPES = [spotlight_dtypes.str_dtype, spotlight_dtypes.datetime_dtype]
 
-_EncodedColumnType = Optional[Union[bool, int, float, str, np.ndarray, h5py.Reference]]
+_EncodedColumnType: TypeAlias = (
+    bool | int | float | str | np.ndarray | h5py.Reference | None
+)
 
 
 VALUE_TYPE_BY_DTYPE_NAME = {
@@ -129,7 +118,7 @@ def unescape_dataset_name(escaped_name: str) -> str:
     return name
 
 
-_ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
+_ALLOWED_COLUMN_TYPES: dict[str, tuple[type, ...]] = {
     "bool": (bool, np.bool_),
     "int": (int, np.integer),
     "float": (float, np.floating),
@@ -166,7 +155,7 @@ _ALLOWED_COLUMN_TYPES: Dict[str, Tuple[Type, ...]] = {
     "Mesh": (spotlight_dtypes.Mesh, trimesh.Trimesh, str, os.PathLike),
     "Video": (spotlight_dtypes.Video, bytes, str, os.PathLike),
 }
-_ALLOWED_COLUMN_DTYPES: Dict[str, Tuple[Type, ...]] = {
+_ALLOWED_COLUMN_DTYPES: dict[str, tuple[type, ...]] = {
     "bool": (np.bool_,),
     "int": (np.integer,),
     "float": (np.floating,),
@@ -221,11 +210,11 @@ class Dataset:
     _mode: str
     _h5_file: h5py.File
     _closed: bool
-    _column_names: Set[str]
+    _column_names: set[str]
     _length: int
 
     @staticmethod
-    def _user_column_attributes(dtype: spotlight_dtypes.DType) -> Dict[str, Type]:
+    def _user_column_attributes(dtype: spotlight_dtypes.DType) -> dict[str, type[Any]]:
         attribute_names = {
             "order": int,
             "hidden": bool,
@@ -306,7 +295,7 @@ class Dataset:
     def __exit__(self, *args: Any) -> None:
         self.close()
 
-    def __delitem__(self, item: Union[str, IndexType, Indices1dType]) -> None:
+    def __delitem__(self, item: str | IndexType | Indices1dType) -> None:
         """
         Delete a dataset column or row.
 
@@ -392,26 +381,24 @@ class Dataset:
 
     @overload
     def __getitem__(
-        self, item: Union[str, Tuple[str, Indices1dType], Tuple[Indices1dType, str]]
+        self, item: str | tuple[str, Indices1dType] | tuple[Indices1dType, str]
     ) -> np.ndarray: ...
 
     @overload
-    def __getitem__(self, item: IndexType) -> Dict[str, Optional[OutputType]]: ...
+    def __getitem__(self, item: IndexType) -> dict[str, OutputType | None]: ...
 
     @overload
     def __getitem__(
-        self, item: Union[Tuple[str, IndexType], Tuple[IndexType, str]]
-    ) -> Optional[OutputType]: ...
+        self, item: tuple[str, IndexType] | tuple[IndexType, str]
+    ) -> OutputType | None: ...
 
     def __getitem__(
         self,
-        item: Union[
-            str,
-            IndexType,
-            Tuple[str, Union[IndexType, Indices1dType]],
-            Tuple[Union[IndexType, Indices1dType], str],
-        ],
-    ) -> Union[np.ndarray, Dict[str, Optional[OutputType]], Optional[OutputType]]:
+        item: str
+        | IndexType
+        | tuple[str, IndexType | Indices1dType]
+        | tuple[IndexType | Indices1dType, str],
+    ) -> np.ndarray | dict[str, OutputType | None] | OutputType | None:
         """
         Get a dataset column, row or value.
 
@@ -458,33 +445,29 @@ class Dataset:
     @overload
     def __setitem__(
         self,
-        item: Union[str, Tuple[str, Indices1dType], Tuple[Indices1dType, str]],
-        value: Union[ColumnInputType, Iterable[ColumnInputType]],
+        item: str | tuple[str, Indices1dType] | tuple[Indices1dType, str],
+        value: ColumnInputType | Iterable[ColumnInputType],
     ) -> None: ...
 
     @overload
     def __setitem__(
-        self, item: IndexType, value: Dict[str, ColumnInputType]
+        self, item: IndexType, value: dict[str, ColumnInputType]
     ) -> None: ...
 
     @overload
     def __setitem__(
         self,
-        item: Union[Tuple[str, IndexType], Tuple[IndexType, str]],
+        item: tuple[str, IndexType] | tuple[IndexType, str],
         value: ColumnInputType,
     ) -> None: ...
 
     def __setitem__(
         self,
-        item: Union[
-            str,
-            IndexType,
-            Tuple[str, Union[IndexType, Indices1dType]],
-            Tuple[Union[IndexType, Indices1dType], str],
-        ],
-        value: Union[
-            ColumnInputType, Iterable[ColumnInputType], Dict[str, ColumnInputType]
-        ],
+        item: str
+        | IndexType
+        | tuple[str, IndexType | Indices1dType]
+        | tuple[IndexType | Indices1dType, str],
+        value: ColumnInputType | Iterable[ColumnInputType] | dict[str, ColumnInputType],
     ) -> None:
         """
         Set a dataset column, row or value.
@@ -542,12 +525,10 @@ class Dataset:
 
     @staticmethod
     def _prepare_item(
-        item: Union[
-            str,
-            Tuple[str, Union[IndexType, Indices1dType]],
-            Tuple[Union[IndexType, Indices1dType], str],
-        ],
-    ) -> Tuple[str, Optional[Union[IndexType, Indices1dType]]]:
+        item: str
+        | tuple[str, IndexType | Indices1dType]
+        | tuple[IndexType | Indices1dType, str],
+    ) -> tuple[str, IndexType | Indices1dType | None]:
         if isinstance(item, str):
             return item, None
         if isinstance(item, tuple) and len(item) == 2:
@@ -560,9 +541,7 @@ class Dataset:
             f"and an index/indices, but value {item} of type `{type(item)}` received."
         )
 
-    def __iadd__(
-        self, other: Union[Dict[str, ColumnInputType], "Dataset"]
-    ) -> "Dataset":
+    def __iadd__(self, other: "dict[str, ColumnInputType] | Dataset") -> "Dataset":
         if isinstance(other, dict):
             self.append_row(**other)
             return self
@@ -580,7 +559,7 @@ class Dataset:
     def __str__(self) -> str:
         return self._pretty_table().get_string()
 
-    def open(self, mode: Optional[str] = None) -> None:
+    def open(self, mode: str | None = None) -> None:
         """
         Open previously closed file or reopen file with another mode.
 
@@ -624,27 +603,23 @@ class Dataset:
             self._column_names = set()
             self._length = 0
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         """
         Get dataset column names.
         """
         return list(self._column_names)
 
     @overload
-    def iterrows(self) -> Iterable[Dict[str, Optional[OutputType]]]: ...
+    def iterrows(self) -> Iterable[dict[str, OutputType | None]]: ...
 
     @overload
     def iterrows(
-        self, column_names: Union[str, Iterable[str]]
-    ) -> Union[
-        Iterable[Dict[str, Optional[OutputType]]], Iterable[Optional[OutputType]]
-    ]: ...
+        self, column_names: str | Iterable[str]
+    ) -> Iterable[dict[str, OutputType | None]] | Iterable[OutputType | None]: ...
 
     def iterrows(
-        self, column_names: Optional[Union[str, Iterable[str]]] = None
-    ) -> Union[
-        Iterable[Dict[str, Optional[OutputType]]], Iterable[Optional[OutputType]]
-    ]:
+        self, column_names: str | Iterable[str] | None = None
+    ) -> Iterable[dict[str, OutputType | None]] | Iterable[OutputType | None]:
         """
         Iterate through dataset rows.
         """
@@ -686,8 +661,8 @@ class Dataset:
         self,
         df: pd.DataFrame,
         index: bool = False,
-        dtypes: Optional[Dict[str, Any]] = None,
-        workdir: Optional[PathType] = None,
+        dtypes: dict[str, Any] | None = None,
+        workdir: PathType | None = None,
     ) -> None:
         """
         Import a pandas dataframe to the dataset.
@@ -798,9 +773,9 @@ class Dataset:
     def from_csv(
         self,
         filepath: PathType,
-        dtypes: Optional[Dict[str, Any]] = None,
-        columns: Optional[Iterable[str]] = None,
-        workdir: Optional[PathType] = None,
+        dtypes: dict[str, Any] | None = None,
+        columns: Iterable[str] | None = None,
+        workdir: PathType | None = None,
     ) -> None:
         """
         Args:
@@ -872,13 +847,13 @@ class Dataset:
     def append_bool_column(
         self,
         name: str,
-        values: Union[BoolColumnInputType, Iterable[BoolColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: BoolColumnInputType | Iterable[BoolColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: BoolColumnInputType = False,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
     ) -> None:
         """
@@ -924,13 +899,13 @@ class Dataset:
     def append_int_column(
         self,
         name: str,
-        values: Union[IntColumnInputType, Iterable[IntColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: IntColumnInputType | Iterable[IntColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: IntColumnInputType = -1,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
     ) -> None:
         """
@@ -971,13 +946,13 @@ class Dataset:
     def append_float_column(
         self,
         name: str,
-        values: Union[FloatColumnInputType, Iterable[FloatColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: FloatColumnInputType | Iterable[FloatColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: FloatColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
     ) -> None:
         """
@@ -1019,13 +994,13 @@ class Dataset:
     def append_string_column(
         self,
         name: str,
-        values: Union[StringColumnInputType, Iterable[StringColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: StringColumnInputType | Iterable[StringColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
-        default: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        default: str | None = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
     ) -> None:
         """
@@ -1067,15 +1042,13 @@ class Dataset:
     def append_datetime_column(
         self,
         name: str,
-        values: Union[
-            DatetimeColumnInputType, Iterable[DatetimeColumnInputType]
-        ] = None,
-        order: Optional[int] = None,
+        values: DatetimeColumnInputType | Iterable[DatetimeColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: DatetimeColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
     ) -> None:
         """
         Create and optionally fill a datetime column.
@@ -1121,13 +1094,13 @@ class Dataset:
     def append_array_column(
         self,
         name: str,
-        values: Union[ArrayColumnInputType, Iterable[ArrayColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: ArrayColumnInputType | Iterable[ArrayColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: ArrayColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
     ) -> None:
         """
         Create and optionally fill a numpy array column.
@@ -1172,17 +1145,16 @@ class Dataset:
     def append_categorical_column(
         self,
         name: str,
-        values: Union[
-            CategoricalColumnInputType, Iterable[CategoricalColumnInputType]
-        ] = None,
-        order: Optional[int] = None,
+        values: CategoricalColumnInputType
+        | Iterable[CategoricalColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
-        default: Optional[str] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        default: str | None = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
-        categories: Optional[Union[Iterable[str], Dict[str, int]]] = None,
+        categories: Iterable[str] | dict[str, int] | None = None,
     ) -> None:
         """
         Create and optionally fill a categorical column.
@@ -1223,17 +1195,15 @@ class Dataset:
     def append_embedding_column(
         self,
         name: str,
-        values: Union[
-            EmbeddingColumnInputType, Iterable[EmbeddingColumnInputType]
-        ] = None,
-        order: Optional[int] = None,
+        values: EmbeddingColumnInputType | Iterable[EmbeddingColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: EmbeddingColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        length: Optional[int] = None,
-        dtype: Union[str, np.dtype] = "float32",
+        description: str | None = None,
+        tags: list[str] | None = None,
+        length: int | None = None,
+        dtype: str | np.dtype = "float32",
     ) -> None:
         """
         Create and optionally fill a mesh column.
@@ -1277,17 +1247,15 @@ class Dataset:
     def append_sequence_1d_column(
         self,
         name: str,
-        values: Union[
-            Sequence1DColumnInputType, Iterable[Sequence1DColumnInputType]
-        ] = None,
-        order: Optional[int] = None,
+        values: Sequence1DColumnInputType | Iterable[Sequence1DColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: Sequence1DColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        x_label: Optional[str] = None,
-        y_label: Optional[str] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
+        x_label: str | None = None,
+        y_label: str | None = None,
     ) -> None:
         """
         Create and optionally fill a 1d-sequence column.
@@ -1331,20 +1299,19 @@ class Dataset:
     def append_mesh_column(
         self,
         name: str,
-        values: Optional[
-            Union[MeshColumnInputType, Iterable[Optional[MeshColumnInputType]]]
-        ] = None,
-        order: Optional[int] = None,
+        values: MeshColumnInputType
+        | Iterable[MeshColumnInputType | None]
+        | None = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
-        default: Optional[MeshColumnInputType] = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        lookup: Optional[
-            Union[
-                BoolType, Iterable[MeshColumnInputType], Dict[str, MeshColumnInputType]
-            ]
-        ] = None,
+        default: MeshColumnInputType | None = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
+        lookup: BoolType
+        | Iterable[MeshColumnInputType]
+        | dict[str, MeshColumnInputType]
+        | None = None,
         external: bool = False,
     ) -> None:
         """
@@ -1394,18 +1361,17 @@ class Dataset:
     def append_image_column(
         self,
         name: str,
-        values: Union[ImageColumnInputType, Iterable[ImageColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: ImageColumnInputType | Iterable[ImageColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: ImageColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        lookup: Optional[
-            Union[
-                BoolType, Iterable[MeshColumnInputType], Dict[str, MeshColumnInputType]
-            ]
-        ] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
+        lookup: BoolType
+        | Iterable[MeshColumnInputType]
+        | dict[str, MeshColumnInputType]
+        | None = None,
         external: bool = False,
     ) -> None:
         """
@@ -1455,22 +1421,19 @@ class Dataset:
     def append_audio_column(
         self,
         name: str,
-        values: Optional[
-            Union[AudioColumnInputType, Iterable[AudioColumnInputType]]
-        ] = None,
-        order: Optional[int] = None,
+        values: AudioColumnInputType | Iterable[AudioColumnInputType] | None = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: ImageColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        lookup: Optional[
-            Union[
-                BoolType, Iterable[MeshColumnInputType], Dict[str, MeshColumnInputType]
-            ]
-        ] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
+        lookup: BoolType
+        | Iterable[MeshColumnInputType]
+        | dict[str, MeshColumnInputType]
+        | None = None,
         external: bool = False,
-        lossy: Optional[bool] = None,
+        lossy: bool | None = None,
     ) -> None:
         """
         Create and optionally fill an audio column.
@@ -1529,20 +1492,17 @@ class Dataset:
     def append_video_column(
         self,
         name: str,
-        values: Optional[
-            Union[VideoColumnInputType, Iterable[VideoColumnInputType]]
-        ] = None,
-        order: Optional[int] = None,
+        values: VideoColumnInputType | Iterable[VideoColumnInputType] | None = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: VideoColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        lookup: Optional[
-            Union[
-                BoolType, Iterable[MeshColumnInputType], Dict[str, MeshColumnInputType]
-            ]
-        ] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
+        lookup: BoolType
+        | Iterable[MeshColumnInputType]
+        | dict[str, MeshColumnInputType]
+        | None = None,
         external: bool = False,
     ) -> None:
         """
@@ -1589,15 +1549,13 @@ class Dataset:
     def append_window_column(
         self,
         name: str,
-        values: Optional[
-            Union[WindowColumnInputType, Iterable[WindowColumnInputType]]
-        ] = None,
-        order: Optional[int] = None,
+        values: WindowColumnInputType | Iterable[WindowColumnInputType] | None = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: WindowColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
     ) -> None:
         """
@@ -1638,15 +1596,15 @@ class Dataset:
     def append_bounding_box_column(
         self,
         name: str,
-        values: Optional[
-            Union[BoundingBoxColumnInputType, Iterable[BoundingBoxColumnInputType]]
-        ] = None,
-        order: Optional[int] = None,
+        values: BoundingBoxColumnInputType
+        | Iterable[BoundingBoxColumnInputType]
+        | None = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: BoundingBoxColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         editable: bool = True,
     ) -> None:
         """
@@ -1685,13 +1643,13 @@ class Dataset:
         self,
         name: str,
         dtype: Any,
-        values: Union[ColumnInputType, Iterable[ColumnInputType]] = None,
-        order: Optional[int] = None,
+        values: ColumnInputType | Iterable[ColumnInputType] = None,
+        order: int | None = None,
         hidden: bool = False,
         optional: bool = False,
         default: ColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         **attrs: Any,
     ) -> None:
         """
@@ -1852,7 +1810,7 @@ class Dataset:
                 self._update_internal_columns()
             raise e
 
-    def insert_row(self, index: IndexType, values: Dict[str, ColumnInputType]) -> None:
+    def insert_row(self, index: IndexType, values: dict[str, ColumnInputType]) -> None:
         """
         Insert a row into the dataset at the given index.
 
@@ -1905,11 +1863,9 @@ class Dataset:
     def pop(self, item: str) -> np.ndarray: ...
 
     @overload
-    def pop(self, item: IndexType) -> Dict[str, Optional[OutputType]]: ...
+    def pop(self, item: IndexType) -> dict[str, OutputType | None]: ...
 
-    def pop(
-        self, item: Union[str, IndexType]
-    ) -> Union[np.ndarray, Dict[str, Optional[OutputType]]]:
+    def pop(self, item: str | IndexType) -> np.ndarray | dict[str, OutputType | None]:
         """
         Delete a dataset column or row and return it.
         """
@@ -2114,7 +2070,7 @@ class Dataset:
         self._assert_column_exists(column_name, internal=True)
         return self._get_dtype(self._h5_file[column_name])
 
-    def get_column_attributes(self, name: str) -> Dict[str, Any]:
+    def get_column_attributes(self, name: str) -> dict[str, Any]:
         """
         Get attributes of a column. Available but unset attributes contain None.
 
@@ -2169,7 +2125,7 @@ class Dataset:
         dtype = self._get_dtype(column_attrs)
         allowed_attributes = self._user_column_attributes(dtype)
 
-        attrs: Dict[str, Any] = {
+        attrs: dict[str, Any] = {
             attribute_name: None for attribute_name in allowed_attributes
         }
 
@@ -2254,8 +2210,8 @@ class Dataset:
     @staticmethod
     def _write_lookup(
         attrs: h5py.AttributeManager,
-        keys: Union[List, np.ndarray],
-        values: Union[List, np.ndarray],
+        keys: list | np.ndarray,
+        values: list | np.ndarray,
         column_name: str,
     ) -> None:
         try:
@@ -2274,12 +2230,12 @@ class Dataset:
     def set_column_attributes(
         self,
         name: str,
-        order: Optional[int] = None,
-        hidden: Optional[bool] = None,
-        optional: Optional[bool] = None,
+        order: int | None = None,
+        hidden: bool | None = None,
+        optional: bool | None = None,
         default: ColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         **attrs: Any,
     ) -> None:
         """
@@ -2425,7 +2381,7 @@ class Dataset:
                             # For a non-ref `Embedding` column, replace `None` with an empty array.
                             default = np.empty(0, column.dtype.metadata["vlen"])
                 if spotlight_dtypes.is_category_dtype(dtype) and default is not None:
-                    categories: List[str] = column.attrs["category_keys"].tolist()
+                    categories: list[str] = column.attrs["category_keys"].tolist()
                     if default not in categories:
                         column.attrs["category_values"] = np.append(
                             column.attrs["category_values"], -1
@@ -2509,14 +2465,14 @@ class Dataset:
         self,
         name: str,
         dtype: spotlight_dtypes.DType,
-        values: Union[ColumnInputType, Iterable[ColumnInputType]],
+        values: ColumnInputType | Iterable[ColumnInputType],
         np_dtype: np.dtype,
-        order: Optional[int] = None,
+        order: int | None = None,
         hidden: bool = True,
         optional: bool = False,
         default: ColumnInputType = None,
-        description: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        description: str | None = None,
+        tags: list[str] | None = None,
         **attrs: Any,
     ) -> None:
         self._assert_is_writable()
@@ -2524,16 +2480,16 @@ class Dataset:
         self._assert_column_not_exists(name)
         # Here, only do expensive logic which *should not* be applied in the
         # `set_column_attributes` method.
-        shape: Tuple[int, ...] = (0,)
-        maxshape: Tuple[Optional[int], ...] = (None,)
+        shape: tuple[int, ...] = (0,)
+        maxshape: tuple[int | None, ...] = (None,)
         if spotlight_dtypes.is_category_dtype(dtype):
             if dtype.categories is None:
                 if is_iterable(values):
-                    categories: List[str] = sorted(set(values))
+                    categories: list[str] = sorted(set(values))
                 elif values is None:
                     categories = []
                 else:
-                    categories = cast(List[str], [values])
+                    categories = cast(list[str], [values])
                 dtype = spotlight_dtypes.CategoryDType(categories)
             attrs["categories"] = dtype.categories
         elif spotlight_dtypes.is_window_dtype(dtype):
@@ -2583,8 +2539,8 @@ class Dataset:
     def _set_column(
         self,
         column: h5py.Dataset,
-        values: Union[ColumnInputType, Iterable[ColumnInputType]],
-        indices: Union[None, slice, List[Union[int, bool]], np.ndarray] = None,
+        values: ColumnInputType | Iterable[ColumnInputType],
+        indices: None | slice | list[int | bool] | np.ndarray = None,
         preserve_values: bool = False,
     ) -> None:
         column_name = self._get_column_name(column)
@@ -2629,7 +2585,7 @@ class Dataset:
             # values_indices = indices_length - values_indices
         target_column_length = self._length
 
-        encoded_values: Union[np.ndarray, List[_EncodedColumnType]]
+        encoded_values: np.ndarray | list[_EncodedColumnType]
         if is_iterable(values):
             # Single windows, bounding boxes and embeddings also come here.
             encoded_values = self._encode_values(values, column)
@@ -2700,7 +2656,7 @@ class Dataset:
         self._length = target_column_length
         self._update_internal_columns(column_indices)
 
-    def _set_row(self, index: IndexType, row: Dict[str, ColumnInputType]) -> None:
+    def _set_row(self, index: IndexType, row: dict[str, ColumnInputType]) -> None:
         old_row = {
             column_name: self._h5_file[column_name][index]
             for column_name in self._column_names
@@ -2741,7 +2697,7 @@ class Dataset:
     def _get_column(
         self,
         column: h5py.Dataset,
-        indices: Optional[Indices1dType] = None,
+        indices: Indices1dType | None = None,
     ) -> np.ndarray:
         """
         Read and decode values of the given existing column.
@@ -2826,13 +2782,13 @@ class Dataset:
 
     def _get_value(
         self, column: h5py.Dataset, index: IndexType, check_index: bool = False
-    ) -> Optional[OutputType]:
+    ) -> OutputType | None:
         if check_index:
             self._assert_index_exists(index)
         value = column[index]
         return self._decode_value(value, column)
 
-    def _get_column_names_and_length(self) -> Tuple[Set[str], int]:
+    def _get_column_names_and_length(self) -> tuple[set[str], int]:
         """
         Parse valid columns of the same length from a H5 file. Valid columns
         should have a known type stored in column attributes and have the same
@@ -2896,17 +2852,14 @@ class Dataset:
     ) -> np.ndarray:
         dtype = self._get_dtype(column)
         if spotlight_dtypes.is_category_dtype(dtype):
-            categories = cast(Dict[Optional[str], int], (dtype.categories or {}).copy())
+            categories = cast(dict[str | None, int], (dtype.categories or {}).copy())
             if column.attrs.get("optional", False):
                 default = column.attrs.get("default", -1)
                 categories[None] = default
             try:
                 # Map values and save as the right int type.
                 return np.array(
-                    [
-                        categories[value]
-                        for value in cast(Iterable[Optional[str]], values)
-                    ],
+                    [categories[value] for value in cast(Iterable[str | None], values)],
                     dtype=column.dtype,
                 )
             except KeyError as e:
@@ -3075,8 +3028,8 @@ class Dataset:
         return values
 
     def _encode_row(
-        self, values: Dict[str, ColumnInputType]
-    ) -> Dict[str, _EncodedColumnType]:
+        self, values: dict[str, ColumnInputType]
+    ) -> dict[str, _EncodedColumnType]:
         """
         Encode a single row for writing to dataset.
 
@@ -3223,11 +3176,11 @@ class Dataset:
 
     def _write_ref_value(
         self,
-        value: Optional[Union[np.ndarray, np.void]],
+        value: np.ndarray | np.void | None,
         column: h5py.Dataset,
         column_name: str,
-        key: Optional[str] = None,
-    ) -> Optional[Union[str, h5py.Reference]]:
+        key: str | None = None,
+    ) -> str | h5py.Reference | None:
         if value is None:
             return None
         # Write value into H5 and return its reference.
@@ -3246,7 +3199,7 @@ class Dataset:
         value: RefColumnInputType,
         column: h5py.Dataset,
         dtype: spotlight_dtypes.DType,
-    ) -> Optional[Union[np.ndarray, np.void]]:
+    ) -> np.ndarray | np.void | None:
         """
         Encode a ref value, e.g. np.ndarray, Sequence1D, Image, Mesh, Audio,
         Video, and Embedding (in old versions).
@@ -3329,14 +3282,14 @@ class Dataset:
             )
         value = str(value)
         attrs = column.attrs
-        lookup_keys: Optional[List[str]] = None
+        lookup_keys: list[str] | None = None
         # We still can have a lookup.
         try:
             lookup_keys = attrs["lookup_keys"].tolist()
         except KeyError:
             pass  # Don't need to search/update, so encode value as usual.
         else:
-            lookup_keys = cast(List[str], lookup_keys)
+            lookup_keys = cast(list[str], lookup_keys)
             try:
                 index = lookup_keys.index(value)
             except ValueError:
@@ -3377,27 +3330,31 @@ class Dataset:
 
     def _decode_value(
         self,
-        value: Union[
-            np.bool_, np.integer, np.floating, bytes, str, np.ndarray, h5py.Reference
-        ],
+        value: np.bool_
+        | np.integer
+        | np.floating
+        | bytes
+        | str
+        | np.ndarray
+        | h5py.Reference,
         column: h5py.Dataset,
-    ) -> Optional[OutputType]:
+    ) -> OutputType | None:
         dtype = self._get_dtype(column)
         if column.attrs.get("external", False):
             value = cast(bytes, value)
             return self._decode_external_value(value, dtype)
         if self._is_ref_column(column):
-            value = cast(Union[bytes, h5py.Reference], value)
+            value = cast(bytes | h5py.Reference, value)
             column_name = self._get_column_name(column)
             return self._decode_ref_value(value, dtype, column_name)
-        value = cast(Union[np.bool_, np.integer, np.floating, bytes, np.ndarray], value)
+        value = cast(np.bool_ | np.integer | np.floating | bytes | np.ndarray, value)
         return self._decode_simple_value(value, dtype)
 
     @staticmethod
     def _decode_simple_value(
-        value: Union[np.bool_, np.integer, np.floating, bytes, str, np.ndarray],
+        value: np.bool_ | np.integer | np.floating | bytes | str | np.ndarray,
         dtype: spotlight_dtypes.DType,
-    ) -> Optional[Union[bool, int, float, str, datetime, np.ndarray]]:
+    ) -> bool | int | float | str | datetime | np.ndarray | None:
         if spotlight_dtypes.is_window_dtype(
             dtype
         ) or spotlight_dtypes.is_bounding_box_dtype(dtype):
@@ -3422,19 +3379,18 @@ class Dataset:
 
     def _decode_ref_value(
         self,
-        ref: Union[bytes, str, h5py.Reference],
+        ref: bytes | str | h5py.Reference,
         dtype: spotlight_dtypes.DType,
         column_name: str,
-    ) -> Optional[
-        Union[
-            np.ndarray,
-            spotlight_dtypes.Audio,
-            spotlight_dtypes.Image,
-            spotlight_dtypes.Mesh,
-            spotlight_dtypes.Sequence1D,
-            spotlight_dtypes.Video,
-        ]
-    ]:
+    ) -> (
+        np.ndarray
+        | spotlight_dtypes.Audio
+        | spotlight_dtypes.Image
+        | spotlight_dtypes.Mesh
+        | spotlight_dtypes.Sequence1D
+        | spotlight_dtypes.Video
+        | None
+    ):
         # Value can be a H5 reference or a string reference.
         if not ref:
             return None
@@ -3447,9 +3403,9 @@ class Dataset:
 
     def _decode_external_value(
         self,
-        value: Union[str, bytes],
+        value: str | bytes,
         dtype: spotlight_dtypes.DType,
-    ) -> Optional[ExternalOutputType]:
+    ) -> ExternalOutputType | None:
         if not value:
             return None
         if isinstance(value, bytes):
@@ -3482,7 +3438,7 @@ class Dataset:
                 column = self._h5_file[column_name]
             except KeyError:
                 # Internal column does not exist, create.
-                value = cast(Union[str, datetime], value)
+                value = cast(str | datetime, value)
                 self.append_column(
                     column_name, dtype, value if self._length > 0 else None
                 )
@@ -3505,7 +3461,7 @@ class Dataset:
                     )
 
     def _update_internal_columns(
-        self, index: Optional[Union[IndexType, Indices1dType]] = None
+        self, index: IndexType | Indices1dType | None = None
     ) -> None:
         """
         Update internal columns.
@@ -3555,7 +3511,7 @@ class Dataset:
             column.resize(length, axis=0)
 
     def _resolve_ref(
-        self, ref: Union[h5py.Reference, str, bytes], column_name: str
+        self, ref: h5py.Reference | str | bytes, column_name: str
     ) -> h5py.Dataset:
         if isinstance(ref, bytes):
             ref = ref.decode("utf-8")
@@ -3568,7 +3524,7 @@ class Dataset:
         return ""
 
     def _get_dtype(
-        self, x: Union[h5py.Dataset, h5py.AttributeManager]
+        self, x: h5py.Dataset | h5py.AttributeManager
     ) -> spotlight_dtypes.DType:
         """
         Get column type by its name, or extract it from `h5py` entities.
@@ -3730,7 +3686,7 @@ class Dataset:
             )
 
     def _assert_valid_or_set_value_shape(
-        self, shape: Tuple[int, ...], column: h5py.Dataset
+        self, shape: tuple[int, ...], column: h5py.Dataset
     ) -> None:
         """
         Set value shape for the whole column if not yet set, check shape otherwise.

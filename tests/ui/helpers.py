@@ -1,10 +1,10 @@
 """Helpers for ui-tests"""
 
 import time
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Iterator, List
 
 import pytest
 from selenium.common.exceptions import (
@@ -163,7 +163,7 @@ def get_column_index(webdriver: WebDriver, name: str) -> int:
     raise ElementNotAvailable(f"Could not find the column '{name}'")
 
 
-def get_visible_column_names(webdriver: WebDriver) -> List[str]:
+def get_visible_column_names(webdriver: WebDriver) -> list[str]:
     """get the names of the visible table columns, from left to right"""
     wait_for_css_element(webdriver, "div[data-rowindex='-1']")
     headers = webdriver.find_elements(

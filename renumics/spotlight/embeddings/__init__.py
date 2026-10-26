@@ -4,7 +4,6 @@ Dataset Analysis
 
 import importlib
 import pkgutil
-from typing import Dict, List
 
 import numpy as np
 
@@ -20,11 +19,11 @@ for module_info in pkgutil.iter_modules(embedders_namespace.__path__):
     importlib.import_module(embedders_namespace.__name__ + "." + module_info.name)
 
 
-def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Embedder]:
+def create_embedders(data_store: DataStore, columns: list[str]) -> dict[str, Embedder]:
     """
     Create embedding functions for the given data store.
     """
-    embedders: Dict[str, Embedder] = {}
+    embedders: dict[str, Embedder] = {}
     for column in columns:
         for name, (embedder_class, dtype, args, kwargs) in registered_embedders.items():
             if data_store.dtypes[column].name != dtype.name:
@@ -35,7 +34,7 @@ def create_embedders(data_store: DataStore, columns: List[str]) -> Dict[str, Emb
     return embedders
 
 
-def run_embedders(embedders: Dict[str, Embedder]) -> Dict[str, np.ndarray]:
+def run_embedders(embedders: dict[str, Embedder]) -> dict[str, np.ndarray]:
     """
     Run the given functions.
     """

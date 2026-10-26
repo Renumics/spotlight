@@ -2,10 +2,9 @@
 Implementation of widget models and interfaces for widget creation.
 """
 
-from typing import List, Optional
+from typing import Literal, TypeAlias
 
 from pydantic import BaseModel, Field
-from typing_extensions import Literal
 
 from .lenses import Lens
 
@@ -22,8 +21,8 @@ class Widget(BaseModel, extra="forbid"):
     """
 
     type: str
-    name: Optional[str] = None
-    config: Optional[WidgetConfig] = None
+    name: str | None = None
+    config: WidgetConfig | None = None
     kind: Literal["widget"] = "widget"
 
 
@@ -32,8 +31,8 @@ class HistogramConfig(WidgetConfig):
     Histogram configuration model.
     """
 
-    column: Optional[str] = Field(None, alias="columnKey")
-    stack_by_column: Optional[str] = Field(None, alias="stackByColumnKey")
+    column: str | None = Field(None, alias="columnKey")
+    stack_by_column: str | None = Field(None, alias="stackByColumnKey")
     filter: bool = Field(False, alias="filter")
 
 
@@ -43,7 +42,7 @@ class Histogram(Widget):
     """
 
     type: Literal["histogram"] = "histogram"
-    config: Optional[HistogramConfig] = None
+    config: HistogramConfig | None = None
 
 
 class ScatterplotConfig(WidgetConfig):
@@ -51,10 +50,10 @@ class ScatterplotConfig(WidgetConfig):
     Scatter plot configuration model.
     """
 
-    x_column: Optional[str] = Field(None, alias="xAxisColumn")
-    y_column: Optional[str] = Field(None, alias="yAxisColumn")
-    color_by_column: Optional[str] = Field(None, alias="colorBy")
-    size_by_column: Optional[str] = Field(None, alias="sizeBy")
+    x_column: str | None = Field(None, alias="xAxisColumn")
+    y_column: str | None = Field(None, alias="yAxisColumn")
+    color_by_column: str | None = Field(None, alias="colorBy")
+    size_by_column: str | None = Field(None, alias="sizeBy")
     filter: bool = Field(False, alias="filter")
 
 
@@ -64,10 +63,10 @@ class Scatterplot(Widget):
     """
 
     type: Literal["scatterplot"] = "scatterplot"
-    config: Optional[ScatterplotConfig] = None
+    config: ScatterplotConfig | None = None
 
 
-TableView = Literal["full", "filtered", "selected"]
+TableView: TypeAlias = Literal["full", "filtered", "selected"]
 
 
 class TableConfig(WidgetConfig):
@@ -76,8 +75,8 @@ class TableConfig(WidgetConfig):
     """
 
     active_view: TableView = Field("full", alias="tableView")
-    visible_columns: Optional[List[str]] = Field(None, alias="visibleColumns")
-    sort_by_columns: Optional[List[List[str]]] = Field(None, alias="sorting")
+    visible_columns: list[str] | None = Field(None, alias="visibleColumns")
+    sort_by_columns: list[list[str]] | None = Field(None, alias="sorting")
     order_by_relevance: bool = Field(False, alias="orderByRelevance")
 
 
@@ -87,14 +86,14 @@ class Table(Widget):
     """
 
     type: Literal["table"] = "table"
-    config: Optional[TableConfig] = None
+    config: TableConfig | None = None
 
 
-ReductionMethod = Literal["umap", "pca"]
-UmapMetric = Literal[
+ReductionMethod: TypeAlias = Literal["umap", "pca"]
+UmapMetric: TypeAlias = Literal[
     "euclidean", "standardized euclidean", "robust euclidean", "cosine", "mahalanobis"
 ]
-PCANormalization = Literal["none", "standardize", "robust standardize"]
+PCANormalization: TypeAlias = Literal["none", "standardize", "robust standardize"]
 
 
 class SimilaritymapConfig(WidgetConfig):
@@ -102,18 +101,16 @@ class SimilaritymapConfig(WidgetConfig):
     Similarity map configuration model.
     """
 
-    columns: Optional[List[str]] = Field(None, alias="placeBy")
-    reduction_method: Optional[ReductionMethod] = Field(None, alias="reductionMethod")
-    color_by_column: Optional[str] = Field(None, alias="colorBy")
-    size_by_column: Optional[str] = Field(None, alias="sizeBy")
+    columns: list[str] | None = Field(None, alias="placeBy")
+    reduction_method: ReductionMethod | None = Field(None, alias="reductionMethod")
+    color_by_column: str | None = Field(None, alias="colorBy")
+    size_by_column: str | None = Field(None, alias="sizeBy")
     filter: bool = Field(False, alias="filter")
-    umap_nn: Optional[int] = Field(None, alias="umapNNeighbors")
-    umap_metric: Optional[UmapMetric] = Field(None, alias="umapMetric")
-    umap_min_dist: Optional[float] = Field(None, alias="umapMinDist")
-    pca_normalization: Optional[PCANormalization] = Field(
-        None, alias="pcaNormalization"
-    )
-    umap_balance: Optional[float] = Field(None, alias="umapMenuLocalGlobalBalance")
+    umap_nn: int | None = Field(None, alias="umapNNeighbors")
+    umap_metric: UmapMetric | None = Field(None, alias="umapMetric")
+    umap_min_dist: float | None = Field(None, alias="umapMinDist")
+    pca_normalization: PCANormalization | None = Field(None, alias="pcaNormalization")
+    umap_balance: float | None = Field(None, alias="umapMenuLocalGlobalBalance")
     umap_is_advanced: bool = Field(False, alias="umapMenuIsAdvanced")
 
 
@@ -123,10 +120,10 @@ class Similaritymap(Widget):
     """
 
     type: Literal["similaritymap"] = "similaritymap"
-    config: Optional[SimilaritymapConfig] = None
+    config: SimilaritymapConfig | None = None
 
 
-NumInspectorColumns = Literal[1, 2, 4, 6, 8]
+NumInspectorColumns: TypeAlias = Literal[1, 2, 4, 6, 8]
 
 
 class InspectorConfig(WidgetConfig):
@@ -134,7 +131,7 @@ class InspectorConfig(WidgetConfig):
     Inspector configuration model.
     """
 
-    lenses: Optional[List[Lens]] = Field(None, alias="views")
+    lenses: list[Lens] | None = Field(None, alias="views")
     num_columns: NumInspectorColumns = Field(4, alias="visibleColumns")
 
 
@@ -144,7 +141,7 @@ class Inspector(Widget):
     """
 
     type: Literal["inspector"] = "inspector"
-    config: Optional[InspectorConfig] = None
+    config: InspectorConfig | None = None
 
 
 class Issues(Widget):
@@ -155,7 +152,7 @@ class Issues(Widget):
     type: Literal["IssuesWidget"] = "IssuesWidget"
 
 
-WordCloudScaling = Literal["log", "linear", "sqrt"]
+WordCloudScaling: TypeAlias = Literal["log", "linear", "sqrt"]
 
 
 class WordCloudConfig(WidgetConfig):
@@ -163,12 +160,12 @@ class WordCloudConfig(WidgetConfig):
     Config for the Word Cloud Widget.
     """
 
-    column: Optional[str] = Field(None, alias="cloudByColumnKey")
-    min_word_length: Optional[int] = Field(None, alias="minWordLength")
-    stop_words: Optional[List[str]] = Field(None, alias="stopwords")
-    scaling: Optional[WordCloudScaling] = Field(None, alias="scaling")
-    max_word_count: Optional[int] = Field(None, alias="wordCount")
-    filter: Optional[bool] = Field(None, alias="hideFiltered")
+    column: str | None = Field(None, alias="cloudByColumnKey")
+    min_word_length: int | None = Field(None, alias="minWordLength")
+    stop_words: list[str] | None = Field(None, alias="stopwords")
+    scaling: WordCloudScaling | None = Field(None, alias="scaling")
+    max_word_count: int | None = Field(None, alias="wordCount")
+    filter: bool | None = Field(None, alias="hideFiltered")
 
 
 class WordCloud(Widget):
@@ -177,7 +174,7 @@ class WordCloud(Widget):
     """
 
     type: Literal["wordcloud"] = "wordcloud"
-    config: Optional[WordCloudConfig] = None
+    config: WordCloudConfig | None = None
 
 
 class ConfusionMatrixConfig(WidgetConfig):
@@ -185,8 +182,8 @@ class ConfusionMatrixConfig(WidgetConfig):
     Config for the Confusion Matrix Widget.
     """
 
-    x_column: Optional[str] = Field(None, alias="xColumn")
-    y_column: Optional[str] = Field(None, alias="yColumn")
+    x_column: str | None = Field(None, alias="xColumn")
+    y_column: str | None = Field(None, alias="yColumn")
     filter: bool = Field(False, alias="filter")
 
 
@@ -196,7 +193,7 @@ class ConfusionMatrix(Widget):
     """
 
     type: Literal["ConfusionMatrix"] = "ConfusionMatrix"
-    config: Optional[ConfusionMatrixConfig] = None
+    config: ConfusionMatrixConfig | None = None
 
 
 class MetricWidgetConfig(WidgetConfig):
@@ -204,8 +201,8 @@ class MetricWidgetConfig(WidgetConfig):
     Config for the Metric Widget.
     """
 
-    metric: Optional[str] = None
-    columns: List[Optional[str]] = Field(default_factory=list, alias="columns")
+    metric: str | None = None
+    columns: list[str | None] = Field(default_factory=list, alias="columns")
 
 
 class MetricWidget(Widget):
@@ -214,4 +211,4 @@ class MetricWidget(Widget):
     """
 
     type: Literal["Metric"] = "Metric"
-    config: Optional[MetricWidgetConfig] = None
+    config: MetricWidgetConfig | None = None

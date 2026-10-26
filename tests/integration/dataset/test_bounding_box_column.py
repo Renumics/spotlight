@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 import pytest
 
@@ -65,7 +63,7 @@ def test_default(empty_dataset: spotlight.Dataset) -> None:
     "valid_values", [BOUNDING_BOXES, np.array(BOUNDING_BOXES, dtype=float)]
 )
 def test_default_with_values(
-    empty_dataset: spotlight.Dataset, valid_values: Union[list, np.ndarray]
+    empty_dataset: spotlight.Dataset, valid_values: list | np.ndarray
 ) -> None:
     """
     Test default column behaviour.
@@ -124,7 +122,7 @@ def test_optional(empty_dataset: spotlight.Dataset) -> None:
     "valid_values", [BOUNDING_BOXES, np.array(BOUNDING_BOXES, dtype=float)]
 )
 def test_generic_with_values(
-    empty_dataset: spotlight.Dataset, valid_values: Union[list, np.ndarray]
+    empty_dataset: spotlight.Dataset, valid_values: list | np.ndarray
 ) -> None:
     """
     Test default column behaviour.

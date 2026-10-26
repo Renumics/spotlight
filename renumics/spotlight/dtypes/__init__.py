@@ -15,11 +15,12 @@ default dtypes. For more info, see the module classes.
 The main usage of the dtypes is customizing the [`spotlight.show`][renumics.spotlight.show].
 """
 
+import builtins
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, TypeAlias, TypeGuard
 
 import numpy as np
-from typing_extensions import TypeGuard
 
 from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window
 
@@ -105,11 +106,11 @@ class CategoryDType(DType):
         True
     """
 
-    _categories: Optional[Dict[str, int]]
-    _inverted_categories: Optional[Dict[int, str]]
+    _categories: dict[str, int] | None
+    _inverted_categories: dict[int, str] | None
 
     def __init__(
-        self, categories: Optional[Union[Iterable[str], Dict[str, int]]] = None
+        self, categories: Iterable[str] | dict[str, int] | None = None
     ) -> None:
         super().__init__("Category")
         if isinstance(categories, dict):
@@ -150,14 +151,14 @@ class CategoryDType(DType):
         return {"name": self._name, "categories": self._categories}
 
     @property
-    def categories(self) -> Optional[Dict[str, int]]:
+    def categories(self) -> builtins.dict[str, int] | None:
         """
         Category mapping (string category -> integer code).
         """
         return self._categories
 
     @property
-    def inverted_categories(self) -> Optional[Dict[int, str]]:
+    def inverted_categories(self) -> builtins.dict[int, str] | None:
         """
         Inverted Category mapping (integer code -> string category).
         """
@@ -191,9 +192,9 @@ class ArrayDType(DType):
         True
     """
 
-    shape: Optional[Tuple[Optional[int], ...]]
+    shape: tuple[int | None, ...] | None
 
-    def __init__(self, shape: Optional[Tuple[Optional[int], ...]] = None) -> None:
+    def __init__(self, shape: tuple[int | None, ...] | None = None) -> None:
         super().__init__("array")
         self.shape = shape
 
@@ -240,9 +241,9 @@ class EmbeddingDType(DType):
         True
     """
 
-    length: Optional[int]
+    length: int | None
 
-    def __init__(self, length: Optional[int] = None) -> None:
+    def __init__(self, length: int | None = None) -> None:
         super().__init__("Embedding")
         if length is not None and length < 0:
             raise ValueError(f"Length must be non-negative, but {length} received.")
@@ -311,9 +312,9 @@ class SequenceDType(DType):
     """
 
     dtype: DType
-    length: Optional[int]
+    length: int | None
 
-    def __init__(self, dtype: DType, length: Optional[int] = None) -> None:
+    def __init__(self, dtype: DType, length: int | None = None) -> None:
         super().__init__("Sequence")
         self.dtype = dtype
         if length is not None and length < 0:
@@ -343,10 +344,10 @@ class SequenceDType(DType):
         )
 
 
-ALIASES: Dict[Any, DType] = {}
+ALIASES: dict[Any, DType] = {}
 
 
-def register_dtype(dtype: DType, aliases: Optional[list] = None) -> None:
+def register_dtype(dtype: DType, aliases: list | None = None) -> None:
     assert dtype.name.lower() not in ALIASES
     ALIASES[dtype.name.lower()] = dtype
 
@@ -488,7 +489,7 @@ File Dtype (bytes or str(path)). Aliases: `"file"`.
 """
 
 
-DTypeMap = Dict[str, DType]
+DTypeMap: TypeAlias = dict[str, DType]
 
 
 def create_dtype(x: Any) -> DType:

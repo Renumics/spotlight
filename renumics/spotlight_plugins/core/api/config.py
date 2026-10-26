@@ -2,11 +2,10 @@
 Config API endpoints
 """
 
-from typing import Optional, Union
+from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Request
 from pydantic import BaseModel
-from typing_extensions import Annotated
 
 from renumics.spotlight.backend.config import ConfigValue
 
@@ -17,8 +16,8 @@ router = APIRouter(tags=["config"])
 async def get_value(
     request: Request,
     name: str,
-    browser_id: Annotated[Union[str, None], Cookie()] = None,
-) -> Optional[ConfigValue]:
+    browser_id: Annotated[str | None, Cookie()] = None,
+) -> ConfigValue | None:
     """
     get config value by name
     """
@@ -30,7 +29,7 @@ class SetConfigRequest(BaseModel):
     Set config request model.
     """
 
-    value: Optional[ConfigValue]
+    value: ConfigValue | None
 
 
 @router.put("/{name}", operation_id="set_value")
@@ -38,7 +37,7 @@ async def set_value(
     name: str,
     set_config_request: SetConfigRequest,
     request: Request,
-    browser_id: Annotated[Union[str, None], Cookie()] = None,
+    browser_id: Annotated[str | None, Cookie()] = None,
 ) -> None:
     """
     Set config value by name.
@@ -50,7 +49,7 @@ async def set_value(
 async def remove_value(
     name: str,
     request: Request,
-    browser_id: Annotated[Union[str, None], Cookie()] = None,
+    browser_id: Annotated[str | None, Cookie()] = None,
 ) -> None:
     """
     Remove config value by name.

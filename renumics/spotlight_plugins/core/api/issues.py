@@ -2,8 +2,6 @@
 Problems API endpoints
 """
 
-from typing import List
-
 from fastapi import APIRouter, Request
 from pydantic.dataclasses import dataclass
 
@@ -19,7 +17,7 @@ class AnalysisInfo:
     """
 
     running: bool
-    issues: List[DataIssue]
+    issues: list[DataIssue]
 
 
 @router.get("/", operation_id="get_all")

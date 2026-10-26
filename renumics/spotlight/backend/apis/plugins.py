@@ -2,8 +2,6 @@
 Spotlight Plugin API
 """
 
-from typing import List, Optional
-
 from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -22,11 +20,11 @@ class Plugin(BaseModel):
     name: str
     priority: int
     dev: bool
-    entrypoint: Optional[str]
+    entrypoint: str | None
 
 
 @router.get("/", operation_id="get_plugins")
-async def _() -> List[Plugin]:
+async def _() -> list[Plugin]:
     """
     Get a list of all the installed spotlight plugins
     """

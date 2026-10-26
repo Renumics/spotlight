@@ -4,7 +4,6 @@ Test `spotlight.Dataset.prune` method.
 
 import os.path
 from pathlib import Path
-from typing import List
 
 import numpy as np
 
@@ -14,7 +13,7 @@ from .conftest import ColumnData
 
 
 def test_prune(
-    tmp_path: Path, simple_data: List[ColumnData], complex_data: List[ColumnData]
+    tmp_path: Path, simple_data: list[ColumnData], complex_data: list[ColumnData]
 ) -> None:
     """
     Test prune on a fresh created dataset.

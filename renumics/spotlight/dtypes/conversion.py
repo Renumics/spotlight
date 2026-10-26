@@ -8,7 +8,7 @@ float: float, np.floating
 str: str, np.str_
 datetime: datetime, np.datetime64
 Category: int, np.integer
-Array-like: List[Union[float, int], ...], np.ndarray[dtype=fiu]
+Array-like: list[float | int], np.ndarray[dtype=fiu]
 binary: bytes, np.bytes_
 paths: str, np.str_
 """
@@ -19,14 +19,12 @@ import inspect
 import io
 import os
 import pathlib
+import types
 from abc import ABCMeta
 from collections import defaultdict
+from collections.abc import Callable
 from typing import (
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Type,
+    TypeAlias,
     TypeVar,
     Union,
     cast,
@@ -48,26 +46,26 @@ from renumics.spotlight.io.file import as_file
 from renumics.spotlight.media.exceptions import InvalidFile
 from renumics.spotlight.typing import PathOrUrlType, PathType
 
-NormalizedValue = Union[
-    None,
-    bool,
-    np.bool_,
-    int,
-    np.integer,
-    float,
-    np.floating,
-    str,
-    np.str_,
-    datetime.datetime,
-    np.datetime64,
-    list,
-    np.ndarray,
-    bytes,
-    np.bytes_,
-]
-ConvertedValue = Union[
-    int, float, bool, str, bytes, datetime.datetime, np.ndarray, None
-]
+NormalizedValue: TypeAlias = (
+    None
+    | bool
+    | np.bool_
+    | int
+    | np.integer
+    | float
+    | np.floating
+    | str
+    | np.str_
+    | datetime.datetime
+    | np.datetime64
+    | list
+    | np.ndarray
+    | bytes
+    | np.bytes_
+)
+ConvertedValue: TypeAlias = (
+    int | float | bool | str | bytes | datetime.datetime | np.ndarray | None
+)
 
 
 class ConversionError(Exception):
@@ -76,7 +74,7 @@ class ConversionError(Exception):
     raise in Converter on errors or invalid input data
     """
 
-    def __init__(self, reason: Optional[str] = None) -> None:
+    def __init__(self, reason: str | None = None) -> None:
         self.reason = reason
 
 
@@ -89,7 +87,7 @@ class ConversionFailed(Problem):
         self,
         value: NormalizedValue,
         dtype: dtypes.DType,
-        reason: Optional[str] = None,
+        reason: str | None = None,
     ) -> None:
         super().__init__(
             title="Conversion failed",
@@ -113,20 +111,20 @@ class NoConverterAvailable(Problem):
 
 N = TypeVar("N", bound=NormalizedValue)
 
-Converter = Callable[[N, dtypes.DType], ConvertedValue]
-_converters_table: Dict[Type[NormalizedValue], Dict[str, List[Converter]]] = (
+Converter: TypeAlias = Callable[[N, dtypes.DType], ConvertedValue]
+_converters_table: dict[type[NormalizedValue], dict[str, list[Converter]]] = (
     defaultdict(lambda: defaultdict(list))
 )
-_simple_converters_table: Dict[Type[NormalizedValue], Dict[str, List[Converter]]] = (
+_simple_converters_table: dict[type[NormalizedValue], dict[str, list[Converter]]] = (
     defaultdict(lambda: defaultdict(list))
 )
 
 
 def register_converter(
-    from_type: Type[N],
+    from_type: type[N],
     to_type: str,
     converter: Converter[N],
-    simple: Optional[bool] = None,
+    simple: bool | None = None,
 ) -> None:
     """
     register a converter from NormalizedType to ColumnType
@@ -140,7 +138,7 @@ def register_converter(
         _converters_table[from_type][to_type].append(converter)  # type: ignore
 
 
-def convert(to_type: str, simple: Optional[bool] = None) -> Callable:
+def convert(to_type: str, simple: bool | None = None) -> Callable:
     """
     Decorator for simplified registration of converters
     """
@@ -149,7 +147,7 @@ def convert(to_type: str, simple: Optional[bool] = None) -> Callable:
         value_annotation = next(iter(func.__annotations__.values()))
 
         if origin := get_origin(value_annotation):
-            assert origin == Union
+            assert origin in (Union, types.UnionType)
             from_types = get_args(value_annotation)
             for from_type in from_types:
                 register_converter(from_type, to_type, func, simple)
@@ -181,7 +179,7 @@ def convert_to_dtype(
         else _converters_table[type(value)][dtype.name]
     )
 
-    last_conversion_error: Optional[ConversionError] = None
+    last_conversion_error: ConversionError | None = None
 
     for converter in registered_converters:
         try:
@@ -236,19 +234,19 @@ def _(value: datetime.datetime, _: dtypes.DType) -> datetime.datetime:
 
 
 @convert("datetime")
-def _(value: Union[str, np.str_], _: dtypes.DType) -> Optional[datetime.datetime]:
+def _(value: str | np.str_, _: dtypes.DType) -> datetime.datetime | None:
     if value == "":
         return None
     return datetime.datetime.fromisoformat(value)
 
 
 @convert("datetime")
-def _(value: np.datetime64, _: dtypes.DType) -> Optional[datetime.datetime]:
+def _(value: np.datetime64, _: dtypes.DType) -> datetime.datetime | None:
     return value.astype("datetime64[us]").tolist()
 
 
 @convert("Category")
-def _(value: Union[str, np.str_], dtype: dtypes.CategoryDType) -> int:
+def _(value: str | np.str_, dtype: dtypes.CategoryDType) -> int:
     categories = dtype.categories
     if not categories:
         return -1
@@ -262,17 +260,15 @@ def _(_: None, _dtype: dtypes.CategoryDType) -> int:
 
 @convert("Category")
 def _(
-    value: Union[
-        int,
-        np.int8,
-        np.int16,
-        np.int32,
-        np.int64,
-        np.uint8,
-        np.uint16,
-        np.uint32,
-        np.uint64,
-    ],
+    value: int
+    | np.int8
+    | np.int16
+    | np.int32
+    | np.int64
+    | np.uint8
+    | np.uint16
+    | np.uint32
+    | np.uint64,
     _: dtypes.CategoryDType,
 ) -> int:
     return int(value)
@@ -289,7 +285,7 @@ def _(value: np.ndarray, _: dtypes.DType) -> np.ndarray:
 
 
 @convert("Window")
-def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
+def _(value: str | np.str_, _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
         array = np.array(obj, dtype=np.float64)
@@ -321,7 +317,7 @@ def _(value: np.ndarray, _: dtypes.DType) -> np.ndarray:
 
 
 @convert("BoundingBox")
-def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
+def _(value: str | np.str_, _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
     except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as e:
@@ -340,7 +336,7 @@ def _(value: np.ndarray, _: dtypes.DType) -> np.ndarray:
 
 
 @convert("Embedding", simple=False)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
+def _(value: str | np.str_, _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
         array = np.array(obj, dtype=np.float64)
@@ -352,12 +348,12 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
 
 
 @convert("Sequence1D", simple=False)
-def _(value: Union[np.ndarray, list], _: dtypes.DType) -> np.ndarray:
+def _(value: np.ndarray | list, _: dtypes.DType) -> np.ndarray:
     return media.Sequence1D(value).encode()
 
 
 @convert("Sequence1D", simple=False)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
+def _(value: str | np.str_, _: dtypes.DType) -> np.ndarray:
     try:
         obj = ast.literal_eval(value)
         return media.Sequence1D(obj).encode()
@@ -366,12 +362,12 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> np.ndarray:
 
 
 @convert("Image", simple=False)
-def _(value: Union[np.ndarray, list], _: dtypes.DType) -> bytes:
+def _(value: np.ndarray | list, _: dtypes.DType) -> bytes:
     return cast(bytes, media.Image(value).encode().tolist())
 
 
 @convert("Image", simple=False)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
+def _(value: str | np.str_, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.image_dtype):
             return cast(bytes, data.tolist())
@@ -385,7 +381,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Image", simple=False)
-def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+def _(value: pathlib.PosixPath | pathlib.WindowsPath, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.image_dtype):
             return cast(bytes, data.tolist())
@@ -396,7 +392,7 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 
 @convert("Image", simple=False)
-def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
+def _(value: bytes | np.bytes_, _: dtypes.DType) -> bytes:
     return cast(bytes, media.Image.from_bytes(value).encode().tolist())
 
 
@@ -408,7 +404,7 @@ def _(value: PIL.Image.Image, _: dtypes.DType) -> bytes:
 
 
 @convert("Audio", simple=False)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
+def _(value: str | np.str_, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.audio_dtype):
             return cast(bytes, data.tolist())
@@ -418,7 +414,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Audio", simple=False)
-def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+def _(value: pathlib.PosixPath | pathlib.WindowsPath, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.audio_dtype):
             return cast(bytes, data.tolist())
@@ -429,12 +425,12 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 
 @convert("Audio", simple=False)
-def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
+def _(value: bytes | np.bytes_, _: dtypes.DType) -> bytes:
     return cast(bytes, media.Audio.from_bytes(value).encode().tolist())
 
 
 @convert("Video", simple=False)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
+def _(value: str | np.str_, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.video_dtype):
             return cast(bytes, data.tolist())
@@ -444,7 +440,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Video", simple=False)
-def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+def _(value: pathlib.PosixPath | pathlib.WindowsPath, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.video_dtype):
             return cast(bytes, data.tolist())
@@ -455,12 +451,12 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 
 @convert("Video", simple=False)
-def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
+def _(value: bytes | np.bytes_, _: dtypes.DType) -> bytes:
     return cast(bytes, media.Video.from_bytes(value).encode().tolist())
 
 
 @convert("Mesh", simple=False)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
+def _(value: str | np.str_, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(value, dtypes.mesh_dtype):
             return cast(bytes, data.tolist())
@@ -470,7 +466,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> bytes:
 
 
 @convert("Mesh", simple=False)
-def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> bytes:
+def _(value: pathlib.PosixPath | pathlib.WindowsPath, _: dtypes.DType) -> bytes:
     try:
         if data := read_external_value(str(value), dtypes.mesh_dtype):
             return cast(bytes, data.tolist())
@@ -481,7 +477,7 @@ def _(value: Union[pathlib.PosixPath, pathlib.WindowsPath], _: dtypes.DType) -> 
 
 
 @convert("Mesh", simple=False)
-def _(value: Union[bytes, np.bytes_], _: dtypes.DType) -> bytes:
+def _(value: bytes | np.bytes_, _: dtypes.DType) -> bytes:
     return value
 
 
@@ -492,21 +488,19 @@ def _(value: trimesh.Trimesh, _: dtypes.DType) -> bytes:
 
 
 @convert("Sequence", simple=False)
-def _(
-    value: Union[list, np.ndarray], dtype: dtypes.SequenceDType
-) -> List[ConvertedValue]:
+def _(value: list | np.ndarray, dtype: dtypes.SequenceDType) -> list[ConvertedValue]:
     return [convert_to_dtype(x, dtype.dtype, simple=False) for x in value]
 
 
 @convert("Embedding", simple=True)
 @convert("Sequence1D", simple=True)
 @convert("Sequence", simple=True)
-def _(_: Union[np.ndarray, list, str, np.str_], _dtype: dtypes.DType) -> str:
+def _(_: np.ndarray | list | str | np.str_, _dtype: dtypes.DType) -> str:
     return "[...]"
 
 
 @convert("Image", simple=True)
-def _(_: Union[np.ndarray, list], _dtype: dtypes.DType) -> str:
+def _(_: np.ndarray | list, _dtype: dtypes.DType) -> str:
     return "[...]"
 
 
@@ -519,7 +513,7 @@ def _(_: PIL.Image.Image, _dtype: dtypes.DType) -> str:
 @convert("Audio", simple=True)
 @convert("Video", simple=True)
 @convert("Mesh", simple=True)
-def _(value: Union[str, np.str_], _: dtypes.DType) -> str:
+def _(value: str | np.str_, _: dtypes.DType) -> str:
     return str(value)
 
 
@@ -527,7 +521,7 @@ def _(value: Union[str, np.str_], _: dtypes.DType) -> str:
 @convert("Audio", simple=True)
 @convert("Video", simple=True)
 @convert("Mesh", simple=True)
-def _(_: Union[bytes, np.bytes_], _dtype: dtypes.DType) -> str:
+def _(_: bytes | np.bytes_, _dtype: dtypes.DType) -> str:
     return "<bytes>"
 
 
@@ -538,11 +532,11 @@ def _(_: trimesh.Trimesh, _dtype: dtypes.DType) -> str:
 
 
 def read_external_value(
-    path_or_url: Optional[str],
+    path_or_url: str | None,
     dtype: dtypes.DType,
-    target_format: Optional[str] = None,
+    target_format: str | None = None,
     workdir: PathType = ".",
-) -> Optional[np.void]:
+) -> np.void | None:
     """
     Read a new external value and cache it or get it from the cache if already
     cached.
@@ -577,7 +571,7 @@ def prepare_path_or_url(path_or_url: PathOrUrlType, workdir: PathType) -> str:
 def _decode_external_value(
     path_or_url: PathOrUrlType,
     dtype: dtypes.DType,
-    target_format: Optional[str] = None,
+    target_format: str | None = None,
     workdir: PathType = ".",
 ) -> np.void:
     """

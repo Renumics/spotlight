@@ -3,17 +3,20 @@ Base classes for dtypes.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import TypeAlias
 
 import numpy as np
 
 from renumics.spotlight.typing import NumberType, PathType
 
-Array1dLike = Union[Sequence[NumberType], np.ndarray]
-Array2dLike = Union[Sequence[Sequence[NumberType]], Sequence[np.ndarray], np.ndarray]
-ImageLike = Union[
-    Sequence[Sequence[Union[NumberType, Sequence[NumberType]]]], np.ndarray
-]
+Array1dLike: TypeAlias = Sequence[NumberType] | np.ndarray
+Array2dLike: TypeAlias = (
+    Sequence[Sequence[NumberType]] | Sequence[np.ndarray] | np.ndarray
+)
+ImageLike: TypeAlias = (
+    Sequence[Sequence[NumberType | Sequence[NumberType]]] | np.ndarray
+)
 
 
 class MediaType(ABC):
@@ -23,14 +26,14 @@ class MediaType(ABC):
 
     @classmethod
     @abstractmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "MediaType":
+    def decode(cls, value: np.ndarray | np.void) -> "MediaType":
         """
         Restore class from its numpy representation.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def encode(self, target: Optional[str] = None) -> Union[np.ndarray, np.void]:
+    def encode(self, target: str | None = None) -> np.ndarray | np.void:
         """
         Convert to numpy for storing in dataset.
 

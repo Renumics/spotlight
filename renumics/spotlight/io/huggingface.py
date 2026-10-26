@@ -2,10 +2,10 @@
 Helpers for HuggingFace formats.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
-def prepare_hugging_face_dict(x: Dict) -> Any:
+def prepare_hugging_face_dict(x: dict) -> Any:
     """
     Prepare HuggingFace format for files to be used in Spotlight.
     """

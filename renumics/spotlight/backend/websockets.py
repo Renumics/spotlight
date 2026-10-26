@@ -3,15 +3,11 @@ This module provides interfaces for websockets.
 """
 
 import asyncio
+from collections.abc import Callable, Coroutine
 from typing import (
     Any,
-    Callable,
-    Coroutine,
-    Dict,
-    Optional,
-    Set,
-    Tuple,
-    Type,
+    Literal,
+    TypeAlias,
     cast,
 )
 
@@ -20,7 +16,6 @@ import orjson
 from fastapi import WebSocket, WebSocketDisconnect
 from loguru import logger
 from pydantic import BaseModel
-from typing_extensions import Literal
 
 from renumics.spotlight.data_store import DataStore
 
@@ -60,7 +55,7 @@ class TaskData(BaseModel):
     task: str
     widget_id: str
     task_id: str
-    generation_id: Optional[int]
+    generation_id: int | None
     args: Any
 
 
@@ -76,10 +71,12 @@ class SerializationError(Exception):
     """
 
 
-PayloadType = Type[BaseModel]
-MessageHandler = Callable[[Any, "WebsocketConnection"], Coroutine[Any, Any, Any]]
-MessageHandlerSpec = Tuple[PayloadType, MessageHandler]
-MESSAGE_HANDLERS: Dict[str, MessageHandlerSpec] = {}
+PayloadType: TypeAlias = type[BaseModel]
+MessageHandler: TypeAlias = Callable[
+    [Any, "WebsocketConnection"], Coroutine[Any, Any, Any]
+]
+MessageHandlerSpec: TypeAlias = tuple[PayloadType, MessageHandler]
+MESSAGE_HANDLERS: dict[str, MessageHandlerSpec] = {}
 
 
 def register_message_handler(
@@ -89,7 +86,7 @@ def register_message_handler(
 
 
 def message_handler(
-    message_type: str, payload_type: Type[BaseModel]
+    message_type: str, payload_type: type[BaseModel]
 ) -> Callable[[MessageHandler], MessageHandler]:
     def decorator(handler: MessageHandler) -> MessageHandler:
         register_message_handler(message_type, (payload_type, handler))
@@ -170,7 +167,7 @@ class WebsocketConnection:
         return self.websocket.app.task_manager
 
 
-ConnectCallback = Callable[[int], None]
+ConnectCallback: TypeAlias = Callable[[int], None]
 
 
 class WebsocketManager:
@@ -179,9 +176,9 @@ class WebsocketManager:
     """
 
     loop: asyncio.AbstractEventLoop
-    connections: Set[WebsocketConnection]
-    _disconnect_callbacks: Set[ConnectCallback]
-    _connect_callbacks: Set[ConnectCallback]
+    connections: set[WebsocketConnection]
+    _disconnect_callbacks: set[ConnectCallback]
+    _connect_callbacks: set[ConnectCallback]
 
     def __init__(self, loop: asyncio.AbstractEventLoop) -> None:
         self.loop = loop
@@ -254,7 +251,7 @@ TASK_FUNCS = {"umap": compute_umap, "pca": compute_pca}
 
 @message_handler("task", TaskData)
 async def _(data: TaskData, connection: WebsocketConnection) -> None:
-    data_store: Optional[DataStore] = connection.websocket.app.data_store
+    data_store: DataStore | None = connection.websocket.app.data_store
     if data_store is None:
         return None
 

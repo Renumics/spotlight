@@ -2,13 +2,14 @@
 Shared types for data analysis
 """
 
-from typing import Callable, Iterable, List, Literal, Optional
+from collections.abc import Callable, Iterable
+from typing import Literal, TypeAlias
 
 from pydantic.dataclasses import dataclass
 
 from renumics.spotlight.data_store import DataStore
 
-Severity = Literal["low", "medium", "high"]
+Severity: TypeAlias = Literal["low", "medium", "high"]
 
 
 @dataclass
@@ -18,10 +19,10 @@ class DataIssue:
     """
 
     title: str
-    rows: List[int]
+    rows: list[int]
     severity: Severity = "medium"
-    columns: Optional[List[str]] = None
+    columns: list[str] | None = None
     description: str = ""
 
 
-DataAnalyzer = Callable[[DataStore, List[str]], Iterable[DataIssue]]
+DataAnalyzer: TypeAlias = Callable[[DataStore, list[str]], Iterable[DataIssue]]

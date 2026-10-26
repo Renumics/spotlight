@@ -5,7 +5,7 @@ Test caching of UMAP results.
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Any, List, Tuple, cast
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -24,7 +24,7 @@ class FakeUMAP:
     Stands in for `umap.UMAP`, counts the fits and gives a different result every time.
     """
 
-    fits: List[Tuple[int, str, float]] = []
+    fits: list[tuple[int, str, float]] = []
 
     def __init__(
         self, n_neighbors: int, metric: str, min_dist: float, random_state: int
@@ -49,7 +49,7 @@ def isolated_umap_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
 
 
 def use_data(
-    monkeypatch: pytest.MonkeyPatch, data: np.ndarray, indices: List[int]
+    monkeypatch: pytest.MonkeyPatch, data: np.ndarray, indices: list[int]
 ) -> None:
     """Make the data of the table what `align_data` returns"""
     monkeypatch.setattr(reduction, "align_data", lambda *_args: (data.copy(), indices))
@@ -57,7 +57,7 @@ def use_data(
 
 def compute(
     n_neighbors: int = 15, metric: str = "euclidean", min_dist: float = 0.1
-) -> Tuple[np.ndarray, List[int]]:
+) -> tuple[np.ndarray, list[int]]:
     """Compute UMAP with the data store not used by the fake `align_data`"""
     return reduction.compute_umap(
         cast(DataStore, None), ["a", "b", "c"], INDICES, n_neighbors, metric, min_dist

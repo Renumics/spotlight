@@ -2,10 +2,9 @@
 
 import re
 from pathlib import Path
-from typing import List
 
 
-def get_data_tags_from_src(path: str) -> List[str]:
+def get_data_tags_from_src(path: str) -> list[str]:
     """Get tag content of all elements tagged by data-test-tag"""
     tags = []
     for ts_file in Path(path).glob("**/*.ts*"):

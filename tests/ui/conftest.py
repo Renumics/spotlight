@@ -4,8 +4,9 @@ import json
 import os
 import subprocess
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict, Generator
+from typing import Any
 
 import pytest
 import requests
@@ -109,7 +110,7 @@ results_bag_store = {}
 @pytest.fixture(
     scope="session",
 )
-def results_bag() -> Dict[str, Any]:
+def results_bag() -> dict[str, Any]:
     """a dict to store serializable test results"""
     results_bag_store["version"] = spotlight_version()
     return results_bag_store
@@ -129,7 +130,7 @@ def spotlight_version() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def store_results_bag(
-    results_bag: Dict[str, Any],
+    results_bag: dict[str, Any],
     pytestconfig: pytest.Config,
 ) -> Generator[None, None, None]:
     """Store test results"""

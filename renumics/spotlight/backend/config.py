@@ -3,13 +3,13 @@ Spotlight Frontend Configuration
 """
 
 import json
-from typing import Dict, Optional, Union, cast
+from typing import TypeAlias, cast
 
 from databases import Database
 
 from renumics.spotlight import appdirs
 
-ConfigValue = Union[Dict, str, int, float, bool]
+ConfigValue: TypeAlias = dict | str | int | float | bool
 
 
 class Config:
@@ -44,7 +44,7 @@ class Config:
 
     async def get(
         self, name: str, *, dataset: str = "", user: str = ""
-    ) -> Optional[ConfigValue]:
+    ) -> ConfigValue | None:
         """
         get a stored value by name
         """

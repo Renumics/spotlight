@@ -4,7 +4,7 @@ Spotlight Application Config
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from renumics.spotlight.analysis.typing import DataIssue
 from renumics.spotlight.dtypes import DTypeMap
@@ -19,16 +19,16 @@ class AppConfig:
 
     # dataset
     dataset: Any = None
-    dtypes: Optional[DTypeMap] = None
-    project_root: Optional[Path] = None
+    dtypes: DTypeMap | None = None
+    project_root: Path | None = None
 
     # data analysis
-    analyze: Optional[Union[List[str], bool]] = None
-    custom_issues: Optional[List[DataIssue]] = None
+    analyze: list[str] | bool | None = None
+    custom_issues: list[DataIssue] | None = None
 
     # embedding
-    embed: Optional[Union[List[str], bool]] = None
+    embed: list[str] | bool | None = None
 
     # frontend
-    layout: Optional[Layout] = None
-    filebrowsing_allowed: Optional[bool] = None
+    layout: Layout | None = None
+    filebrowsing_allowed: bool | None = None

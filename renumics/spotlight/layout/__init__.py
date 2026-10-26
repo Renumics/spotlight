@@ -5,13 +5,13 @@ A Spotlight layout consists of multiple widgets, grouped into tabs and splits.
 """
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple, Union, cast, overload
+from typing import Literal, TypeAlias, cast, overload
 
 import requests
 import validators
 from pydantic import ValidationError
-from typing_extensions import Literal
 
 from renumics.spotlight.backend.exceptions import InvalidLayout
 
@@ -81,16 +81,16 @@ __all__ = [
 ]
 
 
-_WidgetLike = Union[_Widget, str]
-_NodeLike = Union[Split, Tab, _WidgetLike, List]
-_LayoutLike = Union[str, os.PathLike, Layout, _NodeLike]
+_WidgetLike: TypeAlias = _Widget | str
+_NodeLike: TypeAlias = Split | Tab | _WidgetLike | list
+_LayoutLike: TypeAlias = str | os.PathLike | Layout | _NodeLike
 
 
 def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> Layout:
     """
     Create a new layout with the given orientation and given nodes inside.
     """
-    cleaned_nodes: List[Union[Split, Tab]]
+    cleaned_nodes: list[Split | Tab]
     if all(isinstance(node, (_Widget, str)) for node in nodes):
         widgets = cast(Iterable[_WidgetLike], nodes)
         cleaned_nodes = [tab(*widgets)]
@@ -116,7 +116,7 @@ def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> Layout:
 
 
 def split(
-    *nodes: _NodeLike, weight: Union[float, int] = 1, orientation: _Orientation = None
+    *nodes: _NodeLike, weight: float | int = 1, orientation: _Orientation = None
 ) -> Split:
     """
     Create a new split with the given weight, orientation and given nodes inside.
@@ -141,7 +141,7 @@ def split(
     return Split(children=cleaned_nodes, weight=weight, orientation=orientation)
 
 
-def tab(*widgets: _WidgetLike, weight: Union[float, int] = 1) -> Tab:
+def tab(*widgets: _WidgetLike, weight: float | int = 1) -> Tab:
     """
     Create a new tab with the given weight and given widgets inside.
     """
@@ -175,9 +175,9 @@ def parse(layout_: _LayoutLike) -> Layout:
 
 
 def histogram(
-    name: Optional[str] = None,
-    column: Optional[str] = None,
-    stack_by_column: Optional[str] = None,
+    name: str | None = None,
+    column: str | None = None,
+    stack_by_column: str | None = None,
     filter_: bool = False,
 ) -> Histogram:
     """
@@ -195,8 +195,8 @@ def histogram(
 
 
 def inspector(
-    name: Optional[str] = None,
-    lenses: Optional[Iterable[Lens]] = None,
+    name: str | None = None,
+    lenses: Iterable[Lens] | None = None,
     num_columns: _NumInspectorColumns = 4,
 ) -> Inspector:
     """
@@ -249,11 +249,11 @@ def inspector(
 
 
 def scatterplot(
-    name: Optional[str] = None,
-    x_column: Optional[str] = None,
-    y_column: Optional[str] = None,
-    color_by_column: Optional[str] = None,
-    size_by_column: Optional[str] = None,
+    name: str | None = None,
+    x_column: str | None = None,
+    y_column: str | None = None,
+    color_by_column: str | None = None,
+    size_by_column: str | None = None,
     filter_: bool = False,
 ) -> Scatterplot:
     """
@@ -272,8 +272,8 @@ def scatterplot(
     )
 
 
-_UmapBalance = Literal["local", "normal", "global"]
-_UMAP_BALANCE_TO_FLOAT: Dict[_UmapBalance, float] = {
+_UmapBalance: TypeAlias = Literal["local", "normal", "global"]
+_UMAP_BALANCE_TO_FLOAT: dict[_UmapBalance, float] = {
     "local": 0.0,
     "normal": 0.5,
     "global": 1.0,
@@ -282,53 +282,53 @@ _UMAP_BALANCE_TO_FLOAT: Dict[_UmapBalance, float] = {
 
 @overload
 def similaritymap(
-    name: Optional[str] = None,
-    columns: Optional[List[str]] = None,
+    name: str | None = None,
+    columns: list[str] | None = None,
     reduction_method: Literal[None] = None,
-    color_by_column: Optional[str] = None,
-    size_by_column: Optional[str] = None,
+    color_by_column: str | None = None,
+    size_by_column: str | None = None,
     filter_: bool = False,
 ) -> Similaritymap: ...
 
 
 @overload
 def similaritymap(
-    name: Optional[str] = None,
-    columns: Optional[List[str]] = None,
+    name: str | None = None,
+    columns: list[str] | None = None,
     reduction_method: Literal["umap"] = "umap",
-    color_by_column: Optional[str] = None,
-    size_by_column: Optional[str] = None,
+    color_by_column: str | None = None,
+    size_by_column: str | None = None,
     filter_: bool = False,
     *,
-    umap_metric: Optional[_UmapMetric] = None,
-    umap_balance: Optional[_UmapBalance] = None,
+    umap_metric: _UmapMetric | None = None,
+    umap_balance: _UmapBalance | None = None,
 ) -> Similaritymap: ...
 
 
 @overload
 def similaritymap(
-    name: Optional[str] = None,
-    columns: Optional[List[str]] = None,
+    name: str | None = None,
+    columns: list[str] | None = None,
     reduction_method: Literal["pca"] = "pca",
-    color_by_column: Optional[str] = None,
-    size_by_column: Optional[str] = None,
+    color_by_column: str | None = None,
+    size_by_column: str | None = None,
     filter_: bool = False,
     *,
-    pca_normalization: Optional[_PCANormalization] = None,
+    pca_normalization: _PCANormalization | None = None,
 ) -> Similaritymap: ...
 
 
 def similaritymap(
-    name: Optional[str] = None,
-    columns: Optional[List[str]] = None,
-    reduction_method: Optional[_ReductionMethod] = None,
-    color_by_column: Optional[str] = None,
-    size_by_column: Optional[str] = None,
+    name: str | None = None,
+    columns: list[str] | None = None,
+    reduction_method: _ReductionMethod | None = None,
+    color_by_column: str | None = None,
+    size_by_column: str | None = None,
     filter_: bool = False,
     *,
-    umap_metric: Optional[_UmapMetric] = None,
-    umap_balance: Optional[_UmapBalance] = None,
-    pca_normalization: Optional[_PCANormalization] = None,
+    umap_metric: _UmapMetric | None = None,
+    umap_balance: _UmapBalance | None = None,
+    pca_normalization: _PCANormalization | None = None,
 ) -> Similaritymap:
     """
     Add configured similarity map to Spotlight layout.
@@ -357,24 +357,24 @@ def similaritymap(
     )
 
 
-_TableTab = Literal["all", "filtered", "selected"]
-_TABLE_TAB_TO_TABLE_VIEW: Dict[_TableTab, _TableView] = {
+_TableTab: TypeAlias = Literal["all", "filtered", "selected"]
+_TABLE_TAB_TO_TABLE_VIEW: dict[_TableTab, _TableView] = {
     "all": "full",
     "filtered": "filtered",
     "selected": "selected",
 }
-_SortOrder = Literal["ascending", "descending"]
-_SORT_ORDER_MAPPING: Dict[_SortOrder, str] = {
+_SortOrder: TypeAlias = Literal["ascending", "descending"]
+_SORT_ORDER_MAPPING: dict[_SortOrder, str] = {
     "ascending": "ASC",
     "descending": "DESC",
 }
 
 
 def table(
-    name: Optional[str] = None,
+    name: str | None = None,
     active_view: _TableTab = "all",
-    visible_columns: Optional[List[str]] = None,
-    sort_by_columns: Optional[List[Tuple[str, _SortOrder]]] = None,
+    visible_columns: list[str] | None = None,
+    sort_by_columns: list[tuple[str, _SortOrder]] | None = None,
     order_by_relevance: bool = False,
 ) -> Table:
     """
@@ -398,7 +398,7 @@ def table(
     )
 
 
-def issues(name: Optional[str] = None) -> Issues:
+def issues(name: str | None = None) -> Issues:
     """
     Add a widget displaying data issues.
     """
@@ -407,13 +407,13 @@ def issues(name: Optional[str] = None) -> Issues:
 
 
 def wordcloud(
-    name: Optional[str] = None,
-    column: Optional[str] = None,
-    min_word_length: Optional[int] = None,
-    stop_words: Optional[Iterable[str]] = None,
-    scaling: Optional[_WordCloudScaling] = None,
-    max_word_count: Optional[int] = None,
-    filter_: Optional[bool] = None,
+    name: str | None = None,
+    column: str | None = None,
+    min_word_length: int | None = None,
+    stop_words: Iterable[str] | None = None,
+    scaling: _WordCloudScaling | None = None,
+    max_word_count: int | None = None,
+    filter_: bool | None = None,
 ) -> WordCloud:
     """
     Add configured confusion matrix to Spotlight layout.
@@ -442,9 +442,9 @@ def wordcloud(
 
 
 def confusion_matrix(
-    name: Optional[str] = None,
-    x_column: Optional[str] = None,
-    y_column: Optional[str] = None,
+    name: str | None = None,
+    x_column: str | None = None,
+    y_column: str | None = None,
 ) -> ConfusionMatrix:
     """
     Add configured confusion matrix to Spotlight layout.
@@ -456,14 +456,14 @@ def confusion_matrix(
 
 
 def metric(
-    name: Optional[str] = None,
-    metric: Optional[str] = None,
-    columns: Optional[Union[str, Iterable[Optional[str]]]] = None,
+    name: str | None = None,
+    metric: str | None = None,
+    columns: str | Iterable[str | None] | None = None,
 ) -> MetricWidget:
     """
     Add configured metric widget to Spotlight layout.
     """
-    metric_columns: List[Optional[str]] = []
+    metric_columns: list[str | None] = []
     if isinstance(columns, str):
         metric_columns.append(columns)
     elif columns is not None:

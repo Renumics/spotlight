@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, cast
+from typing import TypeAlias, cast
 
 import datasets
 import numpy as np
@@ -9,20 +9,20 @@ from renumics.spotlight.data_source.data_source import ColumnMetadata
 from renumics.spotlight.data_source.decorator import datasource
 from renumics.spotlight.logging import logger
 
-_FeatureType = Union[
-    datasets.Value,
-    datasets.ClassLabel,
-    datasets.Sequence,
-    datasets.Array2D,
-    datasets.Array3D,
-    datasets.Array4D,
-    datasets.Array5D,
-    datasets.Audio,
-    datasets.Image,
-    datasets.Translation,
-    dict,
-    list,
-]
+_FeatureType: TypeAlias = (
+    datasets.Value
+    | datasets.ClassLabel
+    | datasets.Sequence
+    | datasets.Array2D
+    | datasets.Array3D
+    | datasets.Array4D
+    | datasets.Array5D
+    | datasets.Audio
+    | datasets.Image
+    | datasets.Translation
+    | dict
+    | list
+)
 
 
 class UnsupportedFeature(Exception):
@@ -53,7 +53,7 @@ class HuggingfaceDataSource(DataSource):
                 self._guessed_dtypes[col] = guessed_dtype
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return self._dataset.column_names
 
     @property
@@ -79,7 +79,7 @@ class HuggingfaceDataSource(DataSource):
     def get_column_values(
         self,
         column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        indices: list[int] | np.ndarray | slice = slice(None),
     ) -> np.ndarray:
         intermediate_dtype = self._intermediate_dtypes[column_name]
 
@@ -158,7 +158,7 @@ class HuggingfaceDataSource(DataSource):
         return ColumnMetadata(nullable=True, editable=False)
 
 
-def _guess_semantic_dtype(feature: _FeatureType) -> Optional[spotlight_dtypes.DType]:
+def _guess_semantic_dtype(feature: _FeatureType) -> spotlight_dtypes.DType | None:
     if isinstance(feature, datasets.Audio):
         return spotlight_dtypes.audio_dtype
     if isinstance(feature, datasets.Image):

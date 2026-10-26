@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from renumics.spotlight import layout
 from renumics.spotlight.dtypes import create_dtype, is_audio_dtype, is_image_dtype
@@ -23,8 +23,8 @@ def debug_classification(
     label: str = "label",
     prediction: str = "prediction",
     embedding: str = "",
-    inspect: Optional[Dict[str, Any]] = None,
-    features: Optional[List[str]] = None,
+    inspect: dict[str, Any] | None = None,
+    features: list[str] | None = None,
 ) -> Layout:
     """This function generates a Spotlight layout for debugging a machine learning classification model.
 
@@ -68,7 +68,7 @@ def debug_classification(
             if idx > 2:
                 break
             h = histogram(
-                name="Histogram {}".format(feature),
+                name=f"Histogram {feature}",
                 column=feature,
                 stack_by_column=label,
             )
@@ -84,7 +84,7 @@ def debug_classification(
         )
         column2_list.append(row3)
 
-    column2: Union[Tab, Split]
+    column2: Tab | Split
 
     if len(column2_list) == 1:
         column2 = column2_list[0]
@@ -106,7 +106,7 @@ def debug_classification(
             elif is_image_dtype(dtype):
                 inspector_fields.append(lenses.image(item))
             else:
-                print("Type {} not supported by this layout.".format(dtype))
+                print(f"Type {dtype} not supported by this layout.")
 
         inspector_fields.append(lenses.scalar(label))
         inspector_fields.append(lenses.scalar(prediction))

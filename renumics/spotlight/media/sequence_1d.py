@@ -1,5 +1,3 @@
-from typing import Optional, Type, Union
-
 import numpy as np
 
 from renumics.spotlight.media.base import Array1dLike, MediaType
@@ -33,9 +31,9 @@ class Sequence1D(MediaType):
 
     def __init__(
         self,
-        index: Optional[Array1dLike],
-        value: Optional[Array1dLike] = None,
-        dtype: Optional[Union[str, np.dtype, Type[np.number]]] = None,
+        index: Array1dLike | None,
+        value: Array1dLike | None = None,
+        dtype: str | np.dtype | type[np.number] | None = None,
     ) -> None:
         if value is None:
             if index is None:
@@ -100,7 +98,7 @@ class Sequence1D(MediaType):
             )
 
     @classmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "Sequence1D":
+    def decode(cls, value: np.ndarray | np.void) -> "Sequence1D":
         if not isinstance(value, np.ndarray):
             raise TypeError(
                 f"`value` argument should be a numpy array, but {type(value)} received."
@@ -112,7 +110,7 @@ class Sequence1D(MediaType):
             )
         return cls(value[:, 0], value[:, 1])
 
-    def encode(self, _target: Optional[str] = None) -> np.ndarray:
+    def encode(self, _target: str | None = None) -> np.ndarray:
         return np.stack((self.index, self.value), axis=1)
 
     @classmethod

@@ -5,14 +5,13 @@ Functionality for (plugin) development
 import dataclasses
 import site
 from pathlib import Path
-from typing import Optional
 
 import toml
 
 from ..settings import settings
 
 
-def _find_upwards(filename: str, folder: Path) -> Optional[Path]:
+def _find_upwards(filename: str, folder: Path) -> Path | None:
     """
     Find first matching file upwards in parent folders.
     """
@@ -33,8 +32,8 @@ class ProjectInfo:
     """
 
     name: str
-    type: Optional[str]
-    root: Optional[Path]
+    type: str | None
+    root: Path | None
 
 
 def get_project_info() -> ProjectInfo:
@@ -65,7 +64,7 @@ def get_project_info() -> ProjectInfo:
     return ProjectInfo(name=project_name, type=project_type, root=pyproject_toml.parent)
 
 
-def find_spotlight_repository() -> Optional[Path]:
+def find_spotlight_repository() -> Path | None:
     """
     Find the cloned spotlight repository.
     Returns the path to the repo or None, if it could not be located.

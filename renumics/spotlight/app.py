@@ -12,7 +12,7 @@ import uuid
 from concurrent.futures import CancelledError, Future
 from pathlib import Path
 from threading import Thread
-from typing import Any, Dict, List, Literal, Optional, Union, cast
+from typing import Annotated, Any, Literal, cast
 
 import pandas as pd
 from fastapi import Cookie, FastAPI, Request, WebSocket, status
@@ -21,7 +21,6 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from httpx import URL, AsyncClient
-from typing_extensions import Annotated
 from websockets.asyncio.client import connect as connect_websocket
 from websockets.typing import Subprotocol
 
@@ -95,7 +94,7 @@ class ColumnsUpdatedMessage(Message):
     """
 
     type: Literal["columnsUpdated"] = "columnsUpdated"
-    data: List[str]
+    data: list[str]
 
 
 class SpotlightApp(FastAPI):
@@ -111,13 +110,13 @@ class SpotlightApp(FastAPI):
     _receiver_thread: Thread
 
     # datasource
-    _dataset: Optional[Union[PathType, pd.DataFrame]]
+    _dataset: PathType | pd.DataFrame | None
     _user_dtypes: spotlight_dtypes.DTypeMap
-    _data_source: Optional[DataSource]
-    _data_store: Optional[DataStore]
+    _data_source: DataSource | None
+    _data_store: DataStore | None
 
     task_manager: TaskManager
-    websocket_manager: Optional[WebsocketManager]
+    websocket_manager: WebsocketManager | None
     _layout: Layout
     config: Config
     username: str
@@ -125,15 +124,15 @@ class SpotlightApp(FastAPI):
 
     # dev
     project_root: PathType
-    vite_url: Optional[str]
+    vite_url: str | None
 
     # data issues
-    issues: Optional[List[DataIssue]] = []
-    _custom_issues: List[DataIssue] = []
-    analyze_columns: Union[List[str], bool]
+    issues: list[DataIssue] | None = []
+    _custom_issues: list[DataIssue] = []
+    analyze_columns: list[str] | bool
 
     # embedding
-    embed_columns: Union[List[str], bool]
+    embed_columns: list[str] | bool
 
     def __init__(self) -> None:
         super().__init__()
@@ -286,7 +285,7 @@ class SpotlightApp(FastAPI):
 
         @self.get("/")
         def _(
-            request: Request, browser_id: Annotated[Union[str, None], Cookie()] = None
+            request: Request, browser_id: Annotated[str | None, Cookie()] = None
         ) -> Any:
             response = templates.TemplateResponse(
                 request=request,
@@ -439,21 +438,21 @@ class SpotlightApp(FastAPI):
                 return
 
     @property
-    def data_store(self) -> Optional[DataStore]:
+    def data_store(self) -> DataStore | None:
         """
         Current data store.
         """
         return self._data_store
 
     @property
-    def custom_issues(self) -> List[DataIssue]:
+    def custom_issues(self) -> list[DataIssue]:
         """
         User supplied `DataIssue`s
         """
         return self._custom_issues
 
     @custom_issues.setter
-    def custom_issues(self, issues: List[DataIssue]) -> None:
+    def custom_issues(self, issues: list[DataIssue]) -> None:
         self._custom_issues = issues
         self._broadcast(IssuesUpdatedMessage())
 
@@ -464,7 +463,7 @@ class SpotlightApp(FastAPI):
         """
         return self._layout
 
-    async def get_current_layout_dict(self, user_id: str) -> Optional[Dict]:
+    async def get_current_layout_dict(self, user_id: str) -> dict | None:
         """
         Get the user's current layout (as dict)
         """
@@ -476,7 +475,7 @@ class SpotlightApp(FastAPI):
         layout = await self.config.get(
             CURRENT_LAYOUT_KEY, dataset=dataset_uid, user=user_id
         ) or self.layout.model_dump(by_alias=True)
-        return cast(Optional[Dict], layout)
+        return cast(dict | None, layout)
 
     def _update_issues(self) -> None:
         """

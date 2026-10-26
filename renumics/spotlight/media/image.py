@@ -1,5 +1,5 @@
 import io
-from typing import Optional, Union, cast
+from typing import cast
 
 import imageio.v3 as iio
 import numpy as np
@@ -107,7 +107,7 @@ class Image(FileMediaType):
         return cls(np.zeros((1, 1, 4), np.uint8))
 
     @classmethod
-    def decode(cls, value: Union[np.ndarray, np.void]) -> "Image":
+    def decode(cls, value: np.ndarray | np.void) -> "Image":
         if isinstance(value, np.void):
             buffer = io.BytesIO(cast(bytes, value.tolist()))
             return cls(iio.imread(buffer, extension=".png", index=False))
@@ -115,7 +115,7 @@ class Image(FileMediaType):
             f"`value` should be a `numpy.void` instance, but {type(value)} received."
         )
 
-    def encode(self, _target: Optional[str] = None) -> np.void:
+    def encode(self, _target: str | None = None) -> np.void:
         buf = io.BytesIO()
         iio.imwrite(buf, self.data, extension=".png")
         return np.void(buf.getvalue())

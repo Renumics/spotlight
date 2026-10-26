@@ -2,7 +2,8 @@
 
 import dataclasses
 from abc import ABC, abstractmethod
-from typing import Any, Iterable, List, Optional, Union
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -24,8 +25,8 @@ class ColumnMetadata:
     nullable: bool
     editable: bool
     hidden: bool = False
-    description: Optional[str] = None
-    tags: List[str] = dataclasses.field(default_factory=list)
+    description: str | None = None
+    tags: list[str] = dataclasses.field(default_factory=list)
     computed: bool = False
 
 
@@ -40,7 +41,7 @@ class DataSource(ABC):
 
     @property
     @abstractmethod
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         """
         Dataset's available column names.
         """
@@ -53,7 +54,7 @@ class DataSource(ABC):
         """
 
     @property
-    def df(self) -> Optional[pd.DataFrame]:
+    def df(self) -> pd.DataFrame | None:
         """
         Get the source data as a pandas dataframe if possible
         """
@@ -101,7 +102,7 @@ class DataSource(ABC):
     def get_column_values(
         self,
         column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        indices: list[int] | np.ndarray | slice = slice(None),
     ) -> Iterable:
         """
         Get normalized values of a column.
@@ -117,7 +118,7 @@ class DataSource(ABC):
         if index < -len(self) or index >= len(self):
             raise NoRowFound(index)
 
-    def _assert_indices_exist(self, indices: List[int]) -> None:
+    def _assert_indices_exist(self, indices: list[int]) -> None:
         indices_array = np.array(indices)
         if ((indices_array < -len(self)) | (indices_array >= len(self))).any():
             raise NoRowFound()

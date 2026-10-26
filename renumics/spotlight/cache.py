@@ -4,13 +4,13 @@ Cache for backend files.
 
 from pathlib import Path
 from sqlite3 import OperationalError
-from typing import Any, Optional, Set
+from typing import Any
 
 import diskcache
 
 from renumics.spotlight import appdirs
 
-_cache_names: Set[str] = set()
+_cache_names: set[str] = set()
 
 
 class Cache:
@@ -22,7 +22,7 @@ class Cache:
     """
 
     _dir: Path
-    _cache: Optional[diskcache.Cache]
+    _cache: diskcache.Cache | None
 
     def __init__(self, name: str) -> None:
         self._dir = appdirs.cache_dir / name

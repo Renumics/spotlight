@@ -4,7 +4,8 @@ import io
 import itertools
 import os
 import statistics
-from typing import Any, Dict, Iterable, List, Optional, Set, Union, cast
+from collections.abc import Iterable
+from typing import Any, cast
 
 import filetype
 import numpy as np
@@ -37,7 +38,7 @@ class DataStore:
     _data_source: DataSource
     _user_dtypes: spotlight_dtypes.DTypeMap
     _dtypes: spotlight_dtypes.DTypeMap
-    _embeddings: Dict[str, Optional[np.ndarray]]
+    _embeddings: dict[str, np.ndarray | None]
 
     def __init__(
         self, data_source: DataSource, user_dtypes: spotlight_dtypes.DTypeMap
@@ -63,7 +64,7 @@ class DataStore:
         return self._data_source.get_generation_id()
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         return self._data_source.column_names + list(self._embeddings)
 
     @property
@@ -91,11 +92,11 @@ class DataStore:
         return dtypes_
 
     @property
-    def embeddings(self) -> Dict[str, Optional[np.ndarray]]:
+    def embeddings(self) -> dict[str, np.ndarray | None]:
         return self._embeddings
 
     @embeddings.setter
-    def embeddings(self, new_embeddings: Dict[str, Optional[np.ndarray]]) -> None:
+    def embeddings(self, new_embeddings: dict[str, np.ndarray | None]) -> None:
         self._embeddings = new_embeddings
 
     def check_generation_id(self, generation_id: int) -> None:
@@ -121,10 +122,10 @@ class DataStore:
     def get_converted_values(
         self,
         column_name: str,
-        indices: Union[List[int], np.ndarray, slice] = slice(None),
+        indices: list[int] | np.ndarray | slice = slice(None),
         simple: bool = False,
         check: bool = True,
-    ) -> List[ConvertedValue]:
+    ) -> list[ConvertedValue]:
         dtype = self.dtypes[column_name]
         if column_name in self._embeddings:
             embeddings = self._embeddings[column_name]
@@ -148,7 +149,7 @@ class DataStore:
             column_name, indices=[index], simple=simple, check=check
         )[0]
 
-    def get_waveform(self, column_name: str, index: int) -> Optional[np.ndarray]:
+    def get_waveform(self, column_name: str, index: int) -> np.ndarray | None:
         """
         return the waveform of an audio cell
         """
@@ -224,7 +225,7 @@ class DataStore:
                 )
                 for value in values
             ]
-            category_names = sorted(cast(Set[str], set(converted_values)))
+            category_names = sorted(cast(set[str], set(converted_values)))
             return spotlight_dtypes.CategoryDType(category_names)
         if spotlight_dtypes.is_sequence_dtype(
             user_dtype
@@ -245,8 +246,8 @@ class DataStore:
         return user_dtype
 
 
-def _guess_dtype_from_values(values: Iterable) -> Optional[spotlight_dtypes.DType]:
-    dtypes: List[spotlight_dtypes.DType] = []
+def _guess_dtype_from_values(values: Iterable) -> spotlight_dtypes.DType | None:
+    dtypes: list[spotlight_dtypes.DType] = []
     for value in values:
         guessed_dtype = _guess_value_dtype(value)
         if guessed_dtype is not None:
@@ -268,7 +269,7 @@ def _guess_dtype_from_values(values: Iterable) -> Optional[spotlight_dtypes.DTyp
 
 def _guess_dtype_from_intermediate(
     intermediate_dtype: spotlight_dtypes.DType,
-) -> Optional[spotlight_dtypes.DType]:
+) -> spotlight_dtypes.DType | None:
     if spotlight_dtypes.is_bool_dtype(intermediate_dtype):
         return intermediate_dtype
     if spotlight_dtypes.is_int_dtype(intermediate_dtype):
@@ -307,7 +308,7 @@ def _guess_dtype_from_intermediate(
     return None
 
 
-def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
+def _guess_value_dtype(value: Any) -> spotlight_dtypes.DType | None:
     """
     Infer dtype for value
     """
@@ -337,7 +338,7 @@ def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
         return spotlight_dtypes.mesh_dtype
 
     if isinstance(value, bytes) or is_pathtype(value):
-        mimetype: Optional[str] = None
+        mimetype: str | None = None
         if isinstance(value, bytes) or (is_pathtype(value) and os.path.isfile(value)):
             kind = filetype.guess(value)
             if kind is not None:
@@ -381,7 +382,7 @@ def _guess_value_dtype(value: Any) -> Optional[spotlight_dtypes.DType]:
 
 def _guess_array_dtype(
     dtype: spotlight_dtypes.ArrayDType,
-) -> Optional[spotlight_dtypes.DType]:
+) -> spotlight_dtypes.DType | None:
     if dtype.shape is None:
         return None
     if dtype.ndim == 1:
