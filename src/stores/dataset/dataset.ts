@@ -464,13 +464,16 @@ export const useDataset = createWithEqualityFn(
 
                 let gen = 0;
                 do {
-                    gen = get().columnRelevanceGeneration;
+                    // read the current state on every pass: the selection or filter
+                    // may have changed while the previous pass was running
+                    const current = get();
+                    gen = current.columnRelevanceGeneration;
 
-                    columnRelevance = await state.relevanceWorker.computeRelevances(
-                        state.columns,
-                        state.columnData,
-                        state.selectedIndices,
-                        state.filteredIndices
+                    columnRelevance = await current.relevanceWorker.computeRelevances(
+                        current.columns,
+                        current.columnData,
+                        current.selectedIndices,
+                        current.filteredIndices
                     );
                 } while (gen !== get().columnRelevanceGeneration);
 
