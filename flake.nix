@@ -17,13 +17,13 @@
           python312
           uv
           pre-commit
-          nodejs_20
-          pnpm
+          nodejs_24
+          pnpm_10
           shellcheck
           shfmt
           jdk21
           stdenv.cc.cc.lib
-          ffmpeg-headless
+          ffmpeg_9-headless
           zlib
           chromium
           chromedriver
@@ -32,9 +32,12 @@
         ];
         shellHook = ''
           unset SOURCE_DATE_EPOCH
+          # Nix Python packages (e.g. pre-commit) put their site-packages on
+          # PYTHONPATH, which leaks into the project's virtual environment
+          unset PYTHONPATH
 
           export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
-            pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ffmpeg-headless
+            pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ffmpeg_9-headless
           ]}:$LD_LIBRARY_PATH
 
           export PIP_IGNORE_INSTALLED=1
