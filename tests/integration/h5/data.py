@@ -13,7 +13,7 @@ COLUMNS: dict[str, tuple[str, list]] = {
     "int": ("int", [0, 1]),
     "float": ("float", [0.0, np.nan]),
     "str": ("str", ["foobar", ""]),
-    "datetime": ("datetime", [datetime.datetime.min, np.datetime64("NaT")]),
+    "datetime": ("datetime", [datetime.datetime.min, np.datetime64("NaT", "us")]),
     "categorical": ("Category", ["foo", "bar"]),
     "array": ("array", [[[0]], [1, 2, 3]]),
     "window": ("Window", [[0, 1], [-np.inf, np.nan]]),

@@ -359,14 +359,14 @@ def test_isnull_notnull(empty_dataset: Dataset) -> None:
         [
             now,
             now,
-            np.datetime64("NaT"),
+            np.datetime64("NaT", "us"),
             None,
             None,
             now,
             now,
             now,
             now,
-            np.datetime64("NaT"),
+            np.datetime64("NaT", "us"),
         ],
         optional=True,
     )
@@ -919,8 +919,10 @@ def test_import_csv_with_dtype() -> None:
             )
             for _ in range(10)
         ]
-        df["datetime"] = df["datetime1"] = np.arange(  # type: ignore[call-overload]
-            "2002-10-27T04:30", 10 * 60, 60, np.datetime64
+        df["datetime"] = df["datetime1"] = np.arange(
+            np.datetime64("2002-10-27T04:30"),
+            np.datetime64("2002-10-27T14:30"),
+            np.timedelta64(1, "h"),
         )
         df["array"] = df["array1"] = df["array2"] = df["array3"] = np.random.randint(
             -1000, 1000, (10, 4)

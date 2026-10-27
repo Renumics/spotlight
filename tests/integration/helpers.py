@@ -16,7 +16,7 @@ def _as_datetime64(value: Any) -> np.ndarray:
     """
     if isinstance(value, datetime) and value.tzinfo is not None:
         value = value.astimezone(timezone.utc).replace(tzinfo=None)
-    return np.array(value, dtype="datetime64")
+    return np.array(value, dtype="datetime64[us]")
 
 
 def approx(
