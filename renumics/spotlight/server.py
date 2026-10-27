@@ -341,7 +341,10 @@ class Server:
             while True:
                 try:
                     msg = self.connection.recv()
-                except EOFError:
+                except (
+                    EOFError,  # Linux/MacOS end the connection
+                    ConnectionError,  # Windows resets the connection
+                ):
                     self.connection = None
                     break
                 self._handle_message(msg)

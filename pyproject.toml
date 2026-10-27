@@ -185,6 +185,9 @@ ignore = ["W002"]
 
 [tool.uv]
 exclude-newer = "3 days"
+constraint-dependencies = [
+    "torchcodec<0.17; sys_platform == 'win32' and python_full_version < '3.11'",
+]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

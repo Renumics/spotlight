@@ -47,7 +47,7 @@ def optional_data() -> list[ColumnData]:
         ColumnData("string2", "str", [], default=np.str_("b")),
         ColumnData("datetime", "datetime", [], optional=True),
         ColumnData("datetime1", "datetime", [], default=datetime.now().astimezone()),
-        ColumnData("datetime2", "datetime", [], default=np.datetime64("NaT")),
+        ColumnData("datetime2", "datetime", [], default=np.datetime64("NaT", "us")),
         ColumnData("array", "array", [], optional=True),
         ColumnData("array1", "array", [], default=np.empty(0)),
         ColumnData("embedding", "Embedding", [], optional=True),
@@ -148,7 +148,11 @@ def simple_data() -> list[ColumnData]:
         ColumnData(
             "datetime1",
             "datetime",
-            np.arange("2002-10-27T04:30", 6 * 60, 60, np.datetime64),  # type: ignore[call-overload]
+            np.arange(
+                np.datetime64("2002-10-27T04:30"),
+                np.datetime64("2002-10-27T10:30"),
+                np.timedelta64(1, "h"),
+            ),
             description="np.datetime64 column",
         ),
     ]
