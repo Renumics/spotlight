@@ -202,7 +202,7 @@ async def open_table(path: str, request: Request) -> None:
     if not app.filebrowsing_allowed:
         raise FilebrowsingNotAllowed()
 
-    full_path = Path(app.project_root) / path
+    full_path = (Path(app.project_root) / path).resolve()
 
     # assert that the path is inside our project root
     if not is_path_relative_to(full_path, app.project_root):
