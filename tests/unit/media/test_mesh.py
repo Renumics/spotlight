@@ -26,17 +26,21 @@ def test_mesh_from_array(num_points: int, num_triangles: int) -> None:
             "float32": np.random.rand(num_points).astype("float32"),
             "float64_3": np.random.rand(num_points, 3).astype("float64"),
             "float16_4": np.random.rand(num_points, 4).astype("float16"),
-            "uint64_1": np.random.randint(0, num_points, (num_points, 1), "uint64"),
-            "int16": np.random.randint(-10000, 10000, num_points, "int16"),
+            "uint64_1": np.random.randint(
+                0, num_points, (num_points, 1), dtype="uint64"
+            ),
+            "int16": np.random.randint(-10000, 10000, num_points, dtype="int16"),
         },
         {
             "float32_1": np.random.rand(num_triangles, 1).astype("float32"),
             "float64_3": np.random.rand(num_triangles, 3).astype("float64"),
             "float32_4": np.random.rand(num_triangles, 4).astype("float32"),
             "uint32": np.random.randint(
-                0, np.iinfo("uint32").max, num_triangles, "uint32"
+                0, np.iinfo("uint32").max, num_triangles, dtype="uint32"
             ),
-            "int64_1": np.random.randint(-10000, 10000, (num_triangles, 1), "int64"),
+            "int64_1": np.random.randint(
+                -10000, 10000, (num_triangles, 1), dtype="int64"
+            ),
         },
         [np.random.random((num_points, 3)) for _ in range(10)],
     )

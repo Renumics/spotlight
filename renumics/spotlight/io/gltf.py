@@ -108,13 +108,13 @@ def encode_gltf_array(
         if array.dtype.str[1] == "f":
             # For float arrays, do not count non-finite values.
             finite_mask = np.isfinite(array)
-            max_list = array.max(axis=0, initial=-np.inf, where=finite_mask)
-            min_list = array.min(axis=0, initial=np.inf, where=finite_mask)
+            max_array = array.max(axis=0, initial=-np.inf, where=finite_mask)
+            min_array = array.min(axis=0, initial=np.inf, where=finite_mask)
             max_list = np.where(
-                ~np.isfinite(max_list), np.array(None), max_list
+                ~np.isfinite(max_array), np.array(None), max_array
             ).tolist()
             min_list = np.where(
-                ~np.isfinite(min_list), np.array(None), min_list
+                ~np.isfinite(min_array), np.array(None), min_array
             ).tolist()
         else:
             max_list = array.max(axis=0).tolist()

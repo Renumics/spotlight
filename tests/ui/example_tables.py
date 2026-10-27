@@ -54,6 +54,7 @@ def _tally_mesh(count: int) -> Mesh:
         for i in range(count)
     ]
     mesh = trimesh.util.concatenate(bars)
+    assert isinstance(mesh, trimesh.Trimesh)
     return Mesh(mesh.vertices, mesh.faces)
 
 
