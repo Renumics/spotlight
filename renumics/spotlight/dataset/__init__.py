@@ -258,7 +258,8 @@ class Dataset:
         if spotlight_dtypes.is_str_dtype(dtype):
             return ""
         if spotlight_dtypes.is_datetime_dtype(dtype):
-            return np.datetime64("NaT")
+            # microseconds, the resolution of `datetime` and of the stored values
+            return np.datetime64("NaT", "us")
         if spotlight_dtypes.is_window_dtype(dtype):
             return np.full(2, np.nan)
         if spotlight_dtypes.is_bounding_box_dtype(dtype):
