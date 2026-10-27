@@ -32,6 +32,7 @@ export { default as CellBadge } from './components/ui/CellBadge';
 
 export type { DragData, ColumnDragData, CellDragData } from './systems/dnd/types';
 export { Draggable } from './systems/dnd';
+export { default as DraggableCell } from './widgets/DataGrid/Cell/DraggableCell';
 
 export { default as ColumnSelector } from './components/ColumnSelector';
 
