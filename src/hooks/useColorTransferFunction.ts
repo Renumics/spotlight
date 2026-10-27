@@ -34,9 +34,7 @@ export interface ConstantTransferFunction extends BaseTransferFunction {
 }
 
 export type TransferFunction =
-    | CategoricalTransferFunction
-    | ContinuousTransferFunction
-    | ConstantTransferFunction;
+    CategoricalTransferFunction | ContinuousTransferFunction | ConstantTransferFunction;
 
 export const createContinuousTransferFunction = (
     min: number,

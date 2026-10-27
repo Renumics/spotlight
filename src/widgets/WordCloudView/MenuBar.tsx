@@ -22,10 +22,7 @@ import _ from 'lodash';
 const MenuBarWrapper = tw.div`pl-2 py-0.5 absolute top-0 right-0 items-start flex flex-row-reverse text-sm`;
 
 export type BoolOpeartion =
-    | 'difference'
-    | 'intersection'
-    | 'union'
-    | 'symmetric difference';
+    'difference' | 'intersection' | 'union' | 'symmetric difference';
 
 interface MenuProps {
     placeableColumns: string[];
