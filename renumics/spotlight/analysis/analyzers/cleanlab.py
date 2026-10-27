@@ -3,6 +3,7 @@ Outlier detection
 """
 
 import inspect
+import warnings
 from collections.abc import Iterable
 
 import numpy as np
@@ -15,7 +16,10 @@ from ..decorator import data_analyzer
 from ..typing import DataIssue
 
 try:
-    import cleanlab.outlier
+    # `cleanlab` ignores all warnings of the process when it is imported, so restore
+    # the warning filters after the import
+    with warnings.catch_warnings():
+        import cleanlab.outlier
 except ImportError:
     logger.warning("Cleanlab analyzer requires `cleanlab` to be installed.")
 else:

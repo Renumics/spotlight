@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import ORJSONResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel
 
 from renumics.spotlight.app import SpotlightApp
@@ -17,6 +17,7 @@ from renumics.spotlight.backend.exceptions import (
     InvalidPath,
     Problem,
 )
+from renumics.spotlight.backend.responses import ORJSONResponse
 from renumics.spotlight.io.path import is_path_relative_to
 from renumics.spotlight.reporting import emit_timed_event
 

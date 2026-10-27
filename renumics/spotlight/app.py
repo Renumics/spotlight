@@ -9,7 +9,9 @@ import os
 import re
 import time
 import uuid
+from collections.abc import AsyncIterator
 from concurrent.futures import CancelledError, Future
+from contextlib import asynccontextmanager
 from pathlib import Path
 from threading import Thread
 from typing import Annotated, Any, Literal, cast
@@ -97,6 +99,17 @@ class ColumnsUpdatedMessage(Message):
     data: list[str]
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """
+    Start the Spotlight app when the server starts, shut it down with the server.
+    """
+    spotlight_app = cast("SpotlightApp", app)
+    spotlight_app._startup()
+    yield
+    spotlight_app._shutdown()
+
+
 class SpotlightApp(FastAPI):
     """
     Spotlight wsgi application
@@ -135,7 +148,7 @@ class SpotlightApp(FastAPI):
     embed_columns: list[str] | bool
 
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(lifespan=_lifespan)
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
@@ -153,53 +166,6 @@ class SpotlightApp(FastAPI):
         self._user_dtypes = {}
         self._data_source = None
         self._data_store = None
-
-        @self.on_event("startup")
-        def _() -> None:
-            port = int(os.environ["CONNECTION_PORT"])
-            authkey = os.environ["CONNECTION_AUTHKEY"]
-
-            self._loop = asyncio.get_running_loop()
-
-            for _ in range(10):
-                try:
-                    self._connection = multiprocessing.connection.Client(
-                        ("127.0.0.1", port), authkey=authkey.encode()
-                    )
-                except ConnectionRefusedError:
-                    time.sleep(0.1)
-                else:
-                    break
-            else:
-                raise RuntimeError("Failed to connect to parent process")
-
-            self._receiver_thread = Thread(target=self._receive, daemon=True)
-            self._receiver_thread.start()
-            self._connection.send({"kind": "startup"})
-
-            def handle_ws_connect(active_connections: int) -> None:
-                self._connection.send(
-                    {"kind": "frontend_connected", "data": active_connections}
-                )
-
-            def handle_ws_disconnect(active_connections: int) -> None:
-                self._connection.send(
-                    {"kind": "frontend_disconnected", "data": active_connections}
-                )
-
-            self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
-            self.websocket_manager.add_connect_callback(handle_ws_connect)
-            self.websocket_manager.add_disconnect_callback(handle_ws_disconnect)
-
-            self.vite_url = os.environ.get("VITE_URL")
-
-            emit_startup_event()
-
-        @self.on_event("shutdown")
-        def _() -> None:
-            self._receiver_thread.join(0.1)
-            self.task_manager.shutdown()
-            emit_exit_event()
 
         self.include_router(websocket.router, prefix="/api")
         self.include_router(plugin_api.router, prefix="/api/plugins")
@@ -364,6 +330,57 @@ class SpotlightApp(FastAPI):
 
             self.add_api_websocket_route("/", _vite_websocket)
             self.add_api_websocket_route("/{path:path}", _vite_websocket)
+
+    def _startup(self) -> None:
+        """
+        Connect to the parent process and start serving it.
+        """
+        port = int(os.environ["CONNECTION_PORT"])
+        authkey = os.environ["CONNECTION_AUTHKEY"]
+
+        self._loop = asyncio.get_running_loop()
+
+        for _ in range(10):
+            try:
+                self._connection = multiprocessing.connection.Client(
+                    ("127.0.0.1", port), authkey=authkey.encode()
+                )
+            except ConnectionRefusedError:
+                time.sleep(0.1)
+            else:
+                break
+        else:
+            raise RuntimeError("Failed to connect to parent process")
+
+        self._receiver_thread = Thread(target=self._receive, daemon=True)
+        self._receiver_thread.start()
+        self._connection.send({"kind": "startup"})
+
+        def handle_ws_connect(active_connections: int) -> None:
+            self._connection.send(
+                {"kind": "frontend_connected", "data": active_connections}
+            )
+
+        def handle_ws_disconnect(active_connections: int) -> None:
+            self._connection.send(
+                {"kind": "frontend_disconnected", "data": active_connections}
+            )
+
+        self.websocket_manager = WebsocketManager(asyncio.get_running_loop())
+        self.websocket_manager.add_connect_callback(handle_ws_connect)
+        self.websocket_manager.add_disconnect_callback(handle_ws_disconnect)
+
+        self.vite_url = os.environ.get("VITE_URL")
+
+        emit_startup_event()
+
+    def _shutdown(self) -> None:
+        """
+        Stop serving the parent process.
+        """
+        self._receiver_thread.join(0.1)
+        self.task_manager.shutdown()
+        emit_exit_event()
 
     def update(self, config: AppConfig) -> None:
         """
