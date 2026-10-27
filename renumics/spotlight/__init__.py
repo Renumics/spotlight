@@ -34,7 +34,7 @@ df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/head
 spotlight.show(df, dtype={"image": dtypes.image_dtype})
 
 import datasets
-ds = datasets.load_dataset("mnist", split="test")
+ds = datasets.load_dataset("ylecun/mnist", split="test")
 spotlight.show(ds)
 ```
 

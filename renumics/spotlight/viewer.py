@@ -36,7 +36,7 @@ Serving a CSV file:
 Serving a Hugging Face dataset:
     >>> import datasets
     >>> from renumics import spotlight
-    >>> ds = datasets.load_dataset("mnist", split="test", trust_remote_code=True)
+    >>> ds = datasets.load_dataset("ylecun/mnist", split="test")
     >>> viewer = spotlight.show(ds, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> spotlight.close()
@@ -65,7 +65,7 @@ Serving multiple datasets:
     >>> df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
     >>> df_viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
-    >>> ds = datasets.load_dataset("mnist", split="test")
+    >>> ds = datasets.load_dataset("ylecun/mnist", split="test")
     >>> ds_viewer = spotlight.show(ds, port=5001, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5001/
     >>> spotlight.viewers()
@@ -84,7 +84,7 @@ Reuse the dataset `Viewer`:
     >>> df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
     >>> viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
-    >>> ds = datasets.load_dataset("mnist", split="test")
+    >>> ds = datasets.load_dataset("ylecun/mnist", split="test")
     >>> viewer.show(ds, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> spotlight.close()
