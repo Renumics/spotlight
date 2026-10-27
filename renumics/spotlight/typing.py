@@ -55,6 +55,4 @@ def is_pathtype(x: Any) -> TypeGuard[PathType]:
     """
     Check wether `x` is any PathType.
     """
-    if isinstance(x, (str, os.PathLike)):
-        return True
-    return False
+    return isinstance(x, (str, os.PathLike))

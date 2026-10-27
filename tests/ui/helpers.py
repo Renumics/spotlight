@@ -2,7 +2,7 @@
 
 import time
 from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import datetime
 from pathlib import Path
 
@@ -50,16 +50,14 @@ def screenshot_exception(webdriver: WebDriver) -> Iterator[None]:
         print(f"=== Exception logged into {new_screenshot_path} at {now} ===")
         print(e)
         print("=== browser logs ===")
-        try:
-            # only Chromium-based drivers provide the browser logs
+        # only Chromium-based drivers provide the browser logs
+        with suppress(Exception):
             if isinstance(webdriver, ChromiumDriver):
                 for entry in webdriver.get_log("browser"):
                     print(entry)
-        except:  # noqa: E722
-            pass
         print("=========================================")
 
-        raise e
+        raise
 
 
 def _wait_for_element(

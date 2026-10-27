@@ -9,13 +9,13 @@ from .video import Video
 __all__ = [
     "Array1dLike",
     "Array2dLike",
+    "Audio",
+    "Embedding",
+    "FileMediaType",
+    "Image",
     "ImageLike",
     "MediaType",
-    "FileMediaType",
-    "Embedding",
-    "Sequence1D",
-    "Audio",
-    "Image",
     "Mesh",
+    "Sequence1D",
     "Video",
 ]

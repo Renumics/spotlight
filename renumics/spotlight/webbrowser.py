@@ -32,7 +32,8 @@ def launch_browser(url: str) -> None:
     wait_for(url)  # wait also for socket?
     try:
         webbrowser.open(url)
-    except Exception:
+    except Exception:  # noqa: BLE001
+        # the app works without a browser, the user opens the URL instead
         logger.warning(
             f"Couldn't launch browser automatically, you can reach Spotlight at {url}."
         )

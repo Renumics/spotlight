@@ -34,7 +34,8 @@ def _get_node() -> str:
     """
     try:
         return machineid.hashed_id("spotlight")
-    except Exception:
+    except Exception:  # noqa: BLE001
+        # analytics must never break the app
         logger.debug("Unable to obtain machine ID")
         return "UNKNOWN"
 
@@ -52,7 +53,7 @@ def skip_analytics() -> bool:
         logger.debug("analytics skipped because no analytics URL is configured")
         return True
 
-    if environ.get("CI", False):
+    if environ.get("CI"):
         logger.debug("analytics skipped because CI environment variable is set")
         return True
 
@@ -82,9 +83,10 @@ def _get_python_runtime() -> str:
         except NameError:
             pass
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
+        # analytics must never break the app
         python_runtime = "error get_python_runtime_" + python_runtime + "_" + str(e)
-        logger.warning("could not determine python runtime", python_runtime)
+        logger.warning(f"could not determine python runtime: {python_runtime}")
 
     return f"{python_runtime}_{sys.version}"
 
@@ -144,7 +146,7 @@ def report_event(event: dict[str, Any]) -> None:
             event["plugins"].append(f"{plugin.name}__{plugin_version}")
 
     # compress and base64 encode the event
-    encoded = {key_map[k] if k in key_map else k: v for k, v in event.items()}
+    encoded = {key_map.get(k, k): v for k, v in event.items()}
 
     logger.debug("sending analytics event")
 

@@ -39,5 +39,4 @@ def create_datasource(source: Any) -> DataSource:
             return data_source(source)
         except InvalidDataSource:
             continue
-    else:
-        raise InvalidDataSource()
+    raise InvalidDataSource()

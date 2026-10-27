@@ -5,7 +5,7 @@ Test caching of UMAP results.
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 
 import numpy as np
 import pytest
@@ -24,7 +24,7 @@ class FakeUMAP:
     Stands in for `umap.UMAP`, counts the fits and gives a different result every time.
     """
 
-    fits: list[tuple[int, str, float]] = []
+    fits: ClassVar[list[tuple[int, str, float]]] = []
 
     def __init__(
         self, n_neighbors: int, metric: str, min_dist: float, random_state: int

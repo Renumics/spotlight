@@ -82,7 +82,7 @@ def test_initialized_dataset(optional_data: list[ColumnData]) -> None:
     """
     Test column creation without filling.
     """
-    column_names = set(sample.name for sample in optional_data)
+    column_names = {sample.name for sample in optional_data}
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as dataset:
@@ -111,7 +111,7 @@ def test_optional_columns(optional_data: list[ColumnData]) -> None:
     Test creation of and writing into optional columns with and without a default value.
     """
 
-    column_names = set(sample.name for sample in optional_data)
+    column_names = {sample.name for sample in optional_data}
     with tempfile.TemporaryDirectory() as output_folder:
         output_h5_file = os.path.join(output_folder, "dataset.h5")
         with Dataset(output_h5_file, "w") as dataset:
@@ -626,7 +626,7 @@ def test_iterrows(
                 for dataset_row1 in dataset.iterrows(keys):
                     assert dataset_row1.keys() == set(keys)  # type: ignore
             for dataset_row2 in dataset.iterrows(sample.name for sample in data):
-                assert dataset_row2.keys() == set(sample.name for sample in data)  # type: ignore
+                assert dataset_row2.keys() == {sample.name for sample in data}  # type: ignore
             for sample in data:
                 values = sample.values
                 dtype_name = dataset.get_dtype(sample.name).name

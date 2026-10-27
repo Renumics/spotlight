@@ -127,8 +127,8 @@ class SpotlightApp(FastAPI):
     vite_url: str | None
 
     # data issues
-    issues: list[DataIssue] | None = []
-    _custom_issues: list[DataIssue] = []
+    issues: list[DataIssue] | None
+    _custom_issues: list[DataIssue]
     analyze_columns: list[str] | bool
 
     # embedding
@@ -388,12 +388,13 @@ class SpotlightApp(FastAPI):
             if config.filebrowsing_allowed is not None:
                 self.filebrowsing_allowed = config.filebrowsing_allowed
 
-            if config.dtypes is not None or config.dataset is not None:
-                if self._data_source is not None:
-                    self._data_store = DataStore(self._data_source, self._user_dtypes)
-                    self._broadcast(RefreshMessage())
-                    self._update_issues()
-                    self._update_embeddings()
+            if (
+                config.dtypes is not None or config.dataset is not None
+            ) and self._data_source is not None:
+                self._data_store = DataStore(self._data_source, self._user_dtypes)
+                self._broadcast(RefreshMessage())
+                self._update_issues()
+                self._update_embeddings()
             if config.layout is not None:
                 if self._data_store is not None:
                     dataset_uid = self._data_store.uid
@@ -408,7 +409,7 @@ class SpotlightApp(FastAPI):
                 plugin.update(self, config)
         except Exception as e:
             self._connection.send({"kind": "update_complete", "error": e})
-            logger.exception(e)
+            logger.exception("Updating the app failed")
 
         self._connection.send({"kind": "update_complete"})
 

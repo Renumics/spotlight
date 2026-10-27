@@ -253,7 +253,7 @@ TASK_FUNCS = {"umap": compute_umap, "pca": compute_pca}
 async def _(data: TaskData, connection: WebsocketConnection) -> None:
     data_store: DataStore | None = connection.websocket.app.data_store
     if data_store is None:
-        return None
+        return
 
     if data.generation_id:
         try:
@@ -275,7 +275,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
     except TaskCancelled:
         pass
     except Problem as e:
-        logger.exception(e)
+        logger.exception(f"Task {data.task_id} failed")
         msg = Message(
             type="task.error",
             data={
@@ -289,7 +289,7 @@ async def _(data: TaskData, connection: WebsocketConnection) -> None:
         )
         await connection.send_async(msg)
     except Exception as e:
-        logger.exception(e)
+        logger.exception(f"Task {data.task_id} failed")
         msg = Message(
             type="task.error",
             data={

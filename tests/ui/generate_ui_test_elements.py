@@ -29,7 +29,7 @@ def generate_ui_test_elements_py() -> None:
         tagged_src.write("class DataTestTags:\n")
         tagged_src.write('    """list of all tags found in src/*.ts*"""\n\n')
 
-        for data_tag in sorted(data_tags):
-            tagged_src.write(
-                f'    {data_tag.upper().replace("-", "_")} = "{data_tag}"\n'
-            )
+        tagged_src.writelines(
+            f'    {data_tag.upper().replace("-", "_")} = "{data_tag}"\n'
+            for data_tag in sorted(data_tags)
+        )
