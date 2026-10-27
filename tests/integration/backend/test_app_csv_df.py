@@ -11,7 +11,7 @@ from renumics import spotlight
 
 
 def _column_by_name(columns: list, col_name: str) -> Any:
-    return [col for col in columns if col["name"] == col_name][0]
+    return next(col for col in columns if col["name"] == col_name)
 
 
 def test_read_table(viewer_csv_df: spotlight.Viewer) -> None:

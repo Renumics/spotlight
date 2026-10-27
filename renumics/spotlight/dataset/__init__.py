@@ -8,7 +8,7 @@ import uuid
 from collections.abc import Callable, Iterable
 from datetime import datetime
 from tempfile import TemporaryDirectory
-from typing import Any, TypeAlias, TypeGuard, cast, overload
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeGuard, cast, overload
 
 import h5py
 import numpy as np
@@ -56,6 +56,10 @@ from .typing import (
     VideoColumnInputType,
     WindowColumnInputType,
 )
+
+if TYPE_CHECKING:
+    # `typing.Self` needs Python 3.11
+    from typing_extensions import Self
 
 __all__ = ["Dataset"]
 
@@ -254,7 +258,8 @@ class Dataset:
         if spotlight_dtypes.is_str_dtype(dtype):
             return ""
         if spotlight_dtypes.is_datetime_dtype(dtype):
-            return np.datetime64("NaT")
+            # microseconds, the resolution of `datetime` and of the stored values
+            return np.datetime64("NaT", "us")
         if spotlight_dtypes.is_window_dtype(dtype):
             return np.full(2, np.nan)
         if spotlight_dtypes.is_bounding_box_dtype(dtype):
@@ -288,11 +293,11 @@ class Dataset:
         """
         return self._mode
 
-    def __enter__(self) -> "Dataset":
+    def __enter__(self) -> "Self":
         self.open()
         return self
 
-    def __exit__(self, *args: Any) -> None:
+    def __exit__(self, *args: object) -> None:
         self.close()
 
     def __delitem__(self, item: str | IndexType | Indices1dType) -> None:
@@ -541,7 +546,7 @@ class Dataset:
             f"and an index/indices, but value {item} of type `{type(item)}` received."
         )
 
-    def __iadd__(self, other: "dict[str, ColumnInputType] | Dataset") -> "Dataset":
+    def __iadd__(self, other: "dict[str, ColumnInputType] | Dataset") -> "Self":
         if isinstance(other, dict):
             self.append_row(**other)
             return self
@@ -764,7 +769,7 @@ class Dataset:
                 )
             except Exception as e:
                 if column_name in (dtypes or {}):
-                    raise e
+                    raise
                 logger.warning(
                     f"Column '{column_name}' not imported from "
                     f"`pandas.DataFrame` because of the following error:\n{e}"
@@ -1787,9 +1792,9 @@ class Dataset:
                 column = self._h5_file[column_name]
                 column.resize(self._length + 1, axis=0)
                 column[-1] = value
-        except Exception as e:
+        except Exception:
             self._rollback(self._length)
-            raise e
+            raise
 
         self._length += 1
         self._update_internal_columns(index=-1)
@@ -1803,12 +1808,12 @@ class Dataset:
         try:
             for row in dataset.iterrows():
                 self.append_row(**row)
-        except Exception as e:
+        except Exception:
             if self._length > length:
                 self._rollback(length)
                 self._length = length
                 self._update_internal_columns()
-            raise e
+            raise
 
     def insert_row(self, index: IndexType, values: dict[str, ColumnInputType]) -> None:
         """
@@ -1854,9 +1859,9 @@ class Dataset:
         self._length += 1
         try:
             self._set_row(index, values)
-        except Exception as e:
+        except Exception:
             del self[index]
-            raise e
+            raise
         self._update_generation_id()
 
     @overload
@@ -2294,7 +2299,7 @@ class Dataset:
                     f'Attribute "categories" for column "{name}" contains '
                     "invalid dict - values must be convertible to np.int32."
                 )
-            if any(not isinstance(v, str) for v in attrs["categories"].keys()):
+            if any(not isinstance(v, str) for v in attrs["categories"]):
                 raise exceptions.InvalidAttributeError(
                     f'Attribute "categories" for column "{name}" contains '
                     "invalid dict - keys must be of type str."
@@ -2374,12 +2379,13 @@ class Dataset:
             try:
                 if default is None and old_default is None:
                     default = self._default_default(dtype)
-                    if default is None:
-                        if spotlight_dtypes.is_embedding_dtype(
-                            dtype
-                        ) and not self._is_ref_column(column):
-                            # For a non-ref `Embedding` column, replace `None` with an empty array.
-                            default = np.empty(0, column.dtype.metadata["vlen"])
+                    if (
+                        default is None
+                        and spotlight_dtypes.is_embedding_dtype(dtype)
+                        and not self._is_ref_column(column)
+                    ):
+                        # For a non-ref `Embedding` column, replace `None` with an empty array.
+                        default = np.empty(0, column.dtype.metadata["vlen"])
                 if spotlight_dtypes.is_category_dtype(dtype) and default is not None:
                     categories: list[str] = column.attrs["category_keys"].tolist()
                     if default not in categories:
@@ -2398,11 +2404,11 @@ class Dataset:
                 elif spotlight_dtypes.is_category_dtype(dtype):
                     column.attrs["default"] = -1
 
-            except Exception as e:
+            except Exception:
                 # Rollback
                 if old_default is not None:
                     column.attrs["default"] = old_default
-                raise e
+                raise
         self._update_generation_id()
 
     def _repr_html_(self) -> str:
@@ -2525,7 +2531,7 @@ class Dataset:
                 **attrs,
             )
             self._set_column(column, values)
-        except Exception as e:
+        except Exception:
             if name in self._h5_file:
                 del self._h5_file[name]
             try:
@@ -2533,7 +2539,7 @@ class Dataset:
             except KeyError:
                 pass
             self._column_names.discard(name)
-            raise e
+            raise
         self._update_generation_id()
 
     def _set_column(
@@ -2648,11 +2654,11 @@ class Dataset:
         try:
             column.resize(target_column_length, axis=0)
             column[column_indices] = encoded_values
-        except Exception as e:
+        except Exception:
             if preserve_values:
                 column.resize(self._length, axis=0)
                 column[:] = old_values
-            raise e
+            raise
         self._length = target_column_length
         self._update_internal_columns(column_indices)
 
@@ -2665,11 +2671,11 @@ class Dataset:
             row = self._encode_row(row)
             for column_name, value in row.items():
                 self._h5_file[column_name][index] = value
-        except Exception as e:
+        except Exception:
             # Rollback changed row.
             for column_name, item_value in old_row.items():
                 self._h5_file[column_name][index] = item_value
-            raise e
+            raise
         self._update_internal_columns(index)
 
     def _set_value(
@@ -2689,9 +2695,9 @@ class Dataset:
                 if attrs.get("optional", False):
                     value = attrs.get("default", None)
             column[index] = value
-        except Exception as e:
+        except Exception:
             column[index] = old_value
-            raise e
+            raise
         self._update_internal_columns(index)
 
     def _get_column(
@@ -3227,7 +3233,8 @@ class Dataset:
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = spotlight_dtypes.Audio.from_file(value)
-                except Exception:
+                except Exception:  # noqa: BLE001
+                    # a file that cannot be loaded is a missing value
                     return None
             if isinstance(value, bytes):
                 value = spotlight_dtypes.Audio.from_bytes(value)
@@ -3237,7 +3244,8 @@ class Dataset:
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = spotlight_dtypes.Image.from_file(value)
-                except Exception:
+                except Exception:  # noqa: BLE001
+                    # a file that cannot be loaded is a missing value
                     return None
             if isinstance(value, bytes):
                 value = spotlight_dtypes.Image.from_bytes(value)
@@ -3248,7 +3256,8 @@ class Dataset:
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = spotlight_dtypes.Mesh.from_file(value)
-                except Exception:
+                except Exception:  # noqa: BLE001
+                    # a file that cannot be loaded is a missing value
                     return None
             if isinstance(value, trimesh.Trimesh):
                 value = spotlight_dtypes.Mesh.from_trimesh(value)
@@ -3258,7 +3267,8 @@ class Dataset:
             if isinstance(value, (str, os.PathLike)):
                 try:
                     value = spotlight_dtypes.Video.from_file(value)
-                except Exception:
+                except Exception:  # noqa: BLE001
+                    # a file that cannot be loaded is a missing value
                     return None
             if isinstance(value, bytes):
                 value = spotlight_dtypes.Video.from_bytes(value)
@@ -3413,7 +3423,7 @@ class Dataset:
         file = prepare_path_or_url(value, os.path.dirname(self._filepath))
         try:
             return VALUE_TYPE_BY_DTYPE_NAME[dtype.name].from_file(file)  # type: ignore
-        except Exception:
+        except Exception:  # noqa: BLE001
             # No matter what happens, we should not crash, but warn instead.
             logger.warning(
                 f"File or URL {value} either does not exist or could not be "

@@ -36,7 +36,7 @@ Serving a CSV file:
 Serving a Hugging Face dataset:
     >>> import datasets
     >>> from renumics import spotlight
-    >>> ds = datasets.load_dataset("mnist", split="test", trust_remote_code=True)
+    >>> ds = datasets.load_dataset("ylecun/mnist", split="test")
     >>> viewer = spotlight.show(ds, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> spotlight.close()
@@ -65,7 +65,7 @@ Serving multiple datasets:
     >>> df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
     >>> df_viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
-    >>> ds = datasets.load_dataset("mnist", split="test")
+    >>> ds = datasets.load_dataset("ylecun/mnist", split="test")
     >>> ds_viewer = spotlight.show(ds, port=5001, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5001/
     >>> spotlight.viewers()
@@ -84,7 +84,7 @@ Reuse the dataset `Viewer`:
     >>> df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/heads/main/data/mnist/mnist-tiny.csv")
     >>> viewer = spotlight.show(df, port=5000, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
-    >>> ds = datasets.load_dataset("mnist", split="test")
+    >>> ds = datasets.load_dataset("ylecun/mnist", split="test")
     >>> viewer.show(ds, no_browser=True, wait=False)
     Spotlight running on http://127.0.0.1:5000/
     >>> spotlight.close()
@@ -245,9 +245,9 @@ class Viewer:
         else:
             try:
                 self._server.update(config)
-            except Exception as e:
+            except Exception:
                 self.close()
-                raise e
+                raise
 
         if not no_browser and self._server.connected_frontends == 0:
             self.open_browser()
@@ -446,9 +446,9 @@ def show(
     viewer = None
     if port != "auto":
         # reuse viewer with the same port if specified
-        for index, viewer_ in enumerate(_VIEWERS):
+        for viewer_ in _VIEWERS:
             if viewer_.port == port:
-                viewer = _VIEWERS[index]
+                viewer = viewer_
                 break
     if not viewer:
         viewer = Viewer(
@@ -487,8 +487,8 @@ def close(port: int | Literal["last"] = "last") -> None:
         except IndexError as e:
             raise ViewerNotFoundError("No active viewers found.") from e
         return
-    for index, viewer in enumerate(_VIEWERS):
+    for viewer in _VIEWERS:
         if viewer.port == port:
-            _VIEWERS[index].close()
+            viewer.close()
             return
     raise ViewerNotFoundError(f"No viewer found at the port {port}.")

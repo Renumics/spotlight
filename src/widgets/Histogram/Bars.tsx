@@ -264,17 +264,25 @@ const Bars = ({
             .attr('height', Math.max(0, barHeight + paddingTop))
             .style('fill', theme`colors.white`)
             .on('mouseleave', (event) => {
-                const node = event.currentTarget;
+                const node = event.currentTarget as Element;
                 onHoverBin();
-                if (!node.parentNode?.parentNode?.contains(event.relatedTarget)) {
+                if (
+                    !node.parentNode?.parentNode?.contains(
+                        event.relatedTarget as Node | null
+                    )
+                ) {
                     dehighlightAll();
                 }
             });
 
         group.on('mouseleave', (event) => {
-            const node = event.currentTarget;
+            const node = event.currentTarget as Element;
             onHoverBin();
-            if (!node.parentNode?.parentNode?.contains(event.relatedTarget)) {
+            if (
+                !node.parentNode?.parentNode?.contains(
+                    event.relatedTarget as Node | null
+                )
+            ) {
                 dehighlightAll();
             }
         });

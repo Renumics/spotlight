@@ -66,18 +66,18 @@ from .widgets import (
 )
 
 __all__ = [
-    "layout",
-    "split",
-    "tab",
+    "confusion_matrix",
     "histogram",
     "inspector",
+    "issues",
+    "layout",
+    "metric",
     "scatterplot",
     "similaritymap",
+    "split",
+    "tab",
     "table",
-    "issues",
     "wordcloud",
-    "confusion_matrix",
-    "metric",
 ]
 
 
@@ -116,7 +116,7 @@ def layout(*nodes: _NodeLike, orientation: _Orientation = None) -> Layout:
 
 
 def split(
-    *nodes: _NodeLike, weight: float | int = 1, orientation: _Orientation = None
+    *nodes: _NodeLike, weight: float = 1, orientation: _Orientation = None
 ) -> Split:
     """
     Create a new split with the given weight, orientation and given nodes inside.
@@ -141,7 +141,7 @@ def split(
     return Split(children=cleaned_nodes, weight=weight, orientation=orientation)
 
 
-def tab(*widgets: _WidgetLike, weight: float | int = 1) -> Tab:
+def tab(*widgets: _WidgetLike, weight: float = 1) -> Tab:
     """
     Create a new tab with the given weight and given widgets inside.
     """
@@ -284,7 +284,7 @@ _UMAP_BALANCE_TO_FLOAT: dict[_UmapBalance, float] = {
 def similaritymap(
     name: str | None = None,
     columns: list[str] | None = None,
-    reduction_method: Literal[None] = None,
+    reduction_method: None = None,
     color_by_column: str | None = None,
     size_by_column: str | None = None,
     filter_: bool = False,

@@ -72,8 +72,7 @@ export class Configuration {
     }
 
     get accessToken():
-        | ((name?: string, scopes?: string[]) => string | Promise<string>)
-        | undefined {
+        ((name?: string, scopes?: string[]) => string | Promise<string>) | undefined {
         const accessToken = this.configuration.accessToken;
         if (accessToken) {
             return typeof accessToken === 'function'
@@ -333,13 +332,7 @@ export type FetchAPI = WindowOrWorkerGlobalScope['fetch'];
 
 export type Json = any;
 export type HTTPMethod =
-    | 'GET'
-    | 'POST'
-    | 'PUT'
-    | 'PATCH'
-    | 'DELETE'
-    | 'OPTIONS'
-    | 'HEAD';
+    'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD';
 export type HTTPHeaders = { [key: string]: string };
 export type HTTPQuery = {
     [key: string]:
@@ -359,10 +352,7 @@ export type HTTPRequestInit = {
     body?: HTTPBody;
 };
 export type ModelPropertyNaming =
-    | 'camelCase'
-    | 'snake_case'
-    | 'PascalCase'
-    | 'original';
+    'camelCase' | 'snake_case' | 'PascalCase' | 'original';
 
 export type InitOverrideFunction = (requestContext: {
     init: HTTPRequestInit;

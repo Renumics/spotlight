@@ -28,8 +28,7 @@ const SequenceView: Lens<Vec2[] | number[]> = ({ values, columns, syncKey }) => 
                     isEmbeddingColumn(columns[index])
             ),
             values.find((_value, index) => columns[index].type.kind === 'Window') as
-                | [number, number]
-                | undefined,
+                [number, number] | undefined,
         ],
         [values, columns]
     );

@@ -25,25 +25,25 @@ import numpy as np
 from .legacy import Audio, Category, Embedding, Image, Mesh, Sequence1D, Video, Window
 
 __all__ = [
-    "CategoryDType",
     "ArrayDType",
+    "CategoryDType",
     "EmbeddingDType",
     "Sequence1DDType",
-    "bool_dtype",
-    "int_dtype",
-    "float_dtype",
-    "str_dtype",
-    "datetime_dtype",
-    "category_dtype",
-    "window_dtype",
-    "bounding_box_dtype",
-    "embedding_dtype",
     "array_dtype",
-    "image_dtype",
     "audio_dtype",
+    "bool_dtype",
+    "bounding_box_dtype",
+    "category_dtype",
+    "datetime_dtype",
+    "embedding_dtype",
+    "float_dtype",
+    "image_dtype",
+    "int_dtype",
     "mesh_dtype",
     "sequence_1d_dtype",
+    "str_dtype",
     "video_dtype",
+    "window_dtype",
 ]
 
 
@@ -56,7 +56,7 @@ class DType:
     def __str__(self) -> str:
         return self.name
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, DType):
             return other._name == self._name
         return False
@@ -133,7 +133,7 @@ class CategoryDType(DType):
                 category: code for code, category in self._inverted_categories.items()
             }
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, CategoryDType):
             return other._categories == self._categories
         return False
@@ -198,7 +198,7 @@ class ArrayDType(DType):
         super().__init__("array")
         self.shape = shape
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, ArrayDType):
             return other.shape == self.shape
         return False
@@ -249,7 +249,7 @@ class EmbeddingDType(DType):
             raise ValueError(f"Length must be non-negative, but {length} received.")
         self.length = length
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, EmbeddingDType):
             return other.length == self.length
         return False
@@ -294,7 +294,7 @@ class Sequence1DDType(DType):
         self.x_label = x_label
         self.y_label = y_label
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Sequence1DDType):
             return other.x_label == self.x_label and other.y_label == self.y_label
         return False
@@ -323,7 +323,7 @@ class SequenceDType(DType):
             )
         self.length = length
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, SequenceDType):
             return other.dtype == self.dtype and other.length == self.length
         return False

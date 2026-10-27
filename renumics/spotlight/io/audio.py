@@ -46,7 +46,7 @@ def _channel_num_to_layout(channel_num: int) -> str:
 
 
 def prepare_input_file(
-    file: FileType, timeout: int | float = 30, reusable: bool = False
+    file: FileType, timeout: float = 30, reusable: bool = False
 ) -> str | IO:
     """
     Prepare an input file depending on its type and value:

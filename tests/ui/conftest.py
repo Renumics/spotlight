@@ -104,7 +104,7 @@ def skip_tour(
     )
 
 
-results_bag_store = {}
+results_bag_store: dict[str, Any] = {}
 
 
 @pytest.fixture(

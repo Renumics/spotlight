@@ -141,7 +141,7 @@ def image_data() -> list[ColumnData]:
         ColumnData(
             "image2",
             "Image",
-            np.random.randint(0, 256, (6, 10, 20, 3), "uint8"),
+            np.random.randint(0, 256, (6, 10, 20, 3), dtype="uint8"),
             description="batch array",
         ),
     ]

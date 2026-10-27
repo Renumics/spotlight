@@ -10,9 +10,9 @@ from .decorator import datasource
 from .registry import add_datasource, create_datasource
 
 __all__ = [
-    "DataSource",
     "ColumnMetadata",
-    "datasource",
-    "create_datasource",
+    "DataSource",
     "add_datasource",
+    "create_datasource",
+    "datasource",
 ]

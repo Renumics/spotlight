@@ -1,6 +1,7 @@
 import uuid
 from collections.abc import Iterable
 from itertools import islice
+from typing import Any, cast
 
 import numpy as np
 import orjson
@@ -51,7 +52,7 @@ class ArrowDatasetSource(DataSource):
 
         self._semantic_dtypes = {}
 
-        if source.schema.metadata:
+        if source.schema.metadata:  # noqa: SIM102
             # support hf metadata (only images for now)
             if hf_metadata := orjson.loads(
                 source.schema.metadata.get(b"huggingface", "null")
@@ -223,7 +224,8 @@ def _convert_dtype(field: pa.Field) -> spotlight_dtypes.DType:
     if isinstance(field.type, pa.ExtensionType):
         # handle known extensions
         if field.type.extension_name == "ray.data.arrow_tensor":
-            return spotlight_dtypes.ArrayDType(shape=field.type.shape)
+            # ray's tensor type, which `pyarrow` does not know, has a shape
+            return spotlight_dtypes.ArrayDType(shape=cast(Any, field.type).shape)
 
         raise UnknownArrowExtensionType(field.type.extension_name)
 

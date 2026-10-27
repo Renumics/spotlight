@@ -13,8 +13,7 @@ function useHighlight(grid: RefObject<Grid>): () => void {
         const dataset = useDataset.getState();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const container = (grid.current as any)?._outerRef as
-            | HTMLDivElement
-            | undefined;
+            HTMLDivElement | undefined;
 
         if (!container) return;
 

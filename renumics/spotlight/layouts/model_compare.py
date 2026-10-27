@@ -89,34 +89,32 @@ def compare_classification(
     )
 
     # third column: similarity maps
-    if model1_correct != "":
-        if model2_correct != "":
-            row2 = tab(
-                confusion_matrix(
-                    name="Model1 vs. Model2 - binned scatterplot",
-                    x_column=model1_correct,
-                    y_column=model2_correct,
-                ),
-                weight=40,
-            )
-            column2_list.append(row2)
+    if model1_correct != "" and model2_correct != "":
+        row2 = tab(
+            confusion_matrix(
+                name="Model1 vs. Model2 - binned scatterplot",
+                x_column=model1_correct,
+                y_column=model2_correct,
+            ),
+            weight=40,
+        )
+        column2_list.append(row2)
 
-    if model1_embedding != "":
-        if model2_embedding != "":
-            row3 = tab(
-                similaritymap(
-                    name="Model 1 embedding",
-                    columns=[model1_embedding],
-                    color_by_column=label,
-                ),
-                similaritymap(
-                    name="Model 2 embedding",
-                    columns=[model2_embedding],
-                    color_by_column=label,
-                ),
-                weight=40,
-            )
-            column2_list.append(row3)
+    if model1_embedding != "" and model2_embedding != "":
+        row3 = tab(
+            similaritymap(
+                name="Model 1 embedding",
+                columns=[model1_embedding],
+                color_by_column=label,
+            ),
+            similaritymap(
+                name="Model 2 embedding",
+                columns=[model2_embedding],
+                color_by_column=label,
+            ),
+            weight=40,
+        )
+        column2_list.append(row3)
 
     column2: Tab | Split
 

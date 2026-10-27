@@ -173,7 +173,7 @@ class DataStore:
         guessed_dtypes = self._data_source.semantic_dtypes.copy()
 
         # guess missing dtypes from intermediate dtypes
-        for col in self._data_source.intermediate_dtypes.keys():
+        for col in self._data_source.intermediate_dtypes:
             if col not in guessed_dtypes:
                 guessed_dtypes[col] = self._guess_dtype(col)
 
@@ -261,9 +261,8 @@ def _guess_dtype_from_values(values: Iterable) -> spotlight_dtypes.DType | None:
         spotlight_dtypes.is_window_dtype(mode_dtype)
         or spotlight_dtypes.is_bounding_box_dtype(mode_dtype)
         or spotlight_dtypes.is_embedding_dtype(mode_dtype)
-    ):
-        if any(dtype != mode_dtype for dtype in dtypes):
-            return spotlight_dtypes.array_dtype
+    ) and any(dtype != mode_dtype for dtype in dtypes):
+        return spotlight_dtypes.array_dtype
     return mode_dtype
 
 

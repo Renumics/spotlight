@@ -355,7 +355,7 @@ class Mesh(FileMediaType):
                     f"{point_attr.dtype.name} received."
                 )
             point_attr = point_attr.squeeze()
-            if point_attr.shape[1:] not in gltf.GLTF_SHAPES_LOOKUP.keys():
+            if point_attr.shape[1:] not in gltf.GLTF_SHAPES_LOOKUP:
                 logger.warning(
                     f"Element shape {point_attr.shape[1:]} of the point "
                     f'attribute "{attr_name}" not supported, attribute will be '
@@ -387,7 +387,7 @@ class Mesh(FileMediaType):
                     f"{triangle_attr.dtype.name} received."
                 )
             triangle_attr = triangle_attr.squeeze()
-            if triangle_attr.shape[1:] not in gltf.GLTF_SHAPES_LOOKUP.keys():
+            if triangle_attr.shape[1:] not in gltf.GLTF_SHAPES_LOOKUP:
                 logger.warning(
                     f"Element shape {triangle_attr.shape[1:]} of the triangle "
                     f'attribute "{attr_name}" not supported, attribute will be '

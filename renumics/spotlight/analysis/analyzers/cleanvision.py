@@ -123,10 +123,13 @@ else:
                 if len(image_paths) == 0:
                     continue
 
-                with open(os.devnull, "w", encoding="utf-8") as devnull:
-                    with redirect_stdout(devnull), redirect_stderr(devnull):
-                        lab = cleanvision.Imagelab(filepaths=image_paths)
-                        lab.find_issues()
+                with (
+                    open(os.devnull, "w", encoding="utf-8") as devnull,
+                    redirect_stdout(devnull),
+                    redirect_stderr(devnull),
+                ):
+                    lab = cleanvision.Imagelab(filepaths=image_paths)
+                    lab.find_issues()
                 analysis = lab.issues
 
             indices = np.array(indices_list)

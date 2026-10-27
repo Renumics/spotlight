@@ -94,7 +94,7 @@ class HuggingfaceDataSource(DataSource):
 
         feature = self._dataset.features[column_name]
 
-        if isinstance(feature, datasets.Audio) or isinstance(feature, datasets.Image):
+        if isinstance(feature, (datasets.Audio, datasets.Image)):
             return np.array(
                 [
                     (
@@ -147,7 +147,7 @@ class HuggingfaceDataSource(DataSource):
             hf_dtype = feature.dtype
             if hf_dtype.startswith("duration"):
                 return raw_values.to_numpy().astype(int)
-            if hf_dtype.startswith("time32") or hf_dtype.startswith("time64"):
+            if hf_dtype.startswith(("time32", "time64")):
                 return raw_values.to_numpy().astype(str)
             if hf_dtype.startswith("timestamp[ns"):
                 return raw_values.to_numpy().astype(int)
@@ -171,35 +171,25 @@ def _get_intermediate_dtype(feature: _FeatureType) -> spotlight_dtypes.DType:
         hf_dtype = feature.dtype
         if hf_dtype == "bool":
             return spotlight_dtypes.bool_dtype
-        elif hf_dtype.startswith("int"):
-            return spotlight_dtypes.int_dtype
-        elif hf_dtype.startswith("uint"):
+        elif hf_dtype.startswith(("int", "uint")):
             return spotlight_dtypes.int_dtype
         elif hf_dtype.startswith("float"):
             return spotlight_dtypes.float_dtype
-        elif hf_dtype.startswith("time32"):
-            return spotlight_dtypes.str_dtype
-        elif hf_dtype.startswith("time64"):
+        elif hf_dtype.startswith(("time32", "time64")):
             return spotlight_dtypes.str_dtype
         elif hf_dtype.startswith("timestamp"):
             if hf_dtype.startswith("timestamp[ns"):
                 return spotlight_dtypes.int_dtype
             return spotlight_dtypes.datetime_dtype
-        elif hf_dtype.startswith("date32"):
-            return spotlight_dtypes.datetime_dtype
-        elif hf_dtype.startswith("date64"):
+        elif hf_dtype.startswith(("date32", "date64")):
             return spotlight_dtypes.datetime_dtype
         elif hf_dtype.startswith("duration"):
             return spotlight_dtypes.int_dtype
         elif hf_dtype.startswith("decimal"):
             return spotlight_dtypes.float_dtype
-        elif hf_dtype == "binary":
+        elif hf_dtype == "binary" or hf_dtype == "large_binary":
             return spotlight_dtypes.bytes_dtype
-        elif hf_dtype == "large_binary":
-            return spotlight_dtypes.bytes_dtype
-        elif hf_dtype == "string":
-            return spotlight_dtypes.str_dtype
-        elif hf_dtype == "large_string":
+        elif hf_dtype == "string" or hf_dtype == "large_string":
             return spotlight_dtypes.str_dtype
         else:
             logger.warning(f"Unsupported Hugging Face value dtype: {hf_dtype}.")
@@ -208,9 +198,7 @@ def _get_intermediate_dtype(feature: _FeatureType) -> spotlight_dtypes.DType:
         return spotlight_dtypes.CategoryDType(
             categories=cast(datasets.ClassLabel, feature).names
         )
-    elif isinstance(feature, datasets.Audio):
-        return spotlight_dtypes.file_dtype
-    elif isinstance(feature, datasets.Image):
+    elif isinstance(feature, (datasets.Audio, datasets.Image)):
         return spotlight_dtypes.file_dtype
     elif isinstance(feature, datasets.Sequence):
         inner_dtype = _get_intermediate_dtype(feature.feature)

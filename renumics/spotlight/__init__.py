@@ -34,7 +34,7 @@ df = pd.read_csv("https://raw.githubusercontent.com/Renumics/spotlight/refs/head
 spotlight.show(df, dtype={"image": dtypes.image_dtype})
 
 import datasets
-ds = datasets.load_dataset("mnist", split="test")
+ds = datasets.load_dataset("ylecun/mnist", split="test")
 spotlight.show(ds)
 ```
 
@@ -86,7 +86,7 @@ if not settings.verbose:
 
 __plugins__ = load_plugins()
 
-__all__ = ["show", "close", "viewers", "Viewer", "clear_caches", "DataIssue"]
+__all__ = ["DataIssue", "Viewer", "clear_caches", "close", "show", "viewers"]
 
 
 def clear_caches() -> None:
