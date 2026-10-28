@@ -10,7 +10,9 @@ from pydantic import BaseModel
 
 from renumics.spotlight.backend.exceptions import (
     FilebrowsingNotAllowed,
+    InvalidPath,
 )
+from renumics.spotlight.io.path import is_path_relative_to
 
 router = APIRouter()
 
@@ -45,7 +47,7 @@ class Folder(BaseModel):
     summary="File Browser API",
     operation_id="get_folder",
 )
-async def get_folder(path: str, request: Request) -> Folder:
+def get_folder(path: str, request: Request) -> Folder:
     """
     fetch a folder
     """
@@ -53,14 +55,20 @@ async def get_folder(path: str, request: Request) -> Folder:
     if not request.app.filebrowsing_allowed:
         raise FilebrowsingNotAllowed()
 
-    full_path = Path(request.app.project_root) / path
-    relative_path = full_path.relative_to(request.app.project_root)
+    project_root = Path(request.app.project_root).resolve()
+    full_path = (project_root / path).resolve()
+
+    # assert that the path is inside our project root
+    if not is_path_relative_to(full_path, project_root):
+        raise InvalidPath(path)
+
+    relative_path = full_path.relative_to(project_root)
 
     name = full_path.name
     files = [
         {
             "name": f.name,
-            "path": str(f.relative_to(request.app.project_root)),
+            "path": str(f.relative_to(project_root)),
             "type": "file" if f.is_file() else "folder",
             "size": f.stat().st_size if f.is_file() else 0,
         }

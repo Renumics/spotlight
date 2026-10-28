@@ -9,10 +9,10 @@ from renumics.spotlight.typing import PathType
 
 def is_path_relative_to(path: PathType, parent: PathType) -> bool:
     """
-    Is the path a subpath of the parent
+    Is the path a subpath of the parent (after resolving symlinks and `..`)
     """
     try:
-        Path(path).relative_to(parent)
+        Path(path).resolve().relative_to(Path(parent).resolve())
         return True
     except ValueError:
         return False
