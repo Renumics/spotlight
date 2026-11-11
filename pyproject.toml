@@ -49,6 +49,7 @@ dependencies = [
     "click",
     "h5py>3.0",
     "requests>=2.31",
+    "urllib3>=2",
     "umap-learn",
     "httptools",
     "uvloop>=0.17.0; sys_platform == 'Linux' or sys_platform == 'Darwin'",

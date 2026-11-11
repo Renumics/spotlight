@@ -1,11 +1,10 @@
 import os
 
 import numpy as np
-import requests
 import validators
 
 from renumics.spotlight.media.base import FileMediaType
-from renumics.spotlight.requests import headers
+from renumics.spotlight.requests import fetch_url
 from renumics.spotlight.typing import PathType
 
 from ..media import exceptions
@@ -42,9 +41,7 @@ class Video(FileMediaType):
                 f"received."
             )
         if validators.url(prepared_file):
-            response = requests.get(
-                prepared_file, headers=headers, stream=True, timeout=10
-            )
+            response = fetch_url(prepared_file, stream=True, timeout=10)
             if not response.ok:
                 raise exceptions.InvalidFile(f"URL {prepared_file} does not exist.")
             return cls(response.raw.data)

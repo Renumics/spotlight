@@ -31,6 +31,7 @@ from renumics.spotlight.media.image import Image
 from renumics.spotlight.media.mesh import Mesh
 from renumics.spotlight.media.sequence_1d import Sequence1D
 from renumics.spotlight.media.video import Video
+from renumics.spotlight.requests import BlockedMediaURL, fetch_url
 from renumics.spotlight.typing import is_iterable, is_pathtype
 
 
@@ -344,8 +345,8 @@ def _guess_value_dtype(value: Any) -> spotlight_dtypes.DType | None:
                 mimetype = kind.mime
         elif isinstance(value, str) and validators.url(value):
             try:
-                response = requests.head(value, timeout=1)
-            except requests.ReadTimeout:
+                response = fetch_url(value, method="HEAD", timeout=1)
+            except (requests.ReadTimeout, BlockedMediaURL):
                 ...
             else:
                 if response.ok:
