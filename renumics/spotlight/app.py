@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from httpx import URL, AsyncClient
+from starlette.middleware.cors import CORSMiddleware
 from websockets.asyncio.client import connect as connect_websocket
 from websockets.typing import Subprotocol
 
@@ -35,6 +36,7 @@ from renumics.spotlight.backend.apis import plugins as plugin_api
 from renumics.spotlight.backend.apis import websocket
 from renumics.spotlight.backend.config import Config
 from renumics.spotlight.backend.exceptions import Problem
+from renumics.spotlight.backend.middlewares.origins import AllowedOriginsMiddleware
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
@@ -149,6 +151,18 @@ class SpotlightApp(FastAPI):
 
     def __init__(self) -> None:
         super().__init__(lifespan=_lifespan)
+        self.add_middleware(
+            CORSMiddleware,
+            allow_origins=settings.allowed_origins,
+            allow_credentials=True,
+            allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"],
+            allow_headers=["Content-Type"],
+        )
+        self.add_middleware(
+            AllowedOriginsMiddleware,
+            allowed_origins=settings.allowed_origins,
+            server_origin=os.environ.get("_SPOTLIGHT_SERVER_ORIGIN"),
+        )
         self.task_manager = TaskManager()
         self.websocket_manager = None
         self.config = Config()
