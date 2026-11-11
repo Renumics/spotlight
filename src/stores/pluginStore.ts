@@ -40,9 +40,14 @@ const usePluginStore = create<State>()((set) => ({
             };
 
             if (pluginInfo.entrypoint) {
+                // Backend entrypoints are relative to the packaged frontend
+                // directory, even when this module is served from Vite's sources.
                 const moduleUrl = pluginInfo.dev
                     ? '/src/main.tsx'
-                    : pluginInfo.entrypoint;
+                    : new URL(
+                          pluginInfo.entrypoint,
+                          new URL('static/', window.location.href)
+                      ).href;
 
                 try {
                     const { default: mod } = await import(/* @vite-ignore */ moduleUrl);
