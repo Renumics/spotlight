@@ -51,8 +51,11 @@ class Settings(BaseSettings):
     opt_in: bool = False
     layout: str | None = None
     allowed_origins: list[str] = []
+    csp_report_only: bool = False
+    csp_script_origins: list[str] = []
+    csp_connect_origins: list[str] = []
 
-    @field_validator("allowed_origins")
+    @field_validator("allowed_origins", "csp_script_origins", "csp_connect_origins")
     @classmethod
     def validate_allowed_origins(cls, values: list[str]) -> list[str]:
         """Reject ambiguous origins and fail early on invalid configuration."""

@@ -101,6 +101,21 @@ internationalized hostnames. These origins also receive credentialed CORS access
 configuration; sandboxed iframes need `allow-same-origin`. Native HTTP clients
 can omit `Origin`; WebSocket clients must supply it. This is not authentication.
 
+## Content security policy
+
+The frontend blocks inline script handlers and `eval`, including in the HTML
+(unsafe) lens. Iframes and same-origin plugins remain supported. For plugins
+that need external scripts or API connections, allow specific origins:
+
+```bash
+export SPOTLIGHT_CSP_SCRIPT_ORIGINS='["https://plugins.example.com"]'
+export SPOTLIGHT_CSP_CONNECT_ORIGINS='["https://api.example.com"]'
+```
+
+Connection origins also allow matching WebSockets. For compatibility debugging,
+`SPOTLIGHT_CSP_REPORT_ONLY=true` logs violations without enforcing the policy.
+Restart Spotlight after changing these settings.
+
 ## Disclaimer
 
 ??? note "Usage Tracking"
