@@ -86,6 +86,20 @@ layout = spotlight.layouts.debug_classification(embedding='embedding', inspect={
 spotlight.show(ds, dtype={'embedding': spotlight.Embedding}, layout=layout )
 ```
 
+## External media and internal networks
+
+Media and layout URLs can only reach public IP addresses by default, including
+on redirects. To allow an internal server, set IP addresses or CIDRs:
+
+```bash
+export SPOTLIGHT_ALLOWED_INTERNAL_NETWORKS='["192.168.1.30", "10.20.0.0/16"]'
+```
+
+Use the smallest network needed: datasets can access services in that network.
+Local filesystem paths still work. Downloads ignore environment proxies and
+`.netrc`; custom CA bundle environment variables remain supported. Audio
+playlists cannot fetch nested network URLs.
+
 ## Disclaimer
 
 ??? note "Usage Tracking"
