@@ -9,11 +9,11 @@
         {% endif %}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Spotlight</title>
-        <script type="module">
+        <script type="module" nonce="{{ csp_nonce }}">
             window.__filebrowsing_allowed__ = {{"true" if filebrowsing_allowed else "false"}}
         </script>
         {% if dev %}
-        <script type="module">
+        <script type="module" nonce="{{ csp_nonce }}">
             import RefreshRuntime from '/@react-refresh';
             RefreshRuntime.injectIntoGlobalHook(window);
             window.$RefreshReg$ = () => {};
@@ -30,7 +30,7 @@
         ></script>
         {% endif %} {% endif %}
     </head>
-    <body oncontextmenu="return false;">
+    <body>
         <div id="root"></div>
         <div id="modalRoot" />
         <div id="popupRoot" />

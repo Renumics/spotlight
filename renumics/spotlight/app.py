@@ -7,6 +7,7 @@ import mimetypes
 import multiprocessing.connection
 import os
 import re
+import secrets
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -38,6 +39,7 @@ from renumics.spotlight.backend.config import Config
 from renumics.spotlight.backend.exceptions import Problem
 from renumics.spotlight.backend.middlewares.origins import AllowedOriginsMiddleware
 from renumics.spotlight.backend.middlewares.timing import add_timing_middleware
+from renumics.spotlight.backend.security import content_security_policy
 from renumics.spotlight.backend.tasks.task_manager import TaskManager
 from renumics.spotlight.backend.websockets import (
     Message,
@@ -267,6 +269,7 @@ class SpotlightApp(FastAPI):
         def _(
             request: Request, browser_id: Annotated[str | None, Cookie()] = None
         ) -> Any:
+            nonce = secrets.token_urlsafe(24)
             response = templates.TemplateResponse(
                 request=request,
                 name="index.html",
@@ -275,8 +278,18 @@ class SpotlightApp(FastAPI):
                     "dev": settings.dev,
                     "dev_location": get_project_info().type,
                     "filebrowsing_allowed": request.app.filebrowsing_allowed,
+                    "csp_nonce": nonce,
                 },
             )
+            header = (
+                "Content-Security-Policy-Report-Only"
+                if settings.csp_report_only
+                else "Content-Security-Policy"
+            )
+            response.headers[header] = content_security_policy(
+                nonce, str(request.base_url), settings
+            )
+            response.headers["Cache-Control"] = "no-store"
             response.set_cookie(
                 "browser_id",
                 browser_id or str(uuid.uuid4()),
