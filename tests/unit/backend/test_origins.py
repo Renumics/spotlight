@@ -11,6 +11,7 @@ from starlette.testclient import TestClient
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from renumics.spotlight.backend.middlewares.origins import AllowedOriginsMiddleware
+from renumics.spotlight.settings import Settings
 
 APP_ORIGIN = "https://spotlight.example"
 PORTAL_ORIGIN = "https://portal.example"
@@ -106,3 +107,11 @@ def test_cors_only_grants_access_to_configured_origins(client: TestClient) -> No
     response = client.options("/", headers=headers)
     assert response.status_code == 400
     assert "access-control-allow-origin" not in response.headers
+
+
+def test_unicode_origin_cannot_authorize_a_different_ascii_domain() -> None:
+    with pytest.raises(ValueError, match="punycode"):
+        Settings(allowed_origins=["https://faß.example"])
+    assert Settings(allowed_origins=["https://xn--fa-hia.example"]).allowed_origins == [
+        "https://xn--fa-hia.example"
+    ]

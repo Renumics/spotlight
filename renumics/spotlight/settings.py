@@ -10,6 +10,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def normalize_origin(value: str) -> str:
     """Validate an HTTP origin and normalize its hostname and default port."""
+    if not value.isascii():
+        raise ValueError(
+            "Origins must be ASCII; use punycode for internationalized hostnames"
+        )
     if any(char.isspace() for char in value) or any(char in value for char in "*\\%"):
         raise ValueError("Origins must be full HTTP(S) origins without wildcards")
     parsed = urlsplit(value)
@@ -26,7 +30,7 @@ def normalize_origin(value: str) -> str:
         raise ValueError(
             "Origins must contain only a scheme, hostname and optional port"
         )
-    hostname = parsed.hostname.encode("idna").decode("ascii").lower()
+    hostname = parsed.hostname.lower()
     if ":" in hostname:
         hostname = f"[{hostname}]"
     port = parsed.port

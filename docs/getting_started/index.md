@@ -95,8 +95,8 @@ default. To allow other origins, set a JSON list before starting Spotlight:
 export SPOTLIGHT_ALLOWED_ORIGINS='["https://portal.example.com"]'
 ```
 
-Use full HTTP(S) origins without paths or wildcards. These origins also receive
-credentialed CORS access. Behind a reverse proxy or a wildcard listener such as
+Use full HTTP(S) origins without paths or wildcards, and punycode for
+internationalized hostnames. These origins also receive credentialed CORS access. Behind a reverse proxy or a wildcard listener such as
 `0.0.0.0`, include Spotlight's public origin. A normal iframe needs no extra
 configuration; sandboxed iframes need `allow-same-origin`. Native HTTP clients
 can omit `Origin`; WebSocket clients must supply it. This is not authentication.
