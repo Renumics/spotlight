@@ -38,7 +38,7 @@
 
           export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [
             pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ffmpeg_9-headless
-          ]}:$LD_LIBRARY_PATH
+          ]}
 
           export PIP_IGNORE_INSTALLED=1
 
@@ -58,6 +58,10 @@
           export PATH="$VIRTUAL_ENV/bin:$PATH"
           export UV_ACTIVE=1
           export VIRTUAL_ENV
+
+          # Sync dependencies before running pre-commit. Explicitly select this
+          # flake's Python so uv recreates .venv when its interpreter changes.
+          uv sync --active --python "${pkgs.python312}/bin/python3" || return
 
           pre-commit install -f
 
