@@ -61,7 +61,7 @@ repos:
 
     # third-pary hooks
     - repo: https://github.com/python-jsonschema/check-jsonschema
-      rev: 0.37.1
+      rev: 0.39.0
       hooks:
           - id: check-github-actions
           - id: check-github-workflows
