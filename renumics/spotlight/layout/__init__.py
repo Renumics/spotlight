@@ -14,6 +14,7 @@ import validators
 from pydantic import ValidationError
 
 from renumics.spotlight.backend.exceptions import InvalidLayout
+from renumics.spotlight.requests import fetch_url
 
 from .lenses import Lens
 from .nodes import (
@@ -161,7 +162,7 @@ def parse(layout_: _LayoutLike) -> Layout:
 
     if isinstance(layout_, str) and validators.url(layout_):
         try:
-            resp = requests.get(str(layout_), timeout=20)
+            resp = fetch_url(str(layout_), timeout=20)
             return Layout(**resp.json())
         except (ValidationError, requests.JSONDecodeError) as e:
             raise InvalidLayout() from e

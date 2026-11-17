@@ -6,13 +6,12 @@ from urllib.parse import urlparse
 
 import numpy as np
 import pygltflib
-import requests
 import trimesh
 import validators
 from loguru import logger
 
 from renumics.spotlight.media.base import Array2dLike, FileMediaType
-from renumics.spotlight.requests import headers
+from renumics.spotlight.requests import fetch_url
 from renumics.spotlight.typing import PathType
 
 from ..io import gltf
@@ -141,7 +140,7 @@ class Mesh(FileMediaType):
         extension = None
         if isinstance(file, str):
             if validators.url(file):
-                response = requests.get(file, headers=headers, timeout=30)
+                response = fetch_url(file, timeout=30)
                 if not response.ok:
                     raise exceptions.InvalidFile(f"URL {file} does not exist.")
                 extension = os.path.splitext(urlparse(file).path)[1]

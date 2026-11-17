@@ -8,11 +8,10 @@ import os
 from collections.abc import Iterator
 from typing import IO
 
-import requests
 import validators
 
 from renumics.spotlight.media import exceptions
-from renumics.spotlight.requests import headers
+from renumics.spotlight.requests import fetch_url
 from renumics.spotlight.typing import FileType
 
 
@@ -26,7 +25,7 @@ def as_file(filepath: FileType) -> Iterator[IO]:
     if isinstance(filepath, (str, os.PathLike)):
         str_filepath = str(filepath)
         if validators.url(str_filepath):
-            response = requests.get(str_filepath, headers=headers, timeout=30)
+            response = fetch_url(str_filepath, timeout=30)
             if not response.ok:
                 raise exceptions.InvalidFile(f"URL {str_filepath} does not exist.")
             with io.BytesIO(response.content) as file:

@@ -9,10 +9,9 @@ from typing import IO, cast
 import av
 import av.audio
 import numpy as np
-import requests
 import validators
 
-from renumics.spotlight.requests import headers
+from renumics.spotlight.requests import fetch_url
 from renumics.spotlight.typing import FileType
 
 # Some AV warning messages have ERROR level and can be confusing.
@@ -72,7 +71,7 @@ def prepare_input_file(
         # Assume that `file` is file-like.
         return file
     if validators.url(file):
-        response = requests.get(file, headers=headers, stream=True, timeout=timeout)
+        response = fetch_url(file, stream=True, timeout=timeout)
         if response.ok:
             if not reusable:
                 return response.raw  # type: ignore[return-value]
@@ -96,7 +95,9 @@ def read_audio(file: FileType) -> tuple[np.ndarray, int]:
         sampling_rate: Sampling rate of the audio data.
     """
     file = prepare_input_file(file)
-    with av.open(file, "r") as container:
+    with av.open(
+        file, "r", options={"protocol_whitelist": "file,pipe,data"}
+    ) as container:
         stream = container.streams.audio[0]
         num_channels = stream.codec_context.channels
         sampling_rate = stream.codec_context.rate
@@ -171,7 +172,9 @@ def transcode_audio(
     input_file = prepare_input_file(input_file)
     if isinstance(output_file, os.PathLike):
         output_file = str(output_file)
-    with av.open(input_file, "r") as input_container:
+    with av.open(
+        input_file, "r", options={"protocol_whitelist": "file,pipe,data"}
+    ) as input_container:
         input_stream = input_container.streams.audio[0]
         with av.open(output_file, "w", output_format) as output_container:
             output_stream = output_container.add_stream(output_codec)
@@ -190,7 +193,9 @@ def get_format_codec(file: FileType) -> tuple[str, str]:
     Get audio format and audio codec of an audio file.
     """
     file = prepare_input_file(file)
-    with av.open(file, "r") as input_container:
+    with av.open(
+        file, "r", options={"protocol_whitelist": "file,pipe,data"}
+    ) as input_container:
         stream = input_container.streams.audio[0]
         return input_container.format.name, cast(str, stream.name)
 
