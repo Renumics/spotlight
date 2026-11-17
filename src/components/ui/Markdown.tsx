@@ -1,4 +1,5 @@
 import showdown from 'showdown';
+import DOMPurify from 'dompurify';
 import { useMemo } from 'react';
 
 import Html from './Html';
@@ -9,7 +10,7 @@ interface Props {
 
 const Markdown = ({ content }: Props): JSX.Element => {
     const html = useMemo(() => {
-        return new showdown.Converter().makeHtml(content);
+        return DOMPurify.sanitize(new showdown.Converter().makeHtml(content));
     }, [content]);
     return <Html html={html} />;
 };
