@@ -86,6 +86,21 @@ layout = spotlight.layouts.debug_classification(embedding='embedding', inspect={
 spotlight.show(ds, dtype={'embedding': spotlight.Embedding}, layout=layout )
 ```
 
+## Allowed origins and embedding
+
+Browser API writes and WebSocket connections accept Spotlight's own origin by
+default. To allow other origins, set a JSON list before starting Spotlight:
+
+```bash
+export SPOTLIGHT_ALLOWED_ORIGINS='["https://portal.example.com"]'
+```
+
+Use full HTTP(S) origins without paths or wildcards, and punycode for
+internationalized hostnames. These origins also receive credentialed CORS access. Behind a reverse proxy or a wildcard listener such as
+`0.0.0.0`, include Spotlight's public origin. A normal iframe needs no extra
+configuration; sandboxed iframes need `allow-same-origin`. Native HTTP clients
+can omit `Origin`; WebSocket clients must supply it. This is not authentication.
+
 ## Disclaimer
 
 ??? note "Usage Tracking"

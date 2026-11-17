@@ -161,6 +161,10 @@ class Server:
         sock.bind((self._host, self._port))
         self._port = sock.getsockname()[1]
 
+        scheme = "https" if self._ssl_certfile is not None else "http"
+        host = f"[{self._host}]" if ":" in self._host else self._host
+        env["_SPOTLIGHT_SERVER_ORIGIN"] = f"{scheme}://{host}:{self._port}"
+
         command = [
             sys.executable,
             "-m",
